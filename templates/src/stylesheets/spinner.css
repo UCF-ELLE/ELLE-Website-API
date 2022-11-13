@@ -1,0 +1,9 @@
+.spinner {
+    margin-top: 10px;
+}
+  
+.spinner > div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
