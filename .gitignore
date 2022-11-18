@@ -3,3 +3,5 @@ deletes
 uploads
 .vscode/
 templates/node_modules
+.DS_Store
+.env
