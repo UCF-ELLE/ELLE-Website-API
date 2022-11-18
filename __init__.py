@@ -58,12 +58,12 @@ jwt = JWTManager(app)
 
 @jwt.unauthorized_loader
 def unauthorized(self):
-	resp = Response(render_template('templates/build/index.html'), mimetype='text/html')
+	resp = Response(render_template('build/index.html'), mimetype='text/html')
 	return resp
 
 @app.errorhandler(404)
 def page_not_found(e):
-	resp = Response(render_template('templates/build/index.html'), mimetype='text/html')
+	resp = Response(render_template('build/index.html'), mimetype='text/html')
 	return resp
 
 
@@ -86,7 +86,7 @@ API_ENDPOINT_PREFIX = '/elleapi/'
 
 class HomePage(Resource):
 	def get(self):
-		resp = Response(render_template('templates/build/index.html'), mimetype='text/html')
+		resp = Response(render_template('build/index.html'), mimetype='text/html')
 		return resp
 
 
