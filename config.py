@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # API endpoint prefixes
 #API_ENDPOINT_PREFIX = '/api/'
@@ -40,9 +43,9 @@ HAND_PREFERENCES = ['R', 'L', 'A']
 TERM_GENDERS = ['M', 'F', 'N']
 
 # Redis Configuration
-REDIS_HOST = "localhost"
-REDIS_PORT = 6379
-REDIS_CHARSET = "utf-8"
+#REDIS_HOST = "localhost"
+#REDIS_PORT = 6379
+#REDIS_CHARSET = "utf-8"
 
 # SMTP server configuration
 SMTP_SERVER = os.getenv('SMTP_SERVER') if os.getenv('SMTP_SERVER') else "localhost"
