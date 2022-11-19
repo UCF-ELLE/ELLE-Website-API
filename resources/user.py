@@ -209,6 +209,40 @@ class UserLogin(Resource):
                 cursor.close()
                 conn.close()
 
+#saves the user's preferred mentor
+class SaveMentorPreference(Resource):
+    def post(self):
+        data = {}
+        data['mentor_name'] = getParameter("mentor_name", str, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            updated = store_mentor_preferences(user_id, data['mentor_name'], conn, cursor)
+
+            if updated:
+                raise ReturnSuccess('Mentor preference updated.', 200)
+            else:
+                raise ReturnSuccess('Mentor preference created.', 201)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if(conn.open):
+                cursor.close()
+                conn.close()
+
 #register the user to the database
 class UserRegister(Resource):
     def post(self):
