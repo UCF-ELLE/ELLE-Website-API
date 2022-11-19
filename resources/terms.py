@@ -18,7 +18,7 @@ from exceptions_util import *
 import os
 import time
 import requests
-
+# requests is unused, probably the same as flask requests
 
 class Term(Resource):
     """APIs that deal with adding, retrieving, and deleting a term"""
