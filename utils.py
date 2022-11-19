@@ -190,6 +190,7 @@ def check_mentor_preferences(_id):
             return True
 
     return False
+
 def store_mentor_preferences(_id, mentor_name, conn, cursor):
 
     if(check_mentor_preferences(_id)):
