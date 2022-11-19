@@ -17,6 +17,7 @@ import AuthAdmin from './components/Auth/AuthAdmin';
 import ForgotUsername from './pages/ForgotUsername';
 import ForgotPassword from './pages/ForgotPassword'; 
 import ResetPassword from './pages/ResetPassword'; 
+import CardGame from './pages/CardGame';
 
 let flaskIP = '/elleapi';
 //flaskIP = '127.0.0.1:5050'; 
@@ -51,6 +52,7 @@ class App extends Component {
             <Route path="/forgotusername" render={(props)=><ForgotUsername {...props} serviceIP={flaskIP}/>}/>
             <Route path="/forgotpassword" render={(props)=><ForgotPassword {...props} serviceIP={flaskIP}/>}/>
             <Route path="/resetpassword" render={(props)=><ResetPassword {...props} serviceIP={flaskIP}/>}/>
+            <Route path="/cardgame" render={(props)=><CardGame {...props} serviceIP={flaskIP}/>}/>
             <AuthUser>   
               <Route path="/profile" render={(props)=><Profile {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
               <Route path="/modules" render={(props)=><Modules {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
