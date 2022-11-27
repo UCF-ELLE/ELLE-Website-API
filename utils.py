@@ -180,6 +180,23 @@ def check_user_db(_id):
 
     return False
 
+def get_mentor_preference(_id, conn, cursor):
+    query = "SELECT mentorName FROM mentor_preferences WHERE userID = %s"
+    result = getFromDB(query, _id)
+
+    return result
+
+def store_mentor_preference(_id, mentor_name, conn, cursor):
+
+    if(len(get_mentor_preference(_id, conn, cursor)) > 0):
+        query = "UPDATE mentor_preferences SET mentorName = %s WHERE userID = %s"
+        postToDB(query, (mentor_name, _id), conn, cursor)
+        return True
+    else:
+        query = "INSERT INTO mentor_preferences (`userID`, `mentorName`) VALUES (%s, %s)"
+        postToDB(query, (_id, mentor_name), conn, cursor)
+        return False
+
 #TODO: GOT TO CHANGE THIS LOGIC AS GROUPID ISN'T REQUIRED - JUST THE groupCode
 def check_group_db(id, password):
     query = "SELECT * FROM `group` WHERE `groupID` = %s"
