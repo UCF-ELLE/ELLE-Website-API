@@ -30,7 +30,7 @@ from resources.access import Access
 from resources.group import (Group, GroupRegister, SearchUserGroups, 
 							 UsersInGroup, GenerateGroupCode)
 from resources.logged_answer import LoggedAnswer, GetLoggedAnswerCSV
-from resources.mentors import MentorPreference
+from resources.mentors import MentorPreference, StudentResponses
 import os.path
 import config
 
@@ -169,6 +169,7 @@ api.add_resource(ForgotPassword, API_ENDPOINT_PREFIX+'forgotpassword', resource_
 api.add_resource(ChangePassword, API_ENDPOINT_PREFIX+'changepassword')
 api.add_resource(ForgotUsername, API_ENDPOINT_PREFIX+'forgotusername', resource_class_kwargs={'mail' : mail})
 api.add_resource(MentorPreference, API_ENDPOINT_PREFIX + 'mentorpreference')
+api.add_resource(StudentResponses, API_ENDPOINT_PREFIX + 'studentresponses')
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port='5050', debug=True)
