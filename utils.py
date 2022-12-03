@@ -182,7 +182,7 @@ def check_user_db(_id):
 
 def get_mentor_preference(_id, conn, cursor):
     query = "SELECT mentorName FROM mentor_preferences WHERE userID = %s"
-    result = getFromDB(query, _id)
+    result = getFromDB(query, _id, conn, cursor)
 
     return result
 
@@ -195,6 +195,22 @@ def store_mentor_preference(_id, mentor_name, conn, cursor):
     else:
         query = "INSERT INTO mentor_preferences (`userID`, `mentorName`) VALUES (%s, %s)"
         postToDB(query, (_id, mentor_name), conn, cursor)
+        return False
+
+def get_student_response(_id, question_id, conn, cursor):
+    query = "SELECT response FROM mentor_responses WHERE userID = %s AND questionID = %s"
+    result = getFromDB(query, (_id, question_id), conn, cursor)
+
+    return result
+def store_student_response(_id, question_id, response, conn, cursor):
+
+    if(len(get_mentor_preference(_id, conn, cursor)) > 0):
+        query = "UPDATE mentor_responses SET response = %s WHERE userID = %s AND questionID = %s"
+        postToDB(query, (response, _id, question_id), conn, cursor)
+        return True
+    else:
+        query = "INSERT INTO mentor_responses (`userID`, `questionID`, `response`) VALUES (%s, %s, %s)"
+        postToDB(query, (_id, question_id, response), conn, cursor)
         return False
 
 #TODO: GOT TO CHANGE THIS LOGIC AS GROUPID ISN'T REQUIRED - JUST THE groupCode
