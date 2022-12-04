@@ -23,6 +23,9 @@ from config import (IMAGE_EXTENSIONS, AUDIO_EXTENSIONS, TEMP_DELETE_FOLDER,
                     TEMP_UPLOAD_FOLDER, IMG_UPLOAD_FOLDER, AUD_UPLOAD_FOLDER,
                     IMG_RETRIEVE_FOLDER, AUD_RETRIEVE_FOLDER,
                     PERMISSION_LEVELS, PERMISSION_GROUPS, ACCESS_LEVELS)
+# this line was missing and causing redis_host to cause errors
+from config import REDIS_HOST, REDIS_PORT, REDIS_CHARSET
+
 
 ########################################################################################
 # TERM FUNCTIONS
@@ -67,6 +70,7 @@ def addNewTags(tagList, termID, conn=None, cursor=None):
         result = getFromDB(query, (termID, str(tag).lower()), conn, cursor)
         if result:
             if DEBUG:
+            #DEBUG Here is not defined ?
                 print(result)
                 print("Trying to insert a duplicate tag")
         else:
