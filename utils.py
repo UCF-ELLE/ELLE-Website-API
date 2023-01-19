@@ -186,7 +186,7 @@ def check_user_db(_id):
 
 def get_mentor_preference(_id, conn, cursor):
     query = "SELECT mentorName FROM mentor_preferences WHERE userID = %s"
-    result = getFromDB(query, _id)
+    result = getFromDB(query, _id, conn, cursor)
 
     return result
 
@@ -200,6 +200,49 @@ def store_mentor_preference(_id, mentor_name, conn, cursor):
         query = "INSERT INTO mentor_preferences (`userID`, `mentorName`) VALUES (%s, %s)"
         postToDB(query, (_id, mentor_name), conn, cursor)
         return False
+
+def get_student_response(_id, question_id, conn, cursor):
+    query = "SELECT * FROM mentor_responses WHERE userID = %s AND questionID = %s"
+    result = getFromDB(query, (_id, question_id), conn, cursor)
+
+    return result
+
+def store_student_response(_id, question_id, response, conn, cursor, mc_id=None):
+
+    if(len(get_student_response(_id, question_id, conn, cursor)) > 0):
+        query = "UPDATE mentor_responses SET response = %s, multipleChoiceID = %s WHERE userID = %s AND questionID = %s"
+        postToDB(query, (response, mc_id, _id, question_id), conn, cursor)
+        return True
+    else:
+        query = "INSERT INTO mentor_responses (`userID`, `questionID`, `response`, `multipleChoiceID`) VALUES (%s, %s, %s, %s)"
+        postToDB(query, (_id, question_id, response, mc_id), conn, cursor)
+        return False
+
+def store_mentor_question(type, question_text, conn, cursor, mc_options):
+    if(type == "MENTOR_FR"):
+        query = "INSERT INTO question (`type`, `questionText`) VALUES (%s, %s)"
+        postToDB(query, (type, question_text), conn, cursor)
+        return True
+    else:
+        query = "INSERT INTO question (`type`, `questionText`) VALUES (%s, %s)"
+        postToDB(query, (type, question_text), conn, cursor)
+
+        query = "SELECT questionID FROM question WHERE type = %s AND questionText = %s"
+        questionID = getFromDB(query, (type, question_text), conn, cursor)
+
+        for answerChoice in mc_options:
+            query = "INSERT INTO multiple_choice_answers (`questionID`, `answerChoice`) VALUES (%s, %s)"
+            postToDB(query, (questionID[0], answerChoice), conn, cursor)
+        return False
+
+def modify_mentor_question(question_id, question_text, conn, cursor):
+    query = "UPDATE question SET question = %s WHERE questionID = %s"
+    postToDB(query, (question_text, question_id), conn, cursor)
+    return True;
+
+def get_mentor_questions(conn, cursor):
+    query = "SELECT * FROM question"
+    return getFromDB(query, None, conn, cursor)
 
 #TODO: GOT TO CHANGE THIS LOGIC AS GROUPID ISN'T REQUIRED - JUST THE groupCode
 def check_group_db(id, password):
