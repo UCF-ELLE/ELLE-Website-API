@@ -7,7 +7,7 @@
 CREATE DATABASE elle_database;
 USE elle_database;
 source schema.sql;
-CREATE USER 'elle'@'localhost' IDENTIFIED BY '[INSERT PASSWORD!]';
+CREATE USER 'elle'@'localhost' IDENTIFIED BY 'INSERT_PASSWORD';
 GRANT INSERT, UPDATE, DELETE, SELECT ON elle_database.* TO 'elle'@'localhost';
 ```
   * Ensure the permissions were granted to the new user by running `show grants for 'elle'@'localhost';`
@@ -17,27 +17,64 @@ apt install nodejs npm
 apt install python3
 apt install python3-pip
 ```
-6. Clone the GitHub repo: `git clone https://github.com/Naton-1/ELLE-2023-Website-API.git`
-7. Go into `ELLE-2023-Website-API/templates` then build the React website:
+6. Clone the GitHub repo: `git clone https://github.com/Naton-1/ELLE-2023-Website-API.git` into this directory: `/var/www/
+7.  Go into `ELLE-2023-Website-API/` then install the Python requirements:
+```
+pip3 install -r requirements.txt
+```
+8. Create a environment variable file in the same directory:
+```
+touch .env
+```
+9. Paste this content into the file, replacing "INSERT_PASSWORD" with the MySQL user password you created in step 4:
+```
+MYSQL_DATABASE_USER = 'elle'
+MYSQL_DATABASE_PASSWORD = 'INSERT_PASSWORD'
+MYSQL_DATABASE_DB = 'elle_database'
+MYSQL_DATABASE_HOST = 'localhost'
+SECRET_KEY = 'ian'
+```
+  * Note: What `SECRET_KEY` does is a mystery
+10. Go into `ELLE-2023-Website-API/templates` then build the React website:
 ```
 npm install
 npm run build
 ```
-8. Go into `ELLE-2023-Website-API/` then install the Python requirements:
-```
-pip3 install -r requirements.txt
-```
-9. Launch a new screen in order to keep the API running while doing other things inside the SSH session:
+11. Launch a new screen so you can keep the API running while doing other things inside the SSH session:
 ```
 screen
 ```
-10. Finally, to launch the API go into `ELLE-2023-Website-API/` then run
+12. Finally, to launch the API go into `ELLE-2023-Website-API/` then run
 ```
 python3 __init__.py
 ```
-11. Press `Ctrl + Alt + D` to get out of the screen while leaving the API running.
+13. Press `Ctrl + Alt + D` to get out of the screen while leaving the API running.
+14. Now we need to configure an Apache site file so our site serves up the correct content. Go to `etc/apache2/sites-available` and create a site file:
+```
+touch elle-flask-app.conf
+```
+15. Paste this content into the file:
+```
+<VirtualHost *:80>
+    ServerName INSERT_YOUR_DROPLET'S_IP_ADDRESS
+    DocumentRoot /var/www/ELLE-2023-Website-API/templates/build
 
-TODO: Write Apache section.
+    <Directory /var/www/ELLE-2023-Website-API/>
+        Order allow,deny
+        Allow from all
+    </Directory>
+    
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    LogLevel warn
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+16. Enable the site file:
+```
+a2ensite elle-flask-app
+sudo systemctl reload apache2
+```
+17. You should now be able to go to your droplet's IP address and see the ELLE site up.
 
 ## Troubleshooting
 If you can't connect to the API, check that the Ubuntu firewall isn't blocking the API port:
