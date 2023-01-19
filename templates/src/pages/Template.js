@@ -4,9 +4,9 @@ import {Link} from 'react-router-dom';
 export default class Template extends React.Component {
   constructor(props) {
     super(props);
-  }  
+  }
 
-  render() { 
+  render() {
     return (
       <header id="header">
       <div className="container">
@@ -18,6 +18,7 @@ export default class Template extends React.Component {
         </div>
         <nav id="nav-menu-container">
           <ul className="nav-menu">
+            <li><Link to= '/CardGame'>Card Game </Link></li>
             <li><Link to='/downloads'>Downloads</Link></li>
             <li><Link to='mazegame'>Maze</Link></li>
             <li><Link to='/profile'>Profile</Link></li>
