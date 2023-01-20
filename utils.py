@@ -120,8 +120,8 @@ def validate_permissions():
 
     permission = permission['permission']
     if not user_id or user_id == '' or \
-       not permission or permission == '' or \
-       permission not in PERMISSION_LEVELS:
+        not permission or permission == '' or \
+        permission not in PERMISSION_LEVELS:
         return None, None
     else:
         return permission, user_id
@@ -184,6 +184,46 @@ def check_user_db(_id):
 
     return False
 
+#TODO: GOT TO CHANGE THIS LOGIC AS GROUPID ISN'T REQUIRED - JUST THE groupCode
+def check_group_db(id, password):
+    query = "SELECT * FROM `group` WHERE `groupID` = %s"
+    result = getFromDB(query, (id,))
+
+    for row in result:
+        if row[0] == id:
+            if row[2] == password:
+                return True
+    return False
+
+#Convert user_preferences information returned from the database into JSON obj
+def userPreferencesToJSON(data):
+    # Update this as the user_preferences table is updated
+    return {
+        'userPreferenceID' : data[0],
+        'userID' : data[1],
+        'preferredHand' : data[2],
+        'vrGloveColor' : data[3]
+    }
+
+
+def otcGenerator(size=6, chars=string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+def convertUserLevelsToJSON(userLevel):
+    if len(userLevel) < 3:
+        return errorMessage("passed wrong amount of values to convertUserLevelsToJSON")
+    result = {
+        'groupID' : userLevel[0],
+        'groupName' : userLevel[1],
+        'accessLevel' : userLevel[2],
+    }
+    return result
+
+
+########################################################################################
+# MENTORS FUNCTIONS
+########################################################################################
+
 def get_mentor_preference(_id, conn, cursor):
     query = "SELECT mentorName FROM mentor_preferences WHERE userID = %s"
     result = getFromDB(query, _id, conn, cursor)
@@ -236,49 +276,14 @@ def store_mentor_question(type, question_text, conn, cursor, mc_options):
         return False
 
 def modify_mentor_question(question_id, question_text, conn, cursor):
-    query = "UPDATE question SET question = %s WHERE questionID = %s"
+    query = "UPDATE `question` SET `question` = %s WHERE `questionID` = %s"
     postToDB(query, (question_text, question_id), conn, cursor)
     return True;
 
 def get_mentor_questions(conn, cursor):
     query = "SELECT * FROM question"
     return getFromDB(query, None, conn, cursor)
-
-#TODO: GOT TO CHANGE THIS LOGIC AS GROUPID ISN'T REQUIRED - JUST THE groupCode
-def check_group_db(id, password):
-    query = "SELECT * FROM `group` WHERE `groupID` = %s"
-    result = getFromDB(query, (id,))
-
-    for row in result:
-        if row[0] == id:
-            if row[2] == password:
-                return True
-    return False
-
-#Convert user_preferences information returned from the database into JSON obj
-def userPreferencesToJSON(data):
-    # Update this as the user_preferences table is updated
-    return {
-        'userPreferenceID' : data[0],
-        'userID' : data[1],
-        'preferredHand' : data[2],
-        'vrGloveColor' : data[3]
-    }
-
-
-def otcGenerator(size=6, chars=string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
-
-def convertUserLevelsToJSON(userLevel):
-    if len(userLevel) < 3:
-        return errorMessage("passed wrong amount of values to convertUserLevelsToJSON")
-    result = {
-        'groupID' : userLevel[0],
-        'groupName' : userLevel[1],
-        'accessLevel' : userLevel[2],
-    }
-    return result
-
+    
 ########################################################################################
 # GROUP FUNCTIONS
 ########################################################################################
