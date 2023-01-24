@@ -237,7 +237,7 @@ def modify_mentor_question(question_id, question_text, conn, cursor):
     return True;
 
 def get_mentor_questions(conn, cursor):
-    query = "SELECT * FROM question"
+    query = "SELECT * FROM question WHERE type = 'MENTOR_FR' OR type = 'MENTOR_MC'"
     return getFromDB(query, None, conn, cursor)
 
 #TODO: GOT TO CHANGE THIS LOGIC AS GROUPID ISN'T REQUIRED - JUST THE groupCode
