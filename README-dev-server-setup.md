@@ -17,8 +17,13 @@ apt install nodejs npm
 apt install python3
 apt install python3-pip
 ```
-6. Clone the GitHub repo: `git clone https://github.com/Naton-1/ELLE-2023-Website-API.git` into this directory: `/var/www/
-7.  Go into `ELLE-2023-Website-API/` then install the Python requirements:
+6. Clone the GitHub repo: `git clone https://github.com/Naton-1/ELLE-2023-Website-API.git` into this directory: `/var/www/`
+7. Go into `ELLE-2023-Website-API/` and create the following folders:
+* `audios`
+* `images`
+* `deletes`
+* `temp_uploads`
+8. Then install the Python requirements:
 ```
 pip3 install -r requirements.txt
 ```
@@ -35,7 +40,12 @@ MYSQL_DATABASE_HOST = 'localhost'
 SECRET_KEY = 'ian'
 ```
   * Note: What `SECRET_KEY` does is a mystery
-10. Go into `ELLE-2023-Website-API/templates` then build the React website:
+10. Edit this React file: `ELLE-2023-Website-API/templates/src/components/Modules/Term.js`. Change the following, replacing the filler text with your droplet's IP address:
+```
+let imgLink = "https://chdr.cs.ucf.edu/elle" + this.props.card.imageLocation; --> let imgLink = "http://[INSERT_IP_ADDRESS]" + this.props.card.imageLocation;
+let audioLink = "https://chdr.cs.ucf.edu/elle" + this.props.card.audioLocation; --> let audioLink = "http://[INSERT_IP_ADDRESS]" + this.props.card.audioLocation;
+```
+10. Go to `ELLE-2023-Website-API/templates` then build the React website:
 ```
 npm install
 npm run build
@@ -64,6 +74,18 @@ touch elle-flask-app.conf
         Allow from all
     </Directory>
     
+    Alias /images /var/www/ELLE-2023-Website-API/images
+    <Directory /var/www/ELLE-2023-Website-API/images>
+        Order allow,deny
+        Allow from all
+    </Directory>
+    
+    Alias /images /var/www/ELLE-2023-Website-API/audios
+    <Directory /var/www/ELLE-2023-Website-API/audios>
+        Order allow,deny
+        Allow from all
+    </Directory>
+
     ErrorLog ${APACHE_LOG_DIR}/error.log
     LogLevel warn
     CustomLog ${APACHE_LOG_DIR}/access.log combined
