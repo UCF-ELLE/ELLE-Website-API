@@ -79,7 +79,7 @@ class DeleteAnswer(Resource):
             return errorMessage("Invalid user"), 401
 
         if permission == 'st' and not is_ta(user_id, data['groupID']):
-            return errorMessagE("User not authorized to delete answers."), 400
+            return errorMessage("User not authorized to delete answers."), 400
         
         try:
             conn = mysql.connect()

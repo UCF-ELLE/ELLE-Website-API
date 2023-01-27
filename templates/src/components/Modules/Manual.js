@@ -28,15 +28,6 @@ const Manual = (props) => {
                     <h6>
                         To maximize your students' in-game experience follow these instructions. 
                     </h6>
-                    <text style={{fontWeight: "bold"}}>ELLE BetterRacer (Mobile): </text>
-                    <p>
-                        BetterRacer focuses on matching the foreign term with its correlated image. 
-                        To make a module suitable for this game, remember it is essential to add an image for every term you make. 
-                    </p>
-                    <text>Forms to fill out: </text>
-                    <p>
-                        <Badge color="primary">Add Term</Badge> recommended field(s): image
-                    </p>
                     <text style={{fontWeight: "bold"}}>ELLE Card Game (PC): </text>
                     <p>
                         This Card Game focuses on versatile questions that can have more than one answer associated with them. 
@@ -77,6 +68,15 @@ const Manual = (props) => {
                         <p>
                             <Badge color="primary">Add Term</Badge> recommended field(s): type, gender, tags
                         </p>
+                    </p>
+                    <text style={{fontWeight: "bold"}}>ELLE BetterRacer (Mobile) [NOT CURRENTLY SUPPORTED]: </text>
+                    <p>
+                        BetterRacer focuses on matching the foreign term with its correlated image. 
+                        To make a module suitable for this game, remember it is essential to add an image for every term you make. 
+                    </p>
+                    <text>Forms to fill out: </text>
+                    <p>
+                        <Badge color="primary">Add Term</Badge> recommended field(s): image
                     </p>
                 </ModalBody>
             </Modal>

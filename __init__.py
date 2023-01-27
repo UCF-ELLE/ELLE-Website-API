@@ -171,6 +171,10 @@ api.add_resource(ForgotUsername, API_ENDPOINT_PREFIX+'forgotusername', resource_
 api.add_resource(MentorPreference, API_ENDPOINT_PREFIX + 'mentorpreference')
 api.add_resource(StudentResponses, API_ENDPOINT_PREFIX + 'studentresponses')
 api.add_resource(MentorQuestions, API_ENDPOINT_PREFIX + 'mentorquestions')
+api.add_resource(ModifyMentorQuestions, API_ENDPOINT_PREFIX + 'modifymentorquestions')
+api.add_resource(DeleteMentorQuestion, API_ENDPOINT_PREFIX + 'deletementorquestions')
+
+
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port='5050', debug=True)
