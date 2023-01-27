@@ -1226,3 +1226,25 @@ table.statsTable.table tbody td {
   color: #fff;
   margin: 5px 30px 5px 30px;
 }
+
+/*--------------------------------------------------------------
+# Demo Making stuff
+--------------------------------------------------------------*/
+
+/* used in CardGame page */
+.cardGameText { 
+  color: #fff;
+  margin: 5px 30px 5px 30px;
+}
+
+/* used in CardGame page */
+.bgText {
+  color:#fff;
+}
+
+/* used in MentorEdit page */
+.headText {
+  color: #0c2e8a;
+  font-family: "Raleway", sans-serif;
+  font-weight: bold;
+}

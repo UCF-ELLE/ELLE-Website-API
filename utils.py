@@ -23,6 +23,9 @@ from config import (IMAGE_EXTENSIONS, AUDIO_EXTENSIONS, TEMP_DELETE_FOLDER,
                     TEMP_UPLOAD_FOLDER, IMG_UPLOAD_FOLDER, AUD_UPLOAD_FOLDER,
                     IMG_RETRIEVE_FOLDER, AUD_RETRIEVE_FOLDER,
                     PERMISSION_LEVELS, PERMISSION_GROUPS, ACCESS_LEVELS)
+# this line was missing and causing redis_host to cause errors
+from config import REDIS_HOST, REDIS_PORT, REDIS_CHARSET
+
 
 ########################################################################################
 # TERM FUNCTIONS
@@ -67,6 +70,7 @@ def addNewTags(tagList, termID, conn=None, cursor=None):
         result = getFromDB(query, (termID, str(tag).lower()), conn, cursor)
         if result:
             if DEBUG:
+            #DEBUG Here is not defined ?
                 print(result)
                 print("Trying to insert a duplicate tag")
         else:
@@ -116,8 +120,8 @@ def validate_permissions():
 
     permission = permission['permission']
     if not user_id or user_id == '' or \
-       not permission or permission == '' or \
-       permission not in PERMISSION_LEVELS:
+        not permission or permission == '' or \
+        permission not in PERMISSION_LEVELS:
         return None, None
     else:
         return permission, user_id
@@ -180,6 +184,46 @@ def check_user_db(_id):
 
     return False
 
+#TODO: GOT TO CHANGE THIS LOGIC AS GROUPID ISN'T REQUIRED - JUST THE groupCode
+def check_group_db(id, password):
+    query = "SELECT * FROM `group` WHERE `groupID` = %s"
+    result = getFromDB(query, (id,))
+
+    for row in result:
+        if row[0] == id:
+            if row[2] == password:
+                return True
+    return False
+
+#Convert user_preferences information returned from the database into JSON obj
+def userPreferencesToJSON(data):
+    # Update this as the user_preferences table is updated
+    return {
+        'userPreferenceID' : data[0],
+        'userID' : data[1],
+        'preferredHand' : data[2],
+        'vrGloveColor' : data[3]
+    }
+
+
+def otcGenerator(size=6, chars=string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+def convertUserLevelsToJSON(userLevel):
+    if len(userLevel) < 3:
+        return errorMessage("passed wrong amount of values to convertUserLevelsToJSON")
+    result = {
+        'groupID' : userLevel[0],
+        'groupName' : userLevel[1],
+        'accessLevel' : userLevel[2],
+    }
+    return result
+
+
+########################################################################################
+# MENTORS FUNCTIONS
+########################################################################################
+
 def get_mentor_preference(_id, conn, cursor):
     query = "SELECT mentorName FROM mentor_preferences WHERE userID = %s"
     result = getFromDB(query, _id, conn, cursor)
@@ -232,7 +276,7 @@ def store_mentor_question(type, question_text, conn, cursor, mc_options):
         return False
 
 def modify_mentor_question(question_id, question_text, conn, cursor):
-    query = "UPDATE question SET question = %s WHERE questionID = %s"
+    query = "UPDATE `question` SET `question` = %s WHERE `questionID` = %s"
     postToDB(query, (question_text, question_id), conn, cursor)
     return True;
 
@@ -241,41 +285,6 @@ def get_mentor_questions(moduleID, conn, cursor):
             "question.questionID = module_question.questionID AND module_question.moduleID = %s AND " \
             "question.type IN ('MENTOR_FR', 'MENTOR_MC')"
     return getFromDB(query, moduleID, conn, cursor)
-
-#TODO: GOT TO CHANGE THIS LOGIC AS GROUPID ISN'T REQUIRED - JUST THE groupCode
-def check_group_db(id, password):
-    query = "SELECT * FROM `group` WHERE `groupID` = %s"
-    result = getFromDB(query, (id,))
-
-    for row in result:
-        if row[0] == id:
-            if row[2] == password:
-                return True
-    return False
-
-#Convert user_preferences information returned from the database into JSON obj
-def userPreferencesToJSON(data):
-    # Update this as the user_preferences table is updated
-    return {
-        'userPreferenceID' : data[0],
-        'userID' : data[1],
-        'preferredHand' : data[2],
-        'vrGloveColor' : data[3]
-    }
-
-
-def otcGenerator(size=6, chars=string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
-
-def convertUserLevelsToJSON(userLevel):
-    if len(userLevel) < 3:
-        return errorMessage("passed wrong amount of values to convertUserLevelsToJSON")
-    result = {
-        'groupID' : userLevel[0],
-        'groupName' : userLevel[1],
-        'accessLevel' : userLevel[2],
-    }
-    return result
 
 ########################################################################################
 # GROUP FUNCTIONS

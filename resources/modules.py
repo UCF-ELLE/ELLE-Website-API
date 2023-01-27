@@ -426,6 +426,8 @@ class Module(Resource):
             permission, user_id = validate_permissions()
             if not permission or not user_id:
                 return errorMessage("Invalid user"), 401
+
+            group_id = getParameter('groupID', int, False, "Please pass in the groupID")
             
             if permission == 'st' and not is_ta(user_id, group_id):
                 return errorMessage("User not authorized to do this"), 401

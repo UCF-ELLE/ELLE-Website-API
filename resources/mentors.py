@@ -211,11 +211,13 @@ class MentorQuestions(Resource):
                 cursor.close()
                 conn.close()
 
+
 #Modify mentor questions
 class ModifyMentorQuestions(Resource):
+    # @jwt_required
     def post(self):
         data = {}
-        data['type'] = getParameter("type", str, True, "")
+
         data['question_text'] = getParameter("question_text", str, True, "")
         data['question_id'] = getParameter("question_id", str, True, "")
 
@@ -227,12 +229,10 @@ class ModifyMentorQuestions(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            questionModified = modify_mentor_question(data['type'], data['question_text'], conn, cursor)
+            questionModified = modify_mentor_question(data['question_id'], data['question_text'], conn, cursor)
 
-            if frQuestionCreated:
-                raise ReturnSuccess('Mentor Free Response Question Stored.', 201)
-            else:
-                raise ReturnSuccess('Mentor Multiple Choice Question Stored.', 201)
+            if questionModified:
+                raise ReturnSuccess('Question Updated.', 201)
 
         except CustomException as error:
             conn.rollback()
@@ -248,21 +248,47 @@ class ModifyMentorQuestions(Resource):
                 cursor.close()
                 conn.close()
 
-    def get(self):
+class DeleteMentorQuestion(Resource):
+    # @jwt_required
+    def delete(self):
+        data = {}
+        data['questionID'] = getParameter("questionID", str, True, "")
+        # data['groupID'] = getParameter("groupID", str, False, "groupID is required if student is a TA")
 
         # permission, user_id = validate_permissions()
         # if not permission or not user_id:
         #     return errorMessage("Invalid user"), 401
 
-        try:
+        # if permission == 'st' and not is_ta(user_id, data['groupID']):
+        #     return errorMessage("User not authorized to delete questions."), 400
 
+        try:
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            mentorQuestions = get_mentor_questions(conn, cursor)
+            if (find_question(int(data['questionID']))):
+                question_query = "SELECT * FROM `question` WHERE `questionID` = %s"
+                question_data = getFromDB(question_query, data['questionID'], conn, cursor)
 
-            raise ReturnSuccess(mentorQuestions, 200)
+                delete_query = "INSERT INTO `deleted_question` (`questionID`, `audioID`, `imageID`, `type`, `questionText`) VALUES (%s, %s, %s, %s, %s)"
+                postToDB(delete_query, (question_data[0][0], question_data[0][1], question_data[0][2], question_data[0][3], question_data[0][4]))
 
+                la_query = "SELECT `logID` FROM `logged_answer` WHERE `questionID` = %s"
+                la_results = getFromDB(la_query, question_data[0][0], conn, cursor)
+
+                for log in la_results:
+                    log_query = "UPDATE `logged_answer` SET `questionID` = %s, `deleted_questionID` = %s WHERE `logID` = %s"
+                    postToDB(log_query, (None, question_data[0][0], log[0]), None, conn, cursor)
+
+                mc_choice_query = "DELETE FROM `multiple_choice_answers` WHERE `questionID` = %s"
+                deleteFromDB(mc_choice_query, data['questionID'], conn, cursor)
+
+                query = "DELETE FROM `question` WHERE `questionID` = %s"
+                deleteFromDB(query, data['questionID'], conn, cursor)
+
+                raise ReturnSuccess("Successfully deleted question and answer set!", 201)
+            else:
+                raise CustomException("No question with that ID exist!", 201)
         except CustomException as error:
             conn.rollback()
             return error.msg, error.returnCode
@@ -273,6 +299,6 @@ class ModifyMentorQuestions(Resource):
             conn.rollback()
             return errorMessage(str(error)), 500
         finally:
-            if (conn.open):
+            if(conn.open):
                 cursor.close()
                 conn.close()
