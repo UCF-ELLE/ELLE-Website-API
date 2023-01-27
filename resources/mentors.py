@@ -181,6 +181,8 @@ class MentorQuestions(Resource):
                 conn.close()
 
     def get(self):
+        data = {}
+        data['moduleID'] = getParameter("moduleID", str, True, "")
 
         # permission, user_id = validate_permissions()
         # if not permission or not user_id:
@@ -191,7 +193,7 @@ class MentorQuestions(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            mentorQuestions = get_mentor_questions(conn, cursor)
+            mentorQuestions = get_mentor_questions(data['moduleID'], conn, cursor)
 
             raise ReturnSuccess(mentorQuestions, 200)
 
