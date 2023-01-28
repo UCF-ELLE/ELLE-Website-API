@@ -239,7 +239,7 @@ export default class Games extends Component {
 		<footer id="footer">
 			<div className="container">
 
-				<div className="copyright"><a href="#top">Back to top</a> <br></br> &copy; Copyright 2022 <strong>Reveal</strong>. All Rights Reserved</div>
+				<div className="copyright"><a href="#top">Back to top</a> <br /> &copy; Copyright 2022 <strong>Reveal</strong>. All Rights Reserved</div>
 				<div className="credits">
 				{/*
 				All the links in the footer should remain intact.
