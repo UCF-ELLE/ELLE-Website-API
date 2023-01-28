@@ -13,7 +13,7 @@ import '../lib/ionicons/css/ionicons.min.css';
 import elleVR from '../Images/ELLEVR.mp4';
 
 
-export default class Downloads extends Component {
+export default class Games extends Component {
 	constructor(props) {
 		super(props);
 
@@ -44,7 +44,7 @@ export default class Downloads extends Component {
 	return (  
 		
 	<div className="downloadsBg">
-		
+		<a id="top"></a>
 		
 		{localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={this.state.permission}/>}
 
@@ -83,7 +83,7 @@ export default class Downloads extends Component {
 							</ul>
 							<p className="cta-text">
 								Available on: 
-								<a href="">
+								<a href="https://www.wikipedia.org/">
 									<img 
 										style={{width: "40px", height: "25px", margin: "5px 5px 10px 5px"}} 
 										src={require('../Images/steam.png')}
@@ -136,13 +136,13 @@ export default class Downloads extends Component {
 		</section>
 		</a>
 
-		<a id="Game 3">
+		<a id="SpicenSpELLE">
 			<section style={{color: "white"}}>
 			<div className="container">
 				<div className="infoCard" style={{backgroundColor: "#5da8af"}}>
 					<Row>
 						<Col>
-							<h3 className="cta-title">Game 3</h3>
+							<h3 className="cta-title">Spice N SpELLE</h3>
 							<p className="cta-text">Senior Design Team:</p>
 							<ul style={{color: '#ffffff'}}>
 								<Row>
@@ -169,13 +169,46 @@ export default class Downloads extends Component {
 		</section>
 		</a>
 
-		<a id="Game 4">
+		<a id="HighriseHELLEp">
 			<section style={{color: "white"}}>
 			<div className="container">
 				<div className="infoCard" style={{backgroundColor: "#3f6184"}}>
 					<Row>
 						<Col>
-							<h3 className="cta-title">Game 4</h3>
+							<h3 className="cta-title">Highrise HELLEp</h3>
+							<p className="cta-text">Senior Design Team:</p>
+							<ul style={{color: '#ffffff'}}>
+								<Row>
+									<Col>
+										
+									</Col>
+									<Col>
+										
+									</Col>
+								</Row>
+							</ul>
+							<p className="cta-text">
+								Available on: 
+								
+							</p>
+							
+						</Col>
+						<Col>
+							
+						</Col>
+					</Row>
+				</div>
+		</div>
+		</section>
+		</a>
+
+		<a id="Maze">
+			<section style={{color: "white"}}>
+			<div className="container">
+				<div className="infoCard" style={{backgroundColor: "#5da8af"}}>
+					<Row>
+						<Col>
+							<h3 className="cta-title">Maze Game</h3>
 							<p className="cta-text">Senior Design Team:</p>
 							<ul style={{color: '#ffffff'}}>
 								<Row>
@@ -204,7 +237,8 @@ export default class Downloads extends Component {
 		
 		<footer id="footer">
 			<div className="container">
-				<div className="copyright">&copy; Copyright 2022 <strong>Reveal</strong>. All Rights Reserved</div>
+
+				<div className="copyright"><a href="#top">Back to top</a> <br></br> &copy; Copyright 2022 <strong>Reveal</strong>. All Rights Reserved</div>
 				<div className="credits">
 				{/*
 				All the links in the footer should remain intact.
