@@ -3,6 +3,7 @@ import { Row, Col, Card } from 'reactstrap';
 import MainTemplate from '../pages/MainTemplate'; 
 import Template from '../pages/Template';
 import Select from 'react-select'
+import {Link} from 'react-router-dom';
 
 import '../stylesheets/style.css';
 import '../lib/bootstrap/css/bootstrap.min.css';
@@ -221,7 +222,7 @@ export default class Games extends Component {
 								</Row>
 							</ul>
 							<p className="cta-text">
-								Available on: 
+								<Link to='MazeGame'>Play Here!</Link>
 								
 							</p>
 							
