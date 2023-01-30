@@ -45,6 +45,17 @@ SECRET_KEY = 'ian'
 let imgLink = "https://chdr.cs.ucf.edu/elle" + this.props.card.imageLocation; --> let imgLink = "http://[INSERT_IP_ADDRESS]" + this.props.card.imageLocation;
 let audioLink = "https://chdr.cs.ucf.edu/elle" + this.props.card.audioLocation; --> let audioLink = "http://[INSERT_IP_ADDRESS]" + this.props.card.audioLocation;
 ```
+11. Go to `ELLE-2023-Website-API/templates/public/` and create a htaccess file:
+```
+touch .htaccess
+```
+12. Paste this content into the file:
+```
+Options -MultiViews
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.html [QSA,L]
+```
 10. Go to `ELLE-2023-Website-API/templates` then build the React website:
 ```
 npm install
@@ -59,7 +70,7 @@ screen
 python3 __init__.py
 ```
 13. Press `Ctrl + Alt + D` to get out of the screen while leaving the API running.
-14. Now we need to configure an Apache site file so our site serves up the correct content. Go to `etc/apache2/sites-available` and create a site file:
+14. Now we need to configure an Apache site file so our site serves up the correct content. Go to `/etc/apache2/sites-available` and create a site file:
 ```
 touch elle-flask-app.conf
 ```
@@ -69,7 +80,9 @@ touch elle-flask-app.conf
     ServerName INSERT_YOUR_DROPLET'S_IP_ADDRESS
     DocumentRoot /var/www/ELLE-2023-Website-API/templates/build
 
-    <Directory /var/www/ELLE-2023-Website-API/>
+    <Directory /var/www/ELLE-2023-Website-API/templates/build>
+        Options FollowSymLinks MultiViews
+        AllowOverride All
         Order allow,deny
         Allow from all
     </Directory>
@@ -90,6 +103,10 @@ touch elle-flask-app.conf
     LogLevel warn
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
+```
+16. Activate `mod_rewrite` Apache feature to prevent unintentional React Router 404 pages:
+```
+a2enmod rewrite
 ```
 16. Enable the site file:
 ```
