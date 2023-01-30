@@ -247,8 +247,8 @@ class Term extends React.Component {
 
   render() {
     let {editedFront, editedBack, editedType, editedGender} = this.state;
-    let imgLink = "https://endlesslearner.com" + this.props.card.imageLocation;
-    let audioLink = "https://endlesslearner.com" + this.props.card.audioLocation;
+    let imgLink = "https://chdr.cs.ucf.edu/elle" + this.props.card.imageLocation;
+    let audioLink = "https://chdr.cs.ucf.edu/elle" + this.props.card.audioLocation;
 
     if (this.state.editMode === false){
       return (
