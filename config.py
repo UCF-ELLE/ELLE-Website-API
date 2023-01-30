@@ -19,15 +19,15 @@ IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'PNG', 'JPEG', 'JPG']
 AUDIO_EXTENSIONS = ['ogg', 'wav', 'mp3']
 
 # Path to folders - change accordingly
-TEMP_UPLOAD_FOLDER = 'uploads/'
+TEMP_UPLOAD_FOLDER = 'temp_uploads/'
 TEMP_DELETE_FOLDER = 'deletes/'
-IMG_UPLOAD_FOLDER = '/var/www/html/Images/'
-AUD_UPLOAD_FOLDER = '/var/www/html/Audios/'
+IMG_UPLOAD_FOLDER = 'images/'
+AUD_UPLOAD_FOLDER = 'audios/'
 
 # That path to append to the URL so the media
 # is accessible publicly (https://endlesslearner.com/Images/...)
-IMG_RETRIEVE_FOLDER = '/Images/'
-AUD_RETRIEVE_FOLDER = '/Audios/'
+IMG_RETRIEVE_FOLDER = '/images/'
+AUD_RETRIEVE_FOLDER = '/audios/'
 
 # List of user permission types
 # Changing these values is not recommended
