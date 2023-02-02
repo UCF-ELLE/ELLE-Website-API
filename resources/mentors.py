@@ -252,7 +252,7 @@ class DeleteMentorQuestion(Resource):
     # @jwt_required
     def delete(self):
         data = {}
-        data['questionID'] = getParameter("questionID", str, True, "")
+        data['questionID'] = getParameter("question_id", str, True, "")
         # data['groupID'] = getParameter("groupID", str, False, "groupID is required if student is a TA")
 
         # permission, user_id = validate_permissions()
@@ -300,5 +300,105 @@ class DeleteMentorQuestion(Resource):
             return errorMessage(str(error)), 500
         finally:
             if(conn.open):
+                cursor.close()
+                conn.close()
+
+
+
+class GetMultipleChoiceOptions(Resource):
+    # @jwt_required
+    def get(self):
+        data = {}
+        data['question_id'] = getParameter("question_id", str, True, "")
+
+        # permission, user_id = validate_permissions()
+        # if not permission or not user_id:
+        #     return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            mc_options = get_mc_options(data['question_id'], conn, cursor)
+            raise ReturnSuccess(mc_options, 200)
+
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if(conn.open):
+                cursor.close()
+                conn.close()
+
+
+
+class ModifyMultipleChoiceOption(Resource):
+    # @jwt_required
+    def post(self):
+        data = {}
+        data['updated_option'] = getParameter("updated_option", str, True, "")
+        data['mc_id'] = getParameter("mc_id", str, True, "")
+
+        # permission, user_id = validate_permissions()
+        # if not permission or not user_id:
+        #     return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            modify_mc_options(data['updated_option'], data['mc_id'], conn, cursor)
+            raise ReturnSuccess("Successfully updated multiple choice option", 201)
+
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if(conn.open):
+                cursor.close()
+                conn.close()
+
+
+class DeleteMultipleChoiceOption(Resource):
+    # @jwt_required
+    def delete(self):
+        data = {}
+        data['multipleChoiceID'] = getParameter("mc_id", str, True, "")
+        # data['groupID'] = getParameter("groupID", str, False, "groupID is required if student is a TA")
+
+        # permission, user_id = validate_permissions()
+        # if not permission or not user_id:
+        #     return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            delete_mc_option(data['multipleChoiceID'], conn, cursor)
+            raise ReturnSuccess("Successfully deleted multiple choice option", 201)
+
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if (conn.open):
                 cursor.close()
                 conn.close()
