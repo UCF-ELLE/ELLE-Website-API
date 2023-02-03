@@ -30,7 +30,10 @@ from resources.access import Access
 from resources.group import (Group, GroupRegister, SearchUserGroups, 
 							 UsersInGroup, GenerateGroupCode)
 from resources.logged_answer import LoggedAnswer, GetLoggedAnswerCSV
-from resources.mentors import MentorPreference, StudentResponses, MentorQuestions
+from resources.mentors import (MentorPreference, StudentResponses, MentorQuestions,
+							   ModifyMentorQuestions, DeleteMentorQuestion,
+							   GetMultipleChoiceOptions, ModifyMultipleChoiceOption,
+							   DeleteMultipleChoiceOption)
 import os.path
 import config
 
@@ -173,7 +176,9 @@ api.add_resource(StudentResponses, API_ENDPOINT_PREFIX + 'studentresponses')
 api.add_resource(MentorQuestions, API_ENDPOINT_PREFIX + 'mentorquestions')
 api.add_resource(ModifyMentorQuestions, API_ENDPOINT_PREFIX + 'modifymentorquestions')
 api.add_resource(DeleteMentorQuestion, API_ENDPOINT_PREFIX + 'deletementorquestions')
-
+api.add_resource(GetMultipleChoiceOptions, API_ENDPOINT_PREFIX + 'getmultiplechoiceoptions')
+api.add_resource(ModifyMultipleChoiceOption, API_ENDPOINT_PREFIX + 'modifymultiplechoiceoptions')
+api.add_resource(DeleteMultipleChoiceOption, API_ENDPOINT_PREFIX + 'deletemultiplechoiceoptions')
 
 
 if __name__ == '__main__':
