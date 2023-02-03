@@ -276,15 +276,31 @@ def store_mentor_question(type, question_text, conn, cursor, mc_options):
         return False
 
 def modify_mentor_question(question_id, question_text, conn, cursor):
-    query = "UPDATE `question` SET `question` = %s WHERE `questionID` = %s"
+    query = "UPDATE `question` SET `questionText` = %s WHERE `questionID` = %s"
     postToDB(query, (question_text, question_id), conn, cursor)
-    return True;
+    return True
 
 def get_mentor_questions(moduleID, conn, cursor):
     query = "SELECT question.questionID, question.type, question.questionText FROM question INNER JOIN module_question ON " \
             "question.questionID = module_question.questionID AND module_question.moduleID = %s AND " \
             "question.type IN ('MENTOR_FR', 'MENTOR_MC')"
     return getFromDB(query, moduleID, conn, cursor)
+
+def delete_mc_option(mc_id, conn, cursor):
+    query = "DELETE FROM multiple_choice_answers WHERE multipleChoiceID = %s"
+    deleteFromDB(query, mc_id, conn, cursor)
+    return True
+
+def modify_mc_options(updated_option, mc_id, conn, cursor):
+    query = "UPDATE multiple_choice_answers SET answerChoice = %s WHERE multipleChoiceID = %s"
+    postToDB(query, (updated_option, mc_id), conn, cursor)
+    return True
+
+def get_mc_options(question_id, conn, cursor):
+    query = "SELECT * FROM multiple_choice_answers WHERE questionID = %s"
+    return getFromDB(query, question_id, conn, cursor)
+
+
 
 ########################################################################################
 # GROUP FUNCTIONS
