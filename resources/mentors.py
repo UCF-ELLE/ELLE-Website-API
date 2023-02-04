@@ -140,8 +140,8 @@ class StudentResponses(Resource):
                 cursor.close()
                 conn.close()
 
-#Create and Read mentor questions
-class MentorQuestions(Resource):
+#Create mentor questions
+class CreateMentorQuestions(Resource):
     def post(self):
         data = {}
         data['type'] = getParameter("type", str, True, "")
@@ -180,7 +180,10 @@ class MentorQuestions(Resource):
                 cursor.close()
                 conn.close()
 
-    def get(self):
+class GetMentorQuestions(Resource):
+
+    # @jwt_required
+    def post(self):
         data = {}
         data['moduleID'] = getParameter("moduleID", str, True, "")
 
@@ -193,7 +196,15 @@ class MentorQuestions(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            mentorQuestions = get_mentor_questions(data['moduleID'], conn, cursor)
+            result = get_mentor_questions(data['moduleID'], conn, cursor)
+
+            mentorQuestions = []
+            for row in result:
+                question = {}
+                question['questionID'] = row[0]
+                question['type'] = row[1]
+                question['questionText'] = row[2]
+                mentorQuestions.append(question)
 
             raise ReturnSuccess(mentorQuestions, 200)
 
@@ -210,7 +221,6 @@ class MentorQuestions(Resource):
             if (conn.open):
                 cursor.close()
                 conn.close()
-
 
 #Modify mentor questions
 class ModifyMentorQuestions(Resource):
