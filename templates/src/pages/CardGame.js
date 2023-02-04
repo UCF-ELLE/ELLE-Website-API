@@ -15,8 +15,8 @@ import '../lib/ionicons/css/ionicons.min.css';
 import Unity, { UnityContent } from "react-unity-webgl";
 
 const unityContent = new UnityContent(
-	"Build/Builds.json",
-	"Build/UnityLoader.js"
+	"Unity-Game-WebGL-Builds/Card-Game/Builds.json",
+	"Unity-Game-WebGL-Builds/Card-Game/UnityLoader.js"
 );
 
 // untested code from previous group for MazeGame
@@ -33,15 +33,11 @@ export default class CardGame extends Component {
 	constructor(props) {
 		super(props);
 
-		// more old code
-		/*this.state = {
+		this.state = {
 			permission: this.props.user.permission,
-		}*/
-
+		}
 	}
 
-	// more old code
-	/*
 	componentDidMount() {
 		this.verifyPermission();
 	}
@@ -56,7 +52,7 @@ export default class CardGame extends Component {
 			var decoded = jwtDecode(jwt);
 			this.setState({ permission: decoded.user_claims.permission });
 		}
-	}*/
+	}
 
 	handleOnClickFullscreen() {
 		  unityContent.setFullscreen(true);
