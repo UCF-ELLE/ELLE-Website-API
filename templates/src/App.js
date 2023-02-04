@@ -50,8 +50,7 @@ class App extends Component {
             <Route path="/forgotusername" render={(props)=><ForgotUsername {...props} serviceIP={flaskIP}/>}/>
             <Route path="/forgotpassword" render={(props)=><ForgotPassword {...props} serviceIP={flaskIP}/>}/>
             <Route path="/resetpassword" render={(props)=><ResetPassword {...props} serviceIP={flaskIP}/>}/>
-
-            <Route path="/cardgame" render={(props)=><CardGame {...props} serviceIP={flaskIP}/>}/>
+            <Route path="/cardgame" render={(props)=><CardGame {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
             <Route path="/mentoredit" render={(props)=><MentorEdit {...props} serviceIP={flaskIP}/>}/>
             <Route path="/mentorquestions" render={(props)=><MentorQuestions {...props} serviceIP={flaskIP}/>}/>
             <AuthUser>   
