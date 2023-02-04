@@ -30,7 +30,7 @@ from resources.access import Access
 from resources.group import (Group, GroupRegister, SearchUserGroups, 
 							 UsersInGroup, GenerateGroupCode)
 from resources.logged_answer import LoggedAnswer, GetLoggedAnswerCSV
-from resources.mentors import (MentorPreference, StudentResponses, MentorQuestions,
+from resources.mentors import (MentorPreference, StudentResponses, CreateMentorQuestions, GetMentorQuestions,
 							   ModifyMentorQuestions, DeleteMentorQuestion,
 							   GetMultipleChoiceOptions, ModifyMultipleChoiceOption,
 							   DeleteMultipleChoiceOption)
@@ -173,7 +173,8 @@ api.add_resource(ChangePassword, API_ENDPOINT_PREFIX+'changepassword')
 api.add_resource(ForgotUsername, API_ENDPOINT_PREFIX+'forgotusername', resource_class_kwargs={'mail' : mail})
 api.add_resource(MentorPreference, API_ENDPOINT_PREFIX + 'mentorpreference')
 api.add_resource(StudentResponses, API_ENDPOINT_PREFIX + 'studentresponses')
-api.add_resource(MentorQuestions, API_ENDPOINT_PREFIX + 'mentorquestions')
+api.add_resource(CreateMentorQuestions, API_ENDPOINT_PREFIX + 'creatementorquestions')
+api.add_resource(GetMentorQuestions, API_ENDPOINT_PREFIX + 'getmentorquestions')
 api.add_resource(ModifyMentorQuestions, API_ENDPOINT_PREFIX + 'modifymentorquestions')
 api.add_resource(DeleteMentorQuestion, API_ENDPOINT_PREFIX + 'deletementorquestions')
 api.add_resource(GetMultipleChoiceOptions, API_ENDPOINT_PREFIX + 'getmultiplechoiceoptions')
