@@ -1,8 +1,13 @@
 # Setup a Development Server on Digital Ocean
-1. Start up a new Digital Ocean Droplet (use Marketplace Droplet: MySQL droplet [it already has MySQL pre-installed, please trust me]). You'll need at least 2 GB of RAM to build the React site on the server. The steps below were tested using Ubuntu 22.04.
-2. As the root user, run `apt update` then `apt upgrade`.
-3. Upload the `schema.sql` file to the droplet.
-4. Run `mysql`, then in the MySQL command prompt run:
+1. Start up a new Digital Ocean Droplet (use Marketplace Droplet: MySQL droplet [it already has MySQL pre-installed, please trust me]). You'll need at least 2 GB of RAM to build the React site on the server. The steps below were tested using Ubuntu 20.04.
+2. After that, go to your Digital Ocean dashboard and on the left sidebar click **Networking**. Click on the **Firewall** tab and create a firewall. Your firewall should looks like this: ![](readme_images/Droplet_Firewall.png)
+3. As the root user, run:
+```
+apt update
+apt upgrade
+```
+4. Upload the `schema.sql` file to the droplet.
+5. Run `mysql`, then in the MySQL command prompt run:
 ```sql
 CREATE DATABASE elle_database;
 USE elle_database;
@@ -10,8 +15,23 @@ source schema.sql;
 CREATE USER 'elle'@'localhost' IDENTIFIED BY 'INSERT_PASSWORD';
 GRANT INSERT, UPDATE, DELETE, SELECT ON elle_database.* TO 'elle'@'localhost';
 ```
-  * Ensure the permissions were granted to the new user by running `show grants for 'elle'@'localhost';`
-5. Run:
+  * Ensure the permissions were granted to the new user by running `SHOW GRANTS for 'elle'@'localhost';`
+6. Install a Redis database by running:
+```
+apt install redis-server
+```
+7. Edit the following line in `/etc/redis/redis.conf`:
+```diff
+-supervised no
++supervised systemd
+```
+8. Restart the Redis service, then verify that it's running with:
+```
+systemctl restart redis.service
+systemctl status redis
+```
+  * If you encounter any problems installing it, refer to the guide I followed: https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-20-04
+6. Run:
 ```
 apt install nodejs npm
 apt install python3
@@ -127,38 +147,49 @@ Apache Full (v6)           ALLOW       Anywhere (v6)
 3306/tcp (v6)              ALLOW       Anywhere (v6)
 ```
 
-If you are trying to send GET requests to API endpoints (why though?) and see this:
-![](readme_images/jinja-templateNotFound.png)
-
-Simply make the following change in `__init__.py`:
-```python
-...render_template('/templates/build/index.html')... -> ...render_template('build/index.html')
-```
-
 # Notes
 ### Existing endlesslearner.com server
 * They use Gunicorn and setup the API as a systemctl service
 * They use Nginx
 
-### Migrating to chdr.cs.ucf.edu
-Change this in `/templates/package.json`:
-```
-react-scripts build ==> PUBLIC_URL=/elle/ react-scripts build
-```
-
 ### Important config options
 `__init__.py`
 ```python
-API_ENDPOINT_PREFIX = '/api/'
+# Change URL prefix of the API e.g. https://chdr.cs.ucf.edu/elleapi
+API_ENDPOINT_PREFIX = '/elleapi/'
+
+# Change port the API runs on
+app.run(host='0.0.0.0', port='5050', debug=True)
 ```
 
 `/templates/src/App.js`
 ```js
-let flaskIP = 'https://endlesslearner.com/api';
+let flaskIP = 'https://chdr.cs.ucf.edu/elleapi';
+```
+
+### CHDR Server specific edits done
+`__init__.py`
+```python
+API_ENDPOINT_PREFIX = '/'
+```
+
+`/templates/src/App.js`
+```js
+let flaskIP = 'https://chdr.cs.ucf.edu/elleapi';
+```
+
+`App.js`
+```diff
+-<Router>  
++<Router basename='/elle/'>  
 ```
 
 `/templates/package.json`
-```json
-"build": "PUBLIC_URL=/elle/ react-scripts build"
+```diff
+   "devDependencies": {
+     "json-loader": "^0.5.7"
+   },
++  "homepage": "https://chdr.cs.ucf.edu/elle"
+ }
 ```
-This is really only used for a shared domain. With this config for example, instead of `http://BASE_URL/` displaying the home page, `http://BASE_URL/elle` would. And instead of `http://BASE_URL/api` being the API endpoint, `http://BASE_URL/elle/api` would.
+More info about this here: https://create-react-app.dev/docs/deployment/#building-for-relative-paths.
