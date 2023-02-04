@@ -3,6 +3,7 @@ This repository contains both the backend API files and frontend React site file
 
 This backend uses the Flask web framework and the Flask RESTful extension to make REST APIs in Python.
 
+# API
 ## Informational
 ### Organization
 * The `__init__.py` is similar to the main or starting function. All the APIs are imported there and are used to set up API endpoints.
@@ -25,6 +26,11 @@ Note II: Avoid testing APIs on the production server. Host the database and API 
     * The APIs will still work without Redis installed, but it recommended to install Redis on the server where the backend is deployed for a better experience
     * One redis is installed, install the Python redis package (included in the requirements.txt file) and update the Redis config information in the `config.py` file so that the API can interact with the redis database
 * The backend was tested with Nginx reverse proxy to host the API and website files under the same port
+
+# Website
+### Info
+* If you want to put a Unity WebGL game on the website, it **must** be built using Unity 2020.3 (LTS) or higher! This is because the version of the `react-unity-webgl` package we are using only supports that.
+    * Also when building the game for WebGL in Unity, click on `Player Settings...` in the build menu, then make sure that `Compression Format` is **disabled**. More info here: https://docs.unity3d.com/Manual/webgl-deploying.html
 
 ### CHDR server structure
 WIP
