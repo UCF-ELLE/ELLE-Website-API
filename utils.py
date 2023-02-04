@@ -280,10 +280,12 @@ def modify_mentor_question(question_id, question_text, conn, cursor):
     postToDB(query, (question_text, question_id), conn, cursor)
     return True;
 
-def get_mentor_questions(conn, cursor):
-    query = "SELECT * FROM question"
-    return getFromDB(query, None, conn, cursor)
-    
+def get_mentor_questions(moduleID, conn, cursor):
+    query = "SELECT question.questionID, question.type, question.questionText FROM question INNER JOIN module_question ON " \
+            "question.questionID = module_question.questionID AND module_question.moduleID = %s AND " \
+            "question.type IN ('MENTOR_FR', 'MENTOR_MC')"
+    return getFromDB(query, moduleID, conn, cursor)
+
 ########################################################################################
 # GROUP FUNCTIONS
 ########################################################################################
