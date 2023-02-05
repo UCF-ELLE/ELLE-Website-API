@@ -60,11 +60,6 @@ MYSQL_DATABASE_HOST = 'localhost'
 SECRET_KEY = 'ian'
 ```
   * Note: What `SECRET_KEY` does is a mystery
-10. Edit this React file: `ELLE-2023-Website-API/templates/src/components/Modules/Term.js`. Change the following, replacing the filler text with your droplet's IP address:
-```
-let imgLink = "https://chdr.cs.ucf.edu/elle" + this.props.card.imageLocation; --> let imgLink = "http://[INSERT_IP_ADDRESS]" + this.props.card.imageLocation;
-let audioLink = "https://chdr.cs.ucf.edu/elle" + this.props.card.audioLocation; --> let audioLink = "http://[INSERT_IP_ADDRESS]" + this.props.card.audioLocation;
-```
 11. Go to `ELLE-2023-Website-API/templates/public/` and create a htaccess file:
 ```
 touch .htaccess
