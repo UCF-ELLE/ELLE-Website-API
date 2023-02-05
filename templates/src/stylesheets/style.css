@@ -270,13 +270,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /*--------------------------------------------------------------
-# Downloads Page
+# Games Page
 --------------------------------------------------------------*/
-.downloadsBg {
-  background: #0b163f;
+.gamesBg {
+  background: #dddddd;
 }
 
-.downloadsHdr {
+.gamesHdr {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -284,6 +284,19 @@ h1, h2, h3, h4, h5, h6 {
   text-align: center;
   height: 90vh;
   color: white;
+}
+
+.cardGameButton {
+  border: 5px solid #5da8af;
+  border-radius: 12px;
+  background: #3f6184 ;
+  color: #caf7ff;
+  display:inline-block;
+  padding:20px;
+  opacity:1;
+}
+.cardGameButton:hover {
+  opacity:0.5;
 }
 
 
@@ -1225,6 +1238,19 @@ table.statsTable.table tbody td {
 .mazeGame {
   color: #fff;
   margin: 5px 30px 5px 30px;
+}
+
+.mazeButton {
+  border: 5px solid #3f6184 ;
+  border-radius: 12px;
+  background: #5da8af;
+  color: #caf7ff;
+  display:inline-block;
+  padding:20px;
+  opacity:1;
+}
+.mazeButton:hover {
+  opacity:0.5;
 }
 
 /*--------------------------------------------------------------
