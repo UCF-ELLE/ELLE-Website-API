@@ -49,17 +49,18 @@ export default class Games extends Component {
 		
 		{localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={this.state.permission}/>}
 
-		<div class="dropdown show" style={{width: "40px", height: "25px", marginLeft: "1150px"}}>
-			<a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="actions" data-toggle
-			="dropdown" aria-haspopup="true" aria-expanded="false"> Select a Game 
-			</a>
-
-			<div class="dropdown-menu" aria-labelledby="actions">
-				<a class="dropdown-item" href="#">Add</a>
-				<a class="dropdown-item" href="#">Edit</a>
-				<a class="dropdown-item" href="#">Delete</a>
-			</div>
+		
+		{/* Work in progress button
+		<div class="dropdown">
+  			<button class="dropbtn">Dropdown</button>
+  				<div class="dropdown-content">
+    				<a href="#">Link 1</a>
+    				<a href="#">Link 2</a>
+    				<a href="#">Link 3</a>
+  				</div>
 		</div>
+		*/}
+		
 
 		<a id="Maze">
 			<section style={{color: "white"}}>
@@ -174,10 +175,13 @@ export default class Games extends Component {
 							<ul style={{color: '#ffffff'}}>
 								<Row>
 									<Col>
-										
+										<li>Natali Siam-Pollo</li>
+										<li>Trevor Larson</li>
+										<li>Justin Reeves</li>
 									</Col>
 									<Col>
-										
+										<li>Derek Dyer</li>
+										<li>Tam Nguyen</li>
 									</Col>
 								</Row>
 							</ul>
@@ -202,7 +206,7 @@ export default class Games extends Component {
 				<div className="infoCard" style={{backgroundColor: "#3f6184"}}>
 					<Row>
 						<Col>
-							<h3 className="cta-title">ELLEments Of Learning</h3>
+							<h3 className="cta-title">ELLEments Of Learning (VR Games)</h3>
 							<p className="cta-text">Senior Design Team:</p>
 							<ul style={{color: '#ffffff'}}>
 								<Row>
@@ -218,13 +222,7 @@ export default class Games extends Component {
 								</Row>
 							</ul>
 							<p className="cta-text">
-								Available on: 
-								<a href="">
-									<img 
-										style={{width: "40px", height: "25px", margin: "5px 5px 10px 5px"}} 
-										src={require('../Images/steam.png')}/>
-								</a>
-								(awaiting approval)
+								Games available below!
 							</p>
 							<video width="450" height="280" controls>
 								<source src={elleVR} type="video/mp4" />
@@ -246,26 +244,17 @@ export default class Games extends Component {
 					<Row>
 						<Col>
 							<h3 className="cta-title">Spice N SpELLE</h3>
-							<p className="cta-text">Senior Design Team:</p>
-							<ul style={{color: '#ffffff'}}>
-								<Row>
-									<Col>
-										
-									</Col>
-									<Col>
-										
-									</Col>
-								</Row>
-							</ul>
+							<br />
 							Spell out the translation of terms using alphabet blocks. Play in either quiz mode or try your luck at endless mode!
 							<p className="cta-text">
-								<br /> Available <a href="https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning"> Here</a>
+							<br /> <br /> <br />
+								<a class="spiceButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
 								
 							</p>
 							
 						</Col>
 						<Col>
-							
+						<img style={{width: "350px", height: "255px", marginLeft: "100px"}} src={require('../Images/spicenspellBlocks.png')} />
 						</Col>
 					</Row>
 				</div>
@@ -280,26 +269,17 @@ export default class Games extends Component {
 					<Row>
 						<Col>
 							<h3 className="cta-title">Highrise HELLEp</h3>
-							<p className="cta-text">Senior Design Team:</p>
-							<ul style={{color: '#ffffff'}}>
-								<Row>
-									<Col>
-										
-									</Col>
-									<Col>
-										
-									</Col>
-								</Row>
-							</ul>
-							Play as a firefighting in this action packed game. Connect terms to their correct categorys to put out fires and save the day!
+							<br />
+							Play as a firefighter in this action packed game. Connect terms to their correct categorys to put out fires and save the day!
 							<p className="cta-text">
-								<br />Available < a href="https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning"> Here</a>
+							<br /> <br /> <br /> <a class="highriseButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
+								
 								
 							</p>
 							
 						</Col>
 						<Col>
-							
+						<img style={{width: "350px", height: "255px", marginLeft: "100px"}} src={require('../Images/highrise.jpg')} />
 						</Col>
 					</Row>
 				</div>

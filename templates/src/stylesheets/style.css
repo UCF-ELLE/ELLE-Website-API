@@ -272,9 +272,11 @@ h1, h2, h3, h4, h5, h6 {
 /*--------------------------------------------------------------
 # Games Page
 --------------------------------------------------------------*/
-.gamesBg {
-  background: #dddddd;
-}
+
+.my-menu {
+  /*Sets all the content of dropdown div to center*/
+                  text-align: center; 
+              }
 
 .gamesHdr {
   display: flex;
@@ -287,15 +289,54 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .cardGameButton {
-  border: 5px solid #5da8af;
+  border: 1px solid #5da8af;
   border-radius: 12px;
-  background: #3f6184 ;
-  color: #caf7ff;
+  background: #5da8af ;
+  color: #ffffff;
   display:inline-block;
-  padding:20px;
+  padding:15px;
   opacity:1;
 }
 .cardGameButton:hover {
+  opacity:0.5;
+}
+
+.mazeButton {
+  border: 1px solid #3f6184 ;
+  border-radius: 12px;
+  background: #3f6184;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+.mazeButton:hover {
+  opacity:0.5;
+}
+
+.spiceButton {
+  border: 1px solid #3f6184 ;
+  border-radius: 12px;
+  background: #3f6184;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+.spiceButton:hover {
+  opacity:0.5;
+}
+
+.highriseButton {
+  border: 1px solid #5da8af ;
+  border-radius: 12px;
+  background: #5da8af;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+.highriseButton:hover {
   opacity:0.5;
 }
 
@@ -1238,19 +1279,6 @@ table.statsTable.table tbody td {
 .mazeGame {
   color: #fff;
   margin: 5px 30px 5px 30px;
-}
-
-.mazeButton {
-  border: 5px solid #3f6184 ;
-  border-radius: 12px;
-  background: #5da8af;
-  color: #caf7ff;
-  display:inline-block;
-  padding:20px;
-  opacity:1;
-}
-.mazeButton:hover {
-  opacity:0.5;
 }
 
 /*--------------------------------------------------------------
