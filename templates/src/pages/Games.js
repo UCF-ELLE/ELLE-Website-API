@@ -93,7 +93,7 @@ export default class Games extends Component {
 							
 						</Col>
 						<Col>
-							<img style={{width: "320px", height: "320px", marginLeft: "70px"}} src={require('../Images/ELLEMazeCube.png')} />
+							<img style={{width: "520px", height: "320px", marginLeft: "70px"}} src={require('../Images/mazeGameplay.png')} />
 						</Col>
 					</Row>
 				</div>
