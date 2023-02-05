@@ -47,7 +47,7 @@ export default class CardGame extends Component {
 	}
 
 	handleOnClickFullscreen() {
-        unityProvider.setFullscreen(true);
+        unityContext.setFullscreen(true);
 	}
 
 	render() {
