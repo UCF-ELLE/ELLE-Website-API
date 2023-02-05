@@ -8,6 +8,7 @@ import Template from './Template';
 import Loading from '../components/Loading/Loading';
 import Session from '../components/Sessions/Session';
 import Downloads from '../components/Sessions/Downloads';
+import Footer from '../components/Footer';
 
 export default class Sessions extends Component {
   constructor(props) {
@@ -101,154 +102,157 @@ export default class Sessions extends Component {
 
   render() {
     return (
-      <Container>
-      <Template permission={this.state.permission}/>
-      <br /><br />
-      <Row>
-        <Col xs="4">
-          <h3>Your ELLE Sessions:</h3>
-        </Col>
-        <Col xs={this.state.permission === "su" ? "6" : "8"} style={{padding: this.state.permission === "su" ?  "0 0 0 30px" :  "0 30px 0 30px"}}>
-          {this.state.searched && this.state.sessions.length !== 0 && this.state.loading === false ? 
-            <Alert color="info" style={{margin: "0px", textAlign: "center"}}>Click on a row to reveal logged answers.</Alert>
-          : null}
-        </Col>
-        {this.state.permission === "su" ? 
-        <Col xs="2" style={{padding: "0px"}}>
-          <Downloads serviceIP={this.props.serviceIP}/> 
-        </Col>
-        : null}
-      </Row>
-
-      <br />
-
-      <Row className="Seperated Col">
-        <Col className="Left Column" xs="4">
+      <div>
+        <Container>
+          <Template permission={this.state.permission}/>
+          <br /><br />
           <Row>
-            <Col>
-              <Card style={{padding: "20px"}}>
-                <Form>
-                  <FormGroup>
-                    <Label for="platform">Platform <a style={{fontSize: "10px", color: "red"}}>*Only select to filter based on a platform</a></Label>
-                    <div style={{display: "flex", justifyContent: "center"}}>
-                      <CustomInput type="radio" id="mb" name="platform" inline checked={this.state.platform === 'mb'} onChange={e => this.handleChange(e)}>
-                        <img style={{width: "20px", height: "20px", marginLeft: "20px", marginRight: "5px"}} src={require('../Images/phoneGames.png')} alt="phone icon" />
-                        Mobile
-                      </CustomInput>
-                      <CustomInput type="radio" id="cp" name="platform" inline checked={this.state.platform === 'cp'} onChange={e => this.handleChange(e)}>
-                        <img style={{width: "20px", height: "20px", marginLeft: "20px", marginRight: "5px"}} src={require('../Images/computerGames.png')} alt="computer icon" />
-                        PC
-                      </CustomInput>                    
-                      <CustomInput type="radio" id="vr" name="platform" inline checked={this.state.platform === 'vr'} onChange={e => this.handleChange(e)}>
-                        <img style={{width: "20px", height: "20px", marginLeft: "20px", marginRight: "5px"}} src={require('../Images/vrGames.png')} alt="vr icon" />
-                        VR
-                      </CustomInput>
-                    </div>
-                  </FormGroup>
-                  {localStorage.getItem("per") !== "st" ?
-                    <FormGroup>
+            <Col xs="4">
+              <h3>Your ELLE Sessions:</h3>
+            </Col>
+            <Col xs={this.state.permission === "su" ? "6" : "8"} style={{padding: this.state.permission === "su" ?  "0 0 0 30px" :  "0 30px 0 30px"}}>
+              {this.state.searched && this.state.sessions.length !== 0 && this.state.loading === false ? 
+                <Alert color="info" style={{margin: "0px", textAlign: "center"}}>Click on a row to reveal logged answers.</Alert>
+              : null}
+            </Col>
+            {this.state.permission === "su" ? 
+            <Col xs="2" style={{padding: "0px"}}>
+              <Downloads serviceIP={this.props.serviceIP}/> 
+            </Col>
+            : null}
+          </Row>
+
+          <br />
+
+          <Row className="Seperated Col">
+            <Col className="Left Column" xs="4">
+              <Row>
+                <Col>
+                  <Card style={{padding: "20px"}}>
+                    <Form>
+                      <FormGroup>
+                        <Label for="platform">Platform <a style={{fontSize: "10px", color: "red"}}>*Only select to filter based on a platform</a></Label>
+                        <div style={{display: "flex", justifyContent: "center"}}>
+                          <CustomInput type="radio" id="mb" name="platform" inline checked={this.state.platform === 'mb'} onChange={e => this.handleChange(e)}>
+                            <img style={{width: "20px", height: "20px", marginLeft: "20px", marginRight: "5px"}} src={require('../Images/phoneGames.png')} alt="phone icon" />
+                            Mobile
+                          </CustomInput>
+                          <CustomInput type="radio" id="cp" name="platform" inline checked={this.state.platform === 'cp'} onChange={e => this.handleChange(e)}>
+                            <img style={{width: "20px", height: "20px", marginLeft: "20px", marginRight: "5px"}} src={require('../Images/computerGames.png')} alt="computer icon" />
+                            PC
+                          </CustomInput>                    
+                          <CustomInput type="radio" id="vr" name="platform" inline checked={this.state.platform === 'vr'} onChange={e => this.handleChange(e)}>
+                            <img style={{width: "20px", height: "20px", marginLeft: "20px", marginRight: "5px"}} src={require('../Images/vrGames.png')} alt="vr icon" />
+                            VR
+                          </CustomInput>
+                        </div>
+                      </FormGroup>
+                      {localStorage.getItem("per") !== "st" ?
+                        <FormGroup>
+                          <Row>
+                            <Col xs="5">
+                              <Label for="userID">User ID</Label>
+                              <Input
+                                type="text"
+                                name="userID"
+                                placeholder="Filter by user ID"
+                                value={this.state.userID}
+                                onChange={e => this.handleInput(e)}
+                              />
+                            </Col>
+                            <Col xs="7">
+                              <Label for="userName">User Name</Label>
+                              <Input
+                                type="text"
+                                name="username"
+                                placeholder="Filter by username"
+                                value={this.state.username}
+                                onChange={e => this.handleInput(e)}
+                              />
+                            </Col>
+                          </Row>
+                        </FormGroup>
+                      : null}
+                      <FormGroup>
+                        <Label for="moduleID">Module ID</Label>
+                        <Input
+                          type="text"
+                          name="moduleID"
+                          placeholder="Enter a module ID to find a specific module's sessions"
+                          value={this.state.moduleID}
+                          onChange={e => this.handleInput(e)}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <Label for="date">Date</Label>
+                        <Input
+                          type="date"
+                          name="date"
+                          value={this.state.date}
+                          onChange={e => this.handleInput(e)}
+                        />
+                      </FormGroup>
                       <Row>
-                        <Col xs="5">
-                          <Label for="userID">User ID</Label>
-                          <Input
-                            type="text"
-                            name="userID"
-                            placeholder="Filter by user ID"
-                            value={this.state.userID}
-                            onChange={e => this.handleInput(e)}
-                          />
+                        <Col>
+                          <Button block style={{backgroundColor: "#37f0f9", color: "black", border: "none", fontWeight: "500"}}
+                            disabled={
+                              this.state.platform.length === 0 && this.state.userID.length === 0 && this.state.username.length === 0 &&
+                              this.state.moduleID.length === 0 && this.state.date.length === 0 
+                              ? true : false }
+                            onClick={() => this.clearInputs()}>
+                            Clear
+                          </Button>
                         </Col>
-                        <Col xs="7">
-                          <Label for="userName">User Name</Label>
-                          <Input
-                            type="text"
-                            name="username"
-                            placeholder="Filter by username"
-                            value={this.state.username}
-                            onChange={e => this.handleInput(e)}
-                          />
+                        <Col>
+                          <Button block style={{backgroundColor: "#37f0f9", color: "black", border: "none", fontWeight: "500"}} 
+                            disabled={
+                              this.state.platform.length === 0 && this.state.userID.length === 0 && this.state.username.length === 0 &&
+                              this.state.moduleID.length === 0 && this.state.date.length === 0 
+                              ? true : false }
+                            onClick={() => this.handleSearch()}>
+                            Search
+                          </Button>
                         </Col>
                       </Row>
-                    </FormGroup>
-                  : null}
-                  <FormGroup>
-                    <Label for="moduleID">Module ID</Label>
-                    <Input
-                      type="text"
-                      name="moduleID"
-                      placeholder="Enter a module ID to find a specific module's sessions"
-                      value={this.state.moduleID}
-                      onChange={e => this.handleInput(e)}
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <Label for="date">Date</Label>
-                    <Input
-                      type="date"
-                      name="date"
-                      value={this.state.date}
-                      onChange={e => this.handleInput(e)}
-                    />
-                  </FormGroup>
-                  <Row>
-                    <Col>
-                      <Button block style={{backgroundColor: "#37f0f9", color: "black", border: "none", fontWeight: "500"}}
-                        disabled={
-                          this.state.platform.length === 0 && this.state.userID.length === 0 && this.state.username.length === 0 &&
-                          this.state.moduleID.length === 0 && this.state.date.length === 0 
-                          ? true : false }
-                        onClick={() => this.clearInputs()}>
-                        Clear
-                      </Button>
-                    </Col>
-                    <Col>
-                      <Button block style={{backgroundColor: "#37f0f9", color: "black", border: "none", fontWeight: "500"}} 
-                        disabled={
-                          this.state.platform.length === 0 && this.state.userID.length === 0 && this.state.username.length === 0 &&
-                          this.state.moduleID.length === 0 && this.state.date.length === 0 
-                          ? true : false }
-                        onClick={() => this.handleSearch()}>
-                        Search
-                      </Button>
-                    </Col>
-                  </Row>
-                </Form>
-              </Card>
+                    </Form>
+                  </Card>
+                </Col>
+              </Row>
+            </Col>
+            <Col className="Right Column">
+              <Row>
+                <Col>
+                  <Container>
+                    {!this.state.searched && this.state.loading === false ?
+                      <Card style={{paddingBottom: "52%"}}>
+                        <div>
+                          <h3 style={{textAlign: 'center'}}>Please search for a session on the left.</h3>
+                        </div>
+                      </Card>
+                    : null} 
+
+                    {this.state.searched && this.state.sessions.length !== 0 && this.state.loading === false ? 
+                      <Session sessions={this.state.sessions} serviceIP={this.props.serviceIP}/> 
+                    : null}
+
+                    {this.state.searched && this.state.sessions.length === 0 && this.state.loading === false ? 
+                      <Card style={{paddingBottom: "46%"}}>
+                        <div>
+                          <h3 style={{textAlign: 'center'}}>No matching sessions could be found.</h3>
+                          <h3 style={{textAlign: 'center'}}>Please search for another session on the left.</h3>
+                        </div>
+                      </Card>
+                    : null}
+
+                    {this.state.loading === true ? <Loading /> : null}
+                  </Container>
+                </Col>
+              </Row>
             </Col>
           </Row>
-        </Col>
-        <Col className="Right Column">
-          <Row>
-            <Col>
-              <Container>
-                {!this.state.searched && this.state.loading === false ?
-                  <Card style={{paddingBottom: "52%"}}>
-                    <div>
-                      <h3 style={{textAlign: 'center'}}>Please search for a session on the left.</h3>
-                    </div>
-                  </Card>
-                : null} 
-
-                {this.state.searched && this.state.sessions.length !== 0 && this.state.loading === false ? 
-                  <Session sessions={this.state.sessions} serviceIP={this.props.serviceIP}/> 
-                : null}
-
-                {this.state.searched && this.state.sessions.length === 0 && this.state.loading === false ? 
-                  <Card style={{paddingBottom: "46%"}}>
-                    <div>
-                      <h3 style={{textAlign: 'center'}}>No matching sessions could be found.</h3>
-                      <h3 style={{textAlign: 'center'}}>Please search for another session on the left.</h3>
-                    </div>
-                  </Card>
-                : null}
-
-                {this.state.loading === true ? <Loading /> : null}
-              </Container>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
-      </Container>
+        </Container>
+        <Footer></Footer>
+      </div>
     );
   }
 }

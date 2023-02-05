@@ -9,6 +9,7 @@ import '../stylesheets/style.css';
 
 import Template from './Template';
 import Class from './../components/ClassRoster/Class'; 
+import Footer from '../components/Footer';
 
 class ClassRoster extends Component {
 
@@ -280,37 +281,40 @@ class ClassRoster extends Component {
 
   render() {
     return (
-      <Container className="user-list">
-        <Template permission={this.state.permission}/>
-        <br></br><br></br>			
-        <div>
-        <h3>Class Roster</h3>
-          <Tab.Container id="userList" defaultActiveKey="#students" onSelect={(k) => this.resetVal(k)}>
-            <Row>
-              <Col sm={4}>
-                <ListGroup className="userListTabs">
-                  <ListGroup.Item action href="#students">
-                    Students
-                  </ListGroup.Item>
-                  <ListGroup.Item action href="#tas">
-                    TAs
-                  </ListGroup.Item>
-                </ListGroup>
-              </Col>
-              <Col sm={8}>
-                <Tab.Content>
-                  <Tab.Pane eventKey="#students">
-                    {this.renderUserTable("st")}
-                  </Tab.Pane>
-                  <Tab.Pane eventKey="#tas">
-                    {this.renderUserTable("ta")}
-                  </Tab.Pane>
-                </Tab.Content>
-              </Col>
-            </Row>
-          </Tab.Container>
-        </div>
-      </Container>
+      <div>
+        <Container className="user-list">
+          <Template permission={this.state.permission}/>
+          <br></br><br></br>			
+          <div>
+          <h3>Class Roster</h3>
+            <Tab.Container id="userList" defaultActiveKey="#students" onSelect={(k) => this.resetVal(k)}>
+              <Row>
+                <Col sm={4}>
+                  <ListGroup className="userListTabs">
+                    <ListGroup.Item action href="#students">
+                      Students
+                    </ListGroup.Item>
+                    <ListGroup.Item action href="#tas">
+                      TAs
+                    </ListGroup.Item>
+                  </ListGroup>
+                </Col>
+                <Col sm={8}>
+                  <Tab.Content>
+                    <Tab.Pane eventKey="#students">
+                      {this.renderUserTable("st")}
+                    </Tab.Pane>
+                    <Tab.Pane eventKey="#tas">
+                      {this.renderUserTable("ta")}
+                    </Tab.Pane>
+                  </Tab.Content>
+                </Col>
+              </Row>
+            </Tab.Container>
+          </div>
+        </Container>
+        <Footer></Footer>
+      </div>
     )
   }
 }

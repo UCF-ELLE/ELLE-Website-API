@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { Button } from 'reactstrap';
 import MainTemplate from '../pages/MainTemplate';
 import Template from '../pages/Template';
+import Footer from '../components/Footer';
 
 import '../stylesheets/style.css';
 import '../lib/bootstrap/css/bootstrap.min.css';
@@ -12,36 +13,24 @@ import '../lib/ionicons/css/ionicons.min.css';
 
 // import banner from '../Images/ELLEDownloadsBanner.mp4';
 
-import Unity, { UnityContent } from "react-unity-webgl";
+import Unity, { UnityContext } from "react-unity-webgl";
 
-const unityContent = new UnityContent(
-	"Build/Builds.json",
-	"Build/UnityLoader.js"
-);
-
-// untested code from previous group for MazeGame
-/*
-unityContent.on("GameLoaded", () => {
-	sendLogin();
+const unityContext = new UnityContext({
+    loaderUrl: "Unity-Game-WebGL-Builds/Card-Game/Build.loader.js",
+    dataUrl: "Unity-Game-WebGL-Builds/Card-Game/Build.data",
+    frameworkUrl: "Unity-Game-WebGL-Builds/Card-Game/Build.framework.js",
+    codeUrl: "Unity-Game-WebGL-Builds/Card-Game/Build.wasm",
 });
-function sendLogin() {
-	const jwt = localStorage.getItem('jwt');
-	unityContent.send("ContinueButton", "loginAttempt", jwt);
-  }*/
 
 export default class CardGame extends Component {
 	constructor(props) {
 		super(props);
 
-		// more old code
-		/*this.state = {
+		this.state = {
 			permission: this.props.user.permission,
-		}*/
-
+		}
 	}
 
-	// more old code
-	/*
 	componentDidMount() {
 		this.verifyPermission();
 	}
@@ -56,46 +45,31 @@ export default class CardGame extends Component {
 			var decoded = jwtDecode(jwt);
 			this.setState({ permission: decoded.user_claims.permission });
 		}
-	}*/
+	}
 
 	handleOnClickFullscreen() {
-		  unityContent.setFullscreen(true);
+        unityContext.setFullscreen(true);
 	}
 
 	render() {
-	return (
-	<div className="downloadsBg">
-
-		{localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={this.state.permission}/>}
-						<br />
-						<Unity unityContent={unityContent} width="75%" height="75%"/>
-						<center>
-
-						<br />
-						<br />
-						<Button onClick={this.handleOnClickFullscreen}>Fullscreen</Button>
-						<p></p>
-						<br />
-						</center>
-						
-						<p className="cardGameText" style={{color: "white"}}>If there are no available modules for you to select, try logging out and logging back in. Also, make sure you are on the secure version of the site - if you look at the URL bar, to the left you should see the word "Secure" or a closed lock. If you do not see that, click <a href="https://endlesslearner.com/mazegame">here</a> to be redirected to the secure version of this page.</p>
-						<br />
-						<p></p>
-		<footer id="footer">
-			<div className="container">
-				<div className="copyright">&copy; Copyright 2022 <strong>Reveal</strong>. All Rights Reserved</div>
-				<div className="credits">
-				{/*
-				All the links in the footer should remain intact.
-				You can delete the links only if you purchased the pro version.
-				Licensing information: https://bootstrapmade.com/license/
-				Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/buy/?theme=Reveal
-				*/}
-				Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
-				</div>
-			</div>
-		</footer>
-	</div>
-  );
+        return (
+            <div className="gamesBg">
+                {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={this.state.permission}/>}
+                <br />
+                <center>
+                    <Unity unityContext={unityContext} style={{ width: "1152px", height: "648px" }}/>
+                    <br />
+                    <br />
+                    <Button onClick={this.handleOnClickFullscreen}>Fullscreen</Button>
+                    <p></p>
+                    <br />
+                </center>
+ 
+                <p className="cardGameText" style={{color: "white"}}>If there are no available modules for you to select, try logging out and logging back in. Also, make sure you are on the secure version of the site - if you look at the URL bar, to the left you should see the word "Secure" or a closed lock. If you do not see that, click <a href="https://endlesslearner.com/mazegame">here</a> to be redirected to the secure version of this page.</p>
+                <br />
+                <p></p>
+                <Footer></Footer>
+            </div>
+        );
 	}
 }

@@ -23,6 +23,9 @@ from config import (IMAGE_EXTENSIONS, AUDIO_EXTENSIONS, TEMP_DELETE_FOLDER,
                     TEMP_UPLOAD_FOLDER, IMG_UPLOAD_FOLDER, AUD_UPLOAD_FOLDER,
                     IMG_RETRIEVE_FOLDER, AUD_RETRIEVE_FOLDER,
                     PERMISSION_LEVELS, PERMISSION_GROUPS, ACCESS_LEVELS)
+# this line was missing and causing redis_host to cause errors
+from config import REDIS_HOST, REDIS_PORT, REDIS_CHARSET
+
 
 ########################################################################################
 # TERM FUNCTIONS
@@ -67,6 +70,7 @@ def addNewTags(tagList, termID, conn=None, cursor=None):
         result = getFromDB(query, (termID, str(tag).lower()), conn, cursor)
         if result:
             if DEBUG:
+            #DEBUG Here is not defined ?
                 print(result)
                 print("Trying to insert a duplicate tag")
         else:
@@ -116,8 +120,8 @@ def validate_permissions():
 
     permission = permission['permission']
     if not user_id or user_id == '' or \
-       not permission or permission == '' or \
-       permission not in PERMISSION_LEVELS:
+        not permission or permission == '' or \
+        permission not in PERMISSION_LEVELS:
         return None, None
     else:
         return permission, user_id
@@ -214,6 +218,89 @@ def convertUserLevelsToJSON(userLevel):
         'accessLevel' : userLevel[2],
     }
     return result
+
+
+########################################################################################
+# MENTORS FUNCTIONS
+########################################################################################
+
+def get_mentor_preference(_id, conn, cursor):
+    query = "SELECT mentorName FROM mentor_preferences WHERE userID = %s"
+    result = getFromDB(query, _id, conn, cursor)
+
+    return result
+
+def store_mentor_preference(_id, mentor_name, conn, cursor):
+
+    if(len(get_mentor_preference(_id, conn, cursor)) > 0):
+        query = "UPDATE mentor_preferences SET mentorName = %s WHERE userID = %s"
+        postToDB(query, (mentor_name, _id), conn, cursor)
+        return True
+    else:
+        query = "INSERT INTO mentor_preferences (`userID`, `mentorName`) VALUES (%s, %s)"
+        postToDB(query, (_id, mentor_name), conn, cursor)
+        return False
+
+def get_student_response(_id, question_id, conn, cursor):
+    query = "SELECT * FROM mentor_responses WHERE userID = %s AND questionID = %s"
+    result = getFromDB(query, (_id, question_id), conn, cursor)
+
+    return result
+
+def store_student_response(_id, question_id, response, conn, cursor, mc_id=None):
+
+    if(len(get_student_response(_id, question_id, conn, cursor)) > 0):
+        query = "UPDATE mentor_responses SET response = %s, multipleChoiceID = %s WHERE userID = %s AND questionID = %s"
+        postToDB(query, (response, mc_id, _id, question_id), conn, cursor)
+        return True
+    else:
+        query = "INSERT INTO mentor_responses (`userID`, `questionID`, `response`, `multipleChoiceID`) VALUES (%s, %s, %s, %s)"
+        postToDB(query, (_id, question_id, response, mc_id), conn, cursor)
+        return False
+
+def store_mentor_question(type, question_text, conn, cursor, mc_options):
+    if(type == "MENTOR_FR"):
+        query = "INSERT INTO question (`type`, `questionText`) VALUES (%s, %s)"
+        postToDB(query, (type, question_text), conn, cursor)
+        return True
+    else:
+        query = "INSERT INTO question (`type`, `questionText`) VALUES (%s, %s)"
+        postToDB(query, (type, question_text), conn, cursor)
+
+        query = "SELECT questionID FROM question WHERE type = %s AND questionText = %s"
+        questionID = getFromDB(query, (type, question_text), conn, cursor)
+
+        for answerChoice in mc_options:
+            query = "INSERT INTO multiple_choice_answers (`questionID`, `answerChoice`) VALUES (%s, %s)"
+            postToDB(query, (questionID[0], answerChoice), conn, cursor)
+        return False
+
+def modify_mentor_question(question_id, question_text, conn, cursor):
+    query = "UPDATE `question` SET `questionText` = %s WHERE `questionID` = %s"
+    postToDB(query, (question_text, question_id), conn, cursor)
+    return True
+
+def get_mentor_questions(moduleID, conn, cursor):
+    query = "SELECT question.questionID, question.type, question.questionText FROM question INNER JOIN module_question ON " \
+            "question.questionID = module_question.questionID AND module_question.moduleID = %s AND " \
+            "question.type IN ('MENTOR_FR', 'MENTOR_MC')"
+    return getFromDB(query, moduleID, conn, cursor)
+
+def delete_mc_option(mc_id, conn, cursor):
+    query = "DELETE FROM multiple_choice_answers WHERE multipleChoiceID = %s"
+    deleteFromDB(query, mc_id, conn, cursor)
+    return True
+
+def modify_mc_options(updated_option, mc_id, conn, cursor):
+    query = "UPDATE multiple_choice_answers SET answerChoice = %s WHERE multipleChoiceID = %s"
+    postToDB(query, (updated_option, mc_id), conn, cursor)
+    return True
+
+def get_mc_options(question_id, conn, cursor):
+    query = "SELECT * FROM multiple_choice_answers WHERE questionID = %s"
+    return getFromDB(query, question_id, conn, cursor)
+
+
 
 ########################################################################################
 # GROUP FUNCTIONS

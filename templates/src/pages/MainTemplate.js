@@ -33,7 +33,7 @@ export default class Template extends React.Component {
 						<li><Link to='/home'>Home</Link></li>
 						<li><Link to='/login'>Log In</Link></li>
 						<li><Link to='/register'>Sign Up</Link></li>
-						<li><a href="https://www.github.com/ItsNotRick/elle" className="github"><i className="fa fa-github fa-lg"></i></a></li>
+						<li><a href="https://github.com/Naton-1/ELLE-2023-Website-API" className="github"><i className="fa fa-github fa-lg"></i></a></li>
 					</ul>
 				</nav>
 			</div>

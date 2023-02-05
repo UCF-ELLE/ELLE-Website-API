@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Home from './pages/Home';
 import Games from './pages/Games';
-//import MazeGame from './pages/MazeGame';
+import MazeGame from './pages/MazeGame';
 import Modules from './pages/Modules';
 import Profile from './pages/Profile';
 import Sessions from './pages/Sessions';
@@ -18,13 +18,8 @@ import ForgotUsername from './pages/ForgotUsername';
 import ForgotPassword from './pages/ForgotPassword'; 
 import ResetPassword from './pages/ResetPassword'; 
 import CardGame from './pages/CardGame';
-import MentorEdit from './pages/MentorEdit';
-import MentorQuestions from './pages/MentorQuestions';
 
-let flaskIP = '/elleapi';
-//flaskIP = '127.0.0.1:5050'; 
-/*let flaskIP = 'https://endlesslearner.com:5000';
-flaskIP = 'http://54.158.210.144:3000/api'; */
+let flaskIP = 'https://chdr.cs.ucf.edu/elleapi';
 
 class App extends Component {
   constructor() {
@@ -40,7 +35,6 @@ class App extends Component {
     })
   }
 
-//              <Route path="/mazegame" render={(props)=><MazeGame {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
   render() {
     return (
       <Router>  
@@ -54,22 +48,20 @@ class App extends Component {
             <Route path="/forgotusername" render={(props)=><ForgotUsername {...props} serviceIP={flaskIP}/>}/>
             <Route path="/forgotpassword" render={(props)=><ForgotPassword {...props} serviceIP={flaskIP}/>}/>
             <Route path="/resetpassword" render={(props)=><ResetPassword {...props} serviceIP={flaskIP}/>}/>
-
-            <Route path="/cardgame" render={(props)=><CardGame {...props} serviceIP={flaskIP}/>}/>
-            <Route path="/mentoredit" render={(props)=><MentorEdit {...props} serviceIP={flaskIP}/>}/>
-            <Route path="/mentorquestions" render={(props)=><MentorQuestions {...props} serviceIP={flaskIP}/>}/>
+            <Route path="/cardgame" render={(props)=><CardGame {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
             <AuthUser>   
               <Route path="/profile" render={(props)=><Profile {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
               <Route path="/modules" render={(props)=><Modules {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
               <Route path="/sessions" render={(props)=><Sessions {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
               <Route path="/gamecode" render={(props)=><GameCode {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
+              <Route path="/mazegame" render={(props)=><MazeGame {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
               <AuthAdmin>  
                 <Route path="/classroster" render={(props)=><ClassRoster {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
                 <Route path="/userlist" render={(props)=><UserList {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
               </AuthAdmin>
             </AuthUser>
           </Switch>
-          </div>
+        </div>
       </Router>
     );
   }
