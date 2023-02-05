@@ -35,6 +35,7 @@ class Question extends React.Component {
       selectedAudioFile: this.props.question.audioLocation, //contains the location of the audio for the question
       changedImage: false, //determines whether or not the image file was changed
       changedAudio: false, //determines whether or not the audio file was changed
+      baseURL: (new URL(this.props.serviceIP)).protocol + "//" + (new URL(this.props.serviceIP)).hostname, // From e.g. "https://beans.com:5050/api", extracts "https://beans.com" from it
 
       //TODO: populate answers with API call instead of dummy data
       answers: this.props.question.answers.map((answer) => {return answer.front}), //contains the list of answers
@@ -43,7 +44,7 @@ class Question extends React.Component {
 
       newlyCreatedAnswers : [], //array of answers the user created via this form
       submittingAnswer: false, //determines whether or not the AddAnswer form will be shown
-			userCreatedAnswer: "", //what the user put in the field when they clicked create answer
+      userCreatedAnswer: "", //what the user put in the field when they clicked create answer
     }
 
   }
@@ -271,8 +272,8 @@ class Question extends React.Component {
     let {selectedImgFile, selectedAudioFile, editedQuestionText} = this.state;
     let {question} = this.props;
     
-    let imgLink = "https://endlesslearner.com" + selectedImgFile;
-    let audioLink = "https://endlesslearner.com" + selectedAudioFile;
+    let imgLink = this.state.baseURL + selectedImgFile;
+    let audioLink = this.state.baseURL + selectedAudioFile;
 
     if (this.state.editMode === false){
       return (

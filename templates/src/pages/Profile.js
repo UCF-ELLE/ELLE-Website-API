@@ -6,6 +6,7 @@ import { Pie, Bar, HorizontalBar } from 'react-chartjs-2';
 import SuperAdminView from '../components/Profile/SuperAdminView';
 import AdminView from '../components/Profile/AdminView';
 import StudentView from '../components/Profile/StudentView';
+import Footer from '../components/Footer';
 
 export default class Profile extends React.Component {
   constructor(props) {
@@ -218,35 +219,38 @@ export default class Profile extends React.Component {
 
   render() { 
     return (
-      <Container>
-      <Template permission={this.state.permission}/>
-		  <br></br>
-        {this.state.permission === "su" ? 
-        <SuperAdminView 
-          serviceIP={this.props.serviceIP} 
-          username={this.state.username}
-          email={this.state.email}
-          permission={this.state.permission}
-          editEmail={this.editEmail}
-        /> : null}
-        {this.state.permission === "pf" ? 
-        <AdminView 
-          serviceIP={this.props.serviceIP} 
-          username={this.state.username}
-          email={this.state.email}
-          permission={this.state.permission}
-          editEmail={this.editEmail}
-        /> : null}
-        {this.state.permission === "st" ? 
-        <StudentView 
-          serviceIP={this.props.serviceIP} 
-          username={this.state.username}
-          email={this.state.email}
-          permission={this.state.permission}
-          editEmail={this.editEmail}
-        /> : null}
-      <br/>
-      </Container>
+      <div>
+        <Container>
+          <Template permission={this.state.permission}/>
+          <br></br>
+            {this.state.permission === "su" ? 
+            <SuperAdminView 
+              serviceIP={this.props.serviceIP} 
+              username={this.state.username}
+              email={this.state.email}
+              permission={this.state.permission}
+              editEmail={this.editEmail}
+            /> : null}
+            {this.state.permission === "pf" ? 
+            <AdminView 
+              serviceIP={this.props.serviceIP} 
+              username={this.state.username}
+              email={this.state.email}
+              permission={this.state.permission}
+              editEmail={this.editEmail}
+            /> : null}
+            {this.state.permission === "st" ? 
+            <StudentView 
+              serviceIP={this.props.serviceIP} 
+              username={this.state.username}
+              email={this.state.email}
+              permission={this.state.permission}
+              editEmail={this.editEmail}
+            /> : null}
+          <br/>
+        </Container>
+        <Footer></Footer>
+      </div>
     );
   }
 }

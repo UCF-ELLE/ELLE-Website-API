@@ -6,6 +6,7 @@ import axios from 'axios';
 import '../lib/bootstrap/css/bootstrap.min.css';
 import '../lib/ionicons/css/ionicons.min.css';
 import Template from './Template';
+import Footer from '../components/Footer';
 
 export default class GameCode extends Component {
   constructor(props) {
@@ -80,6 +81,7 @@ export default class GameCode extends Component {
                 </p>
               </ModalBody>
             </Modal>
+            <Footer></Footer>
         </div>
     );
   }
