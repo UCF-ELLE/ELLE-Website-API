@@ -18,7 +18,6 @@ export default class Template extends React.Component {
         </div>
         <nav id="nav-menu-container">
           <ul className="nav-menu">
-            <li><Link to= '/CardGame'>Card Game </Link></li>
             <li><Link to='/games'>Games</Link></li>
             <li><Link to='/profile'>Profile</Link></li>
             <li><Link to='/modules'>Modules</Link></li>
