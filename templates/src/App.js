@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Home from './pages/Home';
-import Downloads from './pages/Downloads';
+import Games from './pages/Games';
 import MazeGame from './pages/MazeGame';
 import Modules from './pages/Modules';
 import Profile from './pages/Profile';
@@ -41,7 +41,7 @@ class App extends Component {
         <div>
           <Switch>
             <Route exact path="/home" render={(props)=><Home {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
-            <Route path="/downloads" render={(props)=><Downloads {...props} serviceIP={flaskIP} user={this.state.user}/>}/>        
+            <Route path="/games" render={(props)=><Games {...props} serviceIP={flaskIP} user={this.state.user}/>}/>        
             <Route path="/logout" render={(props)=><Logout {...props} serviceIP={flaskIP}/>}/>
             <Route path="/login" render={(props)=><Login {...props} serviceIP={flaskIP} updateUserInfo={this.updateUserInfo}/>}/>
             <Route path="/register" render={(props)=><Signup {...props} serviceIP={flaskIP}/>}/>

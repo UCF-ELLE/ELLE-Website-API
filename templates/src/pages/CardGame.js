@@ -53,8 +53,7 @@ export default class CardGame extends Component {
 
 	render() {
         return (
-            <div className="downloadsBg">
-
+            <div className="gamesBg">
                 {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={this.state.permission}/>}
                 <br />
                 <center>
@@ -65,15 +64,7 @@ export default class CardGame extends Component {
                     <p></p>
                     <br />
                 </center>
-                <h3 className="cardGameText" style={{color: "white"}} >ELLE Card Game</h3>
-                <p className="cardGameText" style={{color: "white"}} >Senior Design Team:</p>
-                <ul className="cardGameText" style={{color: "white"}} >
-                        <li>Justin Moy</li>
-                        <li>Connor Lysek</li>
-                        <li>Keilvin Tran</li>
-                        <li>Nathan Lim</li>
-                        <li>Skylar Marosi</li>
-                </ul>
+ 
                 <p className="cardGameText" style={{color: "white"}}>If there are no available modules for you to select, try logging out and logging back in. Also, make sure you are on the secure version of the site - if you look at the URL bar, to the left you should see the word "Secure" or a closed lock. If you do not see that, click <a href="https://endlesslearner.com/mazegame">here</a> to be redirected to the secure version of this page.</p>
                 <br />
                 <p></p>
