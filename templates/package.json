@@ -19,6 +19,7 @@
     "react-dom": "^16.13.1",
     "react-loader-spinner": "^3.1.14",
     "react-loading-skeleton": "^2.1.1",
+    "react-modal": "^3.16.1",
     "react-papaparse": "^3.8.0",
     "react-promise-tracker": "^2.1.0",
     "react-router": "^5.2.0",
