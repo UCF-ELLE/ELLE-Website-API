@@ -1,3 +1,4 @@
+from flask_jwt_extended import jwt_required
 from flask_restful import Resource
 from utils import *
 from exceptions_util import *
@@ -7,6 +8,7 @@ MENTOR_QUESTION_TYPE_2 = "MENTOR_MC"
 
 #saves the user's preferred mentor
 class MentorPreference(Resource):
+    @jwt_required
     def post(self):
         data = {}
         data['mentor_name'] = getParameter("mentor_name", str, True, "")
@@ -40,6 +42,7 @@ class MentorPreference(Resource):
                 cursor.close()
                 conn.close()
 
+    @jwt_required
     def get(self):
         # data = {}
         # data['user_id'] = getParameter("user_id", str, True, "")
@@ -55,7 +58,7 @@ class MentorPreference(Resource):
 
             mentorPreference = get_mentor_preference(user_id, conn, cursor)
 
-            raise ReturnSuccess(mentorPreference[0], 200)
+            raise ReturnSuccess(mentorPreference[0][0], 200)
 
         except CustomException as error:
             conn.rollback()
@@ -73,6 +76,7 @@ class MentorPreference(Resource):
 
 #store Create, Read, Update student answers to Mentor Questions
 class StudentResponses(Resource):
+    @jwt_required
     def post(self):
         data = {}
         data['response'] = getParameter("response", str, True, "")
@@ -140,8 +144,8 @@ class StudentResponses(Resource):
                 cursor.close()
                 conn.close()
 
-#Create and Read mentor questions
-class MentorQuestions(Resource):
+#Create mentor questions
+class CreateMentorQuestions(Resource):
     def post(self):
         data = {}
         data['type'] = getParameter("type", str, True, "")
@@ -180,7 +184,10 @@ class MentorQuestions(Resource):
                 cursor.close()
                 conn.close()
 
-    def get(self):
+class GetMentorQuestions(Resource):
+
+    # @jwt_required
+    def post(self):
         data = {}
         data['moduleID'] = getParameter("moduleID", str, True, "")
 
@@ -193,7 +200,15 @@ class MentorQuestions(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            mentorQuestions = get_mentor_questions(data['moduleID'], conn, cursor)
+            result = get_mentor_questions(data['moduleID'], conn, cursor)
+
+            mentorQuestions = []
+            for row in result:
+                question = {}
+                question['questionID'] = row[0]
+                question['type'] = row[1]
+                question['questionText'] = row[2]
+                mentorQuestions.append(question)
 
             raise ReturnSuccess(mentorQuestions, 200)
 
@@ -210,7 +225,6 @@ class MentorQuestions(Resource):
             if (conn.open):
                 cursor.close()
                 conn.close()
-
 
 #Modify mentor questions
 class ModifyMentorQuestions(Resource):
@@ -307,7 +321,7 @@ class DeleteMentorQuestion(Resource):
 
 class GetMultipleChoiceOptions(Resource):
     # @jwt_required
-    def get(self):
+    def post(self):
         data = {}
         data['question_id'] = getParameter("question_id", str, True, "")
 
@@ -319,7 +333,15 @@ class GetMultipleChoiceOptions(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            mc_options = get_mc_options(data['question_id'], conn, cursor)
+            result = get_mc_options(data['question_id'], conn, cursor)
+            mc_options = []
+            for row in result:
+                mc_option = {}
+                mc_option['multipleChoiceID'] = row[0]
+                mc_option['questionID'] = row[1]
+                mc_option['answerChoice'] = row[2]
+                mc_options.append(mc_option)
+
             raise ReturnSuccess(mc_options, 200)
 
         except CustomException as error:
