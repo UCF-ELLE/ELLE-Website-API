@@ -169,12 +169,9 @@ API_ENDPOINT_PREFIX = '/'
 ```
 
 `/templates/src/App.js`
-```js
-let flaskIP = 'https://chdr.cs.ucf.edu/elleapi';
-```
-
-`App.js`
 ```diff
+let flaskIP = 'https://chdr.cs.ucf.edu/elleapi';
+
 -<Router>  
 +<Router basename='/elle/'>  
 ```
