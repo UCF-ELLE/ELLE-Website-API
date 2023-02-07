@@ -65,7 +65,6 @@ export default class CardGame extends Component {
                     <br />
                 </center>
  
-                <p className="cardGameText" style={{color: "white"}}>If there are no available modules for you to select, try logging out and logging back in. Also, make sure you are on the secure version of the site - if you look at the URL bar, to the left you should see the word "Secure" or a closed lock. If you do not see that, click <a href="https://endlesslearner.com/mazegame">here</a> to be redirected to the secure version of this page.</p>
                 <br />
                 <p></p>
                 <Footer></Footer>
