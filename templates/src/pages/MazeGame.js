@@ -78,15 +78,6 @@ export default class MazeGameFinal extends Component {
                 <p></p>
                 <br />
                 </center>
-                <h3 className="mazeGame" >ELLE aMAZEing Game</h3>
-                <p className="mazeGame">Senior Design Team:</p>
-                <ul className="mazeGame">
-                        <li>Annabel Bland</li>
-                        <li>Tyler Morejon</li>
-                        <li>Nathan Otis</li>
-                        <li>Daniel Rodriguez</li>
-                        <li>Tanner Williams</li>
-                </ul>
                 <p className="mazeGame">If there are no available modules for you to select, try logging out and logging back in. Also, make sure you are on the secure version of the site - if you look at the URL bar, to the left you should see the word "Secure" or a closed lock. If you do not see that, click <a href="https://endlesslearner.com/mazegame">here</a> to be redirected to the secure version of this page.</p>
                 <br />
                 <p></p>
