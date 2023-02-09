@@ -80,19 +80,18 @@ class StudentResponses(Resource):
     def post(self):
         data = {}
         data['response'] = getParameter("response", str, True, "")
-        data['user_id'] = getParameter("user_id", str, True, "")
         data['question_id'] = getParameter("question_id", str, True, "")
         data['mc_id'] = getParameter("mc_id", str, False, "")
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
         try:
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            updated = store_student_response(data['user_id'], data['question_id'], data['response'], conn, cursor, data['mc_id'])
+            updated = store_student_response(user_id, data['question_id'], data['response'], conn, cursor, data['mc_id'])
 
             if updated:
                 raise ReturnSuccess('Student response updated for question %s.' % data['question_id'], 200)
