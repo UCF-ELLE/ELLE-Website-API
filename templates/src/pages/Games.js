@@ -237,24 +237,24 @@ export default class Games extends Component {
 		</section>
 		</a>
 
-		<a id="SpicenSpELLE">
+		<a id="SpinNSpELLE">
 			<section style={{color: "white"}}>
 			<div className="container">
 				<div className="infoCard" style={{backgroundColor: "#5da8af"}}>
 					<Row>
 						<Col>
-							<h3 className="cta-title">Spice N SpELLE</h3>
+							<h3 className="cta-title">Spin N SpELLE</h3>
 							<br />
 							Spell out the translation of terms using alphabet blocks. Play in either quiz mode or try your luck at endless mode!
 							<p className="cta-text">
 							<br /> <br /> <br />
-								<a class="spiceButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
+								<a class="spinButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
 								
 							</p>
 							
 						</Col>
 						<Col>
-						<img style={{width: "350px", height: "255px", marginLeft: "100px"}} src={require('../Images/spicenspellBlocks.png')} />
+						<img style={{width: "350px", height: "255px", marginLeft: "100px"}} src={require('../Images/spinnspellBlocks.png')} />
 						</Col>
 					</Row>
 				</div>
@@ -279,7 +279,7 @@ export default class Games extends Component {
 							
 						</Col>
 						<Col>
-						<img style={{width: "350px", height: "255px", marginLeft: "100px"}} src={require('../Images/highrise.jpg')} />
+						<img style={{width: "470px", height: "255px", marginLeft: "100px"}} src={require('../Images/highrise.jpg')} />
 						</Col>
 					</Row>
 				</div>
@@ -287,6 +287,30 @@ export default class Games extends Component {
 		</section>
 		</a>
 
+		<a id="HELLEsKitchen">
+			<section style={{color: "white"}}>
+			<div className="container">
+				<div className="infoCard" style={{backgroundColor: "#5da8af"}}>
+					<Row>
+						<Col>
+							<h3 className="cta-title">HELLE's Kitchen</h3>
+							<br />
+							TBD
+							<p className="cta-text">
+							<br /> <br /> <br />
+								<a class="spinButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
+								
+							</p>
+							
+						</Col>
+						<Col>
+						<img style={{width: "514px", height: "289px", marginLeft: "100px"}} src={require('../Images/helleskitchen.jpg')} />
+						</Col>
+					</Row>
+				</div>
+		</div>
+		</section>
+		</a>
 		
 		
 		<footer id="footer">
