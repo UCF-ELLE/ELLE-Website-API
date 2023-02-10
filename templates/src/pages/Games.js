@@ -294,17 +294,31 @@ export default class Games extends Component {
 					<Row>
 						<Col>
 							<h3 className="cta-title">HELLE's Kitchen</h3>
+							<p className="cta-text">Senior Design Team:</p>
+							<ul style={{color: '#ffffff'}}>
+								<Row>
+									<Col>
+										<li>Allexis Knight</li>
+										<li>Arianna Walters</li>
+										<li>Dylan Quigley</li>
+									</Col>
+									<Col>
+										<li>Edgard Irineo</li>
+										<li>Manatsa Chiomadzi</li>
+									</Col>
+								</Row>
+							</ul>
 							<br />
-							TBD
+							Follow recipes in Spanish to search the kitchen for ingredients. Cook them up to discover the dish of the unit!
 							<p className="cta-text">
-							<br /> <br /> <br />
+							<br /> 
 								<a class="spinButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
 								
 							</p>
 							
 						</Col>
 						<Col>
-						<img style={{width: "514px", height: "289px", marginLeft: "100px"}} src={require('../Images/helleskitchen.jpg')} />
+						<br /><img style={{width: "514px", height: "289px", marginLeft: "100px"}} src={require('../Images/helleskitchen.jpg')} />
 						</Col>
 					</Row>
 				</div>
