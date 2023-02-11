@@ -16,10 +16,10 @@ import '../lib/ionicons/css/ionicons.min.css';
 import Unity, { UnityContext } from "react-unity-webgl";
 
 const unityContext = new UnityContext({
-    loaderUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build419.loader.js',
-    dataUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build419.data',
-    frameworkUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build419.framework.js',
-    codeUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build419.wasm',
+    loaderUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.loader.js',
+    dataUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.data',
+    frameworkUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.framework.js',
+    codeUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.wasm',
 });
 
 unityContext.on("GameLoaded", () => {
