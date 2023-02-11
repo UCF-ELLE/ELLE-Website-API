@@ -78,7 +78,7 @@ export default class MazeGameFinal extends Component {
                 <p></p>
                 <br />
                 </center>
-                <p className="mazeGame"><font color="black">If there are no available modules for you to select, try logging out and logging back in. Also, make sure you are on the secure version of the site - if you look at the URL bar, to the left you should see the word "Secure" or a closed lock. If you do not see that, click <a href="https://endlesslearner.com/mazegame">here</a> to be redirected to the secure version of this page.</font></p>
+                <p className="mazeGame"><font color="black">If there are no available modules for you to select, try logging out and logging back in.</font></p>
                 <br />
                 <p></p>
                 <Footer></Footer>
