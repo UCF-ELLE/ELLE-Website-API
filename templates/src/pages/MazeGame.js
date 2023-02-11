@@ -16,10 +16,10 @@ import '../lib/ionicons/css/ionicons.min.css';
 import Unity, { UnityContext } from "react-unity-webgl";
 
 const unityContext = new UnityContext({
-    loaderUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build419.loader.js',
-    dataUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build419.data',
-    frameworkUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build419.framework.js',
-    codeUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build419.wasm',
+    loaderUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.loader.js',
+    dataUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.data',
+    frameworkUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.framework.js',
+    codeUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.wasm',
 });
 
 unityContext.on("GameLoaded", () => {
@@ -78,7 +78,7 @@ export default class MazeGameFinal extends Component {
                 <p></p>
                 <br />
                 </center>
-                <p className="mazeGame">If there are no available modules for you to select, try logging out and logging back in. Also, make sure you are on the secure version of the site - if you look at the URL bar, to the left you should see the word "Secure" or a closed lock. If you do not see that, click <a href="https://endlesslearner.com/mazegame">here</a> to be redirected to the secure version of this page.</p>
+                <p className="mazeGame"><font color="black">If there are no available modules for you to select, try logging out and logging back in.</font></p>
                 <br />
                 <p></p>
                 <Footer></Footer>

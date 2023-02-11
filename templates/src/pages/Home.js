@@ -47,7 +47,7 @@ export default class Home extends Component {
 					<div className="intro-content">
 						<h2>The <span>ultimate</span> way<br />to learn a language.</h2>
 						<div>
-							<Link to='/downloads' className="btn-projects scrollto">Download ELLE</Link>
+							<Link to='/games' className="btn-projects scrollto">Play ELLE</Link>
 						</div>
 					</div>
 				</section>
