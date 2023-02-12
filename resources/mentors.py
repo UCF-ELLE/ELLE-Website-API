@@ -423,3 +423,36 @@ class DeleteMultipleChoiceOption(Resource):
             if (conn.open):
                 cursor.close()
                 conn.close()
+
+class ModifyMentorQuestionFrequency(Resource):
+    # @jwt_required
+    def post(self):
+        data = {}
+        data['question_frequency'] = getParameter("question_frequency", str, True, "")
+        data['moduleID'] = getParameter("module_id", str, True, "")
+
+        # permission, user_id = validate_permissions()
+        # if not permission or not user_id:
+        #     return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            modify_mentor_question_frequency(data['moduleID'], data['question_frequency'], conn, cursor)
+
+            raise ReturnSuccess("Successfully changed mentor question frequency", 201)
+
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if (conn.open):
+                cursor.close()
+                conn.close()
