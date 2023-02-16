@@ -33,7 +33,7 @@ from resources.logged_answer import LoggedAnswer, GetLoggedAnswerCSV
 from resources.mentors import (MentorPreference, StudentResponses, CreateMentorQuestions, GetMentorQuestions,
 							   ModifyMentorQuestions, DeleteMentorQuestion,
 							   GetMultipleChoiceOptions, ModifyMultipleChoiceOption,
-							   DeleteMultipleChoiceOption)
+							   DeleteMultipleChoiceOption, ModifyMentorQuestionFrequency)
 import os.path
 import config
 
@@ -180,6 +180,7 @@ api.add_resource(DeleteMentorQuestion, API_ENDPOINT_PREFIX + 'deletementorquesti
 api.add_resource(GetMultipleChoiceOptions, API_ENDPOINT_PREFIX + 'getmultiplechoiceoptions')
 api.add_resource(ModifyMultipleChoiceOption, API_ENDPOINT_PREFIX + 'modifymultiplechoiceoptions')
 api.add_resource(DeleteMultipleChoiceOption, API_ENDPOINT_PREFIX + 'deletemultiplechoiceoptions')
+api.add_resource(ModifyMentorQuestionFrequency, API_ENDPOINT_PREFIX + 'modifymentorquestionfrequency')
 
 
 if __name__ == '__main__':

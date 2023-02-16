@@ -300,7 +300,9 @@ def get_mc_options(question_id, conn, cursor):
     query = "SELECT * FROM multiple_choice_answers WHERE questionID = %s"
     return getFromDB(query, question_id, conn, cursor)
 
-
+def modify_mentor_question_frequency(module_id, frequency, conn, cursor):
+    query = "UPDATE module SET mentorQuestionFrequency = %s WHERE moduleID = %s"
+    return postToDB(query, (frequency, module_id), conn, cursor)
 
 ########################################################################################
 # GROUP FUNCTIONS
@@ -590,7 +592,7 @@ def GetTAList(professorID):
     return TA_list
 
 
-def convertModuleToJSON(module, sixth_param_name='sixthParam'):
+def convertModuleToJSON(module, seventh_param_name='seventhParam'):
     """
     Converting a module record into a JSON object
 
@@ -607,9 +609,10 @@ def convertModuleToJSON(module, sixth_param_name='sixthParam'):
     moduleObj['language'] = module[2]
     moduleObj['complexity'] = module[3]
     moduleObj['userID'] = module[4]
+    moduleObj['mentorQuestionFrequency'] = module[5]
 
-    if len(module) > 5:
-        moduleObj[sixth_param_name] = module[5]
+    if len(module) > 6:
+        moduleObj[seventh_param_name] = module[6]
     
     return moduleObj
 
