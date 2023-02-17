@@ -19,13 +19,14 @@
     "react-dom": "^16.13.1",
     "react-loader-spinner": "^3.1.14",
     "react-loading-skeleton": "^2.1.1",
+    "react-modal": "^3.16.1",
     "react-papaparse": "^3.8.0",
     "react-promise-tracker": "^2.1.0",
     "react-router": "^5.2.0",
     "react-router-dom": "^4.3.1",
     "react-scripts": "^3.4.3",
     "react-select": "^3.1.0",
-    "react-unity-webgl": "^7.0.0",
+    "react-unity-webgl": "^8.8.0",
     "reactstrap": "^6.5.0"
   },
   "scripts": {

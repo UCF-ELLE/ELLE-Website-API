@@ -37,6 +37,7 @@ class Term extends React.Component {
       selectedAudioFile: this.props.card.audioLocation, //contains the location of the audio for the card
       changedImage: false, //determines whether or not the image file was changed
       changedAudio: false, //determines whether or not the audio file was changed
+      baseURL: (new URL(this.props.serviceIP)).protocol + "//" + (new URL(this.props.serviceIP)).hostname, // From e.g. "https://beans.com:5050/api", extracts the "https://beans.com" portion
 
       //TODO: populate tags with API call instead of dummy data
       tags: [], //contains the list of tags
@@ -246,9 +247,10 @@ class Term extends React.Component {
 
 
   render() {
-    let {editedFront, editedBack, editedType, editedGender} = this.state;
-    let imgLink = "https://endlesslearner.com" + this.props.card.imageLocation;
-    let audioLink = "https://endlesslearner.com" + this.props.card.audioLocation;
+    let {editedFront, editedBack, editedType, editedGender, selectedImgFile, selectedAudioFile} = this.state;
+
+    let imgLink = this.state.baseURL + selectedImgFile;
+    let audioLink = this.state.baseURL + selectedAudioFile;
 
     if (this.state.editMode === false){
       return (

@@ -7,6 +7,7 @@ import axios from 'axios';
 import '../stylesheets/style.css';
 
 import User from '../components/UserList/User';
+import Footer from '../components/Footer';
 import Template from './Template';
 import Spinner from '../components/Loading/Spinner'; 
 import { trackPromise } from 'react-promise-tracker';
@@ -261,43 +262,46 @@ class UserList extends Component {
 
   render() {
     return (
-      <Container className="user-list">
-        <Template permission={this.state.permission}/>
-        <br></br><br></br>			
-        <div>
-        <h3>List of Users</h3>
-          <Tab.Container id="userList" defaultActiveKey="#superAdmins" onSelect={(k) => this.resetVal(k)}>
-            <Row>
-              <Col sm={4}>
-                <ListGroup className="userListTabs">
-                  <ListGroup.Item action href="#superAdmins">
-                    Super Admins
-                  </ListGroup.Item>
-                  <ListGroup.Item action href="#professors">
-                    Professors
-                  </ListGroup.Item>
-                  <ListGroup.Item action href="#students">
-                    Students
-                  </ListGroup.Item>
-                </ListGroup>
-              </Col>
-              <Col sm={8}>
-                <Tab.Content>
-                  <Tab.Pane eventKey="#superAdmins">
-                    {this.renderUserTable("su")}
-                  </Tab.Pane>
-                  <Tab.Pane eventKey="#professors">
-                    {this.renderUserTable("pf")}
-                  </Tab.Pane>
-                  <Tab.Pane eventKey="#students">
-                    {this.renderUserTable("st")}
-                  </Tab.Pane>
-                </Tab.Content>
-              </Col>
-            </Row>
-          </Tab.Container>
-        </div>
-      </Container>
+      <div>
+        <Container className="user-list">
+          <Template permission={this.state.permission}/>
+          <br></br><br></br>			
+          <div>
+          <h3>List of Users</h3>
+            <Tab.Container id="userList" defaultActiveKey="#superAdmins" onSelect={(k) => this.resetVal(k)}>
+              <Row>
+                <Col sm={4}>
+                  <ListGroup className="userListTabs">
+                    <ListGroup.Item action href="#superAdmins">
+                      Super Admins
+                    </ListGroup.Item>
+                    <ListGroup.Item action href="#professors">
+                      Professors
+                    </ListGroup.Item>
+                    <ListGroup.Item action href="#students">
+                      Students
+                    </ListGroup.Item>
+                  </ListGroup>
+                </Col>
+                <Col sm={8}>
+                  <Tab.Content>
+                    <Tab.Pane eventKey="#superAdmins">
+                      {this.renderUserTable("su")}
+                    </Tab.Pane>
+                    <Tab.Pane eventKey="#professors">
+                      {this.renderUserTable("pf")}
+                    </Tab.Pane>
+                    <Tab.Pane eventKey="#students">
+                      {this.renderUserTable("st")}
+                    </Tab.Pane>
+                  </Tab.Content>
+                </Col>
+              </Row>
+            </Tab.Container>
+          </div>
+        </Container>
+        <Footer></Footer>
+      </div>
     )
   }
 }

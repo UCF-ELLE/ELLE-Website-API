@@ -18,9 +18,7 @@ export default class Template extends React.Component {
         </div>
         <nav id="nav-menu-container">
           <ul className="nav-menu">
-            <li><Link to= '/CardGame'>Card Game </Link></li>
-            <li><Link to='/downloads'>Downloads</Link></li>
-            <li><Link to='mazegame'>Maze</Link></li>
+            <li><Link to='/games'>Games</Link></li>
             <li><Link to='/profile'>Profile</Link></li>
             <li><Link to='/modules'>Modules</Link></li>
             <li><Link to='/sessions'>Sessions</Link></li>
@@ -28,7 +26,7 @@ export default class Template extends React.Component {
             {this.props.permission === "pf" ? <li><Link to='/classroster'>Class Roster</Link></li> : null}
             <li><Link to='/gamecode'>VR Game Code</Link></li>
             <li><Link to='/logout'>Sign Out</Link></li>
-						<li><a href="https://www.github.com/ItsNotRick/elle" className="github"><i className="fa fa-github fa-lg"></i></a></li>
+						<li><a href="https://github.com/Naton-1/ELLE-2023-Website-API" className="github"><i className="fa fa-github fa-lg"></i></a></li>
           </ul>
         </nav>
       </div>

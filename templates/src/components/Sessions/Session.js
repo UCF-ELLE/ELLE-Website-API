@@ -19,7 +19,18 @@ export default class Session extends Component {
         let hoursMinutes = time.split(/[.:]/);
         let hours = parseInt(hoursMinutes[0], 10);
         let minutes = hoursMinutes[1] ? parseInt(hoursMinutes[1], 10) : 0;
-        return hours + minutes / 60;
+        return hours + (minutes / 60);
+    }
+
+    calculateTimeDiff = (start, end) => {
+        let result = (end - start);
+
+        // If negative duration is added, correct it
+        if (result < 0) {
+            result += 24;
+        }
+        // Format number to 2 decimal places
+        return result.toFixed(2);
     }
 
     showLoggedAnswers = (session) => {
@@ -92,7 +103,7 @@ export default class Session extends Component {
                                         <td>{session.playerScore}</td>
                                         <td>
                                             {session.endTime !== null && session.startTime !== null ?
-                                                (this.convertTimetoDecimal(session.endTime) - this.convertTimetoDecimal(session.startTime)).toFixed(2) + " hrs"
+                                                (this.calculateTimeDiff(this.convertTimetoDecimal(session.startTime), this.convertTimetoDecimal(session.endTime))) + " hrs"
                                             : "invalid values"}
                                         </td>
                                         <td>{session.moduleID}</td>
