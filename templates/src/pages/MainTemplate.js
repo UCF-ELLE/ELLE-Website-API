@@ -29,12 +29,11 @@ export default class Template extends React.Component {
 
 				<nav id="nav-menu-container">
 					<ul className="nav-menu">
-            <li><Link to= '/CardGame'>Card Game </Link></li>
-						<li><Link to='/downloads'>Downloads</Link></li>
+						<li><Link to='/games'>Games</Link></li>
 						<li><Link to='/home'>Home</Link></li>
 						<li><Link to='/login'>Log In</Link></li>
 						<li><Link to='/register'>Sign Up</Link></li>
-						<li><a href="https://www.github.com/ItsNotRick/elle" className="github"><i className="fa fa-github fa-lg"></i></a></li>
+						<li><a href="https://github.com/Naton-1/ELLE-2023-Website-API" className="github"><i className="fa fa-github fa-lg"></i></a></li>
 					</ul>
 				</nav>
 			</div>

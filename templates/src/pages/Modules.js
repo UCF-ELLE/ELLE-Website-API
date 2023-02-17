@@ -11,6 +11,7 @@ import StudentView from '../components/ModuleList/StudentView';
 import AdminView from '../components/ModuleList/AdminView';
 import SuperAdminView from '../components/ModuleList/SuperAdminView';
 import Module from '../components/Modules/Module';
+import Footer from '../components/Footer';
 
 export default class Modules extends Component {
   constructor(props) {
@@ -410,170 +411,173 @@ export default class Modules extends Component {
     this.state.classes.map((item) => {classOptions.push({value: item.groupID, label: item.groupName})});
     
     return (
-    <Container>
-    <Template permission={this.state.currentPermissionLevel}/>
+    <div>
+      <Container>
+      <Template permission={this.state.currentPermissionLevel}/>
 
-    <br/>
-    <Row style={{marginBottom: "15px"}}>
-      <Col className="Left Column" xs="3">
-        <h3 style={{margin: "5px 0 0 0", color: "#16a3b8"}}>Your ELLE Modules:</h3>
-      </Col>
+      <br/>
+      <Row style={{marginBottom: "15px"}}>
+        <Col className="Left Column" xs="3">
+          <h3 style={{margin: "5px 0 0 0", color: "#16a3b8"}}>Your ELLE Modules:</h3>
+        </Col>
 
-      {this.state.currentPermissionLevel !== "su" ?
-      <Col className="Right Column" style={{display: "flex", justifyContent: "flex-end"}}>
-        {/*Class Context*/}
-          <Label style={{margin: "5px 8px 0 0", fontSize: "large"}}>Class: </Label>
-          <Select
-            name="selectedClass"
-            options={classOptions}
-            className="basic-single"
-            classNamePrefix="select"
-            isClearable={true}
-            value={this.state.selectedClass}
-            onChange={this.updateClassContext}
-            styles={{
-              valueContainer: () => ({width: '147px'}),
-              // Fixes the overlapping problem of the component
-              menu: provided => ({ ...provided, zIndex: 9999 }), 
-              singleValue: provided => ({ ...provided, margin: "0 0 0 10px"}),
-              input: provided => ({ ...provided, margin: "0 0 0 10px"})
-            }}
-          />
-          {this.state.classChanged ? this.updateModuleList("change", null) : null}
-      </Col>
-      : null}
-
-    </Row>
-    <Row className="Seperated Col">
-      <Col className="Left Column" xs="3">
-        
-        {/*Search Bar for module list*/}
-        <InputGroup style={{borderRadius: '12px'}}>
-          <InputGroupAddon addonType="prepend" style={{margin: "10px"}}>
-            <img 
-              src={require('../Images/search.png')} 
-              alt="Icon made by Freepik from www.flaticon.com" 
-              style={{width: '15px', height: '15px'}}
+        {this.state.currentPermissionLevel !== "su" ?
+        <Col className="Right Column" style={{display: "flex", justifyContent: "flex-end"}}>
+          {/*Class Context*/}
+            <Label style={{margin: "5px 8px 0 0", fontSize: "large"}}>Class: </Label>
+            <Select
+              name="selectedClass"
+              options={classOptions}
+              className="basic-single"
+              classNamePrefix="select"
+              isClearable={true}
+              value={this.state.selectedClass}
+              onChange={this.updateClassContext}
+              styles={{
+                valueContainer: () => ({width: '147px'}),
+                // Fixes the overlapping problem of the component
+                menu: provided => ({ ...provided, zIndex: 9999 }), 
+                singleValue: provided => ({ ...provided, margin: "0 0 0 10px"}),
+                input: provided => ({ ...provided, margin: "0 0 0 10px"})
+              }}
             />
-          </InputGroupAddon>
-          <Input style={{border: "none"}}
-            placeholder="Search" 
-            value={this.state.searchDeck} 
-            onChange={this.updateSearchDeck.bind(this)}
-          />
-          {this.state.currentPermissionLevel === 'su'
-          ? 
-            <InputGroupAddon addonType="append">
-                <Button style={{backgroundColor:'#3e6184'}} onClick={() => this.setOpenForm(2)}> Add Module </Button>
+            {this.state.classChanged ? this.updateModuleList("change", null) : null}
+        </Col>
+        : null}
+
+      </Row>
+      <Row className="Seperated Col">
+        <Col className="Left Column" xs="3">
+          
+          {/*Search Bar for module list*/}
+          <InputGroup style={{borderRadius: '12px'}}>
+            <InputGroupAddon addonType="prepend" style={{margin: "10px"}}>
+              <img 
+                src={require('../Images/search.png')} 
+                alt="Icon made by Freepik from www.flaticon.com" 
+                style={{width: '15px', height: '15px'}}
+              />
             </InputGroupAddon>
-          : null}
-          {this.state.currentPermissionLevel === 'pf' || this.state.currentPermissionLevel === 'ta'
-          ? 
-            <InputGroupAddon addonType="append">
-              <ButtonDropdown isOpen={this.state.addModuleButtonOpen} toggle={this.toggleAddModuleButton}>
-                <DropdownToggle style={{backgroundColor:'#3e6184', borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"}} caret>
-                  Add Module
-                </DropdownToggle>
-                <DropdownMenu>
-                  <DropdownItem onClick={() => this.setOpenForm(1)}> Add Existing </DropdownItem>
-                  <DropdownItem onClick={() => this.setOpenForm(2)}> Add New </DropdownItem>
-                </DropdownMenu>
-              </ButtonDropdown>
-            </InputGroupAddon>
-          : null}
-        </InputGroup>
-      <br />
-      {/*Form for adding an existing Module*/}
-      <Modal isOpen={this.state.openForm === 1} toggle={() => this.setOpenForm(1)}>
-          <ModalHeader toggle={() => this.setOpenForm(1)}>Existing Modules</ModalHeader>
-          <ModalBody style={{padding: "0 20px 30px 20px"}}>
-            <AddExistingModule 
-              serviceIP={this.props.serviceIP} 
-              updateModuleList={this.updateModuleList}
-              classOptions={classOptions}
-              currentClass={this.state.selectedClass}
+            <Input style={{border: "none"}}
+              placeholder="Search" 
+              value={this.state.searchDeck} 
+              onChange={this.updateSearchDeck.bind(this)}
             />
-          </ModalBody>
-      </Modal>
+            {this.state.currentPermissionLevel === 'su'
+            ? 
+              <InputGroupAddon addonType="append">
+                  <Button style={{backgroundColor:'#3e6184'}} onClick={() => this.setOpenForm(2)}> Add Module </Button>
+              </InputGroupAddon>
+            : null}
+            {this.state.currentPermissionLevel === 'pf' || this.state.currentPermissionLevel === 'ta'
+            ? 
+              <InputGroupAddon addonType="append">
+                <ButtonDropdown isOpen={this.state.addModuleButtonOpen} toggle={this.toggleAddModuleButton}>
+                  <DropdownToggle style={{backgroundColor:'#3e6184', borderTopLeftRadius: "0px", borderBottomLeftRadius: "0px"}} caret>
+                    Add Module
+                  </DropdownToggle>
+                  <DropdownMenu>
+                    <DropdownItem onClick={() => this.setOpenForm(1)}> Add Existing </DropdownItem>
+                    <DropdownItem onClick={() => this.setOpenForm(2)}> Add New </DropdownItem>
+                  </DropdownMenu>
+                </ButtonDropdown>
+              </InputGroupAddon>
+            : null}
+          </InputGroup>
+        <br />
+        {/*Form for adding an existing Module*/}
+        <Modal isOpen={this.state.openForm === 1} toggle={() => this.setOpenForm(1)}>
+            <ModalHeader toggle={() => this.setOpenForm(1)}>Existing Modules</ModalHeader>
+            <ModalBody style={{padding: "0 20px 30px 20px"}}>
+              <AddExistingModule 
+                serviceIP={this.props.serviceIP} 
+                updateModuleList={this.updateModuleList}
+                classOptions={classOptions}
+                currentClass={this.state.selectedClass}
+              />
+            </ModalBody>
+        </Modal>
 
-      {/*Form for adding a new Module*/}
-      <Collapse isOpen={this.state.openForm === 2}>    
-        <AddModule  
-          serviceIP={this.props.serviceIP} 
-          permissionLevel={this.state.currentPermissionLevel}
-          updateModuleList={this.updateModuleList}
-          classOptions={classOptions}
-          currentClass={this.state.selectedClass}
-        />  
-      </Collapse>
+        {/*Form for adding a new Module*/}
+        <Collapse isOpen={this.state.openForm === 2}>    
+          <AddModule  
+            serviceIP={this.props.serviceIP} 
+            permissionLevel={this.state.currentPermissionLevel}
+            updateModuleList={this.updateModuleList}
+            classOptions={classOptions}
+            currentClass={this.state.selectedClass}
+          />  
+        </Collapse>
 
-        <Row>
-          <Col>
-          {this.state.currentPermissionLevel === "st" ?
-            <StudentView 
-              currentPermissionLevel={this.state.currentPermissionLevel}
-              modules={this.state.dynamicModules}
-              updateCurrentModule={this.updateCurrentModule}
-            /> 
-          : null }
-          {this.state.currentPermissionLevel === "pf" || this.state.currentPermissionLevel === "ta" ?
-            <AdminView 
-              currentPermissionLevel={this.state.currentPermissionLevel}
-              currentClassView={this.state.selectedClass.value}
-              modules={this.state.dynamicModules}
-              updateCurrentModule={this.updateCurrentModule}
-              deleteModule={this.deleteModule}
-              editModule={this.editModule}
-              unlinkModule={this.unlinkModule}
-            /> 
-          : null }
-          {this.state.currentPermissionLevel === "su" ?
-            <SuperAdminView 
-              currentPermissionLevel={this.state.currentPermissionLevel}
-              modules={this.state.dynamicModules}
-              updateCurrentModule={this.updateCurrentModule}
-              deleteModule={this.deleteModule}
-              editModule={this.editModule}
-            /> 
-          : null }
-          </Col>
-        </Row>
-      </Col>
-      <Col className="Right Column">
-        <Row>
-          <Col>
+          <Row>
+            <Col>
+            {this.state.currentPermissionLevel === "st" ?
+              <StudentView 
+                currentPermissionLevel={this.state.currentPermissionLevel}
+                modules={this.state.dynamicModules}
+                updateCurrentModule={this.updateCurrentModule}
+              /> 
+            : null }
+            {this.state.currentPermissionLevel === "pf" || this.state.currentPermissionLevel === "ta" ?
+              <AdminView 
+                currentPermissionLevel={this.state.currentPermissionLevel}
+                currentClassView={this.state.selectedClass.value}
+                modules={this.state.dynamicModules}
+                updateCurrentModule={this.updateCurrentModule}
+                deleteModule={this.deleteModule}
+                editModule={this.editModule}
+                unlinkModule={this.unlinkModule}
+              /> 
+            : null }
+            {this.state.currentPermissionLevel === "su" ?
+              <SuperAdminView 
+                currentPermissionLevel={this.state.currentPermissionLevel}
+                modules={this.state.dynamicModules}
+                updateCurrentModule={this.updateCurrentModule}
+                deleteModule={this.deleteModule}
+                editModule={this.editModule}
+              /> 
+            : null }
+            </Col>
+          </Row>
+        </Col>
+        <Col className="Right Column">
+          <Row>
+            <Col>
 
-            {/*Either the contents of current module, or alert saying there are no modules*/}
-            {
-              this.state.currentModule.length !== 0 ? 
-                <Module
-                  permissionLevel={this.state.currentPermissionLevel}
-                  currentClass={this.state.selectedClass}
-                  curModule={this.state.currentModule}
-                  cards={this.state.cards}
-                  serviceIP={this.props.serviceIP}
-                  updateCurrentModule={this.updateCurrentModule}
-                  allAnswers={this.state.allAnswers}
-                  modificationWarning={this.state.modificationWarning}
-                  toggleModificationWarning={this.toggleModificationWarning}
-                />
-              : 
-              <Alert isOpen={this.state.emptyCollection}>
-                {this.state.currentPermissionLevel !== "st" 
-                ? 
-                  "You have no modules in this class, please create one by clicking on the Add Module Button to your left."
-                :
-                  "There are currently no modules in this class."
-                }
-              </Alert>
-            }
-            <br/><br/>
-            
-          </Col>
-        </Row>
-      </Col>
-    </Row>
-    </Container>
+              {/*Either the contents of current module, or alert saying there are no modules*/}
+              {
+                this.state.currentModule.length !== 0 ? 
+                  <Module
+                    permissionLevel={this.state.currentPermissionLevel}
+                    currentClass={this.state.selectedClass}
+                    curModule={this.state.currentModule}
+                    cards={this.state.cards}
+                    serviceIP={this.props.serviceIP}
+                    updateCurrentModule={this.updateCurrentModule}
+                    allAnswers={this.state.allAnswers}
+                    modificationWarning={this.state.modificationWarning}
+                    toggleModificationWarning={this.toggleModificationWarning}
+                  />
+                : 
+                <Alert isOpen={this.state.emptyCollection}>
+                  {this.state.currentPermissionLevel !== "st" 
+                  ? 
+                    "You have no modules in this class, please create one by clicking on the Add Module Button to your left."
+                  :
+                    "There are currently no modules in this class."
+                  }
+                </Alert>
+              }
+              <br/><br/>
+              
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+      </Container>
+      <Footer></Footer>
+    </div>
     )
   }
 }

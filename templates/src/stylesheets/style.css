@@ -270,13 +270,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /*--------------------------------------------------------------
-# Downloads Page
+# Games Page
 --------------------------------------------------------------*/
-.downloadsBg {
-  background: #0b163f;
-}
 
-.downloadsHdr {
+.my-menu {
+  /*Sets all the content of dropdown div to center*/
+                  text-align: center; 
+              }
+
+.gamesHdr {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -284,6 +286,58 @@ h1, h2, h3, h4, h5, h6 {
   text-align: center;
   height: 90vh;
   color: white;
+}
+
+.cardGameButton {
+  border: 1px solid #5da8af;
+  border-radius: 12px;
+  background: #5da8af ;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+.cardGameButton:hover {
+  opacity:0.5;
+}
+
+.mazeButton {
+  border: 1px solid #3f6184 ;
+  border-radius: 12px;
+  background: #3f6184;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+.mazeButton:hover {
+  opacity:0.5;
+}
+
+.spinButton {
+  border: 1px solid #3f6184 ;
+  border-radius: 12px;
+  background: #3f6184;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+.spinButton:hover {
+  opacity:0.5;
+}
+
+.highriseButton {
+  border: 1px solid #5da8af ;
+  border-radius: 12px;
+  background: #5da8af;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+.highriseButton:hover {
+  opacity:0.5;
 }
 
 

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import MainTemplate from '../pages/MainTemplate';
 import Template from '../pages/Template';
+import Footer from '../components/Footer';
 
 import '../stylesheets/style.css';
 import '../lib/bootstrap/css/bootstrap.min.css';
@@ -46,7 +47,7 @@ export default class Home extends Component {
 					<div className="intro-content">
 						<h2>The <span>ultimate</span> way<br />to learn a language.</h2>
 						<div>
-							<Link to='/downloads' className="btn-projects scrollto">Download ELLE</Link>
+							<Link to='/games' className="btn-projects scrollto">Play ELLE</Link>
 						</div>
 					</div>
 				</section>
@@ -170,22 +171,7 @@ export default class Home extends Component {
 				</div>
 
 
-				<footer id="footer">
-					<div className="container">
-
-						<div className="copyright">&copy; Copyright 2022 <strong>Reveal</strong>. All Rights Reserved</div>
-
-						<div className="credits">
-							{/*
-			All the links in the footer should remain intact.
-			You can delete the links only if you purchased the pro version.
-			Licensing information: https://bootstrapmade.com/license/
-			Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/buy/?theme=Reveal
-			*/}
-							Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
-						</div>
-					</div>
-				</footer>
+				<Footer></Footer>
 
 			</div>
 		);

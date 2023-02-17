@@ -3,6 +3,7 @@ import { Alert, Button, ButtonGroup, Input, Modal, ModalHeader, ModalBody, Modal
 import axios from 'axios';
 
 class Phrase extends React.Component {
+
     constructor(props) {
         super(props);
 
@@ -13,7 +14,8 @@ class Phrase extends React.Component {
         this.deletePhrase = this.deletePhrase.bind(this);
 
         this.toggleImgTooltipOpen = this.toggleImgTooltipOpen.bind(this); 
-        this.toggleAudioTooltipOpen = this.toggleAudioTooltipOpen.bind(this); 
+        this.toggleAudioTooltipOpen = this.toggleAudioTooltipOpen.bind(this);
+        
 
         this.state = {
             card: this.props.card, 
@@ -23,6 +25,7 @@ class Phrase extends React.Component {
             selectedAudioFile: this.props.card.audioLocation, 
             id: this.props.card.termID,
 
+            baseURL: (new URL(this.props.serviceIP)).protocol + "//" + (new URL(this.props.serviceIP)).hostname, // From e.g. "https://beans.com:5050/api", extracts "https://beans.com" from it
             modal: false, 
             editMode: false, 
             changedImage: false, 
@@ -147,10 +150,8 @@ class Phrase extends React.Component {
     render () {
         let {editedFront, editedBack, selectedImgFile, selectedAudioFile, id, editMode} = this.state;
 
-        let imgLink = "https://endlesslearner.com" + selectedImgFile;
-        let audioLink = "https://endlesslearner.com" + selectedAudioFile;
-
-        // let audioLink = "http://localhost:3000" + selectedAudioFile;
+        let imgLink = this.state.baseURL + selectedImgFile;
+        let audioLink = this.state.baseURL + selectedAudioFile;
 
         return (
             <>
