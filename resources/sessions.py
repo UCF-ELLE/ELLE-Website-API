@@ -11,7 +11,7 @@ import dateutil.parser as dateutil
 import datetime
 import time
 import redis
-
+import pandas as pd
 
 class Session(Resource):
     """API calls related to starting a session and retrieving a specific session."""
@@ -400,7 +400,7 @@ class GetSessionCSV(Resource):
                             GROUP BY `session`.`sessionID`
                             """
             else:
-                csv = csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
+                    csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
                 query = """
                         SELECT `session`.*, `user`.`username`, `module`.`name`, COUNT(`logged_answer`.`logID`) FROM `session` 
                         LEFT JOIN `logged_answer` ON `logged_answer`.`sessionID` = `session`.`sessionID`
@@ -456,6 +456,7 @@ class GetSessionCSV(Resource):
                         record[11] = replace[0][0]
                     # csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Percentage Correct, Total Attempted Questions, Start Time, End Time, Time Spent, Platform, Mode\n'
                     csv = csv + f"""{record[0]}, {record[1]}, {record[10]}, {record[2]}, {record[9]}, {record[11]}, {record[3]}, {record[4]}, {record[12]}, {record[4]/record[12] if record[12] != 0 and record[12] and record[4] else None},{getTimeDiffFormatted(time_obj = record[5])[0]}, {getTimeDiffFormatted(time_obj = record[6])[0] if record[6] else None}, {time_spent}, {platform}, {record[8]}\n"""
+
                 if redis_conn:
                     redis_conn.set('sessions_csv', csv)
                     redis_conn.set('sessions_checksum', chksum_session)

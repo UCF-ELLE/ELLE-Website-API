@@ -370,8 +370,8 @@ def errorMessage(message, DEBUG = False):
 # OTHER UTIL FUNCTIONS
 ########################################################################################
 
-def getTimeDiffFormatted(time_1 = None, 
-                        time_2 = None, 
+def getTimeDiffFormatted(time_1 = None,
+                        time_2 = None,
                         str_format = "{days} day {hours}:{minutes}:{seconds}",
                         time_obj = None):
     """
@@ -387,15 +387,24 @@ def getTimeDiffFormatted(time_1 = None,
     time_obj -- if simply just want to convert a time object (time delta) into a CSV-friendly string, pass it to this argument
     """
 
+    if time_1 is None and time_2 is None and time_obj is None:
+        return None, None
+
     if time_1 and time_2:
-        time_delta = time_2 - time_1
+        try:
+            time_delta = time_2 - time_1
+        except TypeError as e:
+            print(f"Error: {e}")
+            return None, None
     elif time_obj:
         time_delta = time_obj
     else:
         return None, None
-    if time_delta.days != 0:  
+
+    if time_delta.days != 0:
         d = {"days": time_delta.days}
-        d["hours"], rem = divmod(time_delta.seconds, 3600)
+        hours, rem = divmod(time_delta.seconds, 3600)
+        d["hours"] = hours
         d["minutes"], d["seconds"] = divmod(rem, 60)
         if d['days'] != 1 and d['days'] != -1:
             str_format = "{days} days {hours}:{minutes}:{seconds}"
@@ -403,7 +412,6 @@ def getTimeDiffFormatted(time_1 = None,
     else:
         time_spent_str = str(time_delta)[:-3]
     return time_spent_str, time_delta
-
 
 def dateTimeToMySQL(time_delta):
     """
