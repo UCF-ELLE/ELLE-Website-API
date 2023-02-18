@@ -26,7 +26,7 @@ class Group(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            if permission != 'pf':
+            if permission != 'pf' or permission != 'su':
                 raise CustomException("User cannot create classes.", 400)
 
             # Checks if the groupName already exists
