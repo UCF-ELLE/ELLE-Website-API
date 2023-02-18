@@ -14,9 +14,9 @@ class MentorPreference(Resource):
         data['mentor_name'] = getParameter("mentor_name", str, True, "")
         data['user_id'] = getParameter("user_id", str, True, "")
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
         try:
             conn = mysql.connect()
@@ -81,7 +81,7 @@ class StudentResponses(Resource):
         data = {}
         data['response'] = getParameter("response", str, True, "")
         data['question_id'] = getParameter("question_id", str, True, "")
-        data['mc_id'] = getParameter("mc_id", str, False, "")
+        data['mc_id'] = getParameter("mc_id", int, False, "")
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -116,9 +116,9 @@ class StudentResponses(Resource):
         data['user_id'] = getParameter("user_id", str, True, "")
         data['question_id'] = getParameter("question_id", str, True, "")
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
         try:
 
@@ -145,6 +145,7 @@ class StudentResponses(Resource):
 
 #Create mentor questions
 class CreateMentorQuestions(Resource):
+    @jwt_required
     def post(self):
         data = {}
         data['type'] = getParameter("type", str, True, "")
@@ -154,9 +155,9 @@ class CreateMentorQuestions(Resource):
         # A list of values in parentheses separated by commas
         # Send values as [["option1", "option2"]]
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
         try:
             conn = mysql.connect()
@@ -184,15 +185,16 @@ class CreateMentorQuestions(Resource):
                 conn.close()
 
 class GetMentorQuestions(Resource):
+    @jwt_required
 
     # @jwt_required
     def post(self):
         data = {}
         data['moduleID'] = getParameter("moduleID", str, True, "")
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
         try:
 
@@ -227,16 +229,16 @@ class GetMentorQuestions(Resource):
 
 #Modify mentor questions
 class ModifyMentorQuestions(Resource):
-    # @jwt_required
+    @jwt_required
     def post(self):
         data = {}
 
         data['question_text'] = getParameter("question_text", str, True, "")
         data['question_id'] = getParameter("question_id", str, True, "")
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
         try:
             conn = mysql.connect()
@@ -262,18 +264,18 @@ class ModifyMentorQuestions(Resource):
                 conn.close()
 
 class DeleteMentorQuestion(Resource):
-    # @jwt_required
+    @jwt_required
     def delete(self):
         data = {}
         data['questionID'] = getParameter("question_id", str, True, "")
         # data['groupID'] = getParameter("groupID", str, False, "groupID is required if student is a TA")
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
-        # if permission == 'st' and not is_ta(user_id, data['groupID']):
-        #     return errorMessage("User not authorized to delete questions."), 400
+        if permission == 'st' and not is_ta(user_id, data['groupID']):
+            return errorMessage("User not authorized to delete questions."), 400
 
         try:
             conn = mysql.connect()
@@ -319,14 +321,14 @@ class DeleteMentorQuestion(Resource):
 
 
 class GetMultipleChoiceOptions(Resource):
-    # @jwt_required
+    @jwt_required
     def post(self):
         data = {}
         data['question_id'] = getParameter("question_id", str, True, "")
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
         try:
             conn = mysql.connect()
@@ -360,15 +362,15 @@ class GetMultipleChoiceOptions(Resource):
 
 
 class ModifyMultipleChoiceOption(Resource):
-    # @jwt_required
+    @jwt_required
     def post(self):
         data = {}
         data['updated_option'] = getParameter("updated_option", str, True, "")
         data['mc_id'] = getParameter("mc_id", str, True, "")
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
         try:
             conn = mysql.connect()
@@ -393,15 +395,15 @@ class ModifyMultipleChoiceOption(Resource):
 
 
 class DeleteMultipleChoiceOption(Resource):
-    # @jwt_required
+    @jwt_required
     def delete(self):
         data = {}
         data['multipleChoiceID'] = getParameter("mc_id", str, True, "")
         # data['groupID'] = getParameter("groupID", str, False, "groupID is required if student is a TA")
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
         try:
             conn = mysql.connect()
@@ -425,15 +427,15 @@ class DeleteMultipleChoiceOption(Resource):
                 conn.close()
 
 class ModifyMentorQuestionFrequency(Resource):
-    # @jwt_required
+    @jwt_required
     def post(self):
         data = {}
         data['question_frequency'] = getParameter("question_frequency", str, True, "")
         data['moduleID'] = getParameter("module_id", str, True, "")
 
-        # permission, user_id = validate_permissions()
-        # if not permission or not user_id:
-        #     return errorMessage("Invalid user"), 401
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
 
         try:
             conn = mysql.connect()
