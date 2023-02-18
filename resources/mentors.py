@@ -188,7 +188,7 @@ class GetMentorQuestions(Resource):
     @jwt_required
 
     # @jwt_required
-    def post(self):
+    def get(self):
         data = {}
         data['moduleID'] = getParameter("moduleID", str, True, "")
 
@@ -322,7 +322,7 @@ class DeleteMentorQuestion(Resource):
 
 class GetMultipleChoiceOptions(Resource):
     @jwt_required
-    def post(self):
+    def get(self):
         data = {}
         data['question_id'] = getParameter("question_id", str, True, "")
 
