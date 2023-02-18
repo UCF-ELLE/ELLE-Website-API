@@ -401,7 +401,7 @@ class GetSessionCSV(Resource):
                             """
             else:
                     csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
-                query = """
+                    query = """
                         SELECT `session`.*, `user`.`username`, `module`.`name`, COUNT(`logged_answer`.`logID`) FROM `session` 
                         LEFT JOIN `logged_answer` ON `logged_answer`.`sessionID` = `session`.`sessionID`
                         INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
