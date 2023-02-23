@@ -405,8 +405,7 @@ def getTimeDiffFormatted(time_1 = None,
 
     if time_delta.days != 0:
         d = {"days": time_delta.days}
-        hours, rem = divmod(time_delta.seconds, 3600)
-        d["hours"] = hours
+        d["hours"], rem = divmod(time_delta.seconds, 3600)
         d["minutes"], d["seconds"] = divmod(rem, 60)
         if d['days'] != 1 and d['days'] != -1:
             str_format = "{days} days {hours}:{minutes}:{seconds}"
