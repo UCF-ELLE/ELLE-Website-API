@@ -11,7 +11,7 @@ import dateutil.parser as dateutil
 import datetime
 import time
 import redis
-import pandas as pd
+# import pandas as pd
 
 class Session(Resource):
     """API calls related to starting a session and retrieving a specific session."""
@@ -343,13 +343,13 @@ class GetSessionCSV(Resource):
         try:
             redis_conn = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, charset=REDIS_CHARSET, decode_responses=True)
             redis_sessions_chksum = redis_conn.get('sessions_checksum')
-            redis_sesssions_csv = redis_conn.get('sessions_csv')
+            redis_sessions_csv = redis_conn.get('sessions_csv')
             redis_lastseen_sessionID = redis_conn.get('lastseen_sessionID')
             redis_session_count = redis_conn.get('session_count')
         except redis.exceptions.ConnectionError:
             redis_conn = None
             redis_sessions_chksum = None
-            redis_sesssions_csv = None
+            redis_sessions_csv = None
             redis_lastseen_sessionID = None
             redis_session_count = None
 
@@ -364,8 +364,8 @@ class GetSessionCSV(Resource):
         else:
             return errorMessage("Error retrieving data"), 500
 
-        if not redis_session_count or not redis_sessions_chksum or not redis_sesssions_csv or not redis_lastseen_sessionID or redis_sessions_chksum != chksum_session:
-            if redis_session_count and redis_sessions_chksum and redis_sesssions_csv and redis_sessions_chksum != chksum_session:
+        if not redis_session_count or not redis_sessions_chksum or not redis_sessions_csv or not redis_lastseen_sessionID or redis_sessions_chksum != chksum_session:
+            if redis_session_count and redis_sessions_chksum and redis_sessions_csv and redis_sessions_chksum != chksum_session:
                 #if the checksum values don't match, then something changed
                 get_sub_session_count = f"SELECT COUNT(`session`.`sessionID`) FROM `session` WHERE `session`.`sessionID` <= {redis_lastseen_sessionID}"
                 get_all_session_count = f"SELECT COUNT(`session`.`sessionID`) FROM `session`"
@@ -381,7 +381,7 @@ class GetSessionCSV(Resource):
                 if all_session_count != redis_session_count and sub_session_count == redis_session_count:
                     # The only time we want to just fetch newly added values is when the subcount is the same
                     # as cached (meaning nothing that we cached has changed).
-                    csv = redis_sesssions_csv
+                    csv = redis_sessions_csv
                     query = f"""
                         SELECT `session`.*, `user`.`username`, `module`.`name`, COUNT(`logged_answer`.`logID`) FROM `session`
                         LEFT JOIN `logged_answer` ON `logged_answer`.`sessionID` = `session`.`sessionID`
@@ -469,7 +469,7 @@ class GetSessionCSV(Resource):
                 "attachment; filename=Sessions.csv"})
         elif max_sessionID == redis_lastseen_sessionID and chksum_session == redis_sessions_chksum:
             return Response(
-                redis_sesssions_csv,
+                redis_sessions_csv,
                 mimetype="text/csv",
                 headers={"Content-disposition":
                 "attachment; filename=Sessions.csv"})

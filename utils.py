@@ -403,11 +403,14 @@ def getTimeDiffFormatted(time_1 = None,
     else:
         return None, None
 
+    if isinstance(time_delta, str):
+        return None, None
+
     if time_delta.days != 0:
         d = {"days": time_delta.days}
         d["hours"], rem = divmod(time_delta.seconds, 3600)
         d["minutes"], d["seconds"] = divmod(rem, 60)
-        if d['days'] != 1 and d['days'] != -1:
+        if d['days'] != 1 or d['days'] != -1:
             str_format = "{days} days {hours}:{minutes}:{seconds}"
         time_spent_str = str_format.format(**d)
     else:
