@@ -16,7 +16,7 @@ export default class Login extends Component {
       username: '',
       password: '',
       loginErr: false, 
-      errorMsg: ""
+      errorMsg: "Invalid Username/Password. Please Try Again."
     };
     this.change = this.change.bind(this);
     this.submit = this.submit.bind(this);
@@ -70,7 +70,7 @@ export default class Login extends Component {
 
   generateErrorMsg = () => {
     return (
-      <Card style={{border: "none", backgroundColor: "transparent"}}>
+      <Card style={{border: "none", backgroundColor: "red"}}>
         {this.state.errorMsg}
       </Card>
     )
