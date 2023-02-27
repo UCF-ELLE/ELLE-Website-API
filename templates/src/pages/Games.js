@@ -87,8 +87,7 @@ export default class Games extends Component {
 							Follow the instructions to choose the correct path from a few options while learning Spanish in this immersive game!
 							<p className="cta-text">
 								<br />
-								<a class="mazeButton" href='MazeGame'>Play Here!</a>
-								
+								<Link to='/mazegame' className="mazeButton">Play Here!</Link>
 							</p>
 							
 						</Col>
@@ -150,8 +149,7 @@ export default class Games extends Component {
 							<br />
 							<p className="cta-text"> Come learn a language, select your own mentor, and play to unlock unique prizes and customization! </p>
 							<p className="cta-text">
-							<a class="cardGameButton" href='CardGame'>Play Here!</a>
-								
+                            <Link to='/cardgame' className="cardGameButton">Play Here!</Link>
 							</p>
 							
 						</Col>
