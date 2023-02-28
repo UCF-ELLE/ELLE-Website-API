@@ -34,6 +34,7 @@ from resources.mentors import (MentorPreference, StudentResponses, CreateMentorQ
 							   ModifyMentorQuestions, DeleteMentorQuestion,
 							   GetMultipleChoiceOptions, ModifyMultipleChoiceOption,
 							   DeleteMultipleChoiceOption, ModifyMentorQuestionFrequency)
+from resources.animelle import AnimELLESaveData
 import os.path
 import config
 
@@ -181,6 +182,7 @@ api.add_resource(GetMultipleChoiceOptions, API_ENDPOINT_PREFIX + 'getmultiplecho
 api.add_resource(ModifyMultipleChoiceOption, API_ENDPOINT_PREFIX + 'modifymultiplechoiceoptions')
 api.add_resource(DeleteMultipleChoiceOption, API_ENDPOINT_PREFIX + 'deletemultiplechoiceoptions')
 api.add_resource(ModifyMentorQuestionFrequency, API_ENDPOINT_PREFIX + 'modifymentorquestionfrequency')
+api.add_resource(AnimELLESaveData, API_ENDPOINT_PREFIX+'animellesavedata')
 
 
 if __name__ == '__main__':
