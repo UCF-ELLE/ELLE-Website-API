@@ -16,6 +16,7 @@ import '../lib/ionicons/css/ionicons.min.css';
 import Unity, { UnityContext } from "react-unity-webgl";
 
 const unityContext = new UnityContext({
+    // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
     loaderUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.loader.js',
     dataUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.data',
     frameworkUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.framework.js',
