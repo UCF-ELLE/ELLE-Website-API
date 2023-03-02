@@ -88,6 +88,7 @@ export default class Games extends Component {
 							<p className="cta-text">
 								<br />
 								<Link to='/mazegame' className="mazeButton">Play Here!</Link>
+								<strong style={{color: '#cc0000'}}>&nbsp;&nbsp;Note: You must be logged in to play! </strong>
 							</p>
 							
 						</Col>
