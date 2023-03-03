@@ -31,7 +31,7 @@ from resources.group import (Group, GroupRegister, SearchUserGroups,
 							 UsersInGroup, GenerateGroupCode)
 from resources.logged_answer import LoggedAnswer, GetLoggedAnswerCSV
 from resources.mentors import (MentorPreference, StudentResponses, CreateMentorQuestions, GetMentorQuestions,
-							   ModifyMentorQuestions, DeleteMentorQuestion,
+							   ModifyMentorQuestions, DeleteMentorQuestion, CreateMultipleChoiceOption,
 							   GetMultipleChoiceOptions, ModifyMultipleChoiceOption,
 							   DeleteMultipleChoiceOption, ModifyMentorQuestionFrequency)
 import os.path
@@ -181,6 +181,7 @@ api.add_resource(GetMultipleChoiceOptions, API_ENDPOINT_PREFIX + 'getmultiplecho
 api.add_resource(ModifyMultipleChoiceOption, API_ENDPOINT_PREFIX + 'modifymultiplechoiceoptions')
 api.add_resource(DeleteMultipleChoiceOption, API_ENDPOINT_PREFIX + 'deletemultiplechoiceoptions')
 api.add_resource(ModifyMentorQuestionFrequency, API_ENDPOINT_PREFIX + 'modifymentorquestionfrequency')
+api.add_resource(CreateMultipleChoiceOption, API_ENDPOINT_PREFIX + 'createmultiplechoiceoptions')
 
 
 if __name__ == '__main__':
