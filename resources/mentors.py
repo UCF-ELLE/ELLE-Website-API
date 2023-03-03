@@ -391,6 +391,38 @@ class ModifyMultipleChoiceOption(Resource):
                 cursor.close()
                 conn.close()
 
+class CreateMultipleChoiceOption(Resource):
+    @jwt_required
+    def post(self):
+        data = {}
+        data['option'] = getParameter("option", str, True, "")
+        data['question_id'] = getParameter("question_id", str, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            create_mc_option(data['option'], data['question_id'], conn, cursor)
+            raise ReturnSuccess("Successfully created multiple choice option", 201)
+
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if(conn.open):
+                cursor.close()
+                conn.close()
+
 
 class DeleteMultipleChoiceOption(Resource):
     @jwt_required
