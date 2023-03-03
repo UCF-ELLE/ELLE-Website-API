@@ -118,7 +118,7 @@ class LoggedAnswer(Resource):
                         'sessionID' : result[3],
                         'correct' : result[4],
                         'mode' : result[5],
-                        'front' : result[10]
+                        'front' : result[9]
                     }
                     logged_answers.append(la_record)
 
