@@ -47,7 +47,7 @@ export default class MazeGameFinal extends Component {
 	verifyPermission = () => {
 		const jwt = localStorage.getItem('jwt');
 		if (!jwt) {
-		  this.props.history.push('/login');
+		  this.props.history.push(this.props.location.pathname);
 		}
 		else {
 			var jwtDecode = require('jwt-decode');	
