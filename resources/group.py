@@ -26,8 +26,11 @@ class Group(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            if permission != 'pf' or permission != 'su':
+            if (permission == 'pf' or permission == 'su'):
+                pass
+            else:
                 raise CustomException("User cannot create classes.", 400)
+
 
             # Checks if the groupName already exists
             dupe_query = "SELECT `groupID` FROM `group` WHERE `groupName`= %s"
