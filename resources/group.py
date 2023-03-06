@@ -195,7 +195,7 @@ class GroupRegister(Resource):
             cursor = conn.cursor()
 
             if permission == 'su':
-                return CustomException("Superadmins cannot register for classes."), 400
+                raise CustomException("Superadmins cannot register for classes.", 400)
 
             query = "SELECT `groupID` FROM `group` WHERE `groupCode` = %s"
             results = getFromDB(query, data['groupCode'], conn, cursor)
