@@ -1,10 +1,10 @@
 import os
 from dotenv import load_dotenv
 
+# Load environment variables from the .env file present
 load_dotenv()
 
 # API endpoint prefixes
-#API_ENDPOINT_PREFIX = '/api/'
 API_ENDPOINT_PREFIX = '/elleapi/'
 
 # Database configurations
@@ -24,16 +24,16 @@ TEMP_DELETE_FOLDER = 'deletes/'
 IMG_UPLOAD_FOLDER = 'images/'
 AUD_UPLOAD_FOLDER = 'audios/'
 
-# That path to append to the URL so the media
-# is accessible publicly (https://endlesslearner.com/Images/...)
+# That path to append to the URL so that the media is accessible publicly
+# e.g. https://chdr.cs.ucf.edu/images/[FILE_NAME]
 IMG_RETRIEVE_FOLDER = '/images/'
 AUD_RETRIEVE_FOLDER = '/audios/'
 
 # List of user permission types
 # Changing these values is not recommended
-PERMISSION_GROUPS = ['su', 'pf', 'st'] #Permission groups of individual users
-ACCESS_LEVELS = ['pf', 'st', 'ta'] #Permission groups of users in a group context
-PERMISSION_LEVELS = list(set(ACCESS_LEVELS+PERMISSION_GROUPS)) #All available permission levels
+PERMISSION_GROUPS = ['su', 'pf', 'st']                           # Permission groups of individual users
+ACCESS_LEVELS = ['pf', 'st', 'ta']                               # Permission groups of users in a group context
+PERMISSION_LEVELS = list(set(ACCESS_LEVELS+PERMISSION_GROUPS))   # All available permission levels
 
 # List of game platforms
 GAME_PLATFORMS = ['vr', 'mb', 'cp']
