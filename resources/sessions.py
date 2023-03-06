@@ -374,7 +374,7 @@ class GetSessionCSV(Resource):
 
                 if sub_session_count and sub_session_count[0] and all_session_count and all_session_count[0]:
                     sub_session_count = str(sub_session_count[0][0])
-                    all_session_count = str(all_session_count[0][1])
+                    all_session_count = str(all_session_count[0][0])
                 else:
                     return errorMessage("Error retrieving data"), 500
                 
