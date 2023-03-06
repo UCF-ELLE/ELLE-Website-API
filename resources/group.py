@@ -26,8 +26,11 @@ class Group(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            if permission != 'pf' or permission != 'su':
+            if (permission == 'pf' or permission == 'su'):
+                pass
+            else:
                 raise CustomException("User cannot create classes.", 400)
+
 
             # Checks if the groupName already exists
             dupe_query = "SELECT `groupID` FROM `group` WHERE `groupName`= %s"
@@ -192,7 +195,7 @@ class GroupRegister(Resource):
             cursor = conn.cursor()
 
             if permission == 'su':
-                return CustomException("Superadmins cannot register for classes."), 400
+                raise CustomException("Superadmins cannot register for classes.", 400)
 
             query = "SELECT `groupID` FROM `group` WHERE `groupCode` = %s"
             results = getFromDB(query, data['groupCode'], conn, cursor)
