@@ -171,10 +171,23 @@ export default class Modules extends Component {
 
         this.getAllAnswers();
 
-      })
+    })
       .catch(function (error) {
         console.log("updateCurrentModule error: ", error);
+    });
+
+    axios.post(this.props.serviceIP + '/getmentorquestions', data, header)
+    .then( res => {
+      let questions = res.data;
+
+      this.setState({
+        mentorQuestions: questions
       });
+
+    })
+    .catch(function (error) {
+      console.log("updateCurrentModule error: ", error);
+    });
   }
 
   getAllAnswers = () => {
@@ -558,6 +571,7 @@ export default class Modules extends Component {
                     allAnswers={this.state.allAnswers}
                     modificationWarning={this.state.modificationWarning}
                     toggleModificationWarning={this.toggleModificationWarning}
+                    mentorQuestions={this.state.mentorQuestions}
                   />
                 : 
                 <Alert isOpen={this.state.emptyCollection}>
@@ -576,6 +590,7 @@ export default class Modules extends Component {
         </Col>
       </Row>
       </Container>
+      <br></br>
       <Footer></Footer>
     </div>
     )

@@ -1,9 +1,32 @@
 import React from 'react'
-import { Table, Alert } from 'reactstrap';
+import { Table, Alert, Button, Form, FormGroup, Label, Input } from 'reactstrap';
+import axios from 'axios';
 
 import Term from './Term';
 import Phrase from './Phrase';
 import Question from './Question';
+import MentorQuestion from './MentorQuestion';
+
+const updateMentorFrequency = (e, curModule, updateCurrentModule, serviceIP) => {
+  e.preventDefault();
+  let data = {
+    question_frequency : parseInt(e.target.frequency.value),
+    module_id : curModule.moduleID
+  };
+  console.log(data);
+
+  let header = {
+    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
+  };
+
+  axios.post(serviceIP + '/modifymentorquestionfrequency', data, header)
+  .then(res => {
+    //updateCurrentModule({ module: curModule.moduleID });
+  })
+  .catch(error => {
+    console.log("submitQuestion error: ", error.response);
+  })
+}
 
 const CardList = (props) => {
     const removeDuplicates = () => {
@@ -137,6 +160,51 @@ const CardList = (props) => {
           </tbody>
 
         </Table>
+        }
+        </div>
+      )
+    }
+    else if (props.type === 3) {
+      return (
+        <div>
+        {props.mentorQuestions.length === 0 ? 
+          <Alert> There are currently no custom mentor questions in this module. </Alert>
+        : 
+        <div>
+          <br/>
+          <Form onSubmit={e => updateMentorFrequency(e, props.curModule, props.updateCurrentModule, props.serviceIP)}>
+            <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+              <Label for="frequency" className="mr-sm-2"><b>Mentor Question Frequency (Every X cards):</b></Label>
+              <Input type="number" name="frequency" id="frequency" placeholder="ex. 10" />
+            </FormGroup>
+            <br/>
+            <Button>Submit</Button>
+          </Form>
+          <br/>
+          <Table hover className="tableList">
+            <thead>
+              <tr>
+                <th style={{width: '64%'}}>Question</th>
+                {props.permissionLevel !== "st" ? <th style={{width: '9%'}}> </th> : null}
+              </tr>
+            </thead>
+            <tbody>    
+              {props.mentorQuestions.map((question) => {
+                return(
+                  <MentorQuestion
+                    key={question.questionID}
+                    question={question}
+                    permissionLevel={props.permissionLevel}
+                    serviceIP={props.serviceIP}
+                    curModule={props.curModule}
+                    updateCurrentModule={props.updateCurrentModule}
+                  />
+                )
+              })}
+            </tbody>
+
+          </Table>
+        </div>
         }
         </div>
       )
