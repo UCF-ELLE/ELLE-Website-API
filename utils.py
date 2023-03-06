@@ -275,6 +275,10 @@ def store_mentor_question(type, question_text, conn, cursor, mc_options):
             postToDB(query, (questionID[0], answerChoice), conn, cursor)
         return False
 
+def create_mc_option(answerChoice, questionID, conn, cursor):
+    query = "INSERT INTO multiple_choice_answers (`questionID`, `answerChoice`) VALUES (%s, %s)"
+    postToDB(query, (questionID, answerChoice), conn, cursor)
+
 def modify_mentor_question(question_id, question_text, conn, cursor):
     query = "UPDATE `question` SET `questionText` = %s WHERE `questionID` = %s"
     postToDB(query, (question_text, question_id), conn, cursor)
