@@ -375,7 +375,7 @@ def errorMessage(message, DEBUG = False):
 def getTimeDiffFormatted(time_1 = None,
                         time_2 = None,
                         # str_format = "{days} day {hours}:{minutes}:{seconds}",
-                        #str_format = "{hours}:{minutes}:{seconds}",
+                        str_format = "{hours}:{minutes}:{seconds}",
                         time_obj = None):
     """
     Returns the time object in a CSV-friendly way.
