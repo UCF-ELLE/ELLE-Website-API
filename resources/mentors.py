@@ -81,7 +81,7 @@ class StudentResponses(Resource):
         data = {}
         data['response'] = getParameter("response", str, True, "")
         data['question_id'] = getParameter("question_id", str, True, "")
-        data['mc_id'] = getParameter("mc_id", int, False, "")
+        data['session_id'] = getParameter("session_id", str, True, "")
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -91,12 +91,9 @@ class StudentResponses(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            updated = store_student_response(user_id, data['question_id'], data['response'], conn, cursor, data['mc_id'])
+            store_student_response(user_id, data['question_id'], data['response'], data['session_id'], conn, cursor)
 
-            if updated:
-                raise ReturnSuccess('Student response updated for question %s.' % data['question_id'], 200)
-            else:
-                raise ReturnSuccess('Student response created for question %s.' % data['question_id'], 201)
+            raise ReturnSuccess('Student response created for question %s.' % data['question_id'], 201)
         except CustomException as error:
             conn.rollback()
             return error.msg, error.returnCode
@@ -275,7 +272,6 @@ class DeleteMentorQuestion(Resource):
     def delete(self):
         data = {}
         data['questionID'] = getParameter("question_id", str, True, "")
-        # data['groupID'] = getParameter("groupID", str, False, "groupID is required if student is a TA")
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -288,19 +284,13 @@ class DeleteMentorQuestion(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            if (find_question(int(data['questionID']))):
-                question_query = "SELECT * FROM `question` WHERE `questionID` = %s"
-                question_data = getFromDB(question_query, data['questionID'], conn, cursor)
+            question_query = "SELECT * FROM `question` WHERE `questionID` = %s"
+            question_data = getFromDB(question_query, data['questionID'], conn, cursor)
+
+            if question_data:
 
                 delete_query = "INSERT INTO `deleted_question` (`questionID`, `audioID`, `imageID`, `type`, `questionText`) VALUES (%s, %s, %s, %s, %s)"
-                postToDB(delete_query, (question_data[0][0], question_data[0][1], question_data[0][2], question_data[0][3], question_data[0][4]))
-
-                la_query = "SELECT `logID` FROM `logged_answer` WHERE `questionID` = %s"
-                la_results = getFromDB(la_query, question_data[0][0], conn, cursor)
-
-                for log in la_results:
-                    log_query = "UPDATE `logged_answer` SET `questionID` = %s, `deleted_questionID` = %s WHERE `logID` = %s"
-                    postToDB(log_query, (None, question_data[0][0], log[0]), None, conn, cursor)
+                postToDB(delete_query, (question_data[0][0], question_data[0][1], question_data[0][2], question_data[0][3], question_data[0][4]), conn, cursor)
 
                 mc_choice_query = "DELETE FROM `multiple_choice_answers` WHERE `questionID` = %s"
                 deleteFromDB(mc_choice_query, data['questionID'], conn, cursor)
@@ -438,7 +428,6 @@ class DeleteMultipleChoiceOption(Resource):
     def delete(self):
         data = {}
         data['multipleChoiceID'] = getParameter("mc_id", str, True, "")
-        # data['groupID'] = getParameter("groupID", str, False, "groupID is required if student is a TA")
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
