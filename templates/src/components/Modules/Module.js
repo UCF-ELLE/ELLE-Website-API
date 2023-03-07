@@ -11,7 +11,8 @@ import axios from 'axios';
 import AddTerm from './AddTerm';
 import AddExistingTerm from './AddExistingTerm';
 
-import AddQuestion from './AddQuestion';   
+import AddQuestion from './AddQuestion';
+import AddMentorQuestion from './AddMentorQuestion';   
 import AddPhrase from './AddPhrase'; 
 import ImportTerms from './ImportTerms';
 import Manual from './Manual';
@@ -32,7 +33,7 @@ class Module extends React.Component {
       addTermButtonOpen: false,
 
       collapseTab: -1, //determines whether or not a tab is collapsed, maybe should be a number
-      tabs: [0,1,2],
+      tabs: [0,1,2,3],
       openForm: 0, //determines which input form is open. Is 0 if no form is open
 
       allTags: [], //contains all the tags in the database. for autocomplete purposes
@@ -258,6 +259,13 @@ class Module extends React.Component {
                     Add Question
                   </Button>
                 </InputGroupAddon>
+
+                {/* The button for the Add Mentor Question form */}
+                <InputGroupAddon addonType="append">
+                  <Button style={{backgroundColor:'#3e6184'}} onClick={() => this.setOpenForm(5)}>
+                    Add Mentor Question
+                  </Button>
+                </InputGroupAddon>
             </>
             : null}
             </InputGroup>
@@ -350,6 +358,26 @@ class Module extends React.Component {
                   getAllTags={this.getAllTags}
                   />
               </Collapse>
+
+              {/*Form for adding a new Mentor Question*/}
+              <Collapse isOpen={this.state.openForm === 5}>
+                <AddMentorQuestion
+                  currentClass={this.props.currentClass}
+                  curModule={this.props.curModule} 
+                  updateCurrentModule={this.props.updateCurrentModule}
+                  permissionLevel={this.props.permissionLevel}
+                  serviceIP={this.props.serviceIP}
+                        
+                  allAnswers={this.props.allAnswers}
+                  allAnswersNotInThisModule={allAnswersNotInThisModule}
+                  
+                  deleteTag={this.deleteTag}
+                  addTag={this.addTag}
+                  allTags={this.state.allTags}
+                  setOpenForm={this.setOpenForm}
+                  getAllTags={this.getAllTags}
+                  />
+              </Collapse>
             </Col>
           </Row>
 
@@ -405,7 +433,7 @@ class Module extends React.Component {
                 </Card>
               )
             }
-            else {
+            else if (index === 2) {
               //Questions Accordion
               return (
                 <Card key={i} style={{ marginBottom: '1rem' }}>
@@ -426,6 +454,33 @@ class Module extends React.Component {
                         deleteTag={this.deleteTag} 
                         addTag={this.addTag} 
                         allTags={this.state.allTags}
+                    />
+                  </Collapse>
+                </Card>
+              )
+            }
+            else {
+              //Mentor Questions Accordion
+              return (
+                <Card key={i} style={{ marginBottom: '1rem' }}>
+                  <CardHeader onClick={this.toggleTab} data-event={index}>
+                    Mentor Questions
+                  </CardHeader>
+                  
+                  <Collapse isOpen={this.state.collapseTab === index}>
+                    <CardList 
+                        type={3} 
+                        currentClass={this.props.currentClass}
+                        permissionLevel={this.props.permissionLevel}
+                        cards={filteredQuestions} 
+                        serviceIP={this.props.serviceIP}
+                        curModule={this.props.curModule} 
+                        updateCurrentModule={this.props.updateCurrentModule}
+                        allAnswers={this.props.allAnswers}
+                        deleteTag={this.deleteTag} 
+                        addTag={this.addTag} 
+                        allTags={this.state.allTags}
+                        mentorQuestions={this.props.mentorQuestions}
                     />
                   </Collapse>
                 </Card>
