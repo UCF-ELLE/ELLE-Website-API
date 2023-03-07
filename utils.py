@@ -247,16 +247,10 @@ def get_student_response(_id, question_id, conn, cursor):
 
     return result
 
-def store_student_response(_id, question_id, response, conn, cursor, mc_id=None):
+def store_student_response(_id, question_id, response, session_id, conn, cursor):
 
-    if(len(get_student_response(_id, question_id, conn, cursor)) > 0):
-        query = "UPDATE mentor_responses SET response = %s, multipleChoiceID = %s WHERE userID = %s AND questionID = %s"
-        postToDB(query, (response, mc_id, _id, question_id), conn, cursor)
-        return True
-    else:
-        query = "INSERT INTO mentor_responses (`userID`, `questionID`, `response`, `multipleChoiceID`) VALUES (%s, %s, %s, %s)"
-        postToDB(query, (_id, question_id, response, mc_id), conn, cursor)
-        return False
+    query = "INSERT INTO mentor_responses (`userID`, `questionID`, `response`, `sessionID`) VALUES (%s, %s, %s, %s)"
+    postToDB(query, (_id, question_id, response, session_id), conn, cursor)
 
 def store_mentor_question(type, question_text, conn, cursor, mc_options):
     if(type == "MENTOR_FR"):
@@ -774,7 +768,7 @@ def convertListToSQL(list):
 def find_question(questionID):
     query = "SELECT * FROM question WHERE questionID = %s"
     result = getFromDB(query, (questionID,))
-    if int(result[0][0]) == int(questionID): 
+    if int(result[0][0]) == int(questionID):
         return True
     return False
 
