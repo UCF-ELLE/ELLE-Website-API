@@ -150,6 +150,7 @@ class CreateMentorQuestions(Resource):
         data = {}
         data['type'] = getParameter("type", str, True, "")
         data['question_text'] = getParameter("question_text", str, True, "")
+        data['moduleID'] = getParameter("moduleID", str, True, "")
         data['mc_options'] = getParameter("mc_options", list, False, "")
         # A tuple example: (1, "value", 3.2, 5)
         # A list of values in parentheses separated by commas
@@ -164,6 +165,14 @@ class CreateMentorQuestions(Resource):
             cursor = conn.cursor()
 
             frQuestionCreated = store_mentor_question(data['type'], data['question_text'], conn, cursor, data['mc_options'])
+
+            query = "SELECT MAX(`questionID`) FROM `question`"
+            result = getFromDB(query, None, conn, cursor)
+            question_id = check_max_id(result) - 1
+
+            if data['moduleID']:
+                query = "INSERT INTO `module_question` (`moduleID`, `questionID`) VALUES (%s, %s)"
+                postToDB(query, (data['moduleID'], question_id), conn, cursor)
 
             if frQuestionCreated:
                 raise ReturnSuccess('Mentor Free Response Question Stored.', 201)
