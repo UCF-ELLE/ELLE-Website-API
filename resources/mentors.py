@@ -108,10 +108,10 @@ class StudentResponses(Resource):
                 cursor.close()
                 conn.close()
 
+    @jwt_required
     def get(self):
         data = {}
-        data['user_id'] = getParameter("user_id", str, True, "")
-        data['question_id'] = getParameter("question_id", str, True, "")
+        data['session_id'] = getParameter("session_id", str, True, "")
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -122,7 +122,7 @@ class StudentResponses(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            studentResponse = get_student_response(data['user_id'], data['question_id'], conn, cursor)
+            studentResponse = get_student_response(data['session_id'], conn, cursor)
 
             raise ReturnSuccess(studentResponse, 200)
 
