@@ -10,7 +10,8 @@ export default class Session extends Component {
             currentSession: {}, 
             loggedAnswers: [],
             noAnsMsg: "",
-            modalOpen: false
+            modalOpen: false,
+            mentorResponses: []
         }
         
     }
@@ -35,6 +36,8 @@ export default class Session extends Component {
 
     showLoggedAnswers = (session) => {
         this.getLoggedAnswers(session.sessionID); 
+        this.getMentorResponses(session.sessionID);
+        this.getMentorQuestion(session.questionID);
         this.toggleModal(); 
         this.setState({ currentSession: session })
     }
@@ -60,6 +63,51 @@ export default class Session extends Component {
             
         }).catch(error => {
             console.log("get logged answer error: ", error); 
+        })
+    }
+
+    getMentorResponses = (session_id) => {
+        let header = {
+            headers: {'Authorization': 'Bearer ' + localStorage.getItem('jwt'), 'Content-Type': 'application/json' },
+            params: {session_id: session_id}
+        };
+    
+        axios.get(this.props.serviceIP + "/studentresponses", header)
+        .then(res => {
+            console.log("mentor responses: ", res.data);
+    
+            if (res.data.Message) {
+                this.setState({ noQuesMsg: res.data.Message });
+            }
+            else {
+                this.setState({ mentorResponses: res.data });
+            }
+    
+        }).catch(error => {
+            console.log("get mentor responses error: ", error);
+        })
+    }
+
+    getMentorQuestion = (questionID) => {
+        
+        let header = {
+            headers: {'Authorization': 'Bearer ' + localStorage.getItem('jwt') },
+            params: {question_id: questionID}
+        };
+
+        axios.get(this.props.serviceIP + "/question", header)
+        .then(res => {
+            console.log("mentor responses: ", res.data);
+    
+            if (res.data.Message) {
+                this.setState({ noQuesMsg: res.data.Message });
+            }
+            else {
+                this.setState({ mentorQuestions: res.data });
+            }
+    
+        }).catch(error => {
+            console.log("get mentor question error: ", error);
         })
     }
 
@@ -117,7 +165,7 @@ export default class Session extends Component {
                     </Table>
                 </Card>
 
-                <Modal isOpen={this.state.modalOpen} toggle={() => this.toggleModal()}>
+                <Modal size="lg" isOpen={this.state.modalOpen} toggle={() => this.toggleModal()}>
                     <ModalHeader toggle={() => this.toggleModal()} style={{paddingBottom: "0px"}}>
                         Logged Answers
                         <Row style={{paddingTop: "10px"}}>
@@ -139,9 +187,11 @@ export default class Session extends Component {
                                     <Col style={{textDecoration: "underline"}}>Term ID</Col>
                                     <Col style={{textDecoration: "underline"}}>Term</Col>
                                     <Col style={{textDecoration: "underline"}}>Answer</Col>
+
                                 </Row>
                                 <Card style={{overflow: "scroll", height: "35vh", border: "none"}}>
-                                    {this.state.loggedAnswers.map((ans, i) => {return (
+                                {this.state.loggedAnswers.map((ans, i) => {
+                                    return (
                                         <Row key={i}>
                                             <Col>{ans.termID}</Col>
                                             <Col>{ans.front}</Col>
@@ -153,7 +203,23 @@ export default class Session extends Component {
                                                 }
                                             </Col>
                                         </Row>
-                                    )})} 
+                                )})}
+                                <Row><br /></Row>
+                                <div style={{ fontSize: "24px" }}><strong>Mentor Questions</strong></div>
+                                <Row><br /></Row>
+                                <Row>
+                                    <Col style={{textDecoration: "underline"}}>Question</Col>
+                                    <Col style={{textDecoration: "underline"}}>Response</Col>
+                                </Row>
+                                
+                                {this.state.mentorResponses.map((ans, i) => {
+                                    return (
+                                        <Row key={i}>
+                                            <Col></Col>
+                                            <Col>{ans.response}</Col>
+                                        </Row>
+                                    
+                                )})}  
                                 </Card>
                             </div>
                             : <p>{this.state.noAnsMsg}</p>
