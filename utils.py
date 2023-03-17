@@ -241,10 +241,9 @@ def store_mentor_preference(_id, mentor_name, conn, cursor):
         postToDB(query, (_id, mentor_name), conn, cursor)
         return False
 
-def get_student_response(_id, question_id, conn, cursor):
-    query = "SELECT * FROM mentor_responses WHERE userID = %s AND questionID = %s"
-    result = getFromDB(query, (_id, question_id), conn, cursor)
-
+def get_student_response(session_id, conn, cursor):
+    query = "SELECT * FROM mentor_responses WHERE sessionID = %s"
+    result = getFromDB(query, session_id, conn, cursor)
     return result
 
 def store_student_response(_id, question_id, response, session_id, conn, cursor):
