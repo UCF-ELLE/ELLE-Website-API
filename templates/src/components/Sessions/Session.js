@@ -88,11 +88,12 @@ export default class Session extends Component {
         })
     }
 
+    // In progress
     getMentorQuestion = (questionID) => {
         
         let header = {
             headers: {'Authorization': 'Bearer ' + localStorage.getItem('jwt') },
-            params: {question_id: questionID}
+            params: {questionID: questionID}
         };
 
         axios.get(this.props.serviceIP + "/question", header)
@@ -115,7 +116,9 @@ export default class Session extends Component {
         if (this.state.modalOpen === true) {
             this.setState({ 
                 loggedAnswers: [],
-                noAnsMsg: ""
+                noAnsMsg: "",
+                mentorResponses: [],
+                noQuesMsg: ""
             })
         }
 
@@ -212,14 +215,18 @@ export default class Session extends Component {
                                     <Col style={{textDecoration: "underline"}}>Response</Col>
                                 </Row>
                                 
-                                {this.state.mentorResponses.map((ans, i) => {
-                                    return (
+                                {this.state.mentorResponses.length !== 0 ? (
+                                    this.state.mentorResponses.map((ans, i) => (
                                         <Row key={i}>
                                             <Col></Col>
                                             <Col>{ans.response}</Col>
                                         </Row>
-                                    
-                                )})}  
+                                    ))
+                                ) : (
+                                    <Row>
+                                        <Col>{this.state.noQuesMsg}</Col>
+                                    </Row>
+                                )}
                                 </Card>
                             </div>
                             : <p>{this.state.noAnsMsg}</p>
