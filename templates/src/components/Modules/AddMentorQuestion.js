@@ -13,49 +13,20 @@ class AddMentorQuestion extends React.Component {
 
 		this.state = {
 			questionText: "",//text of the longform question being asked
-			selectedImgFile: null, //file location of the picture selected
-			selectedAudioFile: null, //file location of the audio selected
+			answer1Text: "",
+			answer2Text: "",
+			answer3Text: "",
+			answer4Text: "",
+			answer5Text: "",
 			type: [],
 
-			validAnswers: [], //all of the terms not in the module and not already added
-			prevValidAnswers: [], //used to see if an answer was added or removed
-
-			submittingAnswer: false, //determines whether or not the AddAnswer form will be shown
-			userCreatedAnswer: "", //what the user put in the field when they clicked create answer
-
-			questionID: "",
-
-			isBlocked: false,
-			disable: true,
-			file: null,
-
-			didUpload: false,
+			questionID: ""
 		};
 	};
 
 	componentDidMount() {
 
 		this.toggle('1');
-
-		try {
-				console.log("currently not working in production because getUserMedia CANNOT be run over unsecure netowrk...we need SSL.")
-
-				navigator.mediaDevices.getUserMedia({ audio: true },
-						() => {
-								console.log('Permission Granted');
-								this.setState({ isBlocked: false });
-						},
-						() => {
-								console.log('Permission Denied');
-								this.setState({ isBlocked: true })
-						},
-				);
-
-		} catch (err) {
-				console.log("couldnt find mic.")
-				console.log("currently not working in production because getUserMedia CANNOT be run over unsecure netowrk...we need SSL.")
-				console.log(err)
-		}
 
 	}
 
@@ -70,21 +41,22 @@ class AddMentorQuestion extends React.Component {
 		e.preventDefault();
 		let answers;
 		if (e.target.answer5Text.value == "") {
-			answers = [e.target.answer1Text.value,
+			answers = [[e.target.answer1Text.value,
 				e.target.answer2Text.value,
 				e.target.answer3Text.value,
-				e.target.answer4Text.value];
+				e.target.answer4Text.value]];
 		} else {
-			answers = [e.target.answer1Text.value,
+			answers = [[e.target.answer1Text.value,
 				e.target.answer2Text.value,
 				e.target.answer3Text.value,
 				e.target.answer4Text.value,
-				e.target.answer5Text.value];
+				e.target.answer5Text.value]];
 		}
 		let data = {
 			type : "MENTOR_MC",
 			question_text : e.target.questionText.value,
-			mc_options : answers
+			mc_options : answers,
+			moduleID : this.props.curModule.moduleID
 		};
 		//console.log(data);
 
@@ -107,7 +79,8 @@ class AddMentorQuestion extends React.Component {
 		let data = {
 			type : "MENTOR_FR",
 			question_text : e.target.questionText.value,
-			mc_options : {}
+			mc_options : {},
+			moduleID : this.props.curModule.moduleID
 		};
 
 		let header = {
@@ -130,12 +103,12 @@ class AddMentorQuestion extends React.Component {
 	resetFields = () => {
 		this.setState({
 			questionText: "",
-			selectedImgFile: null, 
-			selectedAudioFile: null, 
-			type: [],
-
-			submittingAnswer: false, 
-			userCreatedAnswer: "", 
+			answer1Text: "",
+			answer2Text: "",
+			answer3Text: "",
+			answer4Text: "",
+			answer5Text: "",
+			type: []
 		});
 	}
 
@@ -180,13 +153,12 @@ class AddMentorQuestion extends React.Component {
 											Question:
 										</Label>
 
-										<Input type="text"
+										<Input type="value"
 										name="questionText"
 										onChange={e => this.change(e)}
 										value={this.state.questionText}
 										id="questionText"
-										placeholder="Question" 
-										autoComplete="off"/>
+										placeholder="Question (required)" />
 									</FormGroup>
 								</Col>
 							</Row>
@@ -202,35 +174,40 @@ class AddMentorQuestion extends React.Component {
 									
 										<FormGroup width="200%">
 
-											<Input type="text"
+											<Input type="value"
 											name="answer1Text"
 											id="answer1Text"
-											placeholder="Answer 1" 
-											autoComplete="off"/>
+											value={this.state.answer1Text}
+											onChange={e => this.change(e)}
+											placeholder="Answer 1 (required)" />
 
-											<Input type="text"
+											<Input type="value"
 											name="answer2Text"
 											id="answer2Text"
-											placeholder="Answer 2" 
-											autoComplete="off"/>
+											value={this.state.answer2Text}
+											onChange={e => this.change(e)}
+											placeholder="Answer 2 (required)" />
 
-											<Input type="text"
+											<Input type="value"
 											name="answer3Text"
 											id="answer3Text"
-											placeholder="Answer 3" 
-											autoComplete="off"/>
+											value={this.state.answer3Text}
+											onChange={e => this.change(e)}
+											placeholder="Answer 3 (required)" />
 
-											<Input type="text"
+											<Input type="value"
 											name="answer4Text"
 											id="answer4Text"
-											placeholder="Answer 4" 
-											autoComplete="off"/>
+											value={this.state.answer4Text}
+											onChange={e => this.change(e)}
+											placeholder="Answer 4 (required)" />
 
-											<Input type="text"
+											<Input type="value"
 											name="answer5Text"
 											id="answer5Text"
-											placeholder="Answer 5 (optional)" 
-											autoComplete="off"/>
+											value={this.state.answer5Text}
+											onChange={e => this.change(e)}
+											placeholder="Answer 5 (optional)" />
 										</FormGroup>
 								</Col>
 				
@@ -238,9 +215,17 @@ class AddMentorQuestion extends React.Component {
 							
 							<Row>
 								<Col>
+									{this.state.questionText == "" || this.state.answer1Text == "" || this.state.answer2Text == "" || this.state.answer3Text == "" || this.state.answer4Text == ""
+									?
+									<Button disabled style={{backgroundColor: '#004085', border: "none"}} type="submit" block>
+										Create (please fill in required fields)
+									</Button>
+									:
 									<Button style={{backgroundColor: '#004085', border: "none"}} type="submit" block>
 										Create
 									</Button>
+									}
+									
 									<Button style={{backgroundColor: 'steelblue', border: "none"}} onClick={() => this.props.setOpenForm(0)} block>
 										Cancel
 									</Button>
@@ -265,7 +250,7 @@ class AddMentorQuestion extends React.Component {
 										onChange={e => this.change(e)}
 										value={this.state.questionText}
 										id="questionText"
-										placeholder="Question" 
+										placeholder="Question (required)" 
 										autoComplete="off"/>
 									</FormGroup>
 								</Col>
@@ -273,9 +258,17 @@ class AddMentorQuestion extends React.Component {
 							
 							<Row>
 								<Col>
+									{this.state.questionText == ""
+									?
+									<Button disabled style={{backgroundColor: '#004085', border: "none"}} type="submit" block>
+										Create (please fill in question text)
+									</Button>
+									:
 									<Button style={{backgroundColor: '#004085', border: "none"}} type="submit" block>
 										Create
 									</Button>
+									}
+
 									<Button style={{backgroundColor: 'steelblue', border: "none"}} onClick={() => this.props.setOpenForm(0)} block>
 										Cancel
 									</Button>

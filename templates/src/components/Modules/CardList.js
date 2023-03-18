@@ -128,7 +128,7 @@ const CardList = (props) => {
       return (
         <div>
         {props.cards.length === 0 ? 
-          <Alert> There are currently no custom questions in this module. </Alert>
+          <Alert> There are currently no questions in this module. </Alert>
         : 
         <Table hover className="tableList">
           <thead>
@@ -168,14 +168,14 @@ const CardList = (props) => {
       return (
         <div>
         {props.mentorQuestions.length === 0 ? 
-          <Alert> There are currently no custom mentor questions in this module. </Alert>
+          <Alert> There are currently no mentor questions in this module. </Alert>
         : 
         <div>
           <br/>
           <Form onSubmit={e => updateMentorFrequency(e, props.curModule, props.updateCurrentModule, props.serviceIP)}>
             <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
               <Label for="frequency" className="mr-sm-2"><b>Mentor Question Frequency (Every X cards):</b></Label>
-              <Input type="number" name="frequency" id="frequency" placeholder="ex. 10" />
+              <Input type="number" name="frequency" id="frequency" defaultValue={props.curModule.mentorQuestionFrequency} />
             </FormGroup>
             <br/>
             <Button>Submit</Button>
