@@ -222,7 +222,7 @@ export default class Session extends Component {
                                         </Row>
                                 )})}
                                 <Row><br /></Row>
-                                <div style={{ fontSize: "24px" }}><strong>Mentor Questions</strong></div>
+                                <div style={{ fontSize: "24px" }}><strong>Mentor Questions/Responses</strong></div>
                                 <Row><br /></Row>
                                 <Row>
                                     <Col style={{textDecoration: "underline"}}>Question</Col>
@@ -233,17 +233,23 @@ export default class Session extends Component {
                                 this.state.mentorResponses.map((ans, i) => {
                                     const question = this.state.mentorQuestions[i];
                                     return (
-                                        <Row key={i}>
-                                            <Col>{question ? question.questionText : ""}</Col>
-                                            <Col>{ans.response}</Col>
-                                        </Row>
+                                        <React.Fragment key={i}>
+                                            <Row>
+                                                <Col>{question ? question.questionText : ""}</Col>
+                                                <Col>{ans.response}</Col>
+                                            </Row>
+                                            <Row>
+                                                <Col><div className="my-3 border-bottom"></div></Col>
+                                            </Row>
+                                        </React.Fragment>
                                     );
                                 })
-                                ) : (
+                            ) : (
                                 <Row>
                                     <Col>{this.state.noRespMsg}</Col>
                                 </Row>
                             )}
+
                             </Card>
                         </div>
                         : <p>{this.state.noAnsMsg}</p>
