@@ -91,7 +91,7 @@ class StudentResponses(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            store_student_response(user_id, data['question_id'], data['response'], data['session_id'], conn, cursor)
+            store_student_response(data['question_id'], data['response'], data['session_id'], conn, cursor)
 
             raise ReturnSuccess('Student response created for question %s.' % data['question_id'], 201)
         except CustomException as error:
