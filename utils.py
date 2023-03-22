@@ -246,10 +246,10 @@ def get_student_response(session_id, conn, cursor):
     result = getFromDB(query, session_id, conn, cursor)
     return result
 
-def store_student_response(_id, question_id, response, session_id, conn, cursor):
+def store_student_response(question_id, response, session_id, conn, cursor):
 
-    query = "INSERT INTO mentor_responses (`userID`, `questionID`, `response`, `sessionID`) VALUES (%s, %s, %s, %s)"
-    postToDB(query, (_id, question_id, response, session_id), conn, cursor)
+    query = "INSERT INTO mentor_responses (`questionID`, `response`, `sessionID`) VALUES (%s, %s, %s)"
+    postToDB(query, (question_id, response, session_id), conn, cursor)
 
 def store_mentor_question(type, question_text, conn, cursor, mc_options):
     if(type == "MENTOR_FR"):
