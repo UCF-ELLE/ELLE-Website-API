@@ -1192,6 +1192,18 @@ table.classTable tbody th {
 /*--------------------------------------------------------------
 # Module List Tabs
 --------------------------------------------------------------*/
+.enabled-btn {
+  background-color: white !important;
+  color: black !important;
+}
+
+.disabled-btn {
+  background-color: lightgray !important;
+  color: gray !important;
+}
+
+
+
 nav.nav.nav-tabs {
   border-bottom-style: hidden
 }
