@@ -62,7 +62,7 @@ export default class MazeGameFinal extends Component {
 
 	render() {
         return (  
-            <div className="downloadsBg">
+            <div className="downloadsBg mainDiv">
                 
                 {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={this.state.permission}/>}
                 <br />

@@ -851,8 +851,12 @@ body.mobile-nav-active #mobile-nav-toggle {
 --------------------------------------------------------------*/
 #footer {
   background: #f2f5f8;
-  padding: 0 0 30px 0;
   font-size: 14px;
+  position:absolute;
+  left:0;
+  bottom:5;
+  right:0;
+  padding-bottom:30px;
 }
 
 #footer .copyright {
@@ -1301,4 +1305,14 @@ table.statsTable.table tbody td {
   color: #0c2e8a;
   font-family: "Raleway", sans-serif;
   font-weight: bold;
+}
+
+.mainDiv {
+  position:relative;
+  min-height: 100vh;
+}
+
+.mainContainer {
+  position:relative;
+  min-height: 90vh;
 }
