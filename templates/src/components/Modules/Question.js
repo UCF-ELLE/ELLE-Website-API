@@ -286,20 +286,18 @@ class Question extends React.Component {
         <Fragment>
         <tr onClick={this.toggleCollapsedAnswers}>
           <td>{question.questionText}</td>
-          <td>
             <td>
               {/* Add disabled attribute to disable button if no image file found */}
-               <Button className={`image-btn ${imgButtonClass}`} href={imgLink} download disabled={disableImgButton}>
-                  <img src={require('../../Images/image.png')} alt="frame icon" style={{ width: '25px', height: '25px' }} />
-                </Button>
+              <Button className={`image-btn ${imgButtonClass}`} href={imgLink} download disabled={disableImgButton}>
+                <img src={require('../../Images/image.png')} alt="frame icon" style={{ width: '25px', height: '25px' }} />
+              </Button>
             </td>
             <td>
               {/* Add disabled attribute to disable button if no audio file found */}
               <Button className={`audio-btn ${audioButtonClass}`} href={audioLink} download disabled={disableAudioButton}>
                 <img src={require('../../Images/headphones.png')} alt="headphones icon" style={{ width: '25px', height: '25px' }} />
-               </Button>
+              </Button>
             </td>
-          </td>
 
           {this.props.permissionLevel !== "st"
           ?
