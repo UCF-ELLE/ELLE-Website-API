@@ -54,7 +54,7 @@ export default class CardGame extends Component {
 
 	render() {
         return (
-            <div className="gamesBg">
+            <div className="gamesBg mainDiv">
                 {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={this.state.permission}/>}
                 <br />
                 <center>
