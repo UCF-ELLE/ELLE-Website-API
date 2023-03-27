@@ -275,38 +275,29 @@ class Question extends React.Component {
     let imgLink = this.state.baseURL + selectedImgFile;
     let audioLink = this.state.baseURL + selectedAudioFile;
 
+    let disableImgButton = !selectedImgFile;
+    let disableAudioButton = !selectedAudioFile;
+
+    let imgButtonClass = disableImgButton ? 'disabled-btn' : 'enabled-btn';
+    let audioButtonClass = disableAudioButton ? 'disabled-btn' : 'enabled-btn';
+
     if (this.state.editMode === false){
       return (
         <Fragment>
         <tr onClick={this.toggleCollapsedAnswers}>
           <td>{question.questionText}</td>
-          <td>
-            <Button 
-              style={{backgroundColor: 'white', width: '100%'}} 
-              href={imgLink} 
-              download
-              >
-              <img 
-                src={require('../../Images/image.png')} 
-                alt="frame icon" 
-                style={{width: '25px', height: '25px'}}
-                />
-            </Button>
-          </td>
-          <td>
-            {/* audio has to be in the same domain */}
-            <Button 
-              style={{backgroundColor: 'white', width: '100%'}} 
-              href={audioLink} 
-              download
-              > 
-              <img 
-                src={require('../../Images/headphones.png')} 
-                alt="headphones icon" 
-                style={{width: '25px', height: '25px'}}
-                />
-            </Button>
-          </td>
+            <td>
+              {/* Add disabled attribute to disable button if no image file found */}
+              <Button className={`image-btn ${imgButtonClass}`} href={imgLink} download disabled={disableImgButton}>
+                <img src={require('../../Images/image.png')} alt="frame icon" style={{ width: '25px', height: '25px' }} />
+              </Button>
+            </td>
+            <td>
+              {/* Add disabled attribute to disable button if no audio file found */}
+              <Button className={`audio-btn ${audioButtonClass}`} href={audioLink} download disabled={disableAudioButton}>
+                <img src={require('../../Images/headphones.png')} alt="headphones icon" style={{ width: '25px', height: '25px' }} />
+              </Button>
+            </td>
 
           {this.props.permissionLevel !== "st"
           ?
