@@ -1,6 +1,10 @@
-import React, { Component } from 'react';
+/*************************
+Converted from class-based to functional component in Spring 2023.
+**************************/
 
+import React, { useEffect, useState } from 'react';
 import { Button } from 'reactstrap';
+import { Unity, useUnityContext } from "react-unity-webgl";
 import MainTemplate from '../pages/MainTemplate'; 
 import Template from '../pages/Template';
 import Footer from '../components/Footer';
@@ -11,79 +15,71 @@ import '../lib/font-awesome/css/font-awesome.min.css';
 import '../lib/owlcarousel/assets/owl.carousel.min.css';
 import '../lib/ionicons/css/ionicons.min.css';
 
-// import banner from '../Images/ELLEDownloadsBanner.mp4';
+function MazeGame(props) {
+	const [permission, setPermission] = useState(props.user.permission);
 
-import Unity, { UnityContext } from "react-unity-webgl";
+    useEffect(() => {
+        verifyPermission();
+    }, []);
 
-const unityContext = new UnityContext({
-    // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
-    loaderUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.loader.js',
-    dataUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.data',
-    frameworkUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.framework.js',
-    codeUrl: 'Unity-Game-WebGL-Builds/Maze-Game/Build.wasm',
-});
-
-unityContext.on("GameLoaded", () => {
-	sendLogin();
-});
-function sendLogin() {
-	const jwt = localStorage.getItem('jwt');
-	unityContext.send("ContinueButton", "loginAttempt", jwt);
-  }
-export default class MazeGameFinal extends Component {
-	constructor(props) {
-		super(props);
-
-		this.state = {
-			permission: this.props.user.permission,
-		}
-        
-	}  
-	
-	componentDidMount() {
-		this.verifyPermission(); 
-	}
-
-	verifyPermission = () => {
+	const verifyPermission = () => {
 		const jwt = localStorage.getItem('jwt');
 		if (!jwt) {
-		  this.props.history.push(this.props.location.pathname);
+		  props.history.push(props.location.pathname);
 		}
 		else {
-			var jwtDecode = require('jwt-decode');	
+			var jwtDecode = require('jwt-decode');
 			var decoded = jwtDecode(jwt);
-			this.setState({ permission: decoded.user_claims.permission }); 
+			setPermission(decoded.user_claims.permission);
 		}
-	}   
+	}
 	  
-	handleOnClickFullscreen() {
-		  unityContext.setFullscreen(true);
+    const { unityProvider, requestFullscreen, isLoaded, sendMessage } = useUnityContext({
+        // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
+        loaderUrl: "Unity-Game-WebGL-Builds/Maze-Game/Build.loader.js",
+        dataUrl: "Unity-Game-WebGL-Builds/Maze-Game/Build.data",
+        frameworkUrl: "Unity-Game-WebGL-Builds/Maze-Game/Build.framework.js",
+        codeUrl: "Unity-Game-WebGL-Builds/Maze-Game/Build.wasm",
+    });
+    
+    // Automatically log the user into the Unity Maze Game
+    if (isLoaded === true) {
+        const jwt = localStorage.getItem('jwt');
+        sendMessage("ContinueButton", "loginAttempt", jwt);
+    }
+
+	const handleOnClickFullscreen = () =>  {
+        requestFullscreen(true);
 	}
 
-	render() {
-        return (  
-            <div className="downloadsBg">
-                
-                {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={this.state.permission}/>}
-                <br />
-                <center>
-                <Unity unityContext={unityContext} style={{
-                    height: "75%",
+    return (  
+        <>
+        <div className="downloadsBg">
+            {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission}/>}
+            <br />
+            <center>
+            <Unity
+                unityProvider={unityProvider}
+                style={{
                     width: "75%",
+                    height: "75%",
                     border: "2px solid black",
                     background: "grey",
-                }}/>
-                <br />
-                <br />
-                <Button onClick={this.handleOnClickFullscreen}>Fullscreen</Button>
-                <p></p>
-                <br />
-                </center>
-                <p className="mazeGame"><font color="black">If there are no available modules for you to select, try logging out and logging back in.</font></p>
-                <br />
-                <p></p>
-                <Footer></Footer>
-            </div>
-        );
-	}
+                    visibility: isLoaded ? "visible" : "hidden" }}
+            />
+            <br />
+            <br />
+            <Button onClick={handleOnClickFullscreen}>Fullscreen</Button>
+            <p></p>
+            <br />
+            </center>
+            <p className="mazeGame"><font color="black">If there are no available modules for you to select, try logging out and logging back in.</font></p>
+            <br />
+            <p></p>
+            <Footer></Footer>
+        </div>
+        </>
+    );
 }
+
+export default MazeGame;
