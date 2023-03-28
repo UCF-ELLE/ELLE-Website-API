@@ -266,18 +266,18 @@ class Term extends React.Component {
           <td>{editedFront}</td>
           <td>{editedType}</td>
           <td>{editedGender}</td>
-          <td>
-                        {/* Add disabled attribute to disable button if no image file found */}
-                        <Button className={`image-btn ${imgButtonClass}`} href={imgLink} download disabled={disableImgButton}>
-                            <img src={require('../../Images/image.png')} alt="frame icon" style={{ width: '25px', height: '25px' }} />
-                        </Button>
-                    </td>
-                    <td>
-                        {/* Add disabled attribute to disable button if no audio file found */}
-                        <Button className={`audio-btn ${audioButtonClass}`} href={audioLink} download disabled={disableAudioButton}>
-                            <img src={require('../../Images/headphones.png')} alt="headphones icon" style={{ width: '25px', height: '25px' }} />
-                        </Button>
-                    </td>
+          <td style={{textAlign: 'center'}}>
+            {/* Add disabled attribute to disable button if no image file found */}
+            <Button className={`image-btn ${imgButtonClass}`} href={imgLink} download disabled={disableImgButton}>
+              <img src={require('../../Images/image.png')} alt="frame icon" style={{ width: '25px', height: '25px' }} />
+            </Button>
+          </td>
+          <td style={{textAlign: 'center'}}>
+            {/* Add disabled attribute to disable button if no audio file found */}
+            <Button className={`audio-btn ${audioButtonClass}`} href={audioLink} download disabled={disableAudioButton}>
+              <img src={require('../../Images/headphones.png')} alt="headphones icon" style={{ width: '25px', height: '25px' }} />
+            </Button>
+          </td>
 
           {this.props.permissionLevel !== "st" 
           ? 
