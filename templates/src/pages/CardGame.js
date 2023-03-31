@@ -34,7 +34,7 @@ function CardGame(props) {
 		}
 	}
 
-    const { unityProvider, requestFullscreen, isLoaded, sendMessage } = useUnityContext({
+    const { unityProvider, requestFullscreen, isLoaded, sendMessage, loadingProgression } = useUnityContext({
         // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
         loaderUrl: "Unity-Game-WebGL-Builds/Card-Game/Build.loader.js",
         dataUrl: "Unity-Game-WebGL-Builds/Card-Game/Build.data",
@@ -58,6 +58,9 @@ function CardGame(props) {
             {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission}/>}
             <br />
             <center>
+                <div className="webglLoadingStatusBox" style={{visibility: isLoaded ? "visible" : "visible"}}>
+                    <p className="webglLoadingStatusText">Loading {Math.round(loadingProgression * 100)}%</p>
+                </div>
                 <Unity
                     unityProvider={unityProvider}
                     style={{
