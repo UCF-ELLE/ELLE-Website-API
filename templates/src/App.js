@@ -18,6 +18,7 @@ import ForgotUsername from './pages/ForgotUsername';
 import ForgotPassword from './pages/ForgotPassword'; 
 import ResetPassword from './pages/ResetPassword'; 
 import CardGame from './pages/CardGame';
+import AnimELLEGame from './pages/AnimELLEGame';
 
 let flaskIP = 'https://chdr.cs.ucf.edu/elleapi';
 
@@ -55,6 +56,7 @@ class App extends Component {
               <Route path="/sessions" render={(props)=><Sessions {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
               <Route path="/gamecode" render={(props)=><GameCode {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
               <Route path="/mazegame" render={(props)=><MazeGame {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
+              <Route path="/animellegame" render={(props)=><AnimELLEGame {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
               <AuthAdmin>  
                 <Route path="/classroster" render={(props)=><ClassRoster {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
                 <Route path="/userlist" render={(props)=><UserList {...props} serviceIP={flaskIP} user={this.state.user}/>}/>
