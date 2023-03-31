@@ -54,31 +54,28 @@ function MazeGame(props) {
 
     return (  
         <>
-        <div className="downloadsBg">
+        <div>
             {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission}/>}
             <br />
-            <center>
-                <div className="webglLoadingStatusBox" style={{visibility: isLoaded ? "visible" : "visible"}}>
+            <div className="center-contents">
+                <div className="webglLoadingStatusBox" style={{visibility: isLoaded ? "hidden" : "visible"}}>
                     <p className="webglLoadingStatusText">Loading {Math.round(loadingProgression * 100)}%</p>
                 </div>
+                
                 <Unity
                     unityProvider={unityProvider}
                     style={{
-                        width: "75%",
-                        height: "75%",
-                        border: "2px solid black",
-                        background: "grey",
-                        visibility: isLoaded ? "visible" : "hidden" }}
+                        width: "1152px",
+                        height: "648px",
+                        visibility: isLoaded ? "visible" : "hidden"
+                    }}
                 />
                 <br />
                 <br />
-                <Button onClick={handleOnClickFullscreen}>Fullscreen</Button>
-                <p></p>
-                <br />
-            </center>
+                <Button onClick={handleOnClickFullscreen} style={{visibility: isLoaded ? "visible" : "hidden"}}>Fullscreen</Button>
+            </div>
             <p className="mazeGame"><font color="black">If there are no available modules for you to select, try logging out and logging back in.</font></p>
             <br />
-            <p></p>
             <Footer></Footer>
         </div>
         </>

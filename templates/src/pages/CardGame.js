@@ -54,13 +54,13 @@ function CardGame(props) {
 
     return (
         <>
-        <div className="gamesBg">
+        <div>
             {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission}/>}
-            <br />
-            <center>
-                <div className="webglLoadingStatusBox" style={{visibility: isLoaded ? "visible" : "visible"}}>
+            <div className="center-contents">
+                <div className="webglLoadingStatusBox" style={{visibility: isLoaded ? "hidden" : "visible"}}>
                     <p className="webglLoadingStatusText">Loading {Math.round(loadingProgression * 100)}%</p>
                 </div>
+                
                 <Unity
                     unityProvider={unityProvider}
                     style={{
@@ -71,13 +71,10 @@ function CardGame(props) {
                 />
                 <br />
                 <br />
-                <Button onClick={handleOnClickFullscreen}>Fullscreen</Button>
-                <p></p>
-                <br />
-            </center>
-
+                <Button onClick={handleOnClickFullscreen} style={{visibility: isLoaded ? "visible" : "hidden"}}>Fullscreen</Button>
+            </div>
             <br />
-            <p></p>
+            <br />
             <Footer></Footer>
         </div>
         </>
