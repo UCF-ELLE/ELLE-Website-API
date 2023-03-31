@@ -34,7 +34,7 @@ function MazeGame(props) {
 		}
 	}
 	  
-    const { unityProvider, requestFullscreen, isLoaded, sendMessage } = useUnityContext({
+    const { unityProvider, requestFullscreen, isLoaded, sendMessage, loadingProgression } = useUnityContext({
         // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
         loaderUrl: "Unity-Game-WebGL-Builds/Maze-Game/Build.loader.js",
         dataUrl: "Unity-Game-WebGL-Builds/Maze-Game/Build.data",
@@ -58,20 +58,23 @@ function MazeGame(props) {
             {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission}/>}
             <br />
             <center>
-            <Unity
-                unityProvider={unityProvider}
-                style={{
-                    width: "75%",
-                    height: "75%",
-                    border: "2px solid black",
-                    background: "grey",
-                    visibility: isLoaded ? "visible" : "hidden" }}
-            />
-            <br />
-            <br />
-            <Button onClick={handleOnClickFullscreen}>Fullscreen</Button>
-            <p></p>
-            <br />
+                <div className="webglLoadingStatusBox" style={{visibility: isLoaded ? "visible" : "visible"}}>
+                    <p className="webglLoadingStatusText">Loading {Math.round(loadingProgression * 100)}%</p>
+                </div>
+                <Unity
+                    unityProvider={unityProvider}
+                    style={{
+                        width: "75%",
+                        height: "75%",
+                        border: "2px solid black",
+                        background: "grey",
+                        visibility: isLoaded ? "visible" : "hidden" }}
+                />
+                <br />
+                <br />
+                <Button onClick={handleOnClickFullscreen}>Fullscreen</Button>
+                <p></p>
+                <br />
             </center>
             <p className="mazeGame"><font color="black">If there are no available modules for you to select, try logging out and logging back in.</font></p>
             <br />

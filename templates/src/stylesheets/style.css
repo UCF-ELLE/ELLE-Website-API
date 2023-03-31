@@ -1286,6 +1286,24 @@ table.statsTable.table tbody td {
 }
 
 /*--------------------------------------------------------------
+# General Styling used on each WebGL game page
+--------------------------------------------------------------*/
+.webglLoadingStatusBox {
+    border: 10px outset #60aeb5;
+    transform: translateY(11em);
+    padding: 1.5em 2em;
+    max-width: 300px;
+}
+
+.webglLoadingStatusText {
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+    font-size: 1.5em;
+    text-align: center;
+    /* Override Bootstrap template */
+    margin: 0px;
+}
+
+/*--------------------------------------------------------------
 # Maze Game Styles
 --------------------------------------------------------------*/
 .mazeGame {
@@ -1294,23 +1312,19 @@ table.statsTable.table tbody td {
 }
 
 /*--------------------------------------------------------------
-# Demo Making stuff
+# Card Game Styles
 --------------------------------------------------------------*/
-
-/* used in CardGame page */
-.cardGameText { 
-  color: #fff;
-  margin: 5px 30px 5px 30px;
+.cardGameText {
+    color: #fff;
+    margin: 5px 30px 5px 30px;
 }
 
-/* used in CardGame page */
 .bgText {
-  color:#fff;
+    color: #fff;
 }
 
-/* used in MentorEdit page */
 .headText {
-  color: #0c2e8a;
-  font-family: "Raleway", sans-serif;
-  font-weight: bold;
+    color: #0c2e8a;
+    font-family: "Raleway", sans-serif;
+    font-weight: bold;
 }
