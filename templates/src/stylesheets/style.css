@@ -340,6 +340,30 @@ h1, h2, h3, h4, h5, h6 {
   opacity:0.5;
 }
 
+/* Center the button */
+.dropdown {
+  position: relative;
+  text-align: center;
+  width: 200px;
+  margin: 0 auto;
+  z-index: 9999;
+}
+
+/* Adjust the dropdown menu's z-index */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Show the dropdown menu when the button is hovered over */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+
 
 /*--------------------------------------------------------------
 # Navigation Menu
