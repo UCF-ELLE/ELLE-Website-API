@@ -1288,11 +1288,17 @@ table.statsTable.table tbody td {
 /*--------------------------------------------------------------
 # General Styling used on each WebGL game page
 --------------------------------------------------------------*/
+.center-contents {
+    text-align: center;
+}
+
 .webglLoadingStatusBox {
     border: 10px outset #60aeb5;
     transform: translateY(11em);
     padding: 1.5em 2em;
     max-width: 300px;
+    width: 100%;
+    margin: 0px auto;
 }
 
 .webglLoadingStatusText {
