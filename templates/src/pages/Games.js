@@ -39,7 +39,25 @@ export default class Games extends Component {
 		  
 		  this.setState({ permission: decoded.user_claims.permission }); 
 		}
-	}   
+	}
+
+	handleGameChange = (selectedOption) => {
+		const value = selectedOption.value;
+		const element = document.getElementById(value);
+		if (element) {
+		  element.scrollIntoView({ behavior: 'smooth' });
+		}
+	  };
+	
+	 options = [
+		{ value: 'Maze', label: 'Maze Game' },
+		{ value: 'CardGame', label: 'ELLE Card Game' },
+		{ value: "AnimELLE", label: 'AnimELLE Crossing' },
+		{ value: "ELLEVR", label: 'VR Games' },
+		{ value: "SpinNSpELLE", label: 'SpinNSpELLE' },
+		{ value: "HELLEsKitchen", label: 'HELLEsKitchen' },
+		// add more games as needed
+	  ];
 
 	render() {
 	return (  
@@ -49,18 +67,9 @@ export default class Games extends Component {
 		
 		{localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={this.state.permission}/>}
 
-		
-		{/* Work in progress button
-		<div class="dropdown">
-  			<button class="dropbtn">Dropdown</button>
-  				<div class="dropdown-content">
-    				<a href="#">Link 1</a>
-    				<a href="#">Link 2</a>
-    				<a href="#">Link 3</a>
-  				</div>
-		</div>
-		*/}
-		
+		{/* Create the game selection dropdown menu */}
+		<br />
+		<Select className="dropdown button" options={this.options} onChange={this.handleGameChange} placeholder="Select a Game" />
 
 		<a id="Maze">
 			<section style={{color: "white"}}>
