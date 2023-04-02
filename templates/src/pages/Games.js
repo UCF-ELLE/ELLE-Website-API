@@ -207,7 +207,7 @@ export default class Games extends Component {
 								<br />
 								<br />
 								<br />
-							<Link to='/animellegame' className="mazeButton">Play Here!</Link>
+							<Link to='/animellegame' className="animelleButton">Play Here!</Link>
 
 							</p>
 							
