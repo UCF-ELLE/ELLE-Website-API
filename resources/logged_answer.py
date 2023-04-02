@@ -22,6 +22,7 @@ class LoggedAnswer(Resource):
         data['sessionID'] = getParameter("sessionID", str, True, "")
         data['correct'] = getParameter("correct", str, True, "")
         data['mode'] = getParameter("mode", str, False, "")
+        data['answerText'] = getParameter("answerText", str, False, "")
  
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -39,13 +40,13 @@ class LoggedAnswer(Resource):
             formatted_time = datetime.datetime.now().time().strftime('%H:%M')
 
             if data['mode']:
-                query = "INSERT INTO `logged_answer` (`questionID`, `termID`, `sessionID`, `correct`, `mode`, `log_time`) \
-                    VALUES (%s, %s, %s, %s, %s, %s)"
-                postToDB(query, (data['questionID'], data['termID'], data['sessionID'], data['correct'], data['mode'], formatted_time), conn, cursor)
+                query = "INSERT INTO `logged_answer` (`questionID`, `termID`, `sessionID`, `correct`, `mode`, `log_time`, `answerText`) \
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                postToDB(query, (data['questionID'], data['termID'], data['sessionID'], data['correct'], data['mode'], formatted_time, data['answerText']), conn, cursor)
             else:
-                query = "INSERT INTO `logged_answer` (`questionID`, `termID`, `sessionID`, `correct`, `log_time`) \
+                query = "INSERT INTO `logged_answer` (`questionID`, `termID`, `sessionID`, `correct`, `log_time`, `answerText`) \
                     VALUES (%s, %s, %s, %s, %s)"
-                postToDB(query, (data['questionID'], data['termID'], data['sessionID'], data['correct'], formatted_time), conn, cursor)
+                postToDB(query, (data['questionID'], data['termID'], data['sessionID'], data['correct'], formatted_time, data['answerText']), conn, cursor)
             raise ReturnSuccess("Successfully created a logged_answer record", 205)
         except CustomException as error:
             conn.rollback()
@@ -118,7 +119,8 @@ class LoggedAnswer(Resource):
                         'sessionID' : result[3],
                         'correct' : result[4],
                         'mode' : result[5],
-                        'front' : result[9]
+                        'answerText' : result[9],
+                        'front' : result[10]
                     }
                     logged_answers.append(la_record)
 
@@ -193,11 +195,11 @@ class GetLoggedAnswerCSV(Resource):
                 results = getFromDB(query)
                 if results and results[0]:
                     for record in results:
-                        if record[11] is None:
+                        if record[12] is None:
                             replace_query = "SELECT `name` FROM `deleted_module` WHERE `moduleID` = %s"
-                            replace = getFromDB(replace_query, record[13])
-                            record[12] = replace[0][0]
-                        csv = csv + f"""{record[0]}, {record[9]}, {record[10]}, {record[11]}, {record[13]}, {record[12]}, {record[1]}, {record[7]}, {record[2]}, {record[8]}, {record[3]}, {record[4]}, {str(record[6])}, {record[5]}\n"""
+                            replace = getFromDB(replace_query, record[14])
+                            record[13] = replace[0][0]
+                        csv = csv + f"""{record[0]}, {record[10]}, {record[11]}, {record[12]}, {record[14]}, {record[13]}, {record[1]}, {record[7]}, {record[2]}, {record[8]}, {record[3]}, {record[4]}, {str(record[6])}, {record[5]}\n"""
             else:
                 csv = ""
                 query = "SELECT `logged_answer`.*, `session`.`userID`, `user`.`username`, `module`.`moduleID`, `module`.`name`, `session`.`deleted_moduleID` FROM `logged_answer` \
@@ -211,11 +213,11 @@ class GetLoggedAnswerCSV(Resource):
 
                 if results and results[0]:
                     for record in results:
-                        if record[11] is None:
+                        if record[12] is None:
                             replace_query = "SELECT `name` FROM `deleted_module` WHERE `moduleID` = %s"
                             replace = getFromDB(replace_query, record[13])
-                            record[12] = replace[0][0]
-                        csv = csv + f"""{record[0]}, {record[9]}, {record[10]}, {record[11]}, {record[13]}, {record[12]}, {record[1]}, {record[7]}, {record[2]}, {record[8]}, {record[3]}, {record[4]}, {str(record[6])}, {record[5]}\n"""
+                            record[13] = replace[0][0]
+                        csv = csv + f"""{record[0]}, {record[10]}, {record[11]}, {record[12]}, {record[14]}, {record[13]}, {record[1]}, {record[7]}, {record[2]}, {record[8]}, {record[3]}, {record[4]}, {str(record[6])}, {record[5]}\n"""
 
             last_record_id = results[-1][0]
             
