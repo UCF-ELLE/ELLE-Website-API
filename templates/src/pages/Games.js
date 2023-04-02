@@ -160,6 +160,7 @@ export default class Games extends Component {
 							<p className="cta-text"> Come learn a language, select your own mentor, and play to unlock unique prizes and customization! </p>
 							<p className="cta-text">
                             <Link to='/cardgame' className="cardGameButton">Play Here!</Link>
+							<strong style={{color: '#cc0000'}}>&nbsp;&nbsp;Note: You must be logged in to play! </strong>
 							</p>
 							
 						</Col>
@@ -194,8 +195,20 @@ export default class Games extends Component {
 								</Row>
 							</ul>
 							<p className="cta-text">
-								Available on: 
+								Insert a really cool description. 
 								
+							</p>
+							<p className ="cta-text">
+								<br />
+								<br />
+								<br />
+								<br />
+								<br />
+								<br />
+								<br />
+								<br />
+							<Link to='/animellegame' className="mazeButton">Play Here!</Link>
+
 							</p>
 							
 						</Col>
