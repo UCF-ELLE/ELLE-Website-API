@@ -635,15 +635,17 @@ class Question(Resource):
                     new_question_object['type'] = row[3]
                     new_question_object['questionText'] = row[4]
 
-                query = "SELECT * FROM `image` WHERE `imageID` = %s"
-                result = getFromDB(query, new_question_object['imageID'], conn, cursor)
-                for row in result:
-                    new_question_object['imageLocation'] = IMG_RETRIEVE_FOLDER + row[1] if row and row[1] else None
+                if (new_question_object['imageID']):
+                    query = "SELECT * FROM `image` WHERE `imageID` = %s"
+                    result = getFromDB(query, new_question_object['imageID'], conn, cursor)
+                    for row in result:
+                        new_question_object['imageLocation'] = IMG_RETRIEVE_FOLDER + row[1] if row and row[1] else None
 
-                query = "SELECT * FROM `audio` WHERE `audioID` = %s"
-                result = getFromDB(query, new_question_object['audioID'], conn, cursor)
-                for row in result:
-                    new_question_object['audioLocation'] = AUD_RETRIEVE_FOLDER + row[1] if row and row[1] else None
+                if (new_question_object['audioID']):
+                    query = "SELECT * FROM `audio` WHERE `audioID` = %s"
+                    result = getFromDB(query, new_question_object['audioID'], conn, cursor)
+                    for row in result:
+                        new_question_object['audioLocation'] = AUD_RETRIEVE_FOLDER + row[1] if row and row[1] else None
 
                 query = "SELECT * FROM `answer` WHERE `questionID` = %s"
                 result = getFromDB(query, new_question_object['questionID'], conn, cursor)
