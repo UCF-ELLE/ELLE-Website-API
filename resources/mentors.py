@@ -122,9 +122,21 @@ class StudentResponses(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            studentResponse = get_student_response(data['session_id'], conn, cursor)
+            db_result = get_student_response(data['session_id'], conn, cursor)
+            studentResponses = [];
+            for result in db_result:
+                sr_record = {
+                    'mentorResponseID' : result[0],
+                    'questionID' : result[1],
+                    'sessionID' : result[2],
+                    'response' : result[3],
+                }
+                studentResponses.append(sr_record)
 
-            raise ReturnSuccess(studentResponse, 200)
+            if studentResponses:
+                raise ReturnSuccess(studentResponses, 200)
+            else:
+                raise ReturnSuccess("No associated logged mentor responses found for that module and/or user", 200)
 
         except CustomException as error:
             conn.rollback()

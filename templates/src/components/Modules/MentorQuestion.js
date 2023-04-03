@@ -14,7 +14,7 @@ class MentorQuestion extends React.Component {
     this.deleteQuestion = this.deleteQuestion.bind(this);
     this.toggleCollapsedAnswers = this.toggleCollapsedAnswers.bind(this);
 
-    this.submitEdit = this.submitEdit.bind(this);
+    //this.submitEdit = this.submitEdit.bind(this);
     this.change = this.change.bind(this);
 
 
@@ -22,62 +22,13 @@ class MentorQuestion extends React.Component {
       question: this.props.question, //contains all of the data in the question
       modal: false,
 
-      myAnswers : ["NA","NA2"],
+      myAnswers : ["","", "", "", ""],
       editMode: false, //determines whether or not the editable version of the question is showing
       editedQuestionText: this.props.question.questionText, //contains the English word that can be edited
       collapseAnswers: false, //determines whether or not the answers are displayed on the question
-
-      //TODO: populate answers with API call instead of dummy data
-      /*answers: this.props.question.answers.map((answer) => {return answer.front}), //contains the list of answers
-      originalAnswers: this.props.question.answers.map((answer) => {return answer.front}),
-      ids: this.props.question.answers.map((answer) => {return answer.termID}),
-
-      newlyCreatedAnswers : [], //array of answers the user created via this form
-      submittingAnswer: false, //determines whether or not the AddAnswer form will be shown
-      userCreatedAnswer: "", //what the user put in the field when they clicked create answer*/
     }
 
   }
-
-
-  //TODO: handleAddAnswer and createAnswer kinda do the same thing. Maybe they should be one thing?
-  //function that adds a answer to list of answers on this question(only available when editmode is true)
-  /*handleAddAnswer = (event) => {
-    let ansList = this.state.answers; 
-    let idList = this.state.ids; 
-
-    ansList.push(event.answer); 
-    idList.push(event.answerID); 
-
-    this.setState({
-      answers: ansList, 
-      ids: idList
-    })
-  }*/
-
-
-  //function that adds a new answer from user input to list of answers on this question(only when editmode is true)
-  /*createAnswer = (answer) => {
-    this.setState({
-			submittingAnswer: true,
-			userCreatedAnswer: answer
-		});
-  }*/
-
-	//function that adds a newly created answer to the list of answers on this question
-  /*addNewAnswerToList = (answer) => {
-		let tempNewlyCreatedAnswers = this.state.newlyCreatedAnswers;
-    tempNewlyCreatedAnswers.push(answer);
-    
-    let allAnswers = this.state.answers; 
-    allAnswers.push(answer.front); 
-
-		this.setState({
-      newlyCreatedAnswers: tempNewlyCreatedAnswers,
-      answers: allAnswers, 
-			submittingAnswer: false
-		});
-	}*/
 
   	//function that allows user to cancel AddAnswer form
 	cancelCreateAnswer = () => {
@@ -85,33 +36,6 @@ class MentorQuestion extends React.Component {
 			submittingAnswer: false
 		});
 	}
-
-  /*handleDeleteAnswer = (event) => {
-    let tempAnswerButtonList = this.state.answers;
-    let idList = this.state.ids; 
-    
-    let answerObject = this.state.answers.find((answer) => {
-      if(answer === event.answer){
-        return true;
-      } 
-      else {
-        return false;
-      }
-    });
-
-    let answerIndex = tempAnswerButtonList.indexOf(answerObject);
-
-    if(answerIndex !== -1){
-      tempAnswerButtonList.splice(answerIndex, 1);
-      idList.splice(answerIndex, 1); 
-    }
-
-    this.setState({
-      answers: tempAnswerButtonList,
-      ids: idList
-    });
-
-  }*/
 
   //function that gets called when the edit button is pushed. Sets editmode to true
   toggleEditMode = () => {
@@ -153,13 +77,52 @@ class MentorQuestion extends React.Component {
   submitQuestionEdit() {
     this.setState({editMode: false});
 
+    let header = {
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
+    };
+
+    for (let i = 0; i < this.state.myAnswers.length; i++) {
+      if (this.state.myAnswers[i].answerChoice == "") { //delete option
+        let header = { 
+          data: { 
+            mc_id : this.state.myAnswers[i].multipleChoiceID
+          },
+          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
+        };
+
+        axios.delete(this.props.serviceIP + '/deletemultiplechoiceoptions', header)
+        .then(res => {
+          if(i == this.state.myAnswers.length - 1) {
+            this.updateAnswers();
+          }
+        })
+        .catch(error => {
+          console.log("deleteMCPtion error: ", error.response);
+        })
+
+      } else { //modify option
+        let data = {
+          updated_option : this.state.myAnswers[i].answerChoice,
+          mc_id : this.state.myAnswers[i].multipleChoiceID
+        };
+
+        axios.post(this.props.serviceIP + '/modifymultiplechoiceoptions', data, header)
+        .then(res => {
+          if(i == this.state.myAnswers.length - 1) {
+            this.updateAnswers();
+          }
+        })
+        .catch(error => {
+          console.log("editMCoption error: ", error.response);
+        })
+
+
+      }
+    }
+
     let data = {
       question_id : this.state.question.questionID,
       question_text : this.state.editedQuestionText
-    };
-
-    let header = {
-      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
     };
 
     axios.post(this.props.serviceIP + '/modifymentorquestions', data, header)
@@ -171,24 +134,27 @@ class MentorQuestion extends React.Component {
     })
   }
 
-
-  submitEdit = (e) => {
+  //old MC options edit
+  /*submitEdit = (e) => {
     e.preventDefault();
     this.setState({editMode: false});
+
+    let header = {
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
+    };
 
     //iterate through answers and make appropriate changes, may not happen in order
     for (let i = 0; i < e.target.length - 1; i++) {
 
-      let header = {
-        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
-      };
-
       if (e.target[i].value == "") { //delete option
-        let data = {
-          mc_id : e.target[i].id
+        let header = { 
+          data: { 
+            mc_id : e.target[i].id
+          },
+          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
         };
 
-        axios.delete(this.props.serviceIP + '/deletemultiplechoiceoptions', data, header)
+        axios.delete(this.props.serviceIP + '/deletemultiplechoiceoptions', header)
         .then(res => {
           this.props.updateCurrentModule({ module: this.props.curModule });
         })
@@ -216,63 +182,7 @@ class MentorQuestion extends React.Component {
     }
 
     this.updateAnswers();
-
-		/*
-
-		axios.post(this.props.serviceIP + '/creatementorquestions', data, header)
-		.then(res => {
-			this.resetFields();
-			this.props.updateCurrentModule({ module: this.props.curModule });
-		})
-		.catch(error => {
-			console.log("submitQuestion error: ", error.response);
-		})*/
-    
-    /*
-    this.setState({editMode: false});
-
-    let NewlyCreatedAnswerJSONList = this.state.newlyCreatedAnswers.map((answer) => {
-      return {
-        "front": answer.front,
-        "back": answer.back,
-        "language": this.props.curModule.language,
-        "tags": answer.tags
-      }
-    });
-
-    let stringyAnswerList = JSON.stringify(NewlyCreatedAnswerJSONList.map((entry) => {return entry})); 
-
-    let stringifyIDList = JSON.stringify(this.state.ids.map((entry) => {return entry})); 
-
-    const data = new FormData(); 
-    let header = {
-      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
-    };
-
-    data.append('image', this.state.changedImage && this.state.selectedImgFile !== undefined ? this.state.selectedImgFile : null); 
-    data.append('audio', this.state.changedAudio && this.state.selectedAudioFile !== undefined ? this.state.selectedAudioFile : null); 
-
-    data.append('questionText', this.state.editedQuestionText); 
-    data.append('questionID', this.props.question.questionID); //not editable
-    data.append('new_answers', stringifyIDList); 
-    data.append('arr_of_terms', stringyAnswerList); 
-    data.append('type', "LONGFORM");
-
-    this.props.permissionLevel === "ta" ? data.append('groupID', this.props.currentClass.value) : data.append('groupID', null);
-    
-    axios.post(this.props.serviceIP + '/modifyquestion', data, header)
-    .then(res => {
-      this.setState({
-        changedImage: false, 
-        changedAudio: false
-      });
-
-      this.props.updateCurrentModule({ module: this.props.curModule });  
-    })
-    .catch(error => {
-      console.log("submitEdit in question.js error: ", error);
-    });*/
-  }
+  }*/
 
   //toggling delete modal, is not related to delete question API 
   handleDelete = () => {
@@ -313,10 +223,21 @@ class MentorQuestion extends React.Component {
   handleCancelEdit = () => {
     this.setState({
       question: this.props.question,
+      editedQuestionText : this.props.question.questionText,
       modal: false,
       collapseAnswers: false,
 
       editMode: false
+    });
+    this.updateAnswers();
+  }
+
+  changeAnswer(e) {
+    let newAnswers = [...this.state.myAnswers];
+    newAnswers[e.target.id].answerChoice = e.target.value;
+
+    this.setState({
+      myAnswers: newAnswers
     });
   }
 
@@ -330,21 +251,10 @@ class MentorQuestion extends React.Component {
         headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
       }
 
-      /*axios.post(this.props.serviceIP + '/getmultiplechoiceoptions', data, header)
-      .then( res => {
-        let answers = res.data;
-
-        this.setState({
-          myAnswers: answers
-        });
-      })
-      .catch(function (error) {
-        console.log("getMCoptions error: ", error);
-      });*/
       this.updateAnswers();
     } else {
       this.setState({
-        myAnswers: "NA"
+        myAnswers: ""
       });
     }
   }
@@ -385,7 +295,7 @@ class MentorQuestion extends React.Component {
             
             <ModalBody>
               <Alert color="primary">
-                Deleting this custom question will remove it from all the users who are currently using this module as well.
+                Deleting this question will remove it from all the users who are currently using this module as well.
               </Alert>
               <p style={{paddingLeft: "20px"}}>Are you sure you want to delete this question?</p>
             </ModalBody>
@@ -405,9 +315,9 @@ class MentorQuestion extends React.Component {
             {question.type === "MENTOR_MC" 
             ?
             <div>
-            {this.state.myAnswers.map((answer) => {
+            {this.state.myAnswers.map((answer, index) => {
               return(
-                <p key={answer.multipleChoiceID} id={answer.multipleChoiceID}> - {answer.answerChoice}</p>
+                <p key={answer.multipleChoiceID + " " + index} id={answer.multipleChoiceID}> - {answer.answerChoice}</p>
               )
             })}
             </div>
@@ -425,6 +335,17 @@ class MentorQuestion extends React.Component {
 
         <tr>
           <td>
+          {this.state.editedQuestionText === "" 
+          ?
+          <Input invalid
+            type="value" 
+            name="editedQuestionText"
+            id="editedQuestionText"
+            placeholder = "Required"
+            onChange={e => this.change(e)} 
+            value={this.state.editedQuestionText} 
+            />
+          :
           <Input 
             type="value" 
             name="editedQuestionText"
@@ -432,10 +353,26 @@ class MentorQuestion extends React.Component {
             onChange={e => this.change(e)} 
             value={this.state.editedQuestionText} 
             />
+          }
           </td>
 
           <td>
             <ButtonGroup>
+              {this.state.editedQuestionText === "" 
+              || (question.type === "MENTOR_MC" 
+              && (this.state.myAnswers[0].answerChoice == "" || this.state.myAnswers[1].answerChoice == "" || this.state.myAnswers[2].answerChoice == "" || this.state.myAnswers[3].answerChoice == ""))
+              ?
+              <Button 
+                style={{backgroundColor: 'lightcoral'}} 
+                disabled
+                > 
+                <img 
+                  src={require('../../Images/submit.png')} 
+                  alt="Icon made by Becris from www.flaticon.com" 
+                  style={{width: '25px', height: '25px'}}
+                />
+              </Button>
+              :
               <Button 
                 style={{backgroundColor: 'lightcyan'}} 
                 onClick = {() => this.submitQuestionEdit()}
@@ -446,6 +383,7 @@ class MentorQuestion extends React.Component {
                   style={{width: '25px', height: '25px'}}
                 />
               </Button>
+              }
               <Button 
                 style={{backgroundColor: 'lightcyan'}} 
                 onClick = {() => this.handleCancelEdit()}
@@ -468,19 +406,51 @@ class MentorQuestion extends React.Component {
             <div>
               <b>Answers: </b>
               <br/><br/>
-              <Form onSubmit={e => this.submitEdit(e)}>
+              <Form>
                 <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-                  {this.state.myAnswers.map((answer) => {
-                    return(
-                      <div>
-                      <Input type="text" key={answer.multipleChoiceID} id={answer.multipleChoiceID} defaultValue={answer.answerChoice} />
-                      <br></br>
-                      </div>
-                    )
+                  {this.state.myAnswers.map((answer, index) => {
+                    if (index == 4) {
+                      return(
+                        <div key={index}>
+                        <Input type="value" 
+                          id={index} 
+                          name = {"answer" + index}
+                          value={answer.answerChoice} 
+                          onChange={e => this.changeAnswer(e)} 
+                          placeholder="Optional" />
+                        <br></br>
+                        </div>
+                      )
+                    } else {
+                      if (answer.answerChoice == "") {
+                        return(
+                          <div key={index}>
+                          <Input type="value" invalid
+                            id={index} 
+                            name = {"answer" + index}
+                            value={answer.answerChoice} 
+                            onChange={e => this.changeAnswer(e)} 
+                            placeholder="Required" />
+                          <br></br>
+                          </div>
+                        )
+                      } else {
+                        return(
+                          <div key={index}>
+                          <Input type="value"
+                            id={index} 
+                            name = {"answer" + index}
+                            value={answer.answerChoice} 
+                            onChange={e => this.changeAnswer(e)} />
+                          <br></br>
+                          </div>
+                        )
+                      }
+                    }
+                    
                   })}
                 </FormGroup>
                 <br/>
-                <Button>Submit</Button>
               </Form>
               
             </div>
@@ -488,7 +458,7 @@ class MentorQuestion extends React.Component {
 
         </tr>
         :
-        <p></p>}
+        <tr></tr>}
       </Fragment>
       );
       
