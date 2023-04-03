@@ -159,13 +159,13 @@ export default class Games extends Component {
 							<br />
 							<p className="cta-text"> Come learn a language, select your own mentor, and play to unlock unique prizes and customization! </p>
 							<p className="cta-text">
-                            <Link to='/cardgame' className="cardGameButton">Play Here!</Link>
-							<strong style={{color: '#cc0000'}}>&nbsp;&nbsp;Note: You must be logged in to play! </strong>
+                            	<Link to='/cardgame' className="cardGameButton">Play Here!</Link>
+								<strong style={{color: '#cc0000'}}>&nbsp;&nbsp;Note: You must be logged in to play! </strong>
 							</p>
 							
 						</Col>
 						<Col>
-							<img style={{width: "450px", height: "355px", marginLeft: "20px"}} src={require('../Images/ELLECardGameLogo.png')} />
+							<img style={{width: "520px", height: "320px", marginLeft: "70px", marginTop: "80px"}} src={require('../Images/cardgame.png')} />
 						</Col>
 					</Row>
 				</div>
@@ -195,25 +195,19 @@ export default class Games extends Component {
 								</Row>
 							</ul>
 							<p className="cta-text">
-								Insert a really cool description. 
-								
+								AnimELLE Crossing is an educational game with the intent to help students 
+								with their language learning journey. Students will get to play multiple mini games 
+								that are encompassed within the AnimELLE Crossing world, interact with non-playable characters, 
+								and personalize different aspects of their gameplay. 
 							</p>
 							<p className ="cta-text">
-								<br />
-								<br />
-								<br />
-								<br />
-								<br />
-								<br />
-								<br />
-								<br />
-							<Link to='/animellegame' className="animelleButton">Play Here!</Link>
-
+								<Link to='/animellegame' className="animelleButton">Play Here!</Link>
+								<strong style={{color: '#cc0000'}}>&nbsp;&nbsp;Note: You must be logged in to play! </strong>
 							</p>
 							
 						</Col>
 						<Col>
-						<img style={{width: "405px", height: "486px", marginLeft: "10px"}} src={require('../Images/ELLEIsabelle.png')} />
+						<img style={{width: "520px", height: "320px", marginLeft: "70px", marginTop: "40px"}} src={require('../Images/animellegame.png')} />
 						</Col>
 					</Row>
 				</div>
@@ -275,7 +269,7 @@ export default class Games extends Component {
 							
 						</Col>
 						<Col>
-						<img style={{width: "350px", height: "255px", marginLeft: "100px"}} src={require('../Images/spinnspellBlocks.png')} />
+							<img style={{width: "350px", height: "255px", marginLeft: "100px"}} src={require('../Images/spinnspellBlocks.png')} />
 						</Col>
 					</Row>
 				</div>
@@ -300,7 +294,7 @@ export default class Games extends Component {
 							
 						</Col>
 						<Col>
-						<img style={{width: "470px", height: "255px", marginLeft: "100px"}} src={require('../Images/highrise.jpg')} />
+							<img style={{width: "470px", height: "255px", marginLeft: "100px"}} src={require('../Images/highrise.jpg')} />
 						</Col>
 					</Row>
 				</div>
@@ -339,7 +333,7 @@ export default class Games extends Component {
 							
 						</Col>
 						<Col>
-						<br /><img style={{width: "514px", height: "289px", marginLeft: "100px"}} src={require('../Images/helleskitchen.jpg')} />
+							<br /><img style={{width: "514px", height: "289px", marginLeft: "100px"}} src={require('../Images/helleskitchen.jpg')} />
 						</Col>
 					</Row>
 				</div>
