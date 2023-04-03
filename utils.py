@@ -247,7 +247,6 @@ def get_student_response(session_id, conn, cursor):
     return result
 
 def store_student_response(question_id, response, session_id, conn, cursor):
-
     query = "INSERT INTO mentor_responses (`questionID`, `response`, `sessionID`) VALUES (%s, %s, %s)"
     postToDB(query, (question_id, response, session_id), conn, cursor)
 

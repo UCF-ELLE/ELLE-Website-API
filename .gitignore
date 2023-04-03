@@ -5,11 +5,7 @@ uploads
 templates/node_modules
 .DS_Store
 .env
-templates/Build/UnityLoader.js
-templates/Build/Builds.wasm.framework.unityweb
-templates/Build/Builds.wasm.code.unityweb
-templates/Build/Builds.json
-templates/Build/Builds.data.unityweb
+templates/public/Unity-Game-WebGL-Builds/*
 Build/
 templates/package-lock.json
 templates/package.json

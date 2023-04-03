@@ -10,7 +10,11 @@ export default class Session extends Component {
             currentSession: {}, 
             loggedAnswers: [],
             noAnsMsg: "",
-            modalOpen: false
+            noRespMsg: "",
+            modalOpen: false,
+            mentorResponses: [],
+            mentorQuestions: [],
+            questionID: ""
         }
         
     }
@@ -33,13 +37,15 @@ export default class Session extends Component {
         return result.toFixed(2);
     }
 
-    showLoggedAnswers = (session) => {
-        this.getLoggedAnswers(session.sessionID); 
-        this.toggleModal(); 
-        this.setState({ currentSession: session })
-    }
+    showLoggedAnswers = async (session) => {
+        await this.getLoggedAnswers(session.sessionID); 
+        await this.getMentorResponses(session.sessionID);
+        await this.getMentorQuestion(this.state.questionID);
+        this.setState({ currentSession: session, modalOpen: true });
+      }
+    
 
-    getLoggedAnswers = (sessionID) => {
+    getLoggedAnswers = async (sessionID) => {
         console.log("sessionId: ", sessionID); 
 
         let header = {
@@ -63,11 +69,70 @@ export default class Session extends Component {
         })
     }
 
+    getMentorResponses = async (session_id) => {
+        let header = {
+            headers: {'Authorization': 'Bearer ' + localStorage.getItem('jwt'), 'Content-Type': 'application/json' },
+            params: {session_id: session_id}
+        };
+    
+        await axios.get(this.props.serviceIP + "/studentresponses", header)
+        .then(res => {
+            console.log("mentor responses: ", res.data);
+
+            if (res.data.Message) {
+                this.setState({ noRespMsg: res.data.Message });
+            }
+            else {
+                this.setState({ mentorResponses: res.data});
+            }
+    
+        }).catch(error => {
+            console.log("get mentor responses error: ", error);
+        })
+    }
+
+    getMentorQuestion = async () => {
+        const mentorResponses = this.state.mentorResponses;
+        const mentorQuestions = [];
+        
+        for (let i = 0; i < mentorResponses.length; i++) {
+            const questionID = mentorResponses[i].questionID;
+            
+            let header = {
+                headers: {'Authorization': 'Bearer ' + localStorage.getItem('jwt') },
+                params: {questionID: questionID}
+            };
+    
+            await axios.get(this.props.serviceIP + "/question", header)
+                .then(res => {
+                    console.log("mentor response question: ", res.data);
+    
+                    if (res.data.Message) {
+                        this.setState({ noQuesMsg: res.data.Message });
+                    }
+                    else {
+                        mentorQuestions.push(res.data);
+                    }
+    
+                }).catch(error => {
+                    console.log("get mentor response question error: ", error);
+                });
+        }
+        
+        this.setState({ mentorQuestions });
+    };
+    
+
     toggleModal = () => {
         if (this.state.modalOpen === true) {
             this.setState({ 
                 loggedAnswers: [],
-                noAnsMsg: ""
+                noAnsMsg: "",
+                mentorResponses: [],
+                mentorQuestions: [],
+                noRespMsg: "",
+                noQuesMsg: "",
+                questionID: ""
             })
         }
 
@@ -117,7 +182,7 @@ export default class Session extends Component {
                     </Table>
                 </Card>
 
-                <Modal isOpen={this.state.modalOpen} toggle={() => this.toggleModal()}>
+                <Modal size="lg" isOpen={this.state.modalOpen} toggle={() => this.toggleModal()}>
                     <ModalHeader toggle={() => this.toggleModal()} style={{paddingBottom: "0px"}}>
                         Logged Answers
                         <Row style={{paddingTop: "10px"}}>
@@ -139,9 +204,11 @@ export default class Session extends Component {
                                     <Col style={{textDecoration: "underline"}}>Term ID</Col>
                                     <Col style={{textDecoration: "underline"}}>Term</Col>
                                     <Col style={{textDecoration: "underline"}}>Answer</Col>
+
                                 </Row>
                                 <Card style={{overflow: "scroll", height: "35vh", border: "none"}}>
-                                    {this.state.loggedAnswers.map((ans, i) => {return (
+                                {this.state.loggedAnswers.map((ans, i) => {
+                                    return (
                                         <Row key={i}>
                                             <Col>{ans.termID}</Col>
                                             <Col>{ans.front}</Col>
@@ -153,12 +220,42 @@ export default class Session extends Component {
                                                 }
                                             </Col>
                                         </Row>
-                                    )})} 
-                                </Card>
-                            </div>
-                            : <p>{this.state.noAnsMsg}</p>
-                        }
-                    </ModalBody>
+                                )})}
+                                <Row><br /></Row>
+                                <div style={{ fontSize: "24px" }}><strong>Mentor Questions/Responses</strong></div>
+                                <Row><br /></Row>
+                                <Row>
+                                    <Col style={{textDecoration: "underline"}}>Question</Col>
+                                    <Col style={{textDecoration: "underline"}}>Response</Col>
+                                </Row>
+                                
+                                {this.state.mentorResponses.length !== 0 ? (
+                                this.state.mentorResponses.map((ans, i) => {
+                                    const question = this.state.mentorQuestions[i];
+                                    return (
+                                        <React.Fragment key={i}>
+                                            <Row>
+                                                <Col>{question ? question.questionText : ""}</Col>
+                                                <Col>{ans.response}</Col>
+                                            </Row>
+                                            <Row>
+                                                <Col><div className="my-3 border-bottom"></div></Col>
+                                            </Row>
+                                        </React.Fragment>
+                                    );
+                                })
+                            ) : (
+                                <Row>
+                                    <Col>{this.state.noRespMsg}</Col>
+                                </Row>
+                            )}
+
+                            </Card>
+                        </div>
+                        : <p>{this.state.noAnsMsg}</p>
+                    }
+                </ModalBody>
+
                 </Modal>
             </div>
         )
