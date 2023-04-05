@@ -54,7 +54,7 @@ function MazeGame(props) {
 
     return (  
         <>
-        <div>
+        <div className="downloadsBg mainDiv">
             {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission}/>}
             <br />
             <div className="center-contents">
