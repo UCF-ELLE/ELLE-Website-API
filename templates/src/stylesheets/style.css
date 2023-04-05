@@ -71,6 +71,16 @@ h1, h2, h3, h4, h5, h6 {
     color: #fff;
 }
 
+.mainDiv {
+    position:relative;
+    min-height: 100vh;
+  }
+  
+  .mainContainer {
+    position:relative;
+    min-height: 90vh;
+  }
+
 /*--------------------------------------------------------------
 # Top Bar
 --------------------------------------------------------------*/
