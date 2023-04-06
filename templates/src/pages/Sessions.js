@@ -103,7 +103,7 @@ export default class Sessions extends Component {
   render() {
     return (
       <div>
-        <Container>
+        <Container className="mainContainer">
           <Template permission={this.state.permission}/>
           <br /><br />
           <Row>

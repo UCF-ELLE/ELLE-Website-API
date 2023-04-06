@@ -2,10 +2,6 @@ import React, {Fragment} from 'react';
 import { Alert, Button, ButtonGroup, Modal, ModalHeader, ModalBody, ModalFooter, Collapse, Input, Form, FormGroup } from 'reactstrap';
 import axios from 'axios';
 
-import AnswerButtonList from './AnswerButtonList';
-import Autocomplete from './Autocomplete';
-import AddAnswer from './AddAnswer'; 
-
 class MentorQuestion extends React.Component {
   constructor(props){
     super(props);
@@ -22,9 +18,12 @@ class MentorQuestion extends React.Component {
       question: this.props.question, //contains all of the data in the question
       modal: false,
 
-      myAnswers : ["","", "", "", ""],
+      myAnswers : ["", "", "", "", ""],
       editMode: false, //determines whether or not the editable version of the question is showing
       editedQuestionText: this.props.question.questionText, //contains the English word that can be edited
+      newAnswer1: "",
+      newAnswer2: "",
+      newAnswer3: "",
       collapseAnswers: false, //determines whether or not the answers are displayed on the question
     }
 
@@ -92,9 +91,7 @@ class MentorQuestion extends React.Component {
 
         axios.delete(this.props.serviceIP + '/deletemultiplechoiceoptions', header)
         .then(res => {
-          if(i == this.state.myAnswers.length - 1) {
             this.updateAnswers();
-          }
         })
         .catch(error => {
           console.log("deleteMCPtion error: ", error.response);
@@ -120,6 +117,58 @@ class MentorQuestion extends React.Component {
       }
     }
 
+    if (this.state.newAnswer1 != "") {
+      let data = {
+        option : this.state.newAnswer1,
+        question_id : this.state.question.questionID
+      };
+
+      axios.post(this.props.serviceIP + '/createmultiplechoiceoptions', data, header)
+      .then(res => {
+          this.updateAnswers();
+          this.setState({
+            newAnswer1: ""
+          });
+      })
+      .catch(error => {
+        console.log("createMCoption error: ", error.response);
+      })
+    }
+    if (this.state.newAnswer2 != "") {
+      let data = {
+        option : this.state.newAnswer2,
+        question_id : this.state.question.questionID
+      };
+
+      axios.post(this.props.serviceIP + '/createmultiplechoiceoptions', data, header)
+      .then(res => {
+          this.updateAnswers();
+          this.setState({
+            newAnswer2: ""
+          });
+      })
+      .catch(error => {
+        console.log("createMCoption error: ", error.response);
+      })
+    }
+    if (this.state.newAnswer3 != "") {
+      let data = {
+        option : this.state.newAnswer3,
+        question_id : this.state.question.questionID
+      };
+
+      axios.post(this.props.serviceIP + '/createmultiplechoiceoptions', data, header)
+      .then(res => {
+          this.updateAnswers();
+          this.setState({
+            newAnswer3: ""
+          });
+      })
+      .catch(error => {
+        console.log("createMCoption error: ", error.response);
+      })
+    }
+
     let data = {
       question_id : this.state.question.questionID,
       question_text : this.state.editedQuestionText
@@ -133,56 +182,6 @@ class MentorQuestion extends React.Component {
       console.log("submitQuestionEdit error: ", error.response);
     })
   }
-
-  //old MC options edit
-  /*submitEdit = (e) => {
-    e.preventDefault();
-    this.setState({editMode: false});
-
-    let header = {
-      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
-    };
-
-    //iterate through answers and make appropriate changes, may not happen in order
-    for (let i = 0; i < e.target.length - 1; i++) {
-
-      if (e.target[i].value == "") { //delete option
-        let header = { 
-          data: { 
-            mc_id : e.target[i].id
-          },
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
-        };
-
-        axios.delete(this.props.serviceIP + '/deletemultiplechoiceoptions', header)
-        .then(res => {
-          this.props.updateCurrentModule({ module: this.props.curModule });
-        })
-        .catch(error => {
-          console.log("deleteMCPtion error: ", error.response);
-        })
-
-      } else { //modify option
-        let data = {
-          updated_option : e.target[i].value,
-          mc_id : e.target[i].id
-        };
-
-        axios.post(this.props.serviceIP + '/modifymultiplechoiceoptions', data, header)
-        .then(res => {
-          this.props.updateCurrentModule({ module: this.props.curModule });
-        })
-        .catch(error => {
-          console.log("editMCoption error: ", error.response);
-        })
-
-
-      }
-
-    }
-
-    this.updateAnswers();
-  }*/
 
   //toggling delete modal, is not related to delete question API 
   handleDelete = () => {
@@ -335,7 +334,7 @@ class MentorQuestion extends React.Component {
 
         <tr>
           <td>
-          {this.state.editedQuestionText === "" 
+          {this.state.editedQuestionText.trim() === "" || this.state.editedQuestionText.length > 200
           ?
           <Input invalid
             type="value" 
@@ -358,9 +357,16 @@ class MentorQuestion extends React.Component {
 
           <td>
             <ButtonGroup>
-              {this.state.editedQuestionText === "" 
-              || (question.type === "MENTOR_MC" 
-              && (this.state.myAnswers[0].answerChoice == "" || this.state.myAnswers[1].answerChoice == "" || this.state.myAnswers[2].answerChoice == "" || this.state.myAnswers[3].answerChoice == ""))
+              {this.state.editedQuestionText.trim() === "" || this.state.editedQuestionText.length > 200 // question invalid
+              || (question.type === "MENTOR_MC" // question is MC
+              && ( //whatever is wrong the with MC options
+                (this.state.myAnswers[0].answerChoice.trim() == "" || this.state.myAnswers[1].answerChoice.trim() == "" || this.state.myAnswers[0].answerChoice.length > 30 || this.state.myAnswers[1].answerChoice.length > 30) //check for these no matter # of MC options, there will always be 2
+                || (this.state.myAnswers.length > 2 && ((this.state.myAnswers[2].answerChoice.trim() == "" && this.state.myAnswers[2].answerChoice != "") || this.state.myAnswers[2].answerChoice.length > 30)) //at least a third answer
+                || (this.state.myAnswers.length > 3 && ((this.state.myAnswers[3].answerChoice.trim() == "" && this.state.myAnswers[3].answerChoice != "") || this.state.myAnswers[3].answerChoice.length > 30)) //at least a fourth answer
+                || (this.state.myAnswers.length > 4 && ((this.state.myAnswers[4].answerChoice.trim() == "" && this.state.myAnswers[4].answerChoice != "") || this.state.myAnswers[4].answerChoice.length > 30)) //at least a fifth answer. Note if there are 5 answers, the third and fourth answers will also be checked since 5 > 2 and 5 > 3
+                || (((this.state.newAnswer1.trim() == "" && this.state.newAnswer1 != "") || this.state.newAnswer1.length > 30) || ((this.state.newAnswer2.trim() == "" && this.state.newAnswer2 != "") || this.state.newAnswer2.length > 30) || ((this.state.newAnswer3.trim() == "" && this.state.newAnswer3 != "") || this.state.newAnswer3.length > 30)) //can check newAnswers no matter what as they are always nonnull and empty is not a fail case
+                 ) 
+                )
               ?
               <Button 
                 style={{backgroundColor: 'lightcoral'}} 
@@ -409,23 +415,40 @@ class MentorQuestion extends React.Component {
               <Form>
                 <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
                   {this.state.myAnswers.map((answer, index) => {
-                    if (index == 4) {
-                      return(
-                        <div key={index}>
-                        <Input type="value" 
-                          id={index} 
-                          name = {"answer" + index}
-                          value={answer.answerChoice} 
-                          onChange={e => this.changeAnswer(e)} 
-                          placeholder="Optional" />
-                        <br></br>
-                        </div>
-                      )
-                    } else {
-                      if (answer.answerChoice == "") {
+                    if (index == 2 || index == 3 || index == 4) {
+                      if ((answer.answerChoice.trim() == "" && answer.answerChoice != "") || answer.answerChoice.length > 30) {
                         return(
                           <div key={index}>
-                          <Input type="value" invalid
+                          <Input invalid 
+                            type="value" 
+                            id={index} 
+                            name = {"answer" + index}
+                            value={answer.answerChoice} 
+                            onChange={e => this.changeAnswer(e)} 
+                            placeholder="Optional" />
+                          <br></br>
+                          </div>
+                        )
+                      } else {
+                        return(
+                          <div key={index}>
+                          <Input type="value" 
+                            id={index} 
+                            name = {"answer" + index}
+                            value={answer.answerChoice} 
+                            onChange={e => this.changeAnswer(e)} 
+                            placeholder="Optional" />
+                          <br></br>
+                          </div>
+                        )
+                      }
+                      
+                    } else {
+                      if (answer.answerChoice.trim() == "" || answer.answerChoice.length > 30) {
+                        return(
+                          <div key={index}>
+                          <Input invalid
+                            type="value" 
                             id={index} 
                             name = {"answer" + index}
                             value={answer.answerChoice} 
@@ -449,6 +472,91 @@ class MentorQuestion extends React.Component {
                     }
                     
                   })}
+                  {
+                  this.state.myAnswers.length <= 2
+                  ?
+                    (this.state.newAnswer1.trim() == "" && this.state.newAnswer1 != "") || this.state.newAnswer1.length > 30
+                    ?
+                    <div>
+                    <Input invalid
+                            type="value" 
+                            id={2} 
+                            name = {"newAnswer1"}
+                            value={this.state.newAnswer1} 
+                            onChange={e => this.change(e)}
+                            placeholder="Optional" />
+                          <br></br>
+                    </div>
+                    :
+                    <div>
+                    <Input type="value" 
+                            id={2} 
+                            name = {"newAnswer1"}
+                            value={this.state.newAnswer1} 
+                            onChange={e => this.change(e)}
+                            placeholder="Optional" />
+                          <br></br>
+                    </div>
+                  :
+                  <div></div>
+                  }
+                  {
+                  this.state.myAnswers.length <= 3
+                  ?
+                    (this.state.newAnswer2.trim() == "" && this.state.newAnswer2 != "") || this.state.newAnswer2.length > 30
+                    ?
+                    <div>
+                    <Input invalid
+                            type="value" 
+                            id={3} 
+                            name = {"newAnswer2"}
+                            value={this.state.newAnswer2} 
+                            onChange={e => this.change(e)}
+                            placeholder="Optional" />
+                          <br></br>
+                    </div>
+                    :
+                    <div>
+                    <Input type="value" 
+                            id={3} 
+                            name = {"newAnswer2"}
+                            value={this.state.newAnswer2} 
+                            onChange={e => this.change(e)}
+                            placeholder="Optional" />
+                          <br></br>
+                    </div>
+                  :
+                  <div></div>
+                  }
+                  {
+                  this.state.myAnswers.length <= 4 
+                  ?
+                    (this.state.newAnswer3.trim() == "" && this.state.newAnswer3 != "") || this.state.newAnswer3.length > 30
+                    ?
+                    <div>
+                    <Input invalid
+                            type="value" 
+                            id={4} 
+                            name = {"newAnswer3"}
+                            value={this.state.newAnswer3} 
+                            onChange={e => this.change(e)}
+                            placeholder="Optional" />
+                          <br></br>
+                    </div>
+                    :
+                    <div>
+                    <Input type="value" 
+                            id={4} 
+                            name = {"newAnswer3"}
+                            value={this.state.newAnswer3} 
+                            onChange={e => this.change(e)}
+                            placeholder="Optional" />
+                          <br></br>
+                    </div>
+                  :
+                  <div></div>
+                  }
+                  
                 </FormGroup>
                 <br/>
               </Form>
