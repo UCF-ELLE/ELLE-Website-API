@@ -71,6 +71,16 @@ h1, h2, h3, h4, h5, h6 {
     color: #fff;
 }
 
+.mainDiv {
+    position:relative;
+    min-height: 100vh;
+  }
+  
+  .mainContainer {
+    position:relative;
+    min-height: 90vh;
+  }
+
 /*--------------------------------------------------------------
 # Top Bar
 --------------------------------------------------------------*/
@@ -900,9 +910,13 @@ body.mobile-nav-active #mobile-nav-toggle {
 # Footer
 --------------------------------------------------------------*/
 #footer {
-    background: #f2f5f8;
-    padding: 0 0 30px 0;
-    font-size: 14px;
+  background: #f2f5f8;
+  font-size: 14px;
+  position:absolute;
+  left:0;
+  bottom:5;
+  right:0;
+  padding-bottom:30px;
 }
 
 #footer .copyright {

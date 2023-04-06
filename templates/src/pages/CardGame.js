@@ -54,7 +54,7 @@ function CardGame(props) {
 
     return (
         <>
-        <div>
+        <div className="gamesBg mainDiv">
             {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission}/>}
             <div className="center-contents">
                 <div className="webglLoadingStatusBox" style={{visibility: isLoaded ? "hidden" : "visible"}}>
