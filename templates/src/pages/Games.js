@@ -96,8 +96,8 @@ export default class Games extends Component {
 							Follow the instructions to choose the correct path from a few options while learning Spanish in this immersive game!
 							<p className="cta-text">
 								<br />
-								<Link to={localStorage.getItem('jwt') ? '/mazegame' : '/login'} className="mazeButton">
-									{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
+								<Link to={localStorage.getItem('jwt') ? '/mazegame' : '/login'} className={`mazeButton ${!localStorage.getItem('jwt') ? 'disabled' : ''}`}>
+								{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
 								</Link>
 							</p>
 							
@@ -160,9 +160,10 @@ export default class Games extends Component {
 							<br />
 							<p className="cta-text"> Come learn a language, select your own mentor, and play to unlock unique prizes and customization! </p>
 							<p className="cta-text">
-							<Link to={localStorage.getItem('jwt') ? '/cardgame' : '/login'} className="cardGameButton">
+							<Link to={localStorage.getItem('jwt') ? '/cardgame' : '/login'} className={`cardGameButton ${!localStorage.getItem('jwt') ? 'disabled' : ''}`}>
 								{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
 							</Link>
+
 							</p>
 							
 						</Col>
@@ -203,8 +204,8 @@ export default class Games extends Component {
 								and personalize different aspects of their gameplay. 
 							</p>
 							<p className ="cta-text">
-							<Link to={localStorage.getItem('jwt') ? '/animelle' : '/login'} className="animelleButton">
-  								{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
+							<Link to={localStorage.getItem('jwt') ? '/animelle' : '/login'} className={`animelleButton ${!localStorage.getItem('jwt') ? 'disabled' : ''}`}>
+								{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
 							</Link>
 							</p>
 							
