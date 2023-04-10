@@ -438,7 +438,7 @@ class DeleteQuestion(Resource):
 
                 for log in la_results:
                     log_query = "UPDATE `logged_answer` SET `questionID` = %s, `deleted_questionID` = %s WHERE `logID` = %s"
-                    postToDB(log_query, (None, question_data[0][0], log[0]), None, conn, cursor)
+                    postToDB(log_query, (None, question_data[0][0], log[0]), conn, cursor)
 
                 query = "DELETE FROM `question` WHERE `questionID` = %s"
                 deleteFromDB(query, data['questionID'], conn, cursor)

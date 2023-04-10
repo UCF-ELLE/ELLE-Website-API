@@ -205,7 +205,8 @@ function CardGame(props) {
     );
 
     return (
-        <div>
+        <>
+        <div className="gamesBg mainDiv">
             {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission}/>}
             
             { /* Prevent user from accidentally clicking on a link and leaving the page */ }

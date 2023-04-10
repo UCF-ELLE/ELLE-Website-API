@@ -55,6 +55,7 @@ app.config['MAIL_PORT'] = config.SMTP_PORT
 app.config['MAIL_USERNAME'] = config.SMTP_USERNAME
 app.config['MAIL_PASSWORD'] = config.SMTP_PASSWORD
 app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
 
 mysql.init_app(app)
 api = Api(app)
