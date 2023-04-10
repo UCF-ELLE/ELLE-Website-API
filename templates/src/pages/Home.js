@@ -40,7 +40,7 @@ export default class Home extends Component {
 
 	render() {
 		return (
-			<div>
+			<div className="mainDiv">
 				{localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={this.state.permission} />}
 
 				<section id="intro">
