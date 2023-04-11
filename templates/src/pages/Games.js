@@ -96,8 +96,9 @@ export default class Games extends Component {
 							Follow the instructions to choose the correct path from a few options while learning Spanish in this immersive game!
 							<p className="cta-text">
 								<br />
-								<Link to='/mazegame' className="mazeButton">Play Here!</Link>
-								<strong style={{color: '#cc0000'}}>&nbsp;&nbsp;Note: You must be logged in to play! </strong>
+								<Link to={localStorage.getItem('jwt') ? '/mazegame' : '/login'} className={`mazeButton ${!localStorage.getItem('jwt') ? 'disabled' : ''}`}>
+								{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
+								</Link>
 							</p>
 							
 						</Col>
@@ -159,8 +160,10 @@ export default class Games extends Component {
 							<br />
 							<p className="cta-text"> Come learn a language, select your own mentor, and play to unlock unique prizes and customization! </p>
 							<p className="cta-text">
-                            	<Link to='/cardgame' className="cardGameButton">Play Here!</Link>
-								<strong style={{color: '#cc0000'}}>&nbsp;&nbsp;Note: You must be logged in to play! </strong>
+							<Link to={localStorage.getItem('jwt') ? '/cardgame' : '/login'} className={`cardGameButton ${!localStorage.getItem('jwt') ? 'disabled' : ''}`}>
+								{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
+							</Link>
+
 							</p>
 							
 						</Col>
@@ -201,8 +204,9 @@ export default class Games extends Component {
 								and personalize different aspects of their gameplay. 
 							</p>
 							<p className ="cta-text">
-								<Link to='/animellegame' className="animelleButton">Play Here!</Link>
-								<strong style={{color: '#cc0000'}}>&nbsp;&nbsp;Note: You must be logged in to play! </strong>
+							<Link to={localStorage.getItem('jwt') ? '/animelle' : '/login'} className={`animelleButton ${!localStorage.getItem('jwt') ? 'disabled' : ''}`}>
+								{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
+							</Link>
 							</p>
 							
 						</Col>
