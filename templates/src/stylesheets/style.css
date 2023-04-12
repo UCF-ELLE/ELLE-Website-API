@@ -314,6 +314,11 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0.5;
 }
 
+.cardGameButton.disabled {
+  background-color: gray;
+  pointer-events: none;
+}
+
 .mazeButton {
     border: 1px solid #3f6184;
     border-radius: 12px;
@@ -328,6 +333,11 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0.5;
 }
 
+.mazeButton.disabled {
+  background-color: gray;
+  pointer-events: none;
+}
+
 .animelleButton {
   border: 1px solid #3f6184 ;
   border-radius: 12px;
@@ -339,6 +349,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 .animelleButton:hover {
   opacity:0.5;
+}
+
+.animelleButton.disabled {
+  background-color: gray;
+  pointer-events: none;
 }
 
 
