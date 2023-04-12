@@ -168,7 +168,7 @@ function CardGame(props) {
     // Automatically log the user into the Unity Card Game
     if (isLoaded === true) {
         const jwt = localStorage.getItem('jwt');
-        sendMessage("LoginButton", "WebGLLoginAttempt", jwt);
+        sendMessage("LoadingText", "WebGLLoginAttempt", jwt);
     }
 
     // Fullscreen button
