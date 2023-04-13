@@ -304,6 +304,13 @@ class DeleteMentorQuestion(Resource):
                 delete_query = "INSERT INTO `deleted_question` (`questionID`, `audioID`, `imageID`, `type`, `questionText`) VALUES (%s, %s, %s, %s, %s)"
                 postToDB(delete_query, (question_data[0][0], question_data[0][1], question_data[0][2], question_data[0][3], question_data[0][4]), conn, cursor)
 
+                response_query = "SELECT `mentorResponseID` FROM `mentor_responses` WHERE `questionID` = %s"
+                response_results = getFromDB(response_query, (question_data[0][0]), conn, cursor)
+
+                for response in response_results:
+                    response_query = "UPDATE `mentor_responses` SET `questionID` = %s, `deleted_questionID` = %s WHERE `mentorResponseID` = %s"
+                    postToDB(response_query, (None, question_data[0][0], response[0]), conn, cursor)
+
                 mc_choice_query = "DELETE FROM `multiple_choice_answers` WHERE `questionID` = %s"
                 deleteFromDB(mc_choice_query, data['questionID'], conn, cursor)
 
