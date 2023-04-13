@@ -25,6 +25,7 @@ export default class Modules extends Component {
     this.state = {
       modules: [], //list of all modules in the database
       dynamicModules: [], //list of modules filtered by search bar
+      mentorQuestions: [],
 
       currentModule: [], //current module we're looking at
 
