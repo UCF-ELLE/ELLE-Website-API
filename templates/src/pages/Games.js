@@ -168,7 +168,7 @@ export default class Games extends Component {
 							
 						</Col>
 						<Col>
-							<img style={{width: "520px", height: "320px", marginLeft: "70px", marginTop: "80px"}} src={require('../Images/cardgame.png')} />
+							<img style={{width: "auto", height: "280px", marginLeft: "70px", marginTop: "80px"}} src={require('../Images/cardgame.png')} />
 						</Col>
 					</Row>
 				</div>
@@ -204,7 +204,7 @@ export default class Games extends Component {
 								and personalize different aspects of their gameplay. 
 							</p>
 							<p className ="cta-text">
-							<Link to={localStorage.getItem('jwt') ? '/animelle' : '/login'} className={`animelleButton ${!localStorage.getItem('jwt') ? 'disabled' : ''}`}>
+							<Link to={localStorage.getItem('jwt') ? '/animellegame' : '/login'} className={`animelleButton ${!localStorage.getItem('jwt') ? 'disabled' : ''}`}>
 								{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
 							</Link>
 							</p>
