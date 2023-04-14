@@ -168,7 +168,7 @@ export default class Games extends Component {
 							
 						</Col>
 						<Col>
-							<img style={{width: "520px", height: "320px", marginLeft: "70px", marginTop: "80px"}} src={require('../Images/cardgame.png')} />
+							<img style={{width: "auto", height: "280px", marginLeft: "70px", marginTop: "80px"}} src={require('../Images/cardgame.png')} />
 						</Col>
 					</Row>
 				</div>

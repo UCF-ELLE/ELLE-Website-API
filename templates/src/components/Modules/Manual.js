@@ -25,8 +25,12 @@ const Manual = (props) => {
             <Modal isOpen={modalOpen} toggle={() => toggleModal()}>
                 <ModalHeader toggle={() => toggleModal()}>Manual</ModalHeader>
                 <ModalBody>
+                    <h7>
+                        <strong>Please Note: <br /> </strong>
+                        The accepted <em>image</em> files are PNG, JPG, and JPEG, and accepted <em>audio</em> files are OGG, WAV and MP3.
+                    </h7>
                     <h6>
-                        To maximize your students' in-game experience follow these instructions. 
+                        <br />To maximize your students' in-game experience follow these instructions. 
                     </h6>
                     <text style={{fontWeight: "bold"}}>ELLE Card Game (PC): </text>
                     <p>
