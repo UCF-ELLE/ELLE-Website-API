@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { Button } from 'reactstrap';
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { Prompt } from 'react-router-dom';
 import MainTemplate from '../pages/MainTemplate';
@@ -86,7 +87,7 @@ function AnimELLEGame(props) {
             // Only run if the user is currently in the middle of a session
             if (UNITY_userIsPlayingGame.current) {
                 // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
-                sendMessage("????", "????");
+                sendMessage("GameManager", "LeavingPageEvents");
             }
 
             // Ask user to confirm if they want to leave the page
@@ -181,7 +182,7 @@ function AnimELLEGame(props) {
     );
 
     return (
-        <div class='animelle-game-container'>
+        <div className='animelle-game-container'>
             {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission} />}
             
             { /* Prevent user from accidentally clicking on a link and leaving the page */ }
@@ -192,7 +193,7 @@ function AnimELLEGame(props) {
                     // Only run it if the user is currently in the middle of a session
                     if (UNITY_userIsPlayingGame.current) {
                         // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
-                        sendMessage("?????", "????");
+                        sendMessage("GameManager", "LeavingPageEvents");
                     }
 
                     return "Are you sure you want to leave?";
@@ -205,15 +206,13 @@ function AnimELLEGame(props) {
                 <div className='gameContainer'>
                     <Unity unityProvider={unityProvider}
                         style={{
-                            height: 900,
-                            width: 900,
+                            height: 600,
+                            width: 800,
                             visibility: isLoaded ? "visible" : "hidden",
                             background: "transparent"
                         }} devicePixelRatio={devicePixelRatio}
                     />
-                    <div className="btn">
-                        <button type="button" class="btn btn-light" onClick={handleClick}>Fullscreen</button>
-                    </div>
+                <Button onClick={handleClick} style={{ visibility: isLoaded ? "visible" : "hidden" }}>Fullscreen</Button>
                 </div>
             </div>
             
@@ -253,7 +252,7 @@ function AnimELLEGame(props) {
                         <img src={e} className='keys' alt="keys" />
                         <p className='instructions'>For interacting with objects/NPCs with Emotes, Continue Dialogue</p><br></br>
                     </div>
-                    <div className="keyContainer">
+                    {/* <div className="keyContainer">
                         <img src={q} className='keys' alt="keys" />
                         <p className='instructions'>Opening Fast Travel Menu</p><br></br>
                     </div>
@@ -264,7 +263,7 @@ function AnimELLEGame(props) {
                     <div className="keyContainer">
                         <img src={a} className='keys' alt="keys" />
                         <p className='instructions'>Opening "Ask Tito" Menu</p><br></br>
-                    </div>
+                    </div> */}
                     <br></br>
                     <br></br>
                     {/* <p className='instructions'>-Scavenger Hunt:<br></br><br></br>"Spacebar" - For picking up Scavenger Hunt items, Continue Dialogue</p><br></br> */}
