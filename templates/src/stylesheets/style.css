@@ -1468,10 +1468,11 @@ table.statsTable.table tbody td {
 
 .animelle-game-container .gameContainer {
     padding-top: 10%;
-    text-align: center;
     padding-bottom: 10%;
-    max-height: fit-content;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .animelle-game-container .divContainer {
