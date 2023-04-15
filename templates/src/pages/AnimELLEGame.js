@@ -86,7 +86,7 @@ function AnimELLEGame(props) {
             // Only run if the user is currently in the middle of a session
             if (UNITY_userIsPlayingGame.current) {
                 // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
-                sendMessage("????", "????");
+                sendMessage("GameManager", "LeavingPageEvents");
             }
 
             // Ask user to confirm if they want to leave the page
