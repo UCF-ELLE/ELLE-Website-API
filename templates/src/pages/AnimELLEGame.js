@@ -184,11 +184,10 @@ function AnimELLEGame(props) {
     return (
         <div className='animelle-game-container'>
             {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission} />}
-            
             { /* Prevent user from accidentally clicking on a link and leaving the page */ }
             <Prompt
                 when={isLoaded}
-                message= {() => {
+                message={() => {
                     // This code runs when the user tries to leave the page (by clicking a link)
                     // Only run it if the user is currently in the middle of a session
                     if (UNITY_userIsPlayingGame.current) {
@@ -199,8 +198,9 @@ function AnimELLEGame(props) {
                     return "Are you sure you want to leave?";
                 }}
             />
+
             <div className="center-contents">
-                <div className="webglLoadingStatusBox" style={{visibility: isLoaded ? "hidden" : "visible"}}>
+                <div className="webglLoadingStatusBox" style={{ visibility: isLoaded ? "hidden" : "visible" }}>
                     <p className="webglLoadingStatusText">Loading {Math.round(loadingProgression * 100)}%</p>
                 </div>
                 <div className='gameContainer'>
@@ -212,10 +212,10 @@ function AnimELLEGame(props) {
                             background: "transparent"
                         }} devicePixelRatio={devicePixelRatio}
                     />
-                <Button onClick={handleClick} style={{ visibility: isLoaded ? "visible" : "hidden" }}>Fullscreen</Button>
+                    <Button className='fsbtn' onClick={handleClick} style={{ visibility: isLoaded ? "visible" : "hidden" }}>Fullscreen</Button>
                 </div>
             </div>
-            
+
             <div className='divContainer'>
                 <div className='instruct-filler'>
                     {/* <h4>Listen to Tito!</h4> <img src={tito} className='tito' alt="tito" /> */}
@@ -240,10 +240,10 @@ function AnimELLEGame(props) {
 
                 <div className='instruct-actual'>
                     <img src={instruct} className='instruct' alt="game logo" />
-                    <div className="keyContainer">
+                    {/* <div className="keyContainer">
                         <img src={keys} className='keys' alt="keys" />
                         <p className='instructions'>Moving the Player </p><br></br>
-                    </div>
+                    </div> */}
                     <div className="keyContainer">
                         <img src={cursor} className='keys' alt="keys" />
                         <p className='instructions'>Hovering Tooltips, Button Selection</p><br></br>

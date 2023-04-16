@@ -1398,8 +1398,8 @@ table.statsTable.table tbody td {
     transform: translateY(11em);
     padding: 1.5em 2em;
     max-width: 300px;
-    width: 100%;
     margin: 0px auto;
+    background-color: #FFFFFF;
 }
 
 .webglLoadingStatusText {
@@ -1434,22 +1434,6 @@ table.statsTable.table tbody td {
     color: #0c2e8a;
     font-family: "Raleway", sans-serif;
     font-weight: bold;
-}
-
-.webglLoadingStatusBox {
-    border: 10px outset #60aeb5;
-    transform: translateY(11em);
-    padding: 1.5em 2em;
-    max-width: 300px;
-    background-color: #FFFFFF;
-}
-
-.webglLoadingStatusText {
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
-    font-size: 1.5em;
-    text-align: center;
-    /* Override Bootstrap template */
-    margin: 0px;
 }
 
 /*--------------------------------------------------------------
@@ -1605,10 +1589,12 @@ float: left;
     text-decoration: none;
     font-family: 'Roboto', sans-serif;
     font-weight: 300;
-    color: clear;
+    color: black;
     text-shadow: 0 0.04em 0.04em rgba(0, 0, 0, 0.35);
     text-align: center;
     transition: all 0.2s;
+    max-width: 400px;
+    background-color: #a9bfd6;
 }
 
 .animelle-game-container .instruct-actual .keyContainer .keys {
