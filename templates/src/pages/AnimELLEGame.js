@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { Button } from 'reactstrap';
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { Prompt } from 'react-router-dom';
 import MainTemplate from '../pages/MainTemplate';
@@ -86,7 +87,7 @@ function AnimELLEGame(props) {
             // Only run if the user is currently in the middle of a session
             if (UNITY_userIsPlayingGame.current) {
                 // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
-                sendMessage("????", "????");
+                sendMessage("GameManager", "LeavingPageEvents");
             }
 
             // Ask user to confirm if they want to leave the page
@@ -181,42 +182,40 @@ function AnimELLEGame(props) {
     );
 
     return (
-        <div class='animelle-game-container'>
+        <div className='animelle-game-container'>
             {localStorage.getItem('jwt') === null ? <MainTemplate /> : <Template permission={permission} />}
-            
             { /* Prevent user from accidentally clicking on a link and leaving the page */ }
             <Prompt
                 when={isLoaded}
-                message= {() => {
+                message={() => {
                     // This code runs when the user tries to leave the page (by clicking a link)
                     // Only run it if the user is currently in the middle of a session
                     if (UNITY_userIsPlayingGame.current) {
                         // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
-                        sendMessage("?????", "????");
+                        sendMessage("GameManager", "LeavingPageEvents");
                     }
 
                     return "Are you sure you want to leave?";
                 }}
             />
+
             <div className="center-contents">
-                <div className="webglLoadingStatusBox" style={{visibility: isLoaded ? "hidden" : "visible"}}>
+                <div className="webglLoadingStatusBox" style={{ visibility: isLoaded ? "hidden" : "visible" }}>
                     <p className="webglLoadingStatusText">Loading {Math.round(loadingProgression * 100)}%</p>
                 </div>
                 <div className='gameContainer'>
                     <Unity unityProvider={unityProvider}
                         style={{
-                            height: 900,
-                            width: 900,
+                            height: 600,
+                            width: 800,
                             visibility: isLoaded ? "visible" : "hidden",
                             background: "transparent"
                         }} devicePixelRatio={devicePixelRatio}
                     />
-                    <div className="btn">
-                        <button type="button" class="btn btn-light" onClick={handleClick}>Fullscreen</button>
-                    </div>
+                    <Button className='fsbtn' onClick={handleClick} style={{ visibility: isLoaded ? "visible" : "hidden" }}>Fullscreen</Button>
                 </div>
             </div>
-            
+
             <div className='divContainer'>
                 <div className='instruct-filler'>
                     {/* <h4>Listen to Tito!</h4> <img src={tito} className='tito' alt="tito" /> */}
@@ -241,10 +240,10 @@ function AnimELLEGame(props) {
 
                 <div className='instruct-actual'>
                     <img src={instruct} className='instruct' alt="game logo" />
-                    <div className="keyContainer">
+                    {/* <div className="keyContainer">
                         <img src={keys} className='keys' alt="keys" />
                         <p className='instructions'>Moving the Player </p><br></br>
-                    </div>
+                    </div> */}
                     <div className="keyContainer">
                         <img src={cursor} className='keys' alt="keys" />
                         <p className='instructions'>Hovering Tooltips, Button Selection</p><br></br>
@@ -253,7 +252,7 @@ function AnimELLEGame(props) {
                         <img src={e} className='keys' alt="keys" />
                         <p className='instructions'>For interacting with objects/NPCs with Emotes, Continue Dialogue</p><br></br>
                     </div>
-                    <div className="keyContainer">
+                    {/* <div className="keyContainer">
                         <img src={q} className='keys' alt="keys" />
                         <p className='instructions'>Opening Fast Travel Menu</p><br></br>
                     </div>
@@ -264,7 +263,7 @@ function AnimELLEGame(props) {
                     <div className="keyContainer">
                         <img src={a} className='keys' alt="keys" />
                         <p className='instructions'>Opening "Ask Tito" Menu</p><br></br>
-                    </div>
+                    </div> */}
                     <br></br>
                     <br></br>
                     {/* <p className='instructions'>-Scavenger Hunt:<br></br><br></br>"Spacebar" - For picking up Scavenger Hunt items, Continue Dialogue</p><br></br> */}
