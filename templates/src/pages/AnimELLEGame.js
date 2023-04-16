@@ -240,10 +240,10 @@ function AnimELLEGame(props) {
 
                 <div className='instruct-actual'>
                     <img src={instruct} className='instruct' alt="game logo" />
-                    {/* <div className="keyContainer">
+                    <div className="keyContainer">
                         <img src={keys} className='keys' alt="keys" />
-                        <p className='instructions'>Moving the Player </p><br></br>
-                    </div> */}
+                        <p className='instructions'>Moving the Player (arrow keys work too!)</p><br></br>
+                    </div>
                     <div className="keyContainer">
                         <img src={cursor} className='keys' alt="keys" />
                         <p className='instructions'>Hovering Tooltips, Button Selection</p><br></br>
