@@ -208,6 +208,7 @@ class Phrase extends React.Component {
                     <td><Input type="value" name="editedBack" onChange={e => this.change(e)} value={this.state.editedBack} /></td>
                     <td>
                         <input style={{display: 'none'}} type="file" onChange={this.imgFileSelectedHandler}
+                            accept=".png, .jpg, .jpeg" 
                             ref={imgInput => this.imgInput = imgInput}/>
                         <Button style={{backgroundColor: 'lightseagreen', width: '100%', fontSize: 'small'}} 
                             id="uploadImage" onClick={() => this.imgInput.click()}>
@@ -223,6 +224,7 @@ class Phrase extends React.Component {
                     </td>
                     <td>
                         <input style={{display: 'none'}} type="file" onChange={this.audioFileSelectedHandler}
+                            accept=".ogg, .wav, .mp3"
                             ref={audioInput => this.audioInput = audioInput}/>
                         <Button style={{backgroundColor: 'lightseagreen', width: '100%', fontSize: 'small'}} 
                             id="uploadAudio" onClick={() => this.audioInput.click()}>
