@@ -45,7 +45,7 @@ export default class Home extends Component {
 
 				<section id="intro">
 					<div className="intro-content">
-						<h2>The <span>ultimate</span> way<br />to learn a language.</h2>
+						<h2>The ultimate way<br />to learn a language.</h2>
 						<div>
 							<Link to='/games' className="btn-projects scrollto">Play ELLE</Link>
 						</div>
@@ -62,7 +62,7 @@ export default class Home extends Component {
 							<div className="col-lg-6 content">
 								<h2>Meet the Endless Learner.</h2>
 								<ul>
-									<li><i className="ion-android-checkmark-circle" /> Play an endless runner game where you choose the right translations to keep going!</li>
+									<li><i className="ion-android-checkmark-circle" /> Play a whole suite of language learning games to learn another language!</li>
 									<li><i className="ion-android-checkmark-circle" /> Create an account to view statistics, compare your scores, and make new language packs!</li>
 									<li><i className="ion-android-checkmark-circle" /> Use ELLE to study for exams or conduct research of your own!</li>
 									<li><i className="ion-android-checkmark-circle" /> Available in desktop, mobile, and virtual reality versions!</li>
@@ -123,14 +123,7 @@ export default class Home extends Component {
 						<div className="section-header">
 							<h2>Sponsors</h2>
 						</div>
-						<div className="row" style={{ textAlign: 'center' }}>
-							<div className="col-lg-12">
-								<h2><a href="https://gamesresearch.cah.ucf.edu/">
-									UCF GaIM Research Group</a></h2>
-								<p>Orlando Tech Center Bldg 500, Orlando, FL 32826</p>
-								<p><br /></p>
-							</div>
-						</div>
+						
 						<div className="row" style={{ textAlign: 'center' }}>
 							<div className="col-lg-4">
 								<h4>Dr. Emily Johnson</h4>
@@ -164,8 +157,8 @@ export default class Home extends Component {
 				<div className="row" style={{ textAlign: 'center' }}>
 					<div className="col-lg-12">
 						<br /><br />
-						<p>ELLE is a Senior Design project made at the University of Central
-							Florida under the direction of Dr. Mark Heinrich.</p>
+						<p>ELLE is a senior design project made at the University of Central Florida by 
+							undergraduate students in the Computer Science capstone course.</p>
 						<br />
 					</div>
 				</div>
