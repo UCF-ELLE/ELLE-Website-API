@@ -296,9 +296,22 @@ def get_mc_options(question_id, conn, cursor):
     query = "SELECT * FROM multiple_choice_answers WHERE questionID = %s"
     return getFromDB(query, question_id, conn, cursor)
 
-def modify_mentor_question_frequency(module_id, frequency, conn, cursor):
-    query = "UPDATE module SET mentorQuestionFrequency = %s WHERE moduleID = %s"
-    return postToDB(query, (frequency, module_id), conn, cursor)
+def modify_mentor_question_frequency(module_id, incorrectCards=None, correctCards=None, time=None, conn=None, cursor=None):
+    query = "UPDATE mentor_question_frequency SET numIncorrectCards = %s, numCorrectCards = %s,	time = %s WHERE moduleID = %s"
+    return postToDB(query, (incorrectCards, correctCards, time, module_id), conn, cursor)
+
+def set_mentor_question_frequency(module_id, incorrectCards = None, correctCards = None, time = None, conn = None, cursor = None):
+    if(len(get_mentor_question_frequency(module_id, conn, cursor)) < 1):
+        query = "INSERT INTO mentor_question_frequency (`numIncorrectCards`, `numCorrectCards`,	`time`, `moduleID`) VALUES \
+            (%s, %s, %s, %s)"
+        postToDB(query, (incorrectCards, correctCards, time, module_id), conn, cursor)
+        return True
+    else:
+        return False
+
+def get_mentor_question_frequency(module_id, conn, cursor):
+    query = "SELECT * FROM mentor_question_frequency WHERE moduleID = %s"
+    return getFromDB(query, module_id, conn, cursor)
 
 ########################################################################################
 # GROUP FUNCTIONS
