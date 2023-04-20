@@ -475,9 +475,11 @@ class DeleteMultipleChoiceOption(Resource):
 
 class ModifyMentorQuestionFrequency(Resource):
     @jwt_required
-    def post(self):
+    def put(self):
         data = {}
-        data['question_frequency'] = getParameter("question_frequency", str, True, "")
+        data['numIncorrectCards'] = getParameter("numIncorrectCards", str, False, "")
+        data['numCorrectCards'] = getParameter("numCorrectCards", str, False, "")
+        data['time'] = getParameter("time", str, False, "")
         data['moduleID'] = getParameter("module_id", str, True, "")
 
         permission, user_id = validate_permissions()
@@ -488,7 +490,7 @@ class ModifyMentorQuestionFrequency(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            modify_mentor_question_frequency(data['moduleID'], data['question_frequency'], conn, cursor)
+            modify_mentor_question_frequency(data['moduleID'], data['numIncorrectCards'], data['numCorrectCards'], data['time'], conn, cursor)
 
             raise ReturnSuccess("Successfully changed mentor question frequency", 201)
 
@@ -505,3 +507,83 @@ class ModifyMentorQuestionFrequency(Resource):
             if (conn.open):
                 cursor.close()
                 conn.close()
+
+
+class CreateMentorQuestionFrequency(Resource):
+    @jwt_required
+    def post(self):
+        data = {}
+        data['numIncorrectCards'] = getParameter("numIncorrectCards", str, False, "")
+        data['numCorrectCards'] = getParameter("numCorrectCards", str, False, "")
+        data['time'] = getParameter("time", str, False, "")
+        data['moduleID'] = getParameter("module_id", str, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            if(set_mentor_question_frequency(data['moduleID'], data['numIncorrectCards'], data['numCorrectCards'], data['time'], conn, cursor)):
+                raise ReturnSuccess("Successfully created mentor question frequency", 201)
+            else:
+                raise CustomException("Frequency already created for that module", 201)
+
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if (conn.open):
+                cursor.close()
+                conn.close()
+
+
+class GetMentorQuestionFrequency(Resource):
+    @jwt_required
+    def get(self):
+        data = {}
+        data['moduleID'] = getParameter("module_id", str, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            db_result = get_mentor_question_frequency(data['moduleID'], conn, cursor)
+            questionFrequencies = []
+            for result in db_result:
+                sr_record = {
+                    'incorrectCardsFreq': result[1],
+                    'correctCardsFreq': result[2],
+                    'time': result[3],
+                    'moduleID': result[4],
+                }
+                questionFrequencies.append(sr_record)
+
+            raise ReturnSuccess(questionFrequencies, 200)
+
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if (conn.open):
+                cursor.close()
+                conn.close()
+
