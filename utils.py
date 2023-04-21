@@ -630,10 +630,9 @@ def convertModuleToJSON(module, seventh_param_name='seventhParam'):
     moduleObj['language'] = module[2]
     moduleObj['complexity'] = module[3]
     moduleObj['userID'] = module[4]
-    moduleObj['mentorQuestionFrequency'] = module[5]
 
-    if len(module) > 6:
-        moduleObj[seventh_param_name] = module[6]
+    if len(module) > 5:
+        moduleObj[seventh_param_name] = module[5]
     
     return moduleObj
 
