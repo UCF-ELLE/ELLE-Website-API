@@ -361,9 +361,11 @@ export default class Games extends Component {
 								</Row>
 							</ul>
 							<br />
-							Play as a firefighter in this action packed game. Connect terms to their correct categories to put out fires and save the day!
+							Milleni-ELLE is a Spanish language game emphasizing context and immersion. 
+							The player arrives in an airport (tutorial scene) where they learn the basic mechanics of the game and board a virtual bus. 
+							The bus will take them to a house to pack for their next trip or to the grocery store to practice food-based vocabulary.
 							<p className="cta-text">
-							<br /> <br /> <br /> 
+							<br /> 
 							<a class="milleniButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
 								
 								
@@ -371,7 +373,7 @@ export default class Games extends Component {
 							
 						</Col>
 						<Col>
-							<img style={{width: "470px", height: "255px", marginLeft: "100px"}} src={require('../Images/highrise.jpg')} />
+							<img style={{width: "470px", height: "255px", marginLeft: "100px", marginTop: "60px"}} src={require('../Images/milleniimage.png')} />
 						</Col>
 					</Row>
 				</div>
