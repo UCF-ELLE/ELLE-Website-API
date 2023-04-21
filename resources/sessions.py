@@ -264,7 +264,7 @@ class SearchSessions(Resource):
                     AND `user`.`userName` {data['userName']}
                     AND `session`.`userID` {data['userID']} 
                     AND `session`.`platform` {data['platform']}
-                    AND `session`.`sessionDate` {data['sessionDate']}"""
+                    AND `session`.`sessionDate` {data['sessionDate']} ORDER BY `session`.`sessionID` ASC"""
 
             results = getFromDB(query, None, conn, cursor)
             records = []
