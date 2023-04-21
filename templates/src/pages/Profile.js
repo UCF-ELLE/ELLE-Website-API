@@ -220,7 +220,7 @@ export default class Profile extends React.Component {
   render() { 
     return (
       <div>
-        <Container>
+        <Container className="mainContainer">
           <Template permission={this.state.permission}/>
           <br></br>
             {this.state.permission === "su" ? 

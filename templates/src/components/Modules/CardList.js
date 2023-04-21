@@ -1,4 +1,5 @@
 import React from 'react'
+import { useState } from "react";
 import { Table, Alert, Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import axios from 'axios';
 
@@ -13,7 +14,6 @@ const updateMentorFrequency = (e, curModule, updateCurrentModule, serviceIP) => 
     question_frequency : parseInt(e.target.frequency.value),
     module_id : curModule.moduleID
   };
-  console.log(data);
 
   let header = {
     headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
@@ -24,11 +24,13 @@ const updateMentorFrequency = (e, curModule, updateCurrentModule, serviceIP) => 
     //updateCurrentModule({ module: curModule.moduleID });
   })
   .catch(error => {
-    console.log("submitQuestion error: ", error.response);
+    console.log("updateMentorFrequency error: ", error.response);
   })
 }
 
 const CardList = (props) => {
+    const [freq, setFreq] = useState(props.curModule.mentorQuestionFrequency);
+    const [moduleid, setModuleid] = useState(props.curModule.moduleID);
     const removeDuplicates = () => {
       let idList = []; 
       let filteredList = []; 
@@ -41,6 +43,12 @@ const CardList = (props) => {
           }
       })
       return filteredList; 
+    }
+    
+    //if the module has changed, change the frequency
+    if (props.curModule.moduleID != moduleid) {
+      setFreq(props.curModule.mentorQuestionFrequency);
+      setModuleid(props.curModule.moduleID);
     }
 
     let list = removeDuplicates(); 
@@ -175,7 +183,7 @@ const CardList = (props) => {
           <Form onSubmit={e => updateMentorFrequency(e, props.curModule, props.updateCurrentModule, props.serviceIP)}>
             <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
               <Label for="frequency" className="mr-sm-2"><b>Mentor Question Frequency (Every X cards):</b></Label>
-              <Input type="number" name="frequency" id="frequency" defaultValue={props.curModule.mentorQuestionFrequency} />
+              <Input type="number" name="frequency" id="frequency" value={freq} onChange={e => setFreq(e.target.value)} />
             </FormGroup>
             <br/>
             <Button>Submit</Button>

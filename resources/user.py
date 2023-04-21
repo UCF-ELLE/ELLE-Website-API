@@ -355,9 +355,9 @@ class ForgotPassword(Resource):
         postToDB(update_pwdToken_query, (generate_password_hash(resetToken), associated_user[0][0]))
 
         msg = Message("Forgot Password - EndLess Learner",
-                    sender="donotreply@endlesslearner.com",
+                    sender="ellegamesucf@gmail.com",
                     recipients=[data['email']])
-        msg.body = f"""You are recieving this email because you requested to reset your Endlesslearner password. \nPlease visit https://endlesslearner.com/resetpassword and use the token {resetToken} to reset your password.\nIf you did not request to reset your password, ignore this email."""
+        msg.html = f"""You are receiving this email because you requested to reset your ELLE account password.<br><br>Please visit <a href="https://chdr.cs.ucf.edu/elle/resetpassword">https://chdr.cs.ucf.edu/elle/resetpassword</a> and use the following token to reset your password:<br><br><b>{resetToken}</b><br><br>If you did not request to reset your password, you can ignore this email."""
         self.mail.send(msg)
 
         return returnMessage, 202
@@ -432,9 +432,9 @@ class ForgotUsername(Resource):
             return returnMessage, 202
 
         msg = Message("Forgot Username - EndLess Learner",
-                    sender="donotreply@endlesslearner.com",
+                    sender="ellegamesucf@gmail.com",
                     recipients=[data['email']])
-        msg.body = f"""You are recieving this email because you requested to receive your Endlesslearner username.\nThe username associated with this email is {username[0][0]}.\nPlease visit https://endlesslearner.com/login to login with that username."""
+        msg.html = f"""You are receiving this email because you requested to receive your ELLE account username.<br><br>The username associated with this email is <b>{username[0][0]}</b>.<br><br>Please visit <a href="https://chdr.cs.ucf.edu/elle/login">https://chdr.cs.ucf.edu/elle/login</a> to login with that username."""
         self.mail.send(msg)
 
         return returnMessage, 202
