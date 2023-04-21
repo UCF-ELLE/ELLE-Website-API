@@ -112,7 +112,7 @@ class LoggedAnswer(Resource):
             for sessionID in session_id_list:
                 db_results = getFromDB(get_logged_answer_query, sessionID, conn, cursor)
                 for result in db_results:
-                    if result[9] is None or result[9] is "":
+                    if result[9] is None or result[9] == "":
                         front = result[10]
                     else:
                         front = result[9]
