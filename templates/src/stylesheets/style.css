@@ -179,10 +179,9 @@ h1, h2, h3, h4, h5, h6 {
 
 #intro .intro-content {
   position: absolute;
-  bottom: 30%;
-  top: 30%;
-  left: 35%;
-  right: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 10;
   display: flex;
   justify-content: center;
@@ -192,14 +191,14 @@ h1, h2, h3, h4, h5, h6 {
   border: 5px solid rgb(14, 194, 155);
   border-radius: 30px;
   background-color: white;
-  max-width: 30%;
-  padding: 40px;
+  max-width: 80%;
+  padding: 2rem;
 }
 
 #intro .intro-content h2 {
   color: #0c2e8a;
-  margin-bottom: 30px;
-  font-size: 64px;
+  margin-bottom: 2rem;
+  font-size: 4rem;
   font-weight: 700;
 }
 
@@ -209,8 +208,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 767px) {
+  #intro .intro-content {
+    max-width: 90%;
+    padding: 2rem;
+    border-radius: 20px;
+    border-width: 3px;
+  }
+
   #intro .intro-content h2 {
-    font-size: 34px;
+    font-size: 2rem;
+    margin-bottom: 1rem;
   }
 }
 
