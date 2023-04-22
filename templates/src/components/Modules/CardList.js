@@ -220,33 +220,33 @@ const CardList = (props) => {
           <Form onSubmit={e => updateMentorFrequency(e, props.curModule, props.updateCurrentModule, props.serviceIP)}>
             <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
               <Label for="cfrequency" className="mr-sm-2"><b>Every X cards correctly matched:</b></Label>
-              {cfreq == ""
+              {cfreq == "" || cfreq <= 0
               ?
-              <Input invalid placeholder="Enter a number" type="number" min="0" name="cfrequency" id="cfrequency" value={cfreq} onChange={e => setcFreq(e.target.value)} />
+              <Input invalid placeholder="Enter a number" type="number" min="1" name="cfrequency" id="cfrequency" value={cfreq} onChange={e => setcFreq(e.target.value)} />
               :
-              <Input type="number" min="0" name="cfrequency" id="cfrequency" value={cfreq} onChange={e => setcFreq(e.target.value)} />
+              <Input type="number" min="1" name="cfrequency" id="cfrequency" value={cfreq} onChange={e => setcFreq(e.target.value)} />
               }
               
             </FormGroup>
             <br/>
             <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
               <Label for="frequency" className="mr-sm-2"><b>Every X cards incorrectly matched:</b></Label>
-              {freq == ""
+              {freq == "" || freq <= 0
               ?
-              <Input invalid placeholder="Enter a number" type="number" min="0" name="frequency" id="frequency" value={freq} onChange={e => setFreq(e.target.value)} />
+              <Input invalid placeholder="Enter a number" type="number" min="1" name="frequency" id="frequency" value={freq} onChange={e => setFreq(e.target.value)} />
               :
-              <Input type="number" min="0" name="frequency" id="frequency" value={freq} onChange={e => setFreq(e.target.value)} />
+              <Input type="number" min="1" name="frequency" id="frequency" value={freq} onChange={e => setFreq(e.target.value)} />
               }
               
             </FormGroup>
             <br/>
             <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
               <Label for="tfrequency" className="mr-sm-2"><b>Every X seconds:</b></Label>
-              {tfreq == ""
+              {tfreq == "" || tfreq <= 0
               ?
-              <Input invalid placeholder="Enter a number" type="number" min="0" name="tfrequency" id="tfrequency" value={tfreq} onChange={e => settFreq(e.target.value)} />
+              <Input invalid placeholder="Enter a number" type="number" min="1" name="tfrequency" id="tfrequency" value={tfreq} onChange={e => settFreq(e.target.value)} />
               :
-              <Input type="number" min="0" name="tfrequency" id="tfrequency" value={tfreq} onChange={e => settFreq(e.target.value)} />
+              <Input type="number" min="1" name="tfrequency" id="tfrequency" value={tfreq} onChange={e => settFreq(e.target.value)} />
               }
             </FormGroup>
             <br/>
@@ -254,7 +254,11 @@ const CardList = (props) => {
             ?
             <Button disabled>Submit (no empty fields) </Button>
             :
-            <Button>Submit</Button>
+              cfreq <= 0 || freq <= 0 || tfreq <= 0
+              ?
+              <Button disabled>Submit (fields must be greater than 0) </Button>
+              :
+              <Button>Submit</Button>
             }
             
           </Form>
