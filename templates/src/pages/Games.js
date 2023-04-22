@@ -50,12 +50,14 @@ export default class Games extends Component {
 	  };
 	
 	 options = [
-		{ value: 'Maze', label: 'Maze Game' },
 		{ value: 'CardGame', label: 'ELLE Card Game' },
 		{ value: "AnimELLE", label: 'AnimELLE Crossing' },
-		{ value: "ELLEVR", label: 'VR Games' },
-		{ value: "SpinNSpELLE", label: 'SpinNSpELLE' },
-		{ value: "HELLEsKitchen", label: 'HELLEsKitchen' },
+		{ value: 'Maze', label: 'Maze Game' },
+		{ value: "HELLEsKitchen", label: 'HELLEs Kitchen' },
+		{ value: "SpinNSpELLE", label: 'Spin N SpELLE' },
+		{ value: "HighriseHELLEp", label: 'HighRise HELLEp'},
+		{ value: "Millenielle", label: 'Milleni Elle'},
+		
 		// add more games as needed
 	  ];
 
@@ -70,46 +72,6 @@ export default class Games extends Component {
 		{/* Create the game selection dropdown menu */}
 		<br />
 		<Select className="dropdown button" options={this.options} onChange={this.handleGameChange} placeholder="Select a Game" />
-
-		<a id="Maze">
-			<section style={{color: "white"}}>
-			<div className="container">
-				<div className="infoCard" style={{backgroundColor: "#5da8af"}}>
-					<Row>
-						<Col>
-							<h3 className="cta-title">ELLE aMAZEing Game</h3>
-							<p className="cta-text">Senior Design Team:</p>
-							<ul style={{color: '#ffffff'}}>
-							<Row>
-									<Col>
-										<li>Annabel Bland</li>
-										<li>Tyler Morejon</li>
-										<li>Nathan Otis</li>
-									</Col>
-									<Col>
-										<li>Daniel Rodriguez</li>
-										<li>Tanner Williams</li>
-									</Col>
-							</Row>
-							</ul>
-							<br />
-							Follow the instructions to choose the correct path from a few options while learning Spanish in this immersive game!
-							<p className="cta-text">
-								<br />
-								<Link to={localStorage.getItem('jwt') ? '/mazegame' : '/login'} className={`mazeButton ${!localStorage.getItem('jwt') ? 'disabled' : ''}`}>
-								{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
-								</Link>
-							</p>
-							
-						</Col>
-						<Col>
-							<img style={{width: "520px", height: "320px", marginLeft: "70px"}} src={require('../Images/mazeGameplay.png')} />
-						</Col>
-					</Row>
-				</div>
-		</div>
-		</section>
-		</a>
 
 		<a id="CardGame">
 			<section style={{color: "white"}}>
@@ -219,86 +181,39 @@ export default class Games extends Component {
 		</section>
 		</a>
 
-		<a id="ELLEVR">
+		<a id="Maze">
 			<section style={{color: "white"}}>
 			<div className="container">
 				<div className="infoCard" style={{backgroundColor: "#3f6184"}}>
 					<Row>
 						<Col>
-							<h3 className="cta-title">ELLEments Of Learning (VR Games)</h3>
+							<h3 className="cta-title">ELLE aMAZEing Game</h3>
 							<p className="cta-text">Senior Design Team:</p>
 							<ul style={{color: '#ffffff'}}>
-								<Row>
+							<Row>
 									<Col>
-										<li>Kaarthik Alagappan</li>
-										<li>Jonathan Jules</li>
-										<li>Tiffany Lin</li>
+										<li>Annabel Bland</li>
+										<li>Tyler Morejon</li>
+										<li>Nathan Otis</li>
 									</Col>
 									<Col>
-										<li>Catalina Morales</li>
-										<li>Samuel Tungol</li>
+										<li>Daniel Rodriguez</li>
+										<li>Tanner Williams</li>
 									</Col>
-								</Row>
+							</Row>
 							</ul>
-							<p className="cta-text">
-								Games available below!
-							</p>
-							<video width="450" height="280" controls>
-								<source src={elleVR} type="video/mp4" />
-							</video>
-						</Col>
-						<Col>
-							<img style={{width: "350px", height: "255px", marginLeft: "100px"}} src={require('../Images/ELLEmentsOfLearningLogo.png')} />
-						</Col>
-					</Row>
-				</div>
-		</div>
-		</section>
-		</a>
-
-		<a id="SpinNSpELLE">
-			<section style={{color: "white"}}>
-			<div className="container">
-				<div className="infoCard" style={{backgroundColor: "#5da8af"}}>
-					<Row>
-						<Col>
-							<h3 className="cta-title">Spin N SpELLE</h3>
 							<br />
-							Spell out the translation of terms using alphabet blocks. Play in either quiz mode or try your luck at endless mode!
+							Follow the instructions to choose the correct path from a few options while learning Spanish in this immersive game!
 							<p className="cta-text">
-							<br /> <br /> <br />
-								<a class="spinButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
-								
+								<br />
+								<Link to={localStorage.getItem('jwt') ? '/mazegame' : '/login'} className={`mazeButton ${!localStorage.getItem('jwt') ? 'disabled' : ''}`}>
+								{localStorage.getItem('jwt') ? 'Play Here!' : 'Log In to Play'}
+								</Link>
 							</p>
 							
 						</Col>
 						<Col>
-							<img style={{width: "350px", height: "255px", marginLeft: "100px"}} src={require('../Images/spinnspellBlocks.png')} />
-						</Col>
-					</Row>
-				</div>
-		</div>
-		</section>
-		</a>
-
-		<a id="HighriseHELLEp">
-			<section style={{color: "white"}}>
-			<div className="container">
-				<div className="infoCard" style={{backgroundColor: "#3f6184"}}>
-					<Row>
-						<Col>
-							<h3 className="cta-title">Highrise HELLEp</h3>
-							<br />
-							Play as a firefighter in this action packed game. Connect terms to their correct categorys to put out fires and save the day!
-							<p className="cta-text">
-							<br /> <br /> <br /> <a class="highriseButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
-								
-								
-							</p>
-							
-						</Col>
-						<Col>
-							<img style={{width: "470px", height: "255px", marginLeft: "100px"}} src={require('../Images/highrise.jpg')} />
+							<img style={{width: "520px", height: "320px", marginLeft: "70px"}} src={require('../Images/mazeGameplay.png')} />
 						</Col>
 					</Row>
 				</div>
@@ -331,7 +246,7 @@ export default class Games extends Component {
 							Follow recipes in Spanish to search the kitchen for ingredients. Cook them up to discover the dish of the unit!
 							<p className="cta-text">
 							<br /> 
-								<a class="spinButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
+								<a class="helleButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
 								
 							</p>
 							
@@ -344,7 +259,127 @@ export default class Games extends Component {
 		</div>
 		</section>
 		</a>
-		
+
+		<a id="SpinNSpELLE">
+			<section style={{color: "white"}}>
+			<div className="container">
+				<div className="infoCard" style={{backgroundColor: "#3f6184"}}>
+					<Row>
+						<Col>
+							<h3 className="cta-title">Spin N SpELLE</h3>
+							<p className="cta-text">Senior Design Team:</p>
+							<ul style={{color: '#ffffff'}}>
+								<Row>
+									<Col>
+										<li>Kaarthik Alagappan</li>
+										<li>Jonathan Jules</li>
+										<li>Tiffany Lin</li>
+									</Col>
+									<Col>
+										<li>Catalina Morales</li>
+										<li>Samuel Tungol</li>
+									</Col>
+								</Row>
+							</ul>
+							<br />
+							Spell out the translation of terms using alphabet blocks. Play in endless mode or try your luck at quiz mode!
+							<p className="cta-text">
+							<br /> 
+								<a class="spinButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
+								
+							</p>
+							
+						</Col>
+						<Col>
+							<img style={{width: "350px", height: "255px", marginLeft: "100px"}} src={require('../Images/spinnspellBlocks.png')} />
+						</Col>
+					</Row>
+				</div>
+		</div>
+		</section>
+		</a>
+
+		<a id="HighriseHELLEp">
+			<section style={{color: "white"}}>
+			<div className="container">
+				<div className="infoCard" style={{backgroundColor: "#5da8af"}}>
+					<Row>
+						<Col>
+							<h3 className="cta-title">Highrise HELLEp</h3>
+							<p className="cta-text">Senior Design Team:</p>
+							<ul style={{color: '#ffffff'}}>
+								<Row>
+									<Col>
+										<li>Kaarthik Alagappan</li>
+										<li>Jonathan Jules</li>
+										<li>Tiffany Lin</li>
+									</Col>
+									<Col>
+										<li>Catalina Morales</li>
+										<li>Samuel Tungol</li>
+									</Col>
+								</Row>
+							</ul>
+							<br />
+							Play as a firefighter in this action packed game. Connect terms to their correct categories to put out fires and save the day!
+							<p className="cta-text">
+							<br /> 
+							<a class="highriseButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
+								
+								
+							</p>
+							
+						</Col>
+						<Col>
+							<img style={{width: "470px", height: "255px", marginLeft: "100px"}} src={require('../Images/highrise.jpg')} />
+						</Col>
+					</Row>
+				</div>
+		</div>
+		</section>
+		</a>
+
+		<a id="Millenielle">
+			<section style={{color: "white"}}>
+			<div className="container">
+				<div className="infoCard" style={{backgroundColor: "#3f6184"}}>
+					<Row>
+						<Col>
+							<h3 className="cta-title">MilleniElle</h3>
+							<p className="cta-text">Senior Design Team:</p>
+							<ul style={{color: '#ffffff'}}>
+								<Row>
+									<Col>
+										<li>Allexis Knight</li>
+										<li>Arianna Walters</li>
+										<li>Dylan Quigley</li>
+									</Col>
+									<Col>
+										<li>Edgard Irineo</li>
+										<li>Manatsa Chiomadzi</li>
+									</Col>
+								</Row>
+							</ul>
+							<br />
+							Milleni-ELLE is a Spanish language game emphasizing context and immersion. 
+							The player arrives in an airport (tutorial scene) where they learn the basic mechanics of the game and board a virtual bus. 
+							The bus will take them to a house to pack for their next trip or to the grocery store to practice food-based vocabulary.
+							<p className="cta-text">
+							<br /> 
+							<a class="milleniButton" href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>Available Here!</a>
+								
+								
+							</p>
+							
+						</Col>
+						<Col>
+							<img style={{width: "470px", height: "255px", marginLeft: "100px", marginTop: "60px"}} src={require('../Images/milleniimage.png')} />
+						</Col>
+					</Row>
+				</div>
+		</div>
+		</section>
+		</a>
 		
 		<footer id="footer">
 			<div className="container">
