@@ -37,20 +37,35 @@ class AnimELLESaveData(Resource):
         permission, user_id = validate_permissions()
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
+       
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
 
-        query = """
+            query = """
                 SELECT DISTINCT `animelle_save_data`.* FROM `animelle_save_data` 
                 WHERE `userID`=%s
                 """
-        result = getFromDB(query, user_id)
+            result = getFromDB(query, user_id)
+            if not result:
+                return errorMessage("User does not have AnimELLE save data."), 404
 
-        if not result:
-            return errorMessage("User does not have AnimELLE save data."), 404
+            jsondata = json.loads(result[0][2])
 
-
-        # Return module information
-        jsondata = json.loads(result[0][2])
-        return jsondata, 200
+            return jsondata, 200
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if(conn.open):
+                cursor.close()
+                conn.close()
 
     @jwt_required
     def post(self):
@@ -65,28 +80,46 @@ class AnimELLESaveData(Resource):
         permission, user_id = validate_permissions()
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
+        
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
 
-        query = """
+            query = """
                         SELECT DISTINCT `animelle_save_data`.* FROM `animelle_save_data` 
                         WHERE `userID`=%s
                         """
-        result = getFromDB(query, user_id)
+            result = getFromDB(query, user_id)
 
-        if not result:
-            query = """
-                    INSERT INTO `animelle_save_data` (`userID`, `saveData`) VALUES (%s, %s);
-                    """
-            jsondata = json.dumps(data['savedata'], separators=(',', ':'))
-            result = postToDB(query, (user_id, jsondata))
-        else:
-            query = """
-                                UPDATE `animelle_save_data` set saveData = %s where userID = %s;
-                                """
-            jsondata = json.dumps(data['savedata'], separators=(',', ':'))
-            result = postToDB(query, (jsondata, user_id))
+            if not result:
+                query = """
+                        INSERT INTO `animelle_save_data` (`userID`, `saveData`) VALUES (%s, %s);
+                        """
+                jsondata = json.dumps(data['savedata'], separators=(',', ':'))
+                result = postToDB(query, (user_id, jsondata))
+            else:
+                query = """
+                                    UPDATE `animelle_save_data` set saveData = %s where userID = %s;
+                                    """
+                jsondata = json.dumps(data['savedata'], separators=(',', ':'))
+                result = postToDB(query, (jsondata, user_id))
 
-        # Return module information
-        return 201
+            raise ReturnSuccess("Post was successfull", 201)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if(conn.open):
+                cursor.close()
+                conn.close()
+
+
 
     @jwt_required
     def put(self):
@@ -101,20 +134,37 @@ class AnimELLESaveData(Resource):
         permission, user_id = validate_permissions()
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
-        query = """
+        
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = """
                 SELECT DISTINCT `animelle_save_data`.* FROM `animelle_save_data` 
                 WHERE `userID`=%s
                 """
-        result = getFromDB(query, user_id)
+            result = getFromDB(query, user_id)
 
-        if not result:
-            return errorMessage("User does not have AnimELLE save data."), 404
+            if not result:
+                return errorMessage("User does not have AnimELLE save data."), 404
 
-        query = """
-                    UPDATE `animelle_save_data` set saveData = %s where userID = %s;
-                    """
-        jsondata = json.dumps(data['savedata'], separators=(',', ':'))
-        result = postToDB(query, (jsondata, user_id))
+            query = """
+                        UPDATE `animelle_save_data` set saveData = %s where userID = %s;
+                        """
+            jsondata = json.dumps(data['savedata'], separators=(',', ':'))
+            result = postToDB(query, (jsondata, user_id))
 
-        # Return module information
-        return 204
+            raise ReturnSuccess("Put was successfull", 204)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if(conn.open):
+                cursor.close()
+                conn.close()
