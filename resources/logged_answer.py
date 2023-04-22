@@ -103,14 +103,20 @@ class LoggedAnswer(Resource):
             get_questions_query = f"SELECT DISTINCT `sessionID` FROM `session` WHERE `moduleID` {module_exp} AND userID {user_exp} AND sessionID {sessionID}"
             session_id_list = getFromDB(get_questions_query, None, conn, cursor)
 
-            get_logged_answer_query = "SELECT `logged_answer`.*, `term`.`front` FROM `logged_answer` \
-                                    INNER JOIN `term` ON `term`.`termID` = `logged_answer`.`termID` \
+            get_logged_answer_query = "SELECT `logged_answer`.*, `term`.`front`, `deleted_term`.`front` FROM `logged_answer` \
+                                    LEFT JOIN `term` ON `term`.`termID` = `logged_answer`.`termID` \
+                                    LEFT JOIN `deleted_term` ON `deleted_term`.`termID` = `logged_answer`.`deleted_termID` \
                                     WHERE `sessionID` = %s"
             logged_answers = []
 
             for sessionID in session_id_list:
                 db_results = getFromDB(get_logged_answer_query, sessionID, conn, cursor)
                 for result in db_results:
+                    if result[9] is None or result[9] == "":
+                        front = result[10]
+                    else:
+                        front = result[9]
+
                     la_record = {
                         'logID' : result[0],
                         'questionID' : result[1],
@@ -118,7 +124,7 @@ class LoggedAnswer(Resource):
                         'sessionID' : result[3],
                         'correct' : result[4],
                         'mode' : result[5],
-                        'front' : result[9]
+                        'front' : front
                     }
                     logged_answers.append(la_record)
 
@@ -213,7 +219,7 @@ class GetLoggedAnswerCSV(Resource):
                     for record in results:
                         if record[11] is None:
                             replace_query = "SELECT `name` FROM `deleted_module` WHERE `moduleID` = %s"
-                            replace = getFromDB(replace_query, record[13])
+                            replace = getFromDB(replace_query, record[12])
                             record[12] = replace[0][0]
                         csv = csv + f"""{record[0]}, {record[9]}, {record[10]}, {record[11]}, {record[13]}, {record[12]}, {record[1]}, {record[7]}, {record[2]}, {record[8]}, {record[3]}, {record[4]}, {str(record[6])}, {record[5]}\n"""
 

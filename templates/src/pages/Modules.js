@@ -426,7 +426,7 @@ export default class Modules extends Component {
     
     return (
     <div>
-      <Container>
+      <Container className="mainContainer">
       <Template permission={this.state.currentPermissionLevel}/>
 
       <br/>

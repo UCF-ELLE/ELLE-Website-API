@@ -282,7 +282,7 @@ class ClassRoster extends Component {
   render() {
     return (
       <div>
-        <Container className="user-list">
+        <Container className="user-list mainContainer">
           <Template permission={this.state.permission}/>
           <br></br><br></br>			
           <div>

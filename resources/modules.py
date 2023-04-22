@@ -354,7 +354,6 @@ class Module(Resource):
         parser.add_argument('name', type=str, required=True)
         parser.add_argument('language', type=str, required=True)
         parser.add_argument('complexity', type=int, required=False)
-        parser.add_argument('questionFrequency', type=str, required=False)
         data = parser.parse_args()
         name = data['name']
         if (data['language']):
@@ -365,20 +364,16 @@ class Module(Resource):
             complexity = data['complexity']
         else:
             complexity = 2
-        if (data['questionFrequency']):
-            questionFrequency = data['questionFrequency']
-        else:
-            questionFrequency = 0
 
         try:
             conn = mysql.connect()
             cursor = conn.cursor()
             # Posting to database
             query = """
-                    INSERT INTO module (name, language, complexity, userID, mentorQuestionFrequency)
-                    VALUES (%s, %s, %s, %s, %s);
+                    INSERT INTO module (name, language, complexity, userID)
+                    VALUES (%s, %s, %s, %s);
                     """
-            postToDB(query, (name, language, complexity, user_id, questionFrequency))
+            postToDB(query, (name, language, complexity, user_id))
 
             query = "SELECT MAX(moduleID) from module"
             moduleID = getFromDB(query) #ADD A CHECK TO SEE IF IT RETURNED SUCCESSFULLY
@@ -422,7 +417,6 @@ class Module(Resource):
         parser.add_argument('language', type=str, required=True)
         parser.add_argument('complexity', type=int, required=True)
         parser.add_argument('groupID', type=int, required=False)
-        parser.add_argument('questionFrequency', type=str, required=False)
         data = parser.parse_args()
 
         try:
@@ -442,15 +436,14 @@ class Module(Resource):
             name = data['name']
             language = data['language']
             complexity = data['complexity']
-            questionFrequency = data['questionFrequency']
             
             # Updating table
             query = """
                     UPDATE `module`
-                    SET `name` = %s, `language` = %s, `complexity` = %s, `mentorQuestionFrequency` = %s
+                    SET `name` = %s, `language` = %s, `complexity` = %s
                     WHERE `moduleID` = %s;
                     """
-            postToDB(query, (name, language, complexity, questionFrequency, module_id))
+            postToDB(query, (name, language, complexity, module_id))
 
             query = "SELECT * FROM `module` WHERE `moduleID` = %s"
             results = getFromDB(query, data['moduleID'])

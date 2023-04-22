@@ -59,7 +59,7 @@ export default class GameCode extends Component {
 
   render() {
     return (
-        <div>
+        <div className="mainDiv">
             <Template permission={this.state.permission}/>
 
             <Row>
