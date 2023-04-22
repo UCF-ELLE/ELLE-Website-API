@@ -371,6 +371,7 @@ class Question extends React.Component {
           <input 
             style={{display: 'none'}}
             type="file" onChange={this.imgFileSelectedHandler}  
+            accept=".png, .jpg, .jpeg" 
             ref={imgInput => this.imgInput = imgInput}
           />
           <Button 
@@ -393,6 +394,7 @@ class Question extends React.Component {
           <input 
             style={{display: 'none'}} 
             type="file" onChange={this.audioFileSelectedHandler}
+            accept=".ogg, .wav, .mp3"
             ref={audioInput => this.audioInput = audioInput}
           />
           <Button 
