@@ -1,12 +1,24 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 
-export default class Template extends React.Component {
-  constructor(props) {
+//class based version of template is commented out, functional needs to be used for useHistory
+//export default class Template extends React.Component {
+function Template(props) {
+  /*constructor(props) {
     super(props);
   }
 
-  render() {
+  render() {*/
+    if (localStorage.getItem('jwt') != null) {
+      let jwtDecode = require('jwt-decode');
+      
+      if (jwtDecode(localStorage.getItem('jwt')).exp * 1000 < Date.now()) {
+        //logout
+        localStorage.removeItem('per');
+        localStorage.removeItem('id');
+        localStorage.removeItem("jwt");
+      }
+    }
     return (
       <header id="header">
       <div className="container">
@@ -22,8 +34,8 @@ export default class Template extends React.Component {
             <li><Link to='/profile'>Profile</Link></li>
             <li><Link to='/modules'>Modules</Link></li>
             <li><Link to='/sessions'>Sessions</Link></li>
-            {this.props.permission === "su" ? <li><Link to='/userlist'>User List</Link></li> : null}
-            {this.props.permission === "pf" ? <li><Link to='/classroster'>Class Roster</Link></li> : null}
+            {props.permission === "su" ? <li><Link to='/userlist'>User List</Link></li> : null}
+            {props.permission === "pf" ? <li><Link to='/classroster'>Class Roster</Link></li> : null}
             <li><Link to='/gamecode'>VR Game Code</Link></li>
             <li><Link to='/logout'>Sign Out</Link></li>
 						<li><a href="https://github.com/Naton-1/ELLE-2023-Website-API" className="github"><i className="fa fa-github fa-lg"></i></a></li>
@@ -32,5 +44,5 @@ export default class Template extends React.Component {
       </div>
     </header>
     );
-  }
-}
+  //}
+} export default Template;
