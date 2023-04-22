@@ -54,6 +54,8 @@ class AddModule extends React.Component {
       headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
     }
 
+    var modID = -1;
+
     axios.post(this.props.serviceIP + '/module', data, header)
     .then(res => {
       this.setState({
@@ -61,6 +63,25 @@ class AddModule extends React.Component {
       }); 
       this.onShowStatus(); 
       this.props.updateModuleList("add", res.data.moduleID);  
+      modID = res.data.moduleID;
+      let data = {
+        numIncorrectCards : 10,
+        numCorrectCards : 10,
+        time : 10,
+        module_id : modID
+      }
+
+      let header = {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
+      }
+
+      axios.post(this.props.serviceIP + '/creatementorquestionfrequency', data, header)
+      .then(res => {
+        //updateCurrentModule({ module: curModule.moduleID });
+      })
+      .catch(error => {
+        console.log("updateMentorFrequency error: ", error.response);
+      });
     }).catch(error => {
       if (error.message !== undefined) {
         console.log("Add Module error", error.message); 
