@@ -182,25 +182,30 @@ h1, h2, h3, h4, h5, h6 {
 # Intro Section
 --------------------------------------------------------------*/
 #intro {
-    width: 100%;
-    height: 60vh;
-    position: relative;
-    background: url("../Images/intro-carousel/1.jpg") no-repeat;
-    background-size: cover;
+  width: 100%;
+  height: 60vh;
+  position: relative;
+  background: url("../Images/GamePageImage.jpg") no-repeat;
+  background-size: cover;
 }
 
 #intro .intro-content {
-    position: absolute;
-    bottom: 0;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    text-align: center;
+  position: absolute;
+  bottom: 30%;
+  top: 30%;
+  left: 35%;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  border: 5px solid rgb(14, 194, 155);
+  border-radius: 30px;
+  background-color: white;
+  max-width: 30%;
+  padding: 40px;
 }
 
 #intro .intro-content h2 {
@@ -244,9 +249,9 @@ h1, h2, h3, h4, h5, h6 {
     color: #0c2e8a;
 }
 
-#intro .intro-content .btn-projects {
-    background: #50d8af;
-    border: 2px solid #50d8af;
+#intro .intro-content .btn-projects 
+  background: #3f6184;
+  border: 2px solid #50d8af;
 }
 
 #intro .intro-content .btn-projects:hover {
@@ -319,25 +324,6 @@ h1, h2, h3, h4, h5, h6 {
   pointer-events: none;
 }
 
-.mazeButton {
-    border: 1px solid #3f6184;
-    border-radius: 12px;
-    background: #3f6184;
-    color: #ffffff;
-    display: inline-block;
-    padding: 15px;
-    opacity: 1;
-}
-
-.mazeButton:hover {
-    opacity: 0.5;
-}
-
-.mazeButton.disabled {
-  background-color: gray;
-  pointer-events: none;
-}
-
 .animelleButton {
   border: 1px solid #3f6184 ;
   border-radius: 12px;
@@ -356,15 +342,46 @@ h1, h2, h3, h4, h5, h6 {
   pointer-events: none;
 }
 
+.mazeButton {
+  border: 1px solid #5da8af ;
+  border-radius: 12px;
+  background: #5da8af;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+
+.mazeButton:hover {
+  opacity:0.5;
+}
+
+.mazeButton.disabled {
+  background-color: gray;
+  pointer-events: none;
+}
+
+.helleButton {
+  border: 1px solid #3f6184 ;
+  border-radius: 12px;
+  background: #3f6184;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+.helleButton:hover {
+  opacity:0.5;
+}
 
 .spinButton {
-    border: 1px solid #3f6184;
-    border-radius: 12px;
-    background: #3f6184;
-    color: #ffffff;
-    display: inline-block;
-    padding: 15px;
-    opacity: 1;
+  border: 1px solid #5da8af ;
+  border-radius: 12px;
+  background: #5da8af;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
 }
 
 .spinButton:hover {
@@ -372,17 +389,29 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .highriseButton {
-    border: 1px solid #5da8af;
-    border-radius: 12px;
-    background: #5da8af;
-    color: #ffffff;
-    display: inline-block;
-    padding: 15px;
-    opacity: 1;
+  border: 1px solid #3f6184 ;
+  border-radius: 12px;
+  background: #3f6184;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+.highriseButton:hover {
+  opacity:0.5;
 }
 
-.highriseButton:hover {
-    opacity: 0.5;
+.milleniButton {
+  border: 1px solid #5da8af ;
+  border-radius: 12px;
+  background: #5da8af;
+  color: #ffffff;
+  display:inline-block;
+  padding:15px;
+  opacity:1;
+}
+.milleniButton:hover {
+  opacity:0.5;
 }
 
 /* Center the button */
