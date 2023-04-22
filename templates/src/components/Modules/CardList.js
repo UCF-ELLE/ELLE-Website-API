@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Table, Alert, Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import axios from 'axios';
 
@@ -11,7 +11,9 @@ import MentorQuestion from './MentorQuestion';
 const updateMentorFrequency = (e, curModule, updateCurrentModule, serviceIP) => {
   e.preventDefault();
   let data = {
-    question_frequency : parseInt(e.target.frequency.value),
+    numIncorrectCards : parseInt(e.target.frequency.value),
+    numCorrectCards : parseInt(e.target.cfrequency.value),
+    time : parseInt(e.target.tfrequency.value),
     module_id : curModule.moduleID
   };
 
@@ -19,17 +21,50 @@ const updateMentorFrequency = (e, curModule, updateCurrentModule, serviceIP) => 
     headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
   };
 
-  axios.post(serviceIP + '/modifymentorquestionfrequency', data, header)
+  axios.put(serviceIP + '/modifymentorquestionfrequency', data, header)
   .then(res => {
     //updateCurrentModule({ module: curModule.moduleID });
   })
   .catch(error => {
     console.log("updateMentorFrequency error: ", error.response);
+  });
+}
+
+const updateModuleFrequency = (setFreq, setcFreq, settFreq, moduleid, serviceIP) => {
+  let data = {
+    module_id : moduleid
+  };
+
+  let header = {
+    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') },
+  };
+
+  axios.post(serviceIP + '/getmentorquestionfrequency', data, header)
+  .then(res => {
+    setFreq(res.data[0].incorrectCardsFreq);
+    setcFreq(res.data[0].correctCardsFreq);
+    settFreq(res.data[0].time);
+  })
+  .catch(error => {
+    console.log("getmentorquestionfrequency error: ", error.response);
   })
 }
 
 const CardList = (props) => {
-    const [freq, setFreq] = useState(props.curModule.mentorQuestionFrequency);
+    const [freq, setFreq] = useState(props.freq[0].incorrectCardsFreq);
+    const [cfreq, setcFreq] = useState(props.freq[0].correctCardsFreq);
+    const [tfreq, settFreq] = useState(props.freq[0].time);
+    //-1 is the default value for all of these, since things are loaded asynchronously and idk how to handle that
+    //i just check to see if it's still the default invalid value and update if it's not
+    if (freq == -1 && props.freq[0].incorrectCardsFreq != -1) {
+      setFreq(props.freq[0].incorrectCardsFreq);
+    }
+    if (cfreq == -1 && props.freq[0].correctCardsFreq != -1) {
+      setcFreq(props.freq[0].correctCardsFreq);
+    }
+    if (tfreq == -1 && props.freq[0].time != -1) {
+      settFreq(props.freq[0].time);
+    }
     const [moduleid, setModuleid] = useState(props.curModule.moduleID);
     const removeDuplicates = () => {
       let idList = []; 
@@ -47,7 +82,7 @@ const CardList = (props) => {
     
     //if the module has changed, change the frequency
     if (props.curModule.moduleID != moduleid) {
-      setFreq(props.curModule.mentorQuestionFrequency);
+      updateModuleFrequency(setFreq, setcFreq, settFreq, props.curModule.moduleID, props.serviceIP);
       setModuleid(props.curModule.moduleID);
     }
 
@@ -179,14 +214,53 @@ const CardList = (props) => {
           <Alert> There are currently no mentor questions in this module. </Alert>
         : 
         <div>
+          <br />
+          <h3>Mentor Question Frequency</h3>
           <br/>
           <Form onSubmit={e => updateMentorFrequency(e, props.curModule, props.updateCurrentModule, props.serviceIP)}>
             <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-              <Label for="frequency" className="mr-sm-2"><b>Mentor Question Frequency (Every X cards):</b></Label>
-              <Input type="number" name="frequency" id="frequency" value={freq} onChange={e => setFreq(e.target.value)} />
+              <Label for="cfrequency" className="mr-sm-2"><b>Every X cards correctly matched:</b></Label>
+              {cfreq == "" || cfreq <= 0
+              ?
+              <Input invalid placeholder="Enter a number" type="number" min="1" name="cfrequency" id="cfrequency" value={cfreq} onChange={e => setcFreq(e.target.value)} />
+              :
+              <Input type="number" min="1" name="cfrequency" id="cfrequency" value={cfreq} onChange={e => setcFreq(e.target.value)} />
+              }
+              
             </FormGroup>
             <br/>
-            <Button>Submit</Button>
+            <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+              <Label for="frequency" className="mr-sm-2"><b>Every X cards incorrectly matched:</b></Label>
+              {freq == "" || freq <= 0
+              ?
+              <Input invalid placeholder="Enter a number" type="number" min="1" name="frequency" id="frequency" value={freq} onChange={e => setFreq(e.target.value)} />
+              :
+              <Input type="number" min="1" name="frequency" id="frequency" value={freq} onChange={e => setFreq(e.target.value)} />
+              }
+              
+            </FormGroup>
+            <br/>
+            <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+              <Label for="tfrequency" className="mr-sm-2"><b>Every X seconds:</b></Label>
+              {tfreq == "" || tfreq <= 0
+              ?
+              <Input invalid placeholder="Enter a number" type="number" min="1" name="tfrequency" id="tfrequency" value={tfreq} onChange={e => settFreq(e.target.value)} />
+              :
+              <Input type="number" min="1" name="tfrequency" id="tfrequency" value={tfreq} onChange={e => settFreq(e.target.value)} />
+              }
+            </FormGroup>
+            <br/>
+            {cfreq == "" || freq == "" || tfreq == ""
+            ?
+            <Button disabled>Submit (no empty fields) </Button>
+            :
+              cfreq <= 0 || freq <= 0 || tfreq <= 0
+              ?
+              <Button disabled>Submit (fields must be greater than 0) </Button>
+              :
+              <Button>Submit</Button>
+            }
+            
           </Form>
           <br/>
           <Table hover className="tableList">
