@@ -37,6 +37,7 @@ class Module extends React.Component {
       openForm: 0, //determines which input form is open. Is 0 if no form is open
 
       allTags: [], //contains all the tags in the database. for autocomplete purposes
+      freq: [{"incorrectCardsFreq" : -1, "correctCardsFreq" : -1, "time" : -1}],
       
 
       //state properties below this point are never used, and we should probably delete them
@@ -49,6 +50,22 @@ class Module extends React.Component {
 
   componentDidMount() {
     this.getAllTags();
+
+    let data = {
+      module_id : this.props.curModule.moduleID
+    };
+
+    let header = {
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') },
+    };
+
+    axios.post(this.props.serviceIP + '/getmentorquestionfrequency', data, header)
+    .then(res => {
+      this.setState({ freq: res.data });
+    })
+    .catch(error => {
+      console.log("getmentorquestionfrequency error: ", error.response);
+    })
   }
 
   //TODO: consider moving this stub of a function into the components that use them
@@ -407,7 +424,8 @@ class Module extends React.Component {
                       updateCurrentModule={this.props.updateCurrentModule}
                       deleteTag={this.deleteTag} 
                       addTag={this.addTag} 
-                      allTags={this.state.allTags}/>
+                      allTags={this.state.allTags}
+                      freq = {this.state.freq}/>
                   </Collapse>
                 </Card>
               )
@@ -428,7 +446,8 @@ class Module extends React.Component {
                       cards={filteredPhrases} 
                       serviceIP={this.props.serviceIP}
                       curModule={this.props.curModule} 
-                      updateCurrentModule={this.props.updateCurrentModule}/>
+                      updateCurrentModule={this.props.updateCurrentModule}
+                      freq = {this.state.freq}/>
                   </Collapse>
                 </Card>
               )
@@ -454,6 +473,7 @@ class Module extends React.Component {
                         deleteTag={this.deleteTag} 
                         addTag={this.addTag} 
                         allTags={this.state.allTags}
+                        freq = {this.state.freq}
                     />
                   </Collapse>
                 </Card>
@@ -481,6 +501,7 @@ class Module extends React.Component {
                         addTag={this.addTag} 
                         allTags={this.state.allTags}
                         mentorQuestions={this.props.mentorQuestions}
+                        freq = {this.state.freq}
                     />
                   </Collapse>
                 </Card>
