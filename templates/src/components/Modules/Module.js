@@ -61,7 +61,13 @@ class Module extends React.Component {
 
     axios.post(this.props.serviceIP + '/getmentorquestionfrequency', data, header)
     .then(res => {
-      this.setState({ freq: res.data });
+        // If the module doesn't have mentor settings set, pre-fill the fields with "0"
+        if (res.data.length > 0) {
+            this.setState({ freq: res.data });
+        }
+        else {
+            this.setState({ freq: [ { incorrectCardsFreq: 0, correctCardsFreq: 0, time: 0 } ] });
+        }
     })
     .catch(error => {
       console.log("getmentorquestionfrequency error: ", error.response);
