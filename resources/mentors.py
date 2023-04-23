@@ -12,7 +12,6 @@ class MentorPreference(Resource):
     def post(self):
         data = {}
         data['mentor_name'] = getParameter("mentor_name", str, True, "")
-        data['user_id'] = getParameter("user_id", str, True, "")
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -22,7 +21,7 @@ class MentorPreference(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            updated = store_mentor_preference(data['user_id'], data['mentor_name'], conn, cursor)
+            updated = store_mentor_preference(user_id, data['mentor_name'], conn, cursor)
 
             if updated:
                 raise ReturnSuccess('Mentor preference updated.', 200)
