@@ -307,6 +307,7 @@ def set_mentor_question_frequency(module_id, incorrectCards = None, correctCards
         postToDB(query, (incorrectCards, correctCards, time, module_id), conn, cursor)
         return True
     else:
+        modify_mentor_question_frequency(module_id, incorrectCards, correctCards, time, conn, cursor)
         return False
 
 def get_mentor_question_frequency(module_id, conn, cursor):
