@@ -548,7 +548,7 @@ class CreateMentorQuestionFrequency(Resource):
 
 class GetMentorQuestionFrequency(Resource):
     @jwt_required
-    def get(self):
+    def post(self):
         data = {}
         data['moduleID'] = getParameter("module_id", str, True, "")
 
