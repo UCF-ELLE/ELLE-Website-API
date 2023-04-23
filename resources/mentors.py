@@ -473,42 +473,6 @@ class DeleteMultipleChoiceOption(Resource):
                 cursor.close()
                 conn.close()
 
-class ModifyMentorQuestionFrequency(Resource):
-    @jwt_required
-    def put(self):
-        data = {}
-        data['numIncorrectCards'] = getParameter("numIncorrectCards", str, False, "")
-        data['numCorrectCards'] = getParameter("numCorrectCards", str, False, "")
-        data['time'] = getParameter("time", str, False, "")
-        data['moduleID'] = getParameter("module_id", str, True, "")
-
-        permission, user_id = validate_permissions()
-        if not permission or not user_id:
-            return errorMessage("Invalid user"), 401
-
-        try:
-            conn = mysql.connect()
-            cursor = conn.cursor()
-
-            modify_mentor_question_frequency(data['moduleID'], data['numIncorrectCards'], data['numCorrectCards'], data['time'], conn, cursor)
-
-            raise ReturnSuccess("Successfully changed mentor question frequency", 201)
-
-        except CustomException as error:
-            conn.rollback()
-            return error.msg, error.returnCode
-        except ReturnSuccess as success:
-            conn.commit()
-            return success.msg, success.returnCode
-        except Exception as error:
-            conn.rollback()
-            return errorMessage(str(error)), 500
-        finally:
-            if (conn.open):
-                cursor.close()
-                conn.close()
-
-
 class CreateMentorQuestionFrequency(Resource):
     @jwt_required
     def post(self):
@@ -529,7 +493,7 @@ class CreateMentorQuestionFrequency(Resource):
             if(set_mentor_question_frequency(data['moduleID'], data['numIncorrectCards'], data['numCorrectCards'], data['time'], conn, cursor)):
                 raise ReturnSuccess("Successfully created mentor question frequency", 201)
             else:
-                raise CustomException("Frequency already created for that module", 201)
+                raise ReturnSuccess("Frequency updated for the module", 201)
 
         except CustomException as error:
             conn.rollback()
