@@ -75,7 +75,7 @@ class AddModule extends React.Component {
         headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
       }
 
-      axios.post(this.props.serviceIP + '/creatementorquestionfrequency', data, header)
+      axios.post(this.props.serviceIP + '/setmentorquestionfrequency', data, header)
       .then(res => {
         //updateCurrentModule({ module: curModule.moduleID });
       })
