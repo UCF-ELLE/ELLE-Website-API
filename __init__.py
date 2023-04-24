@@ -33,7 +33,7 @@ from resources.logged_answer import LoggedAnswer, GetLoggedAnswerCSV
 from resources.mentors import (MentorPreference, StudentResponses, CreateMentorQuestions, GetMentorQuestions,
 							   ModifyMentorQuestions, DeleteMentorQuestion, CreateMultipleChoiceOption,
 							   GetMultipleChoiceOptions, ModifyMultipleChoiceOption,
-							   DeleteMultipleChoiceOption, ModifyMentorQuestionFrequency, GetMentorQuestionFrequency,
+							   DeleteMultipleChoiceOption, GetMentorQuestionFrequency,
 							   CreateMentorQuestionFrequency)
 from resources.animelle import AnimELLESaveData
 import os.path
@@ -184,8 +184,7 @@ api.add_resource(GetMultipleChoiceOptions, API_ENDPOINT_PREFIX + 'getmultiplecho
 api.add_resource(ModifyMultipleChoiceOption, API_ENDPOINT_PREFIX + 'modifymultiplechoiceoptions')
 api.add_resource(DeleteMultipleChoiceOption, API_ENDPOINT_PREFIX + 'deletemultiplechoiceoptions')
 api.add_resource(CreateMultipleChoiceOption, API_ENDPOINT_PREFIX + 'createmultiplechoiceoptions')
-api.add_resource(ModifyMentorQuestionFrequency, API_ENDPOINT_PREFIX + 'modifymentorquestionfrequency')
-api.add_resource(CreateMentorQuestionFrequency, API_ENDPOINT_PREFIX + 'creatementorquestionfrequency')
+api.add_resource(CreateMentorQuestionFrequency, API_ENDPOINT_PREFIX + 'setmentorquestionfrequency')
 api.add_resource(GetMentorQuestionFrequency, API_ENDPOINT_PREFIX + 'getmentorquestionfrequency')
 api.add_resource(AnimELLESaveData, API_ENDPOINT_PREFIX + 'animellesavedata')
 
