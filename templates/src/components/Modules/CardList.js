@@ -21,7 +21,7 @@ const updateMentorFrequency = (e, curModule, updateCurrentModule, serviceIP) => 
     headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') }
   };
 
-  axios.put(serviceIP + '/modifymentorquestionfrequency', data, header)
+  axios.post(serviceIP + '/setmentorquestionfrequency', data, header)
   .then(res => {
     //updateCurrentModule({ module: curModule.moduleID });
   })
