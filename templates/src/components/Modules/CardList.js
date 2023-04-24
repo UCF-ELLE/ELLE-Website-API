@@ -81,7 +81,7 @@ const CardList = (props) => {
     }
     
     //if the module has changed, change the frequency
-    if (props.curModule.moduleID != moduleid) {
+    if (props.type === 3 && props.curModule.moduleID != moduleid) {
       updateModuleFrequency(setFreq, setcFreq, settFreq, props.curModule.moduleID, props.serviceIP);
       setModuleid(props.curModule.moduleID);
     }
