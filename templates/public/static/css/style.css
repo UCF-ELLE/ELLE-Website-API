@@ -520,7 +520,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Nav Meu Styling */
-.nav-menu a {
+.nav-menu a, .nav-menu span {
     padding: 10px 8px;
     text-decoration: none;
     display: inline-block;

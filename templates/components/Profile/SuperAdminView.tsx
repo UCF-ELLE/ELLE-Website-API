@@ -1,19 +1,20 @@
 import React, { ChangeEvent } from 'react';
 import { Row, Col } from 'reactstrap';
-import '@/public/css/superadmin.css'
+import './SuperAdminView.module.css'
 import PlatformStats from '../Stats/PlatformStats';
 import ModuleStats from '../Stats/ModuleStats';
 import TagStats from '../Stats/TagStats';
 import Password from './Password'
+import styles from './SuperAdminView.module.css'
 
 export default function SuperAdminView({username, email, editEmail}: { username: string; email: string; editEmail: (e: ChangeEvent<HTMLInputElement>) => void }) {
-        return (     
-            <div className="suContainer">
+        return (
+            <div className={styles.suContainer}>
                 <Row className="Top Row">
                     <Col className="Left Column" xs="3">
                         <Row>
                             <Col>
-                                <div className="greetingsTag">
+                                <div className={styles.greetingsTag}>
                                     Welcome back {username}!
                                     <Password userType="su" email={email} editEmail={editEmail}/>
                                 </div>

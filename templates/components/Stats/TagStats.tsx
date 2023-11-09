@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Card,
     Table,
@@ -10,36 +10,47 @@ import {
     ModalBody,
 } from 'reactstrap';
 import { Pie } from 'react-chartjs-2';
-import '@/public/static/css/superadmin.css';
+import { Chart, ArcElement, Tooltip, Legend } from 'chart.js';
 import Wave from '../Loading/Wave';
-import useAxios from '@/hooks/useAxios';
 import Image from 'next/image';
 import moreRegImage from '@/public/static/images/moreReg.png';
+import { useUser } from '@/hooks/useUser';
+import useAxios from 'axios-hooks';
+import styles from '../Profile/SuperAdminView.module.css';
 
 type TagStatsType = {
     [key: string]: number;
 };
 
 export default function TagStats() {
-    const { loading, error, response } = useAxios<TagStatsType>({
-        url: '/elleapi/tagcount',
-        method: 'get',
-        trigger: true,
-        headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
-    });
+    Chart.register(ArcElement, Tooltip, Legend);
+
+    const { user } = useUser();
+    const [{ response, loading, error }, refetch] = useAxios<TagStatsType>(
+        {
+            url: '/elleapi/tagcount',
+            method: 'get',
+            headers: { Authorization: 'Bearer ' + user?.jwt },
+        },
+        { manual: true }
+    );
 
     const [modalOpen, setModalOpen] = useState(false);
-    const numTerms = useRef(0);
+    const [numTerms, setNumTerms] = useState(0);
 
     useEffect(() => {
-        if (response !== undefined) {
-            Object.values(response.data).map(
-                (tag) => (numTerms.current += tag)
-            );
+        if (response !== undefined && response.data !== undefined) {
+            let count = 0;
+            Object.values(response.data).map((tag) => (count += tag));
+            setNumTerms(count);
         }
     }, [response]);
 
-    const renderTagStats = () => {
+    useEffect(() => {
+        if (user?.jwt) refetch();
+    }, [refetch, user?.jwt]);
+
+    const renderTagStats = useMemo(() => {
         // check if response exists and or if loading
         if (error || loading || response === undefined) {
             return <Wave chart="tag" />;
@@ -88,7 +99,7 @@ export default function TagStats() {
                 </Table>
             </Card>
         );
-    };
+    }, [response, error, loading]);
 
     const renderPieChart = () => {
         // check if response exists and or if loading
@@ -170,7 +181,7 @@ export default function TagStats() {
 
     return (
         <>
-            <div className="suCardBlue">
+            <div className={styles.suCardBlue}>
                 Tags
                 {response && Object.keys(response.data).length !== 0 ? (
                     <>
@@ -178,7 +189,7 @@ export default function TagStats() {
                         <Row>
                             <Col xs="11" style={{ padding: '0px' }}>
                                 <text style={{ fontSize: '12px' }}>
-                                    # of Terms with Tags: {numTerms.current}
+                                    # of Terms with Tags: {numTerms}
                                 </text>
                             </Col>
                             <Col xs="1" style={{ padding: '0px' }}>
@@ -214,7 +225,7 @@ export default function TagStats() {
                     <Row style={{ margin: '12px 0 0 0' }}>
                         <Col>
                             <p style={{ fontSize: '12px' }}>
-                                # of Terms with Tags: {numTerms.current}
+                                # of Terms with Tags: {numTerms}
                             </p>
                         </Col>
                         <Col>
@@ -224,7 +235,7 @@ export default function TagStats() {
                             </p>
                         </Col>
                     </Row>
-                    {renderTagStats()}
+                    {renderTagStats}
                 </ModalBody>
             </Modal>
         </>

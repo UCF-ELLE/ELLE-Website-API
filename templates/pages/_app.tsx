@@ -1,27 +1,13 @@
-import App from 'next/app';
-import { AuthProvider, getUser } from '@/hooks/useAuth';
-import type { AuthContextProps } from '@/hooks/useAuth';
+// Create standard next js app wrapper
 import type { AppProps } from 'next/app';
-import { useEffect } from 'react';
+import '@/lib/bootstrap/css/bootstrap.min.css';
+// import '@/lib/bootstrap/js/bootstrap.bundle.min.js'
+import '@/public/static/css/index.css';
 
+import React from 'react';
 
-const AppWrapper = ({ Component, pageProps, auth }: AppProps & AuthContextProps) => {
-
-    useEffect(() => {
-    }, []);
-
-    return (
-        <AuthProvider auth={auth}>
-            <Component {...pageProps} />
-        </AuthProvider>
-    );
+function MyApp({ Component, pageProps }: AppProps) {
+    return <Component {...pageProps} />;
 }
 
-AppWrapper.getInitialProps = (appContext: any) => {
-    const appProps = App.getInitialProps(appContext);
-    const auth = getUser();
-    console.log(auth)
-    return { ...appProps, auth };
-}
-
-export default AppWrapper;
+export default MyApp;

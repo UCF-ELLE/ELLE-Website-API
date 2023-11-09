@@ -6,6 +6,7 @@ import passwordImage from '@/public/static/images/password.png';
 import hidePasswordImage from '@/public/static/images/hide.png';
 import showPasswordImage from '@/public/static/images/show.png';
 import Image from 'next/image';
+import styles from './SuperAdminView.module.css';
 
 export default function Password({ userType, email, editEmail }: { userType: string; email: string; editEmail: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
     const [newPassword, setNewPassword] = useState("");
@@ -130,7 +131,7 @@ export default function Password({ userType, email, editEmail }: { userType: str
             <>
                 {userType === "su" 
                 ?
-                    <p className="setting" onClick={() => toggleModal()}> settings </p> 
+                    <p className={styles.setting} onClick={() => toggleModal()}> settings </p> 
                 :
                     <>
                         <Button id="changeSettings" style={{backgroundColor: "aliceblue", float: "right", border: "none", borderRadius: "0 3px 3px 0"}}

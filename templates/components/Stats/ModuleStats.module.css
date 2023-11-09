@@ -1,0 +1,19 @@
+table.statsTable.table {
+    border-style: hidden;
+    margin: 0px;
+    color: white;
+}
+
+table.statsTable.table thead th {
+    border-right-style: hidden;
+    border-bottom: hidden;
+    font-size: 12px;
+    position: sticky;
+    top: 0;
+    background-color: #74b7bd;
+}
+
+table.statsTable.table tbody td {
+    border-right-style: hidden;
+    border-bottom: hidden;
+}

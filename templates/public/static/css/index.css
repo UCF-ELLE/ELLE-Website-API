@@ -1,3 +1,7 @@
+html, body {
+    min-height: 100%;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -11,4 +15,9 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+
+#__next {
+    min-height: 100%;
+    position: relative;
 }

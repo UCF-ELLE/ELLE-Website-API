@@ -1,13 +1,9 @@
-'use client'
+'use client';
 
 import { useEffect, useState } from 'react';
-import { getUser } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
 import MainTemplate from '@/components/MainTemplate';
-
-import '@/lib/bootstrap/css/bootstrap.min.css';
-import '@/public/static/css/index.css';
 import Footer from '@/components/Footer';
-import { verifyPermission } from '@/utils/user';
 
 export type PermissionLevels = 'su' | 'pf' | 'st' | 'ta' | undefined;
 
@@ -18,17 +14,19 @@ export default function RootLayout({
     children: React.ReactNode;
     noFooter?: boolean;
 }) {
-    const [permission, setPermission] = useState<PermissionLevels>(undefined)
+    const { user } = useUser();
+    const [permission, setPermission] = useState<PermissionLevels>(undefined);
 
     useEffect(() => {
-        setPermission(verifyPermission());
-    }, []);
+        setPermission(user?.permission as PermissionLevels);
+        console.log('permission', user?.permission);
+    }, [user?.permission]);
 
     return (
         <>
-            <MainTemplate permission={permission}/>
+            <MainTemplate permission={permission} />
             {children}
-            { noFooter ? null : <Footer /> }
+            {noFooter ? null : <Footer />}
         </>
     );
 }

@@ -1,22 +1,40 @@
-import React, { Component, useEffect, useState } from 'react'
+import React, { ChangeEvent, useEffect, useState } from 'react'
 import { Row, Col, Modal, ModalHeader, ModalBody, ModalFooter, Badge, Button, Card, CardBody, ListGroup, ListGroupItem,
-    Form, FormGroup, Label, Input } from 'reactstrap';
-import {Tabs, Tab} from 'react-bootstrap';
+    Form, FormGroup, Label, Input, Nav, NavItem, NavLink, TabContent, TabPane } from 'reactstrap';
 import axios from 'axios';
 import ClassDetails from './ClassDetails';
 import Password from './Password';
 import ModulePerformance from '../Stats/ModulePerformance';
 import TermPerformance from '../Stats/TermPerformance';
+import Image from 'next/image';
+import moreImage from '@/public/static/images/more.png';
+import { useUser } from '@/hooks/useUser';
 
-export default function AdminView() {
+export type ClassDetailsType = {
+    accessLevel?: number,
+    groupCode?: string,
+    groupID: string,
+    groupName?: string,
+    group_users?: Array<any>
+}
 
-    const [classes, setClasses] = useState([]);
-    const [currentClassDetails, setCurrentClassDetails] = useState({});
+type AdminViewProps = {
+    email: string,
+    username: string,
+    editEmail: (e: ChangeEvent<HTMLInputElement>) => void
+}
+
+export default function AdminView(props: AdminViewProps) {
+
+    const [classes, setClasses] = useState<ClassDetailsType[]>([]);
+    const [currentClassDetails, setCurrentClassDetails] = useState<ClassDetailsType>({ groupID: "-1" });
     const [className, setClassName] = useState("");
     const [classCode, setClassCode] = useState("");
     const [editClass, setEditClass] = useState(false);
     const [classDetailModalOpen, setClassDetailModalOpen] = useState(false);
     const [tooltipOpen, setTooltipOpen] = useState(false);
+
+    const permission = useUser().user?.permission;
 
     useEffect(() => {
         getClasses(); 
@@ -59,113 +77,109 @@ export default function AdminView() {
         )
     }
 
-    const toggleClassDetailModal = (item) => {
-        this.setState({ 
-          classDetailModalOpen: !this.state.classDetailModalOpen, 
-          currentClassDetails: item,
-          editClass: false 
-        })
+    const toggleClassDetailModal = (item: ClassDetailsType) => {
+        setClassDetailModalOpen(!classDetailModalOpen);
+        setCurrentClassDetails(item);
+        setEditClass(false);
     }
     
-    toggleEditClass = () => {
-        this.setState({ editClass: !this.state.editClass }); 
+    const toggleEditClass = () => {
+        setEditClass(!editClass);
     }
     
-    handleOnEditName = (e) => {
-        let temp = this.state.currentClassDetails;
-    
+    const handleOnEditName = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let temp = currentClassDetails;
+
         let newClassDetails = {
-          accessLevel: temp.accessLevel,
-          groupCode: temp.groupCode,
-          groupID: temp.groupID,
-          groupName: e.target.value,
-          group_users: temp.group_users
-        }
-    
-        this.setState({ currentClassDetails: newClassDetails }); 
-    }
-    
-    updateClassName = () => {
-        this.toggleEditClass()
-    
-        let header = {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') },
-        }
-    
-        let config = {
-          groupID: this.state.currentClassDetails.groupID,
-          groupName: this.state.currentClassDetails.groupName
-        }
-    
-        axios.put(this.props.serviceIP + '/group', config, header)
-        .then(res => {
-          this.getClasses(); 
-        }).catch(error => {
-          console.log("updateClassName error: ", error); 
-        })
-    }
-    
-    generateNewCode = () => {
-        let header = {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') },
-          params: {groupID: this.state.currentClassDetails.groupID}
-        }
-    
-        axios.get(this.props.serviceIP + '/generategroupcode', header)
-        .then(res => {    
-          let temp = this.state.currentClassDetails;
-    
-          let newClassDetails = {
             accessLevel: temp.accessLevel,
-            groupCode: res.data.groupCode,
+            groupCode: temp.groupCode,
             groupID: temp.groupID,
-            groupName: temp.groupName,
+            groupName: e.target.value,
             group_users: temp.group_users
-          }
-    
-          this.setState({ currentClassDetails: newClassDetails }); 
-        }).catch(error => {
-          console.log("ERROR in generating new group code: ", error);
-        })
-    }
-
-    createClass = (e) => {
-        e.preventDefault(); 
-
-        var data = {
-          groupName: this.state.className
         }
-    
-        var headers = {
-          'Authorization': 'Bearer ' + localStorage.getItem('jwt')
-        }
-    
-        axios.post(this.props.serviceIP + '/group', data, {headers:headers}
-        ).then(res => {
-          this.getClasses(); 
-    
-          this.setState({ className: "" }); 
-        }).catch(error => {
-          console.log(error.response); 
-        })
+
+        setCurrentClassDetails(newClassDetails);
     }
     
-    deleteClass = () => {
+    const updateClassName = () => {
+        toggleEditClass();
+
         let header = {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt')},
-          data: {groupID: this.state.currentClassDetails.groupID}
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') },
         }
-    
-        axios.delete(this.props.serviceIP + '/group', header)
+
+        let config = {
+            groupID: currentClassDetails.groupID,
+            groupName: currentClassDetails.groupName
+        }
+
+        axios.put('/elleapi/group', config, header)
         .then(res => {
-          this.toggleClassDetailModal(); 
-          this.getClasses(); 
+            getClasses();
         }).catch(error => {
-          console.log("delete class code error: ", error); 
+            console.log("updateClassName error: ", error);
+        })
+    }
+    
+    const generateNewCode = () => {
+        let header = {
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') },
+            params: {groupID: currentClassDetails.groupID}
+        }
+
+        axios.get('/elleapi/generategroupcode', header)
+        .then(res => {
+            let temp = currentClassDetails;
+
+            let newClassDetails = {
+                accessLevel: temp.accessLevel,
+                groupCode: res.data.groupCode,
+                groupID: temp.groupID,
+                groupName: temp.groupName,
+                group_users: temp.group_users
+            }
+
+            setCurrentClassDetails(newClassDetails);
+        }).catch(error => {
+            console.log("ERROR in generating new group code: ", error);
         })
     }
 
-	render() { 
+    const createClass = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        let header = {
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt') },
+        }
+
+        let config = {
+            groupName: className
+        }
+
+        axios.post('/elleapi/group', config, header)
+        .then(res => {
+            getClasses();
+            setClassName("");
+        }).catch(error => {
+            console.log("createClass error: ", error);
+        })
+    }
+    
+    const deleteClass = () => {
+        let header = {
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt')},
+            data: {groupID: currentClassDetails.groupID}
+        }
+
+        axios.delete('/elleapi/group', header)
+        .then(res => {
+            toggleClassDetailModal({ groupID: "-1" });
+            getClasses();
+        }).catch(error => {
+            console.log("delete class code error: ", error);
+        })
+    }
+
         return (
             <>
                 <h3><Badge style={{backgroundColor: "cadetblue"}}>Your Profile</Badge></h3> 
@@ -177,10 +191,10 @@ export default function AdminView() {
                     <Card>
                         <Row>
                             <Col xs="9" style={{paddingLeft: "35px", paddingTop: "5px"}}>
-                                {this.props.username}
+                                {props.username}
                             </Col>
                             <Col xs="3">
-                              <Password serviceIP={this.props.serviceIP} userType="pf" email={this.props.email} editEmail={this.props.editEmail}/>
+                              <Password userType="pf" email={props.email} editEmail={props.editEmail}/>
                             </Col>
                         </Row>
                     </Card>
@@ -190,20 +204,19 @@ export default function AdminView() {
                     <h6>Classes:</h6>
                     <Card style={{overflow:"scroll", height: "20vh"}}>
                         <ListGroup flush>
-                        {this.state.classes.length === 0 
+                        {classes.length === 0 
                         ? <ListGroupItem> You currently are not part of any classes. </ListGroupItem>
-                        : this.state.classes.map((item, i) => {
+                        : classes.map((item, i) => {
                             return(
                                 <ListGroupItem key={i}> 
                                     {item.groupName} 
                                     <Button 
                                         style={{float: "right", backgroundColor: "white", border: "none", padding: "0"}}
-                                        onClick={() => this.toggleClassDetailModal(item)}
+                                        onClick={() => toggleClassDetailModal(item)}
                                     >
-                                        <img 
-                                        src={require('../../Images/more.png')} 
+                                        <Image 
+                                        src={moreImage} 
                                         alt="Icon made by xnimrodx from www.flaticon.com" 
-                                        name="more"
                                         style={{width: '24px', height: '24px'}}
                                         />
                                     </Button>
@@ -213,9 +226,9 @@ export default function AdminView() {
                         </ListGroup>
                     </Card>
 
-                    {this.state.classDetailModalOpen ? this.revealClassDetails(this.state.currentClassDetails) : null}
+                    {classDetailModalOpen ? revealClassDetails() : null}
 
-                    <Form onSubmit={e => this.createClass(e)}>
+                    <Form onSubmit={e => createClass(e)}>
                         <h5 style={{marginTop: "8px"}}>Create a New Class</h5>
                         <FormGroup>
                             <Label for="className">Class Name: </Label>
@@ -238,22 +251,28 @@ export default function AdminView() {
                     <Card style={{backgroundColor: "cadetblue", height: "65vh"}}>
                         <CardBody style={{color: "#04354b"}}>
                             <h1>
-                                Welcome back {this.props.username}!
+                                Welcome back {props.username}!
                             </h1>
                             <Row>
                                 <Col>
-                                    <Tabs defaultActiveKey={0} id="uncontrolled-tab-example" className="profileTabs">
-                                        <Tab eventKey={0} title="Module Performance">
-                                            <ModulePerformance serviceIP={this.props.serviceIP}/>
-                                        </Tab>
-                                        <Tab eventKey={1} title="Term Performance">
+                                    <Nav tabs>
+                                        <NavItem>
+                                            <NavLink href="#" active>Module Performance</NavLink>
+                                        </NavItem>
+                                        <NavItem>
+                                            <NavLink href="#">Term Performance</NavLink>
+                                        </NavItem>
+                                    </Nav>
+                                    <TabContent activeTab={0}>
+                                        <TabPane tabId={0}>
+                                            <ModulePerformance/>
+                                        </TabPane>
+                                        <TabPane tabId={1}>
                                             <TermPerformance 
-                                              serviceIP={this.props.serviceIP} 
-                                              permission={this.props.permission}
-                                              classes={this.state.classes}
+                                              classes={classes}
                                             />
-                                        </Tab>
-                                    </Tabs>
+                                        </TabPane>
+                                    </TabContent>
                                 </Col>
                             </Row>
                         </CardBody>
@@ -263,4 +282,3 @@ export default function AdminView() {
             </>
         );
     }
-}

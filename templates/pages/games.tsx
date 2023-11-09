@@ -4,7 +4,6 @@ import Select, { SingleValue } from 'react-select';
 import Link from 'next/link'
 import Image from 'next/image';
 import Layout from '@/app/layout';
-import { getUser } from '@/hooks/useAuth';
 
 import elleVR from '@/public/static/videos/ELLEVR.mp4';
 import CardGameImage from '@/public/static/images/cardgame.png';
@@ -16,10 +15,10 @@ import HighRiseImage from '@/public/static/images/highrise.jpg';
 import MillenIElleImage from '@/public/static/images/milleniimage.png'
 
 import '@/public/static/css/style.css';
-import '@/lib/bootstrap/css/bootstrap.min.css';
 import '@/lib/font-awesome/css/font-awesome.min.css';
 import '@/lib/owlcarousel/assets/owl.carousel.min.css';
 import '@/lib/ionicons/css/ionicons.min.css';
+import { useUser } from '@/hooks/useUser';
 
 type GameOption = {
     value: string;
@@ -27,7 +26,7 @@ type GameOption = {
 }
 
 export default function Games() {
-    const user = getUser();
+    const { user } = useUser();
 
     const handleGameChange = (selectedOption: SingleValue<GameOption>) => {
         if (!selectedOption) return;
@@ -131,17 +130,17 @@ export default function Games() {
                                         <p className="cta-text">
                                             <Link
                                                 href={
-                                                    user
+                                                    user?.jwt
                                                         ? '/cardgame'
                                                         : '/login'
                                                 }
                                                 className={`cardGameButton ${
-                                                    !user
+                                                    !user?.jwt
                                                         ? 'disabled'
                                                         : ''
                                                 }`}
                                             >
-                                                {user
+                                                {user?.jwt
                                                     ? 'Play Here!'
                                                     : 'Log In to Play'}
                                             </Link>

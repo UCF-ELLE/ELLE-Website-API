@@ -1,16 +1,17 @@
 import React, { useState, FormEvent } from 'react';
 import { Button, Form, FormGroup, Input, Label, Card } from 'reactstrap';
-import { AuthContextType, useAuth } from '@/hooks/useAuth';
+import { useLogin } from '@/hooks/useLogin';
 import Link from 'next/link';
 import Layout from '@/app/layout';
 
 import '@/public/static/css/loginstyle.css';
 import '@/public/static/css/style.css';
-import '@/lib/bootstrap/css/bootstrap.min.css';
 import '@/lib/ionicons/css/ionicons.min.css';
+import { useRouter } from 'next/router';
 
 export default function Login() {
-    const { login } = useAuth() as AuthContextType;
+    const router = useRouter();
+    const { login } = useLogin();
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [loginErr, setLoginErr] = useState<boolean>(false);
@@ -22,13 +23,18 @@ export default function Login() {
         setLoginErr(false);
         setErrorMsg('');
 
-        const loginVar = login(username, password);
-        const response = await loginVar;
-        console.log(loginVar);
-        console.log('sdhajskld', response);
-        if (typeof response === 'string') {
-            setLoginErr(true);
-            setErrorMsg(response as string);
+        // Redirects to profile page if login is successful
+        const loginVar = await login(username, password);
+
+        console.log(loginVar)
+
+        console.log('login error', loginVar);
+        setLoginErr(true);
+        if (loginVar && 'error' in loginVar) {
+            setErrorMsg(loginVar.error);
+        }
+        else {
+            setErrorMsg('Login failed');
         }
     };
 

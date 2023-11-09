@@ -1,4 +1,3 @@
-// make me a custom useAxios hook
 import { useState, useEffect } from 'react';
 
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -7,6 +6,7 @@ export type UseAxiosProps = {
     url: string;
     method: 'get' | 'post' | 'put' | 'delete' | undefined;
     headers?: AxiosRequestConfig['headers'] | undefined;
+    params?: AxiosRequestConfig['params'] | undefined;
     body?: AxiosRequestConfig['data'] | undefined;
     trigger?: boolean | undefined;
 };
@@ -15,39 +15,34 @@ export type UseAxiosResponse<T> = {
     response: AxiosResponse<T> | undefined;
     error: any;
     loading: boolean;
+    execute: () => Promise<void>;
 };
 
-export default function useAxios<T>({
-    url,
-    method,
-    headers,
-    body,
-    trigger,
-}: UseAxiosProps): UseAxiosResponse<T> {
+export default function useAxios<T>(config: AxiosRequestConfig): UseAxiosResponse<T> {
     const [response, setResponse] = useState<AxiosResponse<T>>();
     const [error, setError] = useState<any>();
     const [loading, setLoading] = useState<boolean>(false);
 
-    useEffect(() => {
-        const config: AxiosRequestConfig = {
-            method,
-            url,
-            headers,
-            data: body,
-        };
-
+    const fetchData = async (config: AxiosRequestConfig) => {
+        setError(undefined);
         setLoading(true);
+        try {
+            const result = await axios.request(config);
+            setResponse(result);
+        }
+        catch (error) {
+            setError(error);
+        }
+        finally {
+            setLoading(false);
+        }
+    }
 
-        axios(config)
-            .then((res) => {
-                setResponse(res);
-                setLoading(false);
-            })
-            .catch((err) => {
-                setError(err);
-                setLoading(false);
-            });
-    }, [body, headers, method, trigger, url]);
+    useEffect(() => {
+        fetchData(config)
+    }, []);
 
-    return { response, error, loading };
+    const handleRequest = () => fetchData(config)
+
+    return { response, error, loading, execute: handleRequest };
 }
