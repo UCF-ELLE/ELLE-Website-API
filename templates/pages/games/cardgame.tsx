@@ -19,7 +19,7 @@ import { useUser } from '@/hooks/useUser';
 
 function CardGame() {
     const { user } = useUser();
-    const [permission, setPermission] = useState(user?.permission);
+    const [permission, setPermission] = useState(user?.permissionGroup);
     const router = useRouter();
     // Used to determine when the user is in the middle of a Card Game session (and NOT in any other screen e.g. the main menu)
     const [UNITY_userIsPlayingGame, setUNITY_userIsPlayingGame] =
@@ -126,7 +126,7 @@ function CardGame() {
 
     // This runs only ONCE, when the component renders for the first time
     useEffect(() => {
-        setPermission(user?.permission);
+        setPermission(user?.permissionGroup);
         setDevicePixelRatio(window.devicePixelRatio);
     }, []);
 

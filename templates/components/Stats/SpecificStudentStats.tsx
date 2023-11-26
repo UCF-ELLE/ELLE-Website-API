@@ -9,6 +9,7 @@ import TermBarChart from './TermBarChart';
 import useAxios from '@/hooks/useAxios';
 import { TermStatsType } from './ClassPerformance';
 import axios from 'axios';
+import { useUser } from '@/hooks/useUser';
 
 export default function SpecificStudentStats({ groupID }: { groupID: string }) {
     const [students, setStudents] = React.useState([]);
@@ -16,6 +17,7 @@ export default function SpecificStudentStats({ groupID }: { groupID: string }) {
         ''
     );
     const [threshold, setThreshold] = React.useState(50);
+    const { user } = useUser();
 
     const {
         response: termStatsResponse,
@@ -24,13 +26,13 @@ export default function SpecificStudentStats({ groupID }: { groupID: string }) {
     } = useAxios<TermStatsType[]>({
         method: 'get',
         url: '/elleapi/termsperformance',
-        headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+        headers: { Authorization: 'Bearer ' + user?.jwt },
         params: { userID: selectedStudent, groupID: groupID },
     });
 
     const getStudents = useCallback(() => {
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
             params: { groupID: groupID },
         };
 

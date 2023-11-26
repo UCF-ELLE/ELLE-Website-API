@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import {
     Row,
     Col,
@@ -22,7 +22,8 @@ import axios from 'axios';
 import Password from './Password';
 import ModulePerformance from '../Stats/ModulePerformance';
 import TermPerformance from '../Stats/TermPerformance';
-import { ClassDetailsType } from './AdminView';
+import { ClassDetails } from './AdminView';
+import { useUser } from '@/hooks/useUser';
 
 type StudentViewProps = {
     email: string;
@@ -31,19 +32,16 @@ type StudentViewProps = {
 };
 
 export default function StudentView(props: StudentViewProps) {
-    const [classes, setClasses] = useState<ClassDetailsType[]>([]);
+    const [classes, setClasses] = useState<ClassDetails[]>([]);
     const [classCode, setClassCode] = useState('');
     const [activeTab, setActiveTab] = useState(0);
+    const { user } = useUser();
 
-    useEffect(() => {
-        getClasses();
-    }, []);
-
-    const getClasses = () => {
+    const getClasses = useCallback(() => {
         axios
             .get('/elleapi/searchusergroups', {
                 headers: {
-                    Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+                    Authorization: 'Bearer ' + user?.jwt,
                 },
             })
             .then((res) => {
@@ -52,7 +50,11 @@ export default function StudentView(props: StudentViewProps) {
             .catch((error) => {
                 console.log(error.response);
             });
-    };
+    }, [user?.jwt]);
+
+    useEffect(() => {
+        getClasses();
+    }, [getClasses]);
 
     const submitClassCode = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -62,7 +64,7 @@ export default function StudentView(props: StudentViewProps) {
         };
 
         const headers = {
-            Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+            Authorization: 'Bearer ' + user?.jwt,
         };
 
         axios

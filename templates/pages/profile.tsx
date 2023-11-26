@@ -13,12 +13,12 @@ export default function Profile() {
     const [username, setUsername] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [permission, setPermission] = useState<string>(
-        user?.permission as string
+        user?.permissionGroup as string
     );
 
     useEffect(() => {
         if (user && !username && !email) {
-            setPermission(user?.permission as string);
+            setPermission(user?.permissionGroup as string);
             getUserInfo().then((userInfoResponse) => {
                 const userInfo = userInfoResponse as UserInfo;
                 console.log(userInfo)

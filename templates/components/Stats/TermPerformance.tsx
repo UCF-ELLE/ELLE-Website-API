@@ -10,7 +10,9 @@ export default function TermPerformance({ classes }: { classes: ClassDetailsType
     const [modalOpen, setModalOpen] = React.useState(false);
     const [currentGroup, setCurrentGroup] = React.useState<string>("");
 
-    const permission = useUser().user?.permission;
+    console.log(classes)
+
+    const permission = useUser().user?.permissionGroup;
 
     const toggleTab = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         let event = e.currentTarget.dataset.event; 

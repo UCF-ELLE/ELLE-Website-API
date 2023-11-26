@@ -29,12 +29,9 @@ export default function Login() {
         console.log(loginVar)
 
         console.log('login error', loginVar);
-        setLoginErr(true);
         if (loginVar && 'error' in loginVar) {
+            setLoginErr(true);
             setErrorMsg(loginVar.error);
-        }
-        else {
-            setErrorMsg('Login failed');
         }
     };
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import AuthService, { User } from "@/services/AuthService";
+import AuthService from "@/services/AuthService";
+import { User } from "@/types/users";
 
 export const useUser = () => {
     const [user, setUser] = useState<User>();

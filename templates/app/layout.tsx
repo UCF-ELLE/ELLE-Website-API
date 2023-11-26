@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { useUser } from '@/hooks/useUser';
 import MainTemplate from '@/components/MainTemplate';
 import Footer from '@/components/Footer';
+import { PermissionGroup } from '@/types/users';
 
-export type PermissionLevels = 'su' | 'pf' | 'st' | 'ta' | undefined;
+type PermissionLevels = PermissionGroup | undefined;
 
 export default function RootLayout({
     children,
@@ -18,9 +19,9 @@ export default function RootLayout({
     const [permission, setPermission] = useState<PermissionLevels>(undefined);
 
     useEffect(() => {
-        setPermission(user?.permission as PermissionLevels);
-        console.log('permission', user?.permission);
-    }, [user?.permission]);
+        setPermission(user?.permissionGroup as PermissionLevels);
+        console.log('permission', user?.permissionGroup);
+    }, [user?.permissionGroup]);
 
     return (
         <>

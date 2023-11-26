@@ -1,31 +1,10 @@
 import axios, { AxiosInstance } from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import type { PermissionGroup, User, UserInfo, SignUpInfo } from '@/types/users';
 
-export type User = {
-    username: string;
-    userID: string;
-    jwt: string;
-    permission: string;
-};
-
-export type UserInfo = {
-    userId: string;
-    username: string;
-    email: string;
-    sessions: [];
-};
-
-export type SignUpInfo = {
-    email: string;
-    username: string;
-    password: string;
-    password_confirm: string;
-    groupCode: string;
-};
-
-interface decodedJWT {
+type decodedJWT = {
     user_claims: {
-        permission: 'su' | 'pf' | 'st' | 'ta';
+        permission: PermissionGroup
     };
     identity: string;
 }
@@ -52,12 +31,12 @@ export default class AuthService {
 
             const decoded = jwtDecode(res.data.access_token) as decodedJWT;
             const permission = decoded.user_claims.permission;
-            const userID = decoded.identity;
+            const userID = Number(decoded.identity);
             return {
                 jwt: res.data.access_token,
                 username,
                 userID,
-                permission,
+                permissionGroup: permission,
             } as User;
         } catch (err: any) {
             if (err.response !== undefined) {
@@ -85,14 +64,14 @@ export default class AuthService {
                 },
             });
             const values: UserInfo = {
-                userId: res.data.id,
+                userID: res.data.id,
                 username: res.data.username,
                 email: res.data.email === null ? '' : res.data.email,
-                sessions: [],
+                permissionGroup: res.data.permissionGroup,
             };
 
             const res2 = await this.instance.get('/elleapi/searchsessions', {
-                params: { userID: values.userId },
+                params: { userID: values.userID },
                 headers: { Authorization: 'Bearer ' + jwt },
             });
 

@@ -1,9 +1,10 @@
+import { Group } from '@/types/groups';
 import React, { useState } from 'react';
 import { Label, Input, Row, Col } from 'reactstrap';
-import { ClassDetailsType } from './AdminView';
+import { ClassDetails } from './AdminView';
 
 type ClassDetailsProps = {
-    item: ClassDetailsType;
+    item: ClassDetails;
     editClass: boolean;
     handleOnEditName: (e: React.ChangeEvent<HTMLInputElement>) => void;
     generateNewCode: any;

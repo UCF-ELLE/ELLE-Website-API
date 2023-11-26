@@ -5,18 +5,10 @@ import 'rc-slider/assets/index.css';
 import axios from 'axios';
 import TermStats from './TermStats';
 import TermBarChart from './TermBarChart';
-
-export type TermStatsType = {
-    termID: string;
-    front: string;
-    back: string;
-    correctness: number;
-    count: number;
-    modules: string[];
-};
+import { Term } from '@/types/terms';
 
 export default function ClassPerformance({ groupID }: { groupID: string }) {
-    const [termStats, setTermStats] = React.useState<TermStatsType[]>([]);
+    const [termStats, setTermStats] = React.useState<Term[]>([]);
     const [error, setError] = React.useState<string>('');
     const [threshold, setThreshold] = React.useState(50);
 
