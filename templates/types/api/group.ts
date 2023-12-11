@@ -1,11 +1,11 @@
-import { PermissionGroup } from "../users";
+import { PermissionGroup } from "./user";
 
 // GET /elleapi/searchusergroups
 export type UserGroup = {
     groupID: number;
     groupName: string;
     groupCode: string;
-    accessLevel: PermissionGroup;
+    accessLevel?: PermissionGroup;
 }
 
 // GET /elleapi/usersingroup

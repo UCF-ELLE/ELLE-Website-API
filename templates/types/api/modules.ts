@@ -1,4 +1,8 @@
-import { Tag } from "./misc";
+import languageCode from '@/public/static/json/languageCodes.json'
+import { Gender } from "./misc";
+import { Tag } from './terms';
+
+export type LanguageCode = keyof typeof languageCode
 
 // GET /elleapi/modules
 // GET /elleapi/retrievegroupmodules
@@ -35,7 +39,7 @@ export type ModuleQuestionAnswer = {
     front: string;
     back: string;
     type: string;
-    gender: 'F' | 'M' | 'N';
+    gender: Gender;
     language: string;
     tags?: Tag['tagName'][];
 }

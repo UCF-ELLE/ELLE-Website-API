@@ -1,4 +1,1 @@
-export type Tag = {
-    termID: number;
-    tagName?: string;
-}
+export type Gender = 'M' | 'F' | 'N';
