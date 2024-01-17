@@ -1,16 +1,15 @@
-import { Group } from '@/types/groups';
+import { UserGroup } from '@/types/api/group';
 import React, { useState } from 'react';
 import { Label, Input, Row, Col } from 'reactstrap';
-import { ClassDetails } from './AdminView';
 
 type ClassDetailsProps = {
-    item: ClassDetails;
+    item: UserGroup;
     editClass: boolean;
     handleOnEditName: (e: React.ChangeEvent<HTMLInputElement>) => void;
     generateNewCode: any;
 };
 
-export default function ClassDetails(props: ClassDetailsProps) {
+export default function ClassDetailsComponent(props: ClassDetailsProps) {
     const [name, setName] = useState(props.item.groupName);
     const [size, setSize] = useState(0);
 

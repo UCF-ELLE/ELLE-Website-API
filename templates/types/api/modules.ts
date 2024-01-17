@@ -1,8 +1,5 @@
-import languageCode from '@/public/static/json/languageCodes.json'
-import { Gender } from "./misc";
+import { DBAnswer, DBModule, DBQuestion, DBTerm } from './db';
 import { Tag } from './terms';
-
-export type LanguageCode = keyof typeof languageCode
 
 // GET /elleapi/modules
 // GET /elleapi/retrievegroupmodules
@@ -10,36 +7,25 @@ export type LanguageCode = keyof typeof languageCode
 // GET /elleapi/retrieveusermodules
 // GET /elleapi/module
 // GET /elleapi/retrieveallmodules
-export type Module = {
-    moduleID: number;
-    name: string;
-    language: string;
-    complexity: number;
-    userID: number;
+export type Module = DBModule & {
     groupID?: number;
-    user_id?: number;
     owned?: boolean;
     username?: string;
-}
+};
 
 // POST /elleapi/modulequestions
-export type ModuleQuestion = {
-    questionID: number;
+export type ModuleQuestion = Pick<
+    DBQuestion,
+    'questionID' | 'type' | 'questionText'
+> & {
     audioLocation?: string;
     imageLocation?: string;
-    type: string;
-    questionText: string;
     answers?: ModuleQuestionAnswer[];
-}
+};
 
-export type ModuleQuestionAnswer = {
-    termID: number;
-    imageLocation?: string;
-    audioLocation?: string;
-    front: string;
-    back: string;
-    type: string;
-    gender: Gender;
-    language: string;
-    tags?: Tag['tagName'][];
-}
+export type ModuleQuestionAnswer = Pick<DBAnswer, 'termID'> &
+    Pick<DBTerm, 'front' | 'back' | 'type' | 'gender' | 'language'> & {
+        imageLocation?: string;
+        audioLocation?: string;
+        tags?: Tag[];
+    };

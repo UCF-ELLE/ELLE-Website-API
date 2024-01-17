@@ -4,14 +4,14 @@ import SuperAdminView from '../components/Profile/SuperAdminView';
 import AdminView from '../components/Profile/AdminView';
 import StudentView from '@/components/Profile/StudentView';
 import { useUser } from '@/hooks/useUser';
-import { UserInfo } from '@/services/AuthService';
 import Layout from '@/app/layout';
 import '@/public/static/css/style.css';
+import { User } from '@/types/api/user';
 
 export default function Profile() {
     const { user, getUserInfo } = useUser();
     const [username, setUsername] = useState<string>('');
-    const [email, setEmail] = useState<string>('');
+    const [email, setEmail] = useState<string | undefined>(undefined);
     const [permission, setPermission] = useState<string>(
         user?.permissionGroup as string
     );
@@ -20,10 +20,10 @@ export default function Profile() {
         if (user && !username && !email) {
             setPermission(user?.permissionGroup as string);
             getUserInfo().then((userInfoResponse) => {
-                const userInfo = userInfoResponse as UserInfo;
-                console.log(userInfo)
+                const userInfo = userInfoResponse as User;
+                console.log(userInfo);
                 setUsername(userInfo.username);
-                setEmail(userInfo.email);
+                setEmail(userInfo?.email);
             });
         }
     }, [email, getUserInfo, user, username]);

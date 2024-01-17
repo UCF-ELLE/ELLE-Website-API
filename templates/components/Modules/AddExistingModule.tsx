@@ -11,7 +11,19 @@ import Image from 'next/image';
 import moduleImage from '@/public/static/images/module.png';
 import langImage from '@/public/static/images/languages.png';
 import creatorImage from '@/public/static/images/creator.png';
-import { Module, LanguageCode } from '@/types/modules';
+import { Module } from '@/types/api/modules';
+import { LanguageCode } from '@/types/misc';
+
+const getLanguageCodeList = () => {
+    const list = [];
+    for (const key in languageCodes) {
+        list.push({
+            label: languageCodes[key as LanguageCode],
+            value: key as LanguageCode,
+        });
+    }
+    return list;
+};
 
 export default function AddExistingModule({
     updateModuleList,
@@ -32,8 +44,8 @@ export default function AddExistingModule({
     const [searchName, setSearchName] = useState('');
     const [searchCreator, setSearchCreator] = useState('');
     const [languageCodeList, setLanguageCodeList] = useState<
-        { label: string; value: string }[]
-    >([]);
+        { label: string; value: LanguageCode }[]
+    >(getLanguageCodeList());
     const [selectedLanguage, setSelectedLanguage] = useState<{
         label: string;
         value: string;
@@ -42,16 +54,6 @@ export default function AddExistingModule({
 
     useEffect(() => {
         getAllModulesInDB();
-        let tempCodeList = [];
-
-        for (let key in languageCodes) {
-            tempCodeList.push({
-                label: languageCodes[key as LanguageCode],
-                value: key,
-            });
-        }
-
-        setLanguageCodeList(tempCodeList);
     }, []);
 
     const getAllModulesInDB = () => {
@@ -121,10 +123,11 @@ export default function AddExistingModule({
 
     let filteredModules = reusuableModules.filter((module: Module) => {
         return (
-            module.name.toLowerCase().indexOf(searchName.toLowerCase()) !==
+            module.name?.toLowerCase().indexOf(searchName.toLowerCase()) !==
                 -1 &&
             module.language.toLowerCase().indexOf(language) !== -1 &&
-            module.username?.toLowerCase()
+            module.username
+                ?.toLowerCase()
                 .indexOf(searchCreator.toLowerCase()) !== -1
         );
     });

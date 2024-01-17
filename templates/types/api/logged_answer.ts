@@ -1,10 +1,8 @@
+import { DBLoggedAnswer, DBTerm } from './db';
+
 // GET /elleapi/loggedanswer
-export type LoggedAnswer = {
-    logID: number;
-    questionID?: number;
-    termID?: number;
-    sessionID?: number;
-    correct?: boolean;
-    mode: string;
-    front?: string;
-}
+export type LoggedAnswer = Pick<
+    DBLoggedAnswer,
+    'logID' | 'questionID' | 'termID' | 'sessionID' | 'correct' | 'mode'
+> &
+    Pick<DBTerm, 'front'>;

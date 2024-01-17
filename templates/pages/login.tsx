@@ -25,9 +25,6 @@ export default function Login() {
 
         // Redirects to profile page if login is successful
         const loginVar = await login(username, password);
-
-        console.log(loginVar)
-
         console.log('login error', loginVar);
         if (loginVar && 'error' in loginVar) {
             setLoginErr(true);

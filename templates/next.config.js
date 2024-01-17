@@ -6,9 +6,9 @@ const webpack = require('webpack');
 const nextConfig = {
     webpack: (config, { isServer }) => {
         if (!isServer) {
-            config.resolve.modules.push(path.resolve('./node_modules'))
+            config.resolve.modules.push(path.resolve('./node_modules'));
         }
-        return config
+        return config;
     },
 
     async redirects() {
@@ -16,18 +16,18 @@ const nextConfig = {
             {
                 source: '/',
                 destination: '/home',
-                permanent: true
-            }
-        ]
+                permanent: true,
+            },
+        ];
     },
     async rewrites() {
         return [
             {
                 source: '/elleapi/:slug*',
-                destination: 'http://localhost:5050/elleapi/:slug*'
-            }
-        ]
-    }
-}
+                destination: 'http://localhost:5050/elleapi/:slug*',
+            },
+        ];
+    },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "mic-recorder": "^4.9.0"
+  }
+}

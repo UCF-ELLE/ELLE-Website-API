@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     Card,
     Table,
@@ -188,9 +188,9 @@ export default function TagStats() {
                         {renderPieChart()}
                         <Row>
                             <Col xs="11" style={{ padding: '0px' }}>
-                                <text style={{ fontSize: '12px' }}>
+                                <span style={{ fontSize: '12px' }}>
                                     # of Terms with Tags: {numTerms}
-                                </text>
+                                </span>
                             </Col>
                             <Col xs="1" style={{ padding: '0px' }}>
                                 <Button

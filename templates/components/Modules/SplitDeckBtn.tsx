@@ -24,20 +24,7 @@ import toolsImage from '@/public/static/images/tools.png';
 import deleteImage from '@/public/static/images/delete.png';
 import unlinkImage from '@/public/static/images/unlink.png';
 import { useUser } from '@/hooks/useUser';
-
-type ModuleType = {
-    moduleID: number;
-    name: string;
-    language: string;
-    complexity: number;
-    groupID: number[];
-    userID: number;
-};
-
-type EventType = {
-    module: ModuleType;
-    task?: string;
-};
+import { Module } from '@/types/api/modules';
 
 export default function SplitDeckBtn({
     currentModule,
@@ -45,11 +32,11 @@ export default function SplitDeckBtn({
     editModule,
     deleteModule,
     unlinkModule,
-    currentClassView
+    currentClassView,
 }: {
-    currentModule: ModuleType;
-    updateCurrentModule: (event: EventType) => void;
-    editModule?: (name: string, event: EventType) => void;
+    currentModule: Module;
+    updateCurrentModule: (module?: Module, task?: string) => void;
+    editModule?: (name: string, module: Module) => void;
     deleteModule?: (moduleID: number) => void;
     unlinkModule?: (moduleID: number) => void;
     currentClassView?: number;
@@ -83,7 +70,7 @@ export default function SplitDeckBtn({
                 id={'deckButton' + currentModule.moduleID}
                 type="button"
                 onClick={() => {
-                    updateCurrentModule({ module: currentModule });
+                    updateCurrentModule(currentModule);
                 }}
             >
                 {currentModule.name}
@@ -119,9 +106,8 @@ export default function SplitDeckBtn({
                         </FormGroup>
                         <Button
                             onClick={() => {
-                                editModule && editModule(editedModuleName, {
-                                    module: currentModule,
-                                });
+                                editModule &&
+                                    editModule(editedModuleName, currentModule);
                                 togglePopover();
                             }}
                         >
@@ -141,7 +127,9 @@ export default function SplitDeckBtn({
                             border: 'none',
                             borderRadius: '0px',
                         }}
-                    />
+                    >
+                        {''}
+                    </DropdownToggle>
                     <DropdownMenu
                         style={{
                             minWidth: '50px',
@@ -190,8 +178,7 @@ export default function SplitDeckBtn({
                             </DropdownItem>
                         ) : null}
 
-                        {(permission === 'pf' ||
-                            permission === 'ta') &&
+                        {(permission === 'pf' || permission === 'ta') &&
                         currentClassView !== 0 &&
                         currentModule.userID !== user?.userID ? (
                             <DropdownItem
@@ -236,7 +223,8 @@ export default function SplitDeckBtn({
                     <Button
                         color="danger"
                         onClick={() => {
-                            unlinkModule && unlinkModule(currentModule.moduleID);
+                            unlinkModule &&
+                                unlinkModule(currentModule.moduleID);
                             toggleUnlinkModal();
                         }}
                     >
@@ -268,7 +256,8 @@ export default function SplitDeckBtn({
                     <Button
                         color="danger"
                         onClick={() => {
-                            deleteModule && deleteModule(currentModule.moduleID);
+                            deleteModule &&
+                                deleteModule(currentModule.moduleID);
                             toggleModal();
                         }}
                     >

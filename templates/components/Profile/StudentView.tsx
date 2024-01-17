@@ -22,17 +22,17 @@ import axios from 'axios';
 import Password from './Password';
 import ModulePerformance from '../Stats/ModulePerformance';
 import TermPerformance from '../Stats/TermPerformance';
-import { ClassDetails } from './AdminView';
 import { useUser } from '@/hooks/useUser';
+import { UserGroup } from '@/types/api/group';
 
 type StudentViewProps = {
-    email: string;
+    email?: string;
     username: string;
     editEmail: (e: ChangeEvent<HTMLInputElement>) => void;
 };
 
 export default function StudentView(props: StudentViewProps) {
-    const [classes, setClasses] = useState<ClassDetails[]>([]);
+    const [classes, setClasses] = useState<UserGroup[]>([]);
     const [classCode, setClassCode] = useState('');
     const [activeTab, setActiveTab] = useState(0);
     const { user } = useUser();
@@ -175,12 +175,20 @@ export default function StudentView(props: StudentViewProps) {
                                 <Col>
                                     <Nav tabs>
                                         <NavItem>
-                                            <NavLink href="#" active={activeTab === 0} onClick={() => setActiveTab(0)}>
+                                            <NavLink
+                                                href="#"
+                                                active={activeTab === 0}
+                                                onClick={() => setActiveTab(0)}
+                                            >
                                                 Module Performance
                                             </NavLink>
                                         </NavItem>
                                         <NavItem>
-                                            <NavLink href="#" active={activeTab === 1} onClick={() => setActiveTab(1)}>
+                                            <NavLink
+                                                href="#"
+                                                active={activeTab === 1}
+                                                onClick={() => setActiveTab(1)}
+                                            >
                                                 Term Performance
                                             </NavLink>
                                         </NavItem>

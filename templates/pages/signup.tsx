@@ -22,6 +22,7 @@ import showImage from '@/public/static/images/show.png';
 import MainTemplate from '@/components/MainTemplate';
 import Image from 'next/image';
 import { useSignUp } from '@/hooks/useSignUp';
+import { useUser } from '@/hooks/useUser';
 
 export default function Signup() {
     const { signUp } = useSignUp();
@@ -39,9 +40,11 @@ export default function Signup() {
     const [registerErr, setRegisterErr] = React.useState<boolean>(false);
     const [errorMsg, setErrorMsg] = React.useState<string | void>('');
 
+    const { user } = useUser();
+
     const generateUsername = () => {
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
         };
 
         axios
@@ -99,10 +102,12 @@ export default function Signup() {
 
     const submit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setErrorMsg(
-            await signUp(username, email, password, confirmation, classCode)
-        );
-        setRegisterErr(true);
+        const response = await signUp(username, email, password, confirmation, classCode);
+
+        if (response?.error) {
+            setRegisterErr(true);
+            setErrorMsg(response.error);
+        }
     };
 
     const generateErrorMsg = () => {

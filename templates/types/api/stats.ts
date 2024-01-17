@@ -1,6 +1,6 @@
-import { Gender } from "./misc";
-import { LanguageCode } from "./modules";
-import { LoggedAnswer, Session } from "./sessions";
+import { Gender, LanguageCode } from '../misc';
+import { LoggedAnswer } from './logged_answer';
+import { Session } from './sessions';
 
 // GET /elleapi/modulereport
 export type ModuleReport = Session & { logged_answers: LoggedAnswer[] }[];
@@ -13,7 +13,7 @@ export type ModuleStats = {
     platform?: string;
     moduleID?: number;
     name?: string;
-}
+};
 
 // GET /elleapi/platformstats
 export type PlatformStats = {
@@ -24,8 +24,8 @@ export type PlatformStats = {
         avg_score: number;
         avg_time_spent: number;
         total_records_avail: number;
-    }
-}
+    };
+};
 
 // GET /elleapi/termsperformance
 export type TermPerformance = {
@@ -34,14 +34,14 @@ export type TermPerformance = {
         count: number;
         modules: {
             [moduleID: number]: string;
-        }
+        };
         front: string;
         back: string;
         type: string;
         gender: Gender;
         language: LanguageCode;
-    }
-}
+    };
+};
 
 // GET /elleapi/languagestats
 export type LanguageStats = {

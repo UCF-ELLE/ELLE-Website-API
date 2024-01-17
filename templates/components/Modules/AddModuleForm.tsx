@@ -1,21 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import Select from 'react-select';
 import {
+    Alert,
     Button,
+    Col,
     Form,
     FormGroup,
-    Label,
     Input,
+    Label,
     Row,
-    Col,
-    Alert,
 } from 'reactstrap';
-import Select from 'react-select';
-import axios from 'axios';
 import languageCodes from '@/public/static/json/languageCodes.json';
+import { Language, LanguageCode } from '@/types/misc';
 import { useUser } from '@/hooks/useUser';
-import { LanguageCode } from '@/types/modules';
+import axios from 'axios';
+import { Module } from '@/types/api/modules';
 
-export default function AddModule({
+const getLanguageCodeList = () => {
+    const list = [];
+    for (const key in languageCodes) {
+        list.push({
+            label: languageCodes[key as LanguageCode],
+            value: key as LanguageCode,
+        });
+    }
+    return list;
+};
+
+export default function AddModuleForm({
     updateModuleList,
     classOptions,
     currentClass,
@@ -25,105 +37,84 @@ export default function AddModule({
     currentClass: { value: number; label: string };
 }) {
     const { user } = useUser();
-    const permission = user?.permissionGroup;
+    const permissionLevel = user?.permissionGroup;
     const [name, setName] = useState<string>('');
-    const [language, setLanguage] = useState<{ label: string; value: string }>({
-        label: '',
-        value: '',
+    const [selectedLanguage, setLanguage] = useState<Language>({
+        label: undefined,
+        value: undefined,
     });
+    const [languageCodeList, setLanguageList] = useState<Language[]>(
+        getLanguageCodeList()
+    );
+    const [classState, setClassState] = useState<{
+        value: number;
+        label: string;
+    }>();
     const [status, setStatus] = useState<boolean>(false);
     const [success, setSuccess] = useState<boolean>(false);
-    const [classID, setClassID] = useState<string>('');
-    const [languageCodesList, setLanguageCodesList] = useState<
-        { label: string; value: string }[]
-    >([]);
-    const [classState, setClassState] = useState<{
-        label: string;
-        value: string;
-    }>({ label: '', value: '' });
 
-    useEffect(() => {
-        let tempCodeList = [];
-
-        for (let key in languageCodes) {
-            tempCodeList.push({
-                label: languageCodes[key as LanguageCode],
-                value: key,
-            });
-        }
-
-        setLanguageCodesList(tempCodeList);
-    }, []);
-
-    const submitModule = (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         let data;
 
-        if (permission === 'su') {
+        if (permissionLevel === 'su') {
             data = {
-                name: name,
-                language,
+                name,
+                language: selectedLanguage.value,
                 complexity: 2,
             };
         } else {
             data = {
-                name: name,
-                language,
+                name,
+                language: selectedLanguage.value,
                 complexity: 2,
                 groupID:
                     currentClass.value === 0
-                        ? classState.value
+                        ? classState?.value
                         : currentClass.value,
             };
-
-            let header = {
-                headers: { Authorization: 'Bearer ' + user?.jwt },
-            };
-
-            let modID = -1;
-
-            axios
-                .post('/elleapi/module', data, header)
-                .then((res) => {
-                    setSuccess(true);
-                    onShowStatus();
-                    modID = res.data.moduleID;
-                    updateModuleList('add', modID);
-                    let data = {
-                        numIncorrectCards: 10,
-                        numCorrectCards: 10,
-                        time: 10,
-                        module_id: modID,
-                    };
-
-                    let header = {
-                        headers: { Authorization: 'Bearer ' + user?.jwt },
-                    };
-
-                    axios
-                        .post(
-                            '/elleapi/setmentorquestionfrequency',
-                            data,
-                            header
-                        )
-                        .then((res) => {
-                            //updateCurrentModule({ module: curModule.moduleID });
-                        })
-                        .catch((error) => {
-                            console.log(
-                                'updateMentorFrequency error: ',
-                                error.response
-                            );
-                        });
-                })
-                .catch((error) => {
-                    if (error.message !== undefined) {
-                        console.log('Add Module error', error.message);
-                        onShowStatus();
-                    }
-                });
         }
+
+        const header = { headers: { Authorization: `Bearer ${user?.jwt}` } };
+        let modID = -1;
+
+        axios
+            .post<Module>('/elleapi/module', data, header)
+            .then((res) => {
+                setSuccess(true);
+                modID = res.data.moduleID;
+                onShowStatus();
+                updateModuleList('add', modID);
+                const data = {
+                    numIncorrectCards: 10,
+                    numCorrectCards: 10,
+                    time: 10,
+                    module_id: modID,
+                };
+
+                const header = {
+                    headers: { Authorization: `Bearer ${user?.jwt}` },
+                };
+
+                axios
+                    .post('/elleapi/setmentorquestionfrequency', data, header)
+                    .then((res) => {
+                        //updateCurrentModule({ module: curModule.moduleID });
+                    })
+                    .catch((error) => {
+                        console.log(
+                            'updateMentorFrequency error: ',
+                            error.response
+                        );
+                    });
+            })
+            .catch((error) => {
+                if (error.message !== undefined) {
+                    console.log('Add Module error', error.message);
+                    onShowStatus();
+                }
+            });
     };
 
     const onShowStatus = () => {
@@ -131,8 +122,8 @@ export default function AddModule({
         window.setTimeout(() => {
             setStatus(false);
             setName('');
-            setLanguage({ label: '', value: '' });
-            setClassID('');
+            setLanguage({ label: undefined, value: undefined });
+            setClassState(undefined);
             setSuccess(false);
         }, 2000);
     };
@@ -141,7 +132,7 @@ export default function AddModule({
         if (status && success) {
             return (
                 <Alert color="success" isOpen={status}>
-                    {name} has been added successfully!{' '}
+                    {name} has been added successfully!
                 </Alert>
             );
         } else if (status && !success) {
@@ -153,10 +144,8 @@ export default function AddModule({
         }
     };
 
-    const classSelectOptions = classOptions.map(
-        (option: { value: number; label: string }) => {
-            return { value: option.value.toString(), label: option.label };
-        }
+    const filteredClassOptions = classOptions.filter(
+        (option) => option.value !== 0
     );
 
     return (
@@ -165,8 +154,8 @@ export default function AddModule({
                 color="none"
                 style={{ color: '#004085', backgroundColor: 'aliceblue' }}
             >
-                <Form onSubmit={submitModule}>
-                    {renderStatus()}
+                <Form onSubmit={handleSubmit}>
+                    {/* show alert if module successfuly added / error here */}
                     <Row>
                         <Col>
                             <FormGroup>
@@ -186,29 +175,29 @@ export default function AddModule({
                                 <Label for="moduleLang">Language:</Label>
                                 <Select
                                     name="languageCode"
-                                    options={languageCodesList}
+                                    instanceId={'select-language'}
+                                    options={languageCodeList}
                                     className="basic-single"
                                     classNamePrefix="select"
                                     isClearable={true}
-                                    value={language}
                                     onChange={(e) =>
                                         setLanguage({
                                             label: e?.label as string,
-                                            value: e?.value as string,
+                                            value: e?.value as LanguageCode,
                                         })
                                     }
                                 />
                             </FormGroup>
                         </Col>
                     </Row>
-                    {currentClass.value === 0 && permission !== 'su' ? (
+                    {currentClass.value === 0 && permissionLevel !== 'su' ? (
                         <Row>
                             <Col>
                                 <FormGroup>
                                     <Label for="classContext">Class:</Label>
                                     <Select
                                         name="class"
-                                        options={classSelectOptions}
+                                        options={filteredClassOptions}
                                         className="basic-single"
                                         classNamePrefix="select"
                                         isClearable={true}
@@ -216,7 +205,7 @@ export default function AddModule({
                                         onChange={(e) =>
                                             setClassState({
                                                 label: e?.label as string,
-                                                value: e?.value as string,
+                                                value: e?.value as number,
                                             })
                                         }
                                     />

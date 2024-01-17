@@ -23,31 +23,30 @@ import {
     TabPane,
 } from 'reactstrap';
 import axios from 'axios';
-import ClassDetails from './ClassDetails';
 import Password from './Password';
 import ModulePerformance from '../Stats/ModulePerformance';
 import TermPerformance from '../Stats/TermPerformance';
 import Image from 'next/image';
 import moreImage from '@/public/static/images/more.png';
 import { useUser } from '@/hooks/useUser';
-import { Group } from '@/types/groups';
-import { PermissionGroup } from '@/types/users';
+import { UserGroup } from '@/types/api/group';
+import ClassDetailsComponent from './ClassDetailsComponent';
 
 type AdminViewProps = {
-    email: string;
+    email?: string;
     username: string;
     editEmail: (e: ChangeEvent<HTMLInputElement>) => void;
 };
 
-export type ClassDetails = Group & {
-    accessLevel?: PermissionGroup;
-    group_users?: number[];
-};
-
 export default function AdminView(props: AdminViewProps) {
-    const [classes, setClasses] = useState<Group[]>([]);
-    const [currentClassDetails, setCurrentClassDetails] =
-        useState<ClassDetails>({ groupID: -1, groupName: '', groupCode: '' });
+    const [classes, setClasses] = useState<UserGroup[]>([]);
+    const [currentClassDetails, setCurrentClassDetails] = useState<UserGroup>({
+        groupID: -1,
+        groupName: '',
+        groupCode: '',
+        accessLevel: 'st',
+        group_users: [],
+    });
     const [className, setClassName] = useState('');
     const [classCode, setClassCode] = useState('');
     const [editClass, setEditClass] = useState(false);
@@ -94,7 +93,7 @@ export default function AdminView(props: AdminViewProps) {
                     Class Details
                 </ModalHeader>
                 <ModalBody>
-                    <ClassDetails
+                    <ClassDetailsComponent
                         item={currentClassDetails}
                         editClass={editClass}
                         handleOnEditName={handleOnEditName}
@@ -125,7 +124,7 @@ export default function AdminView(props: AdminViewProps) {
         );
     };
 
-    const toggleClassDetailModal = (item: ClassDetails) => {
+    const toggleClassDetailModal = (item: UserGroup) => {
         setClassDetailModalOpen(!classDetailModalOpen);
         setCurrentClassDetails(item);
         setEditClass(false);
@@ -232,6 +231,8 @@ export default function AdminView(props: AdminViewProps) {
                     groupID: -1,
                     groupName: '',
                     groupCode: '',
+                    accessLevel: 'st',
+                    group_users: [],
                 });
                 getClasses();
             })

@@ -1,4 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+    MouseEventHandler,
+    useCallback,
+    useEffect,
+    useState,
+} from 'react';
 import {
     Container,
     Row,
@@ -33,16 +38,16 @@ import Manual from './Manual';
 import { useUser } from '@/hooks/useUser';
 import Image from 'next/image';
 import searchImage from '@/public/static/images/search.png';
-import { Term } from '@/types/terms';
-import { Module } from '@/types/modules';
-import { Question } from '@/types/questions';
-import { Tag } from '@/types/tags';
-import { Answer } from '@/types/answers';
 
-type EventType = {
-    module: Module;
-    task?: string;
-};
+import {
+    Module,
+    ModuleQuestion,
+    ModuleQuestionAnswer,
+} from '@/types/api/modules';
+import { Tag, Term } from '@/types/api/terms';
+import { LoggedAnswer } from '@/types/api/logged_answer';
+import { EventType } from '@/types/events';
+import { MentorQuestion, MentorQuestionFrequency } from '@/types/api/mentors';
 
 export default function Module({
     curModule,
@@ -56,12 +61,12 @@ export default function Module({
 }: {
     curModule: Module;
     updateCurrentModule: (event: EventType) => void;
-    cards: Term[];
-    allAnswers: Answer[];
-    mentorQuestions: any;
+    cards: ModuleQuestion[];
+    allAnswers: LoggedAnswer[];
+    mentorQuestions: MentorQuestion[];
     currentClass: { value: number; label: string };
     modificationWarning: boolean;
-    toggleModificationWarning: (condition: string) => void;
+    toggleModificationWarning: MouseEventHandler;
 }) {
     const [searchCard, setSearchCard] = useState('');
     const [collapseNewCard, setCollapseNewCard] = useState(false);
@@ -72,10 +77,8 @@ export default function Module({
     const [collapseTab, setCollapseTab] = useState(-1);
     const [tabs, setTabs] = useState([0, 1, 2, 3]);
     const [openForm, setOpenForm] = useState(0);
-    const [allTags, setAllTags] = useState([]);
-    const [freq, setFreq] = useState([
-        { incorrectCardsFreq: -1, correctCardsFreq: -1, time: -1 },
-    ]);
+    const [allTags, setAllTags] = useState<Tag[]>([]);
+    const [freq, setFreq] = useState<MentorQuestionFrequency[]>([]);
     const [id, setId] = useState(curModule.moduleID);
     const [name, setName] = useState(curModule.name);
     const [language, setLanguage] = useState(curModule.language);
@@ -121,7 +124,12 @@ export default function Module({
                     setFreq(res.data);
                 } else {
                     setFreq([
-                        { incorrectCardsFreq: 0, correctCardsFreq: 0, time: 0 },
+                        {
+                            incorrectCardsFreq: 0,
+                            correctCardsFreq: 0,
+                            time: 0,
+                            moduleID: -1,
+                        },
                     ]);
                 }
             })
@@ -147,7 +155,7 @@ export default function Module({
     //fumction for deleting a tag from a list of tags
     const deleteTag = (tagList: Tag[], tag: Tag) => {
         if (tagList === undefined) {
-            return;
+            return [];
         }
 
         let tempTagList = tagList;
@@ -162,12 +170,12 @@ export default function Module({
     };
 
     //function for changing the searchbar for cards
-    const updateSearchCard = (e) => {
-        setSearchCard(e.target.value.substr(0, 20));
+    const updateSearchCard = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchCard(e.target.value.substring(0, 20));
     };
 
-    const toggleTab = (e) => {
-        let event = e.target.dataset.event;
+    const toggleTab = (e: React.MouseEvent<HTMLElement>) => {
+        let event = e.currentTarget.dataset.event;
 
         //if the accordion clicked on is equal to the current accordion that's open then close the current accordion,
         //else open the accordion you just clicked on
@@ -195,16 +203,17 @@ export default function Module({
         .filter(
             (card) =>
                 card.type?.toLowerCase() === 'match' &&
+                card.answers &&
                 card.answers[0] !== undefined
         )
         .map((card, i) => {
-            return card.answers[0];
+            return card.answers ? card.answers[0] : null;
         });
 
     let phrases = cards
         .filter((card) => card.type.toLowerCase() === 'phrase')
         .map((card, i) => {
-            return card.answers[0];
+            return card.answers ? card.answers[0] : null;
         });
 
     let questions = cards
@@ -214,10 +223,10 @@ export default function Module({
         });
 
     //Gets all answers not in this module
-    let termIDArray = terms.map((term) => term.termID);
+    let termIDArray = terms.map((term) => term?.termID);
 
     let allAnswersNotInThisModule = allAnswers.filter((answer) => {
-        if (termIDArray.indexOf(answer.id) === -1) {
+        if (termIDArray.indexOf(answer.termID) === -1) {
             return true;
         } else {
             return false;
@@ -232,7 +241,6 @@ export default function Module({
                     -1 ||
                 term.back.toLowerCase().indexOf(searchCard.toLowerCase()) !== -1
             );
-        else return null;
     });
 
     //Variable that stores all of the phrases that contain a substring that matches searchCard
@@ -271,9 +279,7 @@ export default function Module({
                             {curModule.name}
                         </InputGroupText>
                     </div>
-                    <div
-                        style={{ margin: '10px' }}
-                    >
+                    <div style={{ margin: '10px' }}>
                         <Image
                             src={searchImage}
                             alt="Icon made by Freepik from www.flaticon.com"
@@ -481,7 +487,9 @@ export default function Module({
                                 <CardList
                                     type={0}
                                     currentClass={currentClass}
-                                    cards={filteredTerms}
+                                    cards={
+                                        filteredTerms as ModuleQuestionAnswer[]
+                                    }
                                     curModule={curModule}
                                     updateCurrentModule={updateCurrentModule}
                                     deleteTag={deleteTag}
@@ -504,10 +512,15 @@ export default function Module({
                                 <CardList
                                     type={1}
                                     currentClass={currentClass}
-                                    cards={filteredPhrases}
+                                    cards={
+                                        filteredPhrases as ModuleQuestionAnswer[]
+                                    }
                                     curModule={curModule}
                                     updateCurrentModule={updateCurrentModule}
                                     freq={freq}
+                                    addTag={addTag}
+                                    deleteTag={deleteTag}
+                                    allTags={allTags}
                                 />
                             </Collapse>
                         </Card>

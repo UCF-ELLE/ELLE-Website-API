@@ -1,27 +1,14 @@
 import React from 'react';
 import { Card } from 'reactstrap';
 import SplitDeckBtn from '../SplitDeckBtn';
-
-type ModuleType = {
-    moduleID: number;
-    name: string;
-    language: string;
-    complexity: number;
-    groupID: number[];
-    userID: number;
-};
-
-type EventType = {
-    module: ModuleType;
-    task?: string;
-};
+import { Module } from '@/types/api/modules';
 
 export default function StudentView({
     modules,
     updateCurrentModule,
 }: {
-    modules: ModuleType[];
-    updateCurrentModule: (event: EventType) => void;
+    modules: Module[];
+    updateCurrentModule: (module?: Module, task?: string) => void;
 }) {
     return (
         <Card color="info" style={{ overflow: 'scroll', height: '60vh' }}>

@@ -9,6 +9,7 @@ templates/public/Unity-Game-WebGL-Builds/*
 Build/
 templates/package-lock.json
 templates/package.json
+node_modules/
 
 
 ### PyCharm ###

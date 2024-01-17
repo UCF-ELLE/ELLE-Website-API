@@ -1,0 +1,15 @@
+front,back,type,gender,,
+,,,,,Required Columns
+,,,,,Front: Translated Word
+,,,,,Back: English Word
+,,,,,
+,,,,,Optional Columns
+,,,,,Type:
+,,,,,    NN (Noun)
+,,,,,    VR (Verb)
+,,,,,    AJ (Adjective)
+,,,,,    AV (Adverb)
+,,,,,Gender:
+,,,,,    M (Male)
+,,,,,    F (Female)
+,,,,,    N (Non-gendered)

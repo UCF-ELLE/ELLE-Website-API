@@ -1,16 +1,12 @@
-import { PermissionGroup } from "./user";
+import { PermissionGroup } from '../misc';
+import { DBGroup, DBUser, DBGroupUser } from './db';
 
 // GET /elleapi/searchusergroups
-export type UserGroup = {
-    groupID: number;
-    groupName: string;
-    groupCode: string;
-    accessLevel?: PermissionGroup;
-}
+export type UserGroup = DBGroup & {
+    accessLevel: PermissionGroup;
+    group_users: GroupUser[];
+};
 
 // GET /elleapi/usersingroup
-export type UserInGroup = {
-    userID: number;
-    username: string;
-    accessLevel: PermissionGroup;
-}
+export type GroupUser = Pick<DBUser, 'userID' | 'username'> &
+    Pick<DBGroupUser, 'accessLevel'>;

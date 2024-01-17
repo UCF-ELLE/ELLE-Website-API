@@ -1,21 +1,21 @@
 import axios, { AxiosInstance } from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import type { PermissionGroup, User, UserInfo, SignUpInfo } from '@/types/users';
+// import type { PermissionGroup, User, UserInfo, SignUpInfo } from '@/types/users';
+import { ApiError, ApiMessage, PermissionGroup } from '@/types/misc';
+import { User } from '@/types/api/user';
+import { AuthUser, UserRegisterInfo } from '@/types/services/auth';
 
 type decodedJWT = {
     user_claims: {
-        permission: PermissionGroup
+        permission: PermissionGroup;
     };
     identity: string;
-}
-
-export type Error = { error: string };
+};
 
 export default class AuthService {
     protected readonly instance: AxiosInstance;
     public constructor() {
         this.instance = axios.create({
-            timeout: 1000,
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -29,6 +29,8 @@ export default class AuthService {
                 password,
             });
 
+            console.log('login response', res.data);
+
             const decoded = jwtDecode(res.data.access_token) as decodedJWT;
             const permission = decoded.user_claims.permission;
             const userID = Number(decoded.identity);
@@ -37,24 +39,32 @@ export default class AuthService {
                 username,
                 userID,
                 permissionGroup: permission,
-            } as User;
+            } as AuthUser;
         } catch (err: any) {
             if (err.response !== undefined) {
                 console.log('login error', err.response.data);
-                return { error: err.response.data.Error } as Error;
+                return { error: err.response.data.Error } as ApiError;
             }
         }
     };
 
-    signup = async (data: SignUpInfo) => {
+    signup = async (data: UserRegisterInfo): Promise<ApiMessage | ApiError> => {
         try {
-            const res = await this.instance.post('/elleapi/register', data);
+            const res = await this.instance.post<ApiMessage>(
+                '/elleapi/register',
+                data
+            );
             return res.data;
-        } catch (err: any) {
-            console.log('signup error', err.response.data);
-            return { error: err.response.data.Error } as Error;
+        } catch (err) {
+            console.log('signup error', err);
+
+            let errorMessage = 'Signup failed';
+            if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            return { error: errorMessage } as ApiError;
         }
-    }
+    };
 
     getUserInfo = async (jwt: string) => {
         try {
@@ -63,25 +73,25 @@ export default class AuthService {
                     Authorization: 'Bearer ' + jwt,
                 },
             });
-            const values: UserInfo = {
+
+            const values: User = {
                 userID: res.data.id,
                 username: res.data.username,
                 email: res.data.email === null ? '' : res.data.email,
                 permissionGroup: res.data.permissionGroup,
             };
 
-            const res2 = await this.instance.get('/elleapi/searchsessions', {
-                params: { userID: values.userID },
-                headers: { Authorization: 'Bearer ' + jwt },
-            });
+            // const res2 = await this.instance.get('/elleapi/searchsessions', {
+            //     params: { userID: values.userID },
+            //     headers: { Authorization: 'Bearer ' + jwt },
+            // });
 
-            values.sessions = res2.data;
+            // values.sessions = res2.data;
 
             return values;
-        }
-        catch(err: any) {
+        } catch (err: any) {
             console.log('getUserInfo error', err.response.data);
-            return { error: err.response.data.Error } as Error;
+            return { error: err.response.data.Error } as ApiError;
         }
-    }
+    };
 }

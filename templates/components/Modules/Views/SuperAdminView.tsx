@@ -3,20 +3,7 @@ import { Card } from 'reactstrap';
 import { Nav, NavItem, NavLink, TabContent, TabPane } from 'reactstrap';
 import SplitDeckBtn from '../SplitDeckBtn';
 import { useUser } from '@/hooks/useUser';
-
-type ModuleType = {
-    moduleID: number;
-    name: string;
-    language: string;
-    complexity: number;
-    groupID: number[];
-    userID: number;
-};
-
-type EventType = {
-    module: ModuleType;
-    task?: string;
-};
+import { Module } from '@/types/api/modules';
 
 export default function SuperAdminView({
     modules,
@@ -24,10 +11,10 @@ export default function SuperAdminView({
     deleteModule,
     editModule,
 }: {
-    modules: ModuleType[];
-    updateCurrentModule: (event: EventType) => void;
+    modules: Module[];
+    updateCurrentModule: (module?: Module, task?: string) => void;
     deleteModule: (moduleID: number) => void;
-    editModule: (name: string, event: EventType) => void;
+    editModule: (name: string, module: Module) => void;
 }) {
     const { user } = useUser();
     const [activeTab, setActiveTab] = useState(0);

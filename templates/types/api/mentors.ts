@@ -1,32 +1,32 @@
+import {
+    DBMentorResponse,
+    DBQuestion,
+    DBMultipleChoiceOption,
+    DBMentorQuestionFrequency,
+} from './db';
+
 // GET /elleapi/studentresponses
-export type StudentResponse = {
-    mentorResponseID: number;
-    questionID: number;
-    sessionID: number;
-    response?: string;
-}
+export type StudentResponse = Pick<
+    DBMentorResponse,
+    'mentorResponseID' | 'questionID' | 'sessionID' | 'response'
+>;
 
 // POST /elleapi/getmentorquestions
 // I don't know why this is a POST
-export type MentorQuestion = {
-    questionID: number;
-    type: string;
-    questionText: string;
-}
+export type MentorQuestion = Pick<
+    DBQuestion,
+    'questionID' | 'type' | 'questionText'
+>;
 
 // POST /elleapi/getmultiplechoiceoptions
 // Again, I don't know why this is a POST
-export type MultipleChoiceOption = {
-    multipleChoiceID: number;
-    questionID: number;
-    answerChoice?: string;
-}
+export type MultipleChoiceOption = DBMultipleChoiceOption;
 
 // POST /elleapi/getmentorquestionfrequency
 // Again, I don't know why this is a POST
 export type MentorQuestionFrequency = {
-    incorrectCardsFreq: number;
-    correctCardsFreq: number;
-    time: string;
-    moduleID: number;
-}
+    incorrectCardsFreq?: DBMentorQuestionFrequency['numIncorrectCards'];
+    correctCardsFreq?: DBMentorQuestionFrequency['numCorrectCards'];
+    time?: DBMentorQuestionFrequency['time'];
+    moduleID: DBMentorQuestionFrequency['moduleID'];
+};

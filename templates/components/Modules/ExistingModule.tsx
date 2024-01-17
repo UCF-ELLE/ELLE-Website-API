@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from 'reactstrap';
 import axios from 'axios';
-import { Module } from '@/types/modules';
+import { Module } from '@/types/api/modules';
 
 export default function ExistingModule({
     module,

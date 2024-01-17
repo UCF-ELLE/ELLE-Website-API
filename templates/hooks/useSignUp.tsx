@@ -1,6 +1,6 @@
 import AuthService from '@/services/AuthService';
+import { UserRegisterInfo } from '@/types/services/auth';
 import { useRouter } from 'next/router';
-import { SignUpInfo } from '@/services/AuthService';
 
 export const useSignUp = () => {
     const router = useRouter();
@@ -19,9 +19,13 @@ export const useSignUp = () => {
             password,
             password_confirm: confirmation,
             groupCode,
-        } as SignUpInfo;
+        } as UserRegisterInfo;
         const response = await _as.signup(data);
-        if ('jwt' in response) {
+        console.log(response);
+        if (
+            'Message' in response &&
+            response.Message.toLowerCase().includes('success')
+        ) {
             router.push('/login');
         }
         return response;

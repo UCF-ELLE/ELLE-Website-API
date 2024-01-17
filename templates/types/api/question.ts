@@ -1,13 +1,11 @@
 // GET /elleapi/searchbytype
 // GET /elleapi/searchbytext
+
+import { DBAnswer, DBQuestion } from './db';
+
 // GET /elleapi/question
-export type Question = {
-    questionID: number;
-    audioID?: number;
-    audioLocation?: string;
-    imageID?: number;
+export type Question = DBQuestion & {
     imageLocation?: string;
-    type: string;
-    questionText: string;
-    answers?: string[];
-}
+    audioLocation?: string;
+    answers?: DBAnswer['termID'][];
+};

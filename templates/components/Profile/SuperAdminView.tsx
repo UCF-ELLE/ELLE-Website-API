@@ -13,7 +13,7 @@ export default function SuperAdminView({
     editEmail,
 }: {
     username: string;
-    email: string;
+    email?: string;
     editEmail: (e: ChangeEvent<HTMLInputElement>) => void;
 }) {
     return (
