@@ -12,7 +12,6 @@ import {
 } from 'reactstrap';
 import axios from 'axios';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
-import { EventType } from '@/types/events';
 import { useUser } from '@/hooks/useUser';
 import Image from 'next/image';
 
@@ -33,7 +32,7 @@ export default function Phrase({
 }: {
     card: ModuleQuestionAnswer;
     currentClass: { value: number; label: string };
-    updateCurrentModule: (event: EventType) => void;
+    updateCurrentModule: (module: Module, task?: string) => void;
     curModule: Module;
 }) {
     const [editedFront, setEditedFront] = useState(card.front);
@@ -79,9 +78,9 @@ export default function Phrase({
                 : new Blob()
         );
 
-        data.append('front', editedFront);
-        data.append('back', editedBack);
-        data.append('language', card.language); //not editable
+        editedFront && data.append('front', editedFront);
+        editedBack && data.append('back', editedBack);
+        card.language && data.append('language', card.language); //not editable
         data.append('termID', card.termID.toString()); //not editable
 
         if (permissionLevel === 'ta')
@@ -97,7 +96,7 @@ export default function Phrase({
                 setChangedImage(false);
                 setChangedAudio(false);
 
-                updateCurrentModule({ module: curModule });
+                updateCurrentModule(curModule);
             })
             .catch((error) => {
                 console.log('submitEdit in Phrase.js error: ', error.response);
@@ -134,7 +133,7 @@ export default function Phrase({
         axios
             .delete('/elleapi/term', header)
             .then((res) => {
-                updateCurrentModule({ module: curModule });
+                updateCurrentModule(curModule);
             })
             .catch((error) => {
                 console.log('deletePhrase error: ', error.response);

@@ -4,24 +4,33 @@ import { useEffect, useState } from 'react';
 import { useUser } from '@/hooks/useUser';
 import MainTemplate from '@/components/MainTemplate';
 import Footer from '@/components/Footer';
-import { PermissionGroup } from '@/types/users';
+import { PermissionGroup } from '@/types/misc';
+import { useRouter } from 'next/router';
 
 type PermissionLevels = PermissionGroup | undefined;
 
 export default function RootLayout({
     children,
     noFooter,
+    requireUser,
 }: {
     children: React.ReactNode;
     noFooter?: boolean;
+    requireUser?: boolean;
 }) {
-    const { user } = useUser();
+    const { user, loading } = useUser();
+    const router = useRouter();
     const [permission, setPermission] = useState<PermissionLevels>(undefined);
 
     useEffect(() => {
+        if (loading) return;
         setPermission(user?.permissionGroup as PermissionLevels);
+
+        if (requireUser && (!user || !user?.permissionGroup)) {
+            router.push('/home');
+        }
         console.log('permission', user?.permissionGroup);
-    }, [user?.permissionGroup]);
+    }, [loading, user, requireUser, router]);
 
     return (
         <>

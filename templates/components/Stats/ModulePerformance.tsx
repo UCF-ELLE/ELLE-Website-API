@@ -62,7 +62,7 @@ export default function ModulePerformance() {
     useEffect(() => {
         console.log('user', user);
         if (user?.jwt) {
-            console.log('refetching')
+            console.log('refetching');
             refetchModuleStats();
             refetchTermStats();
         }
@@ -161,7 +161,7 @@ export default function ModulePerformance() {
         if (modalOpen === false) {
             setShowTermStats(true);
             setModuleID(id);
-            moduleExecute();
+            refetchTermStats();
         } else {
             setShowTermStats(false);
         }
@@ -173,7 +173,7 @@ export default function ModulePerformance() {
             return <Spinner chart="performance" />;
         }
 
-        const termData = termResponse.data;
+        const termData = termResponse;
 
         let terms = Object.entries(termData).map(([i, term]) => {
             return { front: term.front, percentage: term.correctness * 100 };

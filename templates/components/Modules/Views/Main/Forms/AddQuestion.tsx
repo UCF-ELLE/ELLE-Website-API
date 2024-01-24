@@ -14,16 +14,15 @@ import {
 } from 'reactstrap';
 import axios from 'axios';
 
-import Autocomplete from './Autocomplete';
-import AnswerButtonList from './AnswerButtonList';
-import AddAnswer from './AddAnswer';
-import SearchAnswersByTag from './SearchAnswersByTag';
+import Autocomplete from '../Autocomplete';
+import AnswerButtonList from '../AnswerButtonList';
+import AddAnswer from '../AddAnswer';
+import SearchAnswersByTag from '../SearchAnswerByTag';
 
-import MicRecorder from 'mic-recorder';
+// import MicRecorder from 'mic-recorder';
 import { useUser } from '@/hooks/useUser';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
-import { Tag } from '../../../../to be removed/tags';
-import { LoggedAnswer } from '@/types/api/logged_answer';
+import { Tag } from '@/types/api/terms';
 
 export default function AddQuestion({
     curModule,
@@ -37,9 +36,9 @@ export default function AddQuestion({
     setOpenForm,
 }: {
     curModule: Module;
-    updateCurrentModule: (module: { module: Module }) => void;
+    updateCurrentModule: (module: Module, task?: string) => void;
     currentClass: { value: number; label: string };
-    allAnswers: LoggedAnswer[];
+    allAnswers: ModuleQuestionAnswer[];
     allTags: Tag[];
     getAllTags: () => void;
     addTag: (tagList: Tag[], tag: Tag) => Tag[];
@@ -79,9 +78,9 @@ export default function AddQuestion({
 
     const [questionID, setQuestionID] = useState('');
 
-    const [Mp3Recorder, setMp3Recorder] = useState(
-        new MicRecorder({ bitRate: 128 })
-    );
+    // const [Mp3Recorder, setMp3Recorder] = useState(
+    //     new MicRecorder({ bitRate: 128 })
+    // );
 
     const [isRecording, setIsRecording] = useState(false);
     const [blobURL, setBlobURL] = useState('');
@@ -119,46 +118,45 @@ export default function AddQuestion({
         if (isBlocked) {
             console.log('Permission Denied');
         } else {
-            Mp3Recorder.start()
-                .then(() => {
-                    setIsRecording(true);
-                })
-                .catch((e) => console.error(e));
-
-            // this.state.disable = true
-            setDisable(true);
+            // Mp3Recorder.start()
+            //     .then(() => {
+            //         setIsRecording(true);
+            //     })
+            //     .catch((e) => console.error(e));
+            // // this.state.disable = true
+            // setDisable(true);
         }
     };
 
     const stop = () => {
-        Mp3Recorder.stop()
-            .getAudio()
-            .then(([buffer, blob]) => {
-                const blobURL = URL.createObjectURL(blob);
-                setBlobURL(blobURL);
-                setIsRecording(false);
+        // Mp3Recorder.stop()
+        //     .getAudio()
+        //     .then(([buffer, blob]) => {
+        //         const blobURL = URL.createObjectURL(blob);
+        //         setBlobURL(blobURL);
+        //         setIsRecording(false);
 
-                const moduleIdentifier = document
-                    .getElementById('module-name')
-                    ?.textContent?.replace(/\s+/g, '-')
-                    .toLowerCase();
-                const phraseName = (
-                    document.getElementById('questionText') as HTMLInputElement
-                ).value
-                    .replace(/\s+/g, '-')
-                    .toLowerCase();
+        //         const moduleIdentifier = document
+        //             .getElementById('module-name')
+        //             ?.textContent?.replace(/\s+/g, '-')
+        //             .toLowerCase();
+        //         const phraseName = (
+        //             document.getElementById('questionText') as HTMLInputElement
+        //         ).value
+        //             .replace(/\s+/g, '-')
+        //             .toLowerCase();
 
-                setFile(
-                    new File(
-                        buffer,
-                        `question_${moduleIdentifier}_${phraseName}.mp3`,
-                        { type: blob.type, lastModified: Date.now() }
-                    )
-                );
+        //         setFile(
+        //             new File(
+        //                 buffer,
+        //                 `question_${moduleIdentifier}_${phraseName}.mp3`,
+        //                 { type: blob.type, lastModified: Date.now() }
+        //             )
+        //         );
 
-                console.log(file);
-            })
-            .catch((e) => console.log(e));
+        //         console.log(file);
+        //     })
+        //     .catch((e) => console.log(e));
 
         // this.state.disable = false
         setDisable(false);
@@ -255,7 +253,7 @@ export default function AddQuestion({
                 .post('/elleapi/question', data, header)
                 .then((res) => {
                     resetFields();
-                    updateCurrentModule({ module: curModule });
+                    updateCurrentModule(curModule);
                 })
                 .catch((error) => {
                     console.log('submitQuestion error: ', error.response);
@@ -265,11 +263,11 @@ export default function AddQuestion({
 
     //TODO: handleAddAnswer and createAnswer kinda do the same thing. Maybe they should be one thing?
     //function that takes a string and adds the corresponding answer object to this.state.answers
-    const handleAddAnswer = (event: { answer: string }) => {
+    const handleAddAnswer = (answerString: string) => {
         let list = answers;
 
         let answerObject = allAnswers.find((answer) => {
-            if (answer.front === event.answer) {
+            if (answer.front === answerString) {
                 return true;
             } else {
                 return false;
@@ -278,7 +276,7 @@ export default function AddQuestion({
 
         if (answerObject === undefined) {
             answerObject = allAnswers.find((answer) => {
-                if (answer.back === event.answer) {
+                if (answer.back === answerString) {
                     return true;
                 } else {
                     return false;
@@ -321,7 +319,7 @@ export default function AddQuestion({
     };
 
     //function that adds a new answer from user input to list of answers on this form
-    const createAnswer = (answer) => {
+    const createAnswer = (answer: string) => {
         setSubmittingAnswer(true);
         setUserCreatedAnswer(answer);
     };
@@ -346,7 +344,7 @@ export default function AddQuestion({
     };
 
     //function that removes a answer from the list of answers on this form
-    const handleDeleteAnswer = (event) => {
+    const handleDeleteAnswer = (event: { answer: string }) => {
         let tempAnswerButtonList = answers;
 
         let answerObject = answers.find((answer) => {
@@ -463,19 +461,11 @@ export default function AddQuestion({
                                     }}
                                     needID={0}
                                     suggestions={validAnswersState
-                                        .map((answer) => {
-                                            return {
-                                                termID: 0,
-                                                tagName: answer.front,
-                                            };
-                                        })
+                                        .map((answer) => answer.front || '')
                                         .concat(
-                                            validAnswersState.map((answer) => {
-                                                return {
-                                                    termID: 0,
-                                                    tagName: answer.back,
-                                                };
-                                            })
+                                            validAnswersState.map(
+                                                (answer) => answer.back || ''
+                                            )
                                         )
                                         .filter((answer, i, validAnswers) => {
                                             if (
@@ -504,18 +494,16 @@ export default function AddQuestion({
                             <Alert color="warning">
                                 <Label> Answers: </Label>
                                 <AnswerButtonList
-                                    answers={answers.map((answer) => {
-                                        return answer.front;
-                                    })}
+                                    answers={answers.map(
+                                        (answer) => answer.front || ''
+                                    )}
                                     handleDeleteAnswer={handleDeleteAnswer}
                                     deletable={true}
                                 />
 
                                 <AnswerButtonList
                                     answers={newlyCreatedAnswers.map(
-                                        (answer) => {
-                                            return answer.front;
-                                        }
+                                        (answer) => answer.front || ''
                                     )}
                                     handleDeleteAnswer={handleDeleteNewAnswer}
                                     deletable={true}

@@ -1,13 +1,16 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
-const { config } = require('process');
-const webpack = require('webpack');
 
 const nextConfig = {
     webpack: (config, { isServer }) => {
         if (!isServer) {
             config.resolve.modules.push(path.resolve('./node_modules'));
         }
+        config.module.rules.push({
+            test: /\.css$/,
+            use: ['style-loader', 'css-loader'],
+        });
+
         return config;
     },
 

@@ -6,10 +6,10 @@ import 'rc-slider/assets/index.css';
 import ThreeDots from '../Loading/ThreeDots';
 import TermStats from './TermStats';
 import TermBarChart from './TermBarChart';
-import useAxios from '@/hooks/useAxios';
-import { TermStatsType } from './ClassPerformance';
+import useAxios from 'axios-hooks';
 import axios from 'axios';
 import { useUser } from '@/hooks/useUser';
+import { TermPerformance } from '@/types/api/stats';
 
 export default function SpecificStudentStats({ groupID }: { groupID: string }) {
     const [students, setStudents] = React.useState([]);
@@ -19,11 +19,13 @@ export default function SpecificStudentStats({ groupID }: { groupID: string }) {
     const [threshold, setThreshold] = React.useState(50);
     const { user } = useUser();
 
-    const {
-        response: termStatsResponse,
-        loading: termStatsLoading,
-        error: termStatsError,
-    } = useAxios<TermStatsType[]>({
+    const [
+        {
+            response: termStatsResponse,
+            loading: termStatsLoading,
+            error: termStatsError,
+        },
+    ] = useAxios<TermPerformance[]>({
         method: 'get',
         url: '/elleapi/termsperformance',
         headers: { Authorization: 'Bearer ' + user?.jwt },

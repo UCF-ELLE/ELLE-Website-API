@@ -17,7 +17,6 @@ import {
 import { useCSVReader } from 'react-papaparse';
 import axios from 'axios';
 
-import ImportTemplate from '@/public/static/csv/Template.csv';
 import TermFields from '@/components/Modules/TermFields';
 import { Module } from '@/types/api/modules';
 import { Term } from '@/types/api/terms';
@@ -359,7 +358,7 @@ export default function ImportTerms({
                                         textDecoration: 'underline',
                                         color: 'blue',
                                     }}
-                                    href={ImportTemplate}
+                                    href={'/static/csv/Template.csv'}
                                     download="template.csv"
                                 >
                                     here

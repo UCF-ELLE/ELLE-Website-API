@@ -10,7 +10,8 @@ export type Term = DBTerm & {
 
 // GET /elleapi/tags
 // GET /elleapi/tags_in_term
-export type Tag = Omit<DBTag, 'tagID'>;
+// For some reason the API returns a list of strings instead of a list of DBTag
+export type Tag = string;
 
 // GET /elleapi/tagcount
 export type TagCount = {

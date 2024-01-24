@@ -21,7 +21,6 @@ import {
     ModuleQuestion,
     ModuleQuestionAnswer,
 } from '@/types/api/modules';
-import { EventType } from '@/types/events';
 import { Tag } from '@/types/api/terms';
 import { LoggedAnswer } from '@/types/api/logged_answer';
 import { useUser } from '@/hooks/useUser';
@@ -35,7 +34,6 @@ import trashImage from '@/public/static/images/delete.png';
 import submitImage from '@/public/static/images/submit.png';
 import cancelImage from '@/public/static/images/cancel.png';
 import Image from 'next/image';
-import { Gender } from '@/types/api/misc';
 
 export default function Question({
     question,
@@ -49,11 +47,11 @@ export default function Question({
 }: {
     question: ModuleQuestion;
     curModule: Module;
-    updateCurrentModule: (event: EventType) => void;
+    updateCurrentModule: (module: Module, task?: string) => void;
     deleteTag: (tagList: Tag[], tag: Tag) => Tag[];
     addTag: (tagList: Tag[], tag: Tag) => Tag[];
     allTags: Tag[];
-    allAnswers: LoggedAnswer[];
+    allAnswers: ModuleQuestionAnswer[];
     currentClass: { value: number; label: string };
 }) {
     const [modal, setModal] = useState(false);
@@ -74,7 +72,7 @@ export default function Question({
     const [changedAudio, setChangedAudio] = useState(false);
     const [answers, setAnswers] = useState(
         question.answers?.map((answer) => {
-            return answer.front;
+            return answer.front || '';
         }) || []
     );
     const [originalAnswers, setOriginalAnswers] = useState(
@@ -123,7 +121,7 @@ export default function Question({
         tempNewlyCreatedAnswers.push(answer);
 
         let allAnswers = answers;
-        allAnswers.push(answer.front);
+        answer.front && allAnswers.push(answer.front);
         setNewlyCreatedAnswers(tempNewlyCreatedAnswers);
         setAnswers(allAnswers);
         setSubmittingAnswer(false);
@@ -167,7 +165,7 @@ export default function Question({
         setCollapseAnswers(true);
         setAnswers(
             question.answers?.map((answer) => {
-                return answer.front;
+                return answer.front || '';
             }) || []
         );
         setIDs(
@@ -239,7 +237,7 @@ export default function Question({
                 : new Blob()
         );
 
-        data.append('questionText', editedQuestionText);
+        editedQuestionText && data.append('questionText', editedQuestionText);
         data.append('questionID', question.questionID.toString()); //not editable
         data.append('new_answers', stringifyIDList);
         data.append('arr_of_terms', stringyAnswerList);
@@ -255,7 +253,7 @@ export default function Question({
                 setChangedImage(false);
                 setChangedAudio(false);
 
-                updateCurrentModule({ module: curModule });
+                updateCurrentModule(curModule);
             })
             .catch((error) => {
                 console.log('submitEdit in question.js error: ', error);
@@ -282,7 +280,7 @@ export default function Question({
         axios
             .delete('/elleapi/deletequestion', header)
             .then((res) => {
-                updateCurrentModule({ module: curModule });
+                updateCurrentModule(curModule);
             })
             .catch((error) => {
                 console.log(
@@ -319,7 +317,7 @@ export default function Question({
         setSelectedAudioFile(question.audioLocation);
         setChangedImage(false);
         setChangedAudio(false);
-        setAnswers(originalAnswers);
+        setAnswers(originalAnswers as string[]);
         setIDs(
             question.answers?.map((answer) => {
                 return answer.termID;
@@ -424,22 +422,22 @@ export default function Question({
                 </Modal>
             </tr>
 
-            <tr>
-                <td style={{ border: 'none' }} colSpan={8}>
-                    <Collapse isOpen={collapseAnswers}>
-                        Answers:
-                        <AnswerButtonList
-                            answers={
-                                question.answers?.map((answer) => {
-                                    return answer.front;
-                                }) || []
-                            }
-                            handleDeleteAnswer={handleDeleteAnswer}
-                            deletable={false}
-                        />
-                    </Collapse>
-                </td>
-            </tr>
+            {question.answers && (
+                <tr>
+                    <td style={{ border: 'none' }} colSpan={8}>
+                        <Collapse isOpen={collapseAnswers}>
+                            Answers:
+                            <AnswerButtonList
+                                answers={question.answers.map((answer) => {
+                                    return answer.front || '';
+                                })}
+                                handleDeleteAnswer={handleDeleteAnswer}
+                                deletable={false}
+                            />
+                        </Collapse>
+                    </td>
+                </tr>
+            )}
         </Fragment>
     ) : (
         <Fragment>
@@ -560,11 +558,11 @@ export default function Question({
                         createAnswer={createAnswer}
                         renderButton={true}
                         needID={1}
-                        suggestions={allAnswers.map((answer) => {
-                            return { termID: 0, tagName: answer.front };
-                        })}
+                        suggestions={allAnswers.map(
+                            (answer) => answer.front || ''
+                        )}
                         termIDs={allAnswers.map((answer) => {
-                            return answer.logID;
+                            return answer.termID;
                         })}
                     />
                 </td>

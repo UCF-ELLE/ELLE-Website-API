@@ -37,13 +37,13 @@ export default function TagItem({
                 onMouseOver={() => setRemoveMode(true)}
                 onMouseOut={() => setRemoveMode(false)}
             >
-                {tag.tagName}
+                {tag}
             </Button>{' '}
         </div>
     ) : (
         <div>
             <Button style={setStyle()} color="secondary">
-                {tag.tagName}
+                {tag}
             </Button>{' '}
         </div>
     );

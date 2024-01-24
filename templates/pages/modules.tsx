@@ -39,7 +39,7 @@ import AddExistingModule from '@/components/Modules/AddExistingModule';
 import SuperAdminView from '@/components/Modules/Views/SuperAdminView';
 import StudentView from '@/components/Modules/Views/StudentView';
 import AdminView from '@/components/Modules/Views/AdminView';
-import MainModuleView from '@/components/Modules/Views/MainModuleView';
+import MainModuleView from '@/components/Modules/Views/Main/MainModuleView';
 
 export default function Modules() {
     const { user, loading } = useUser();
@@ -69,16 +69,6 @@ export default function Modules() {
     >([]);
     const [modificationWarning, setModificationWarning] = useState(false);
     const [addModuleButtonOpen, setAddModuleButtonOpen] = useState(false);
-
-    const verifyPermission = useCallback(() => {
-        if (!loading) {
-            if (!user || !permissionLevel) router.push('/home');
-        }
-    }, [loading, permissionLevel, router, user]);
-
-    useEffect(() => {
-        verifyPermission();
-    }, [verifyPermission]);
 
     useEffect(() => {
         if (!loading) {
@@ -356,11 +346,10 @@ export default function Modules() {
             setSelectedClass(classContext);
             setClassChanged(true);
 
-            classContext.value === 0
-                ? verifyPermission()
-                : setCurrentPermissionLevel(
-                      currentClass?.accessLevel as PermissionGroup
-                  );
+            classContext.value !== 0 &&
+                setCurrentPermissionLevel(
+                    currentClass?.accessLevel as PermissionGroup
+                );
         }
     };
 
@@ -391,7 +380,7 @@ export default function Modules() {
     classChanged ? updateModuleList('change') : null;
 
     return (
-        <Layout>
+        <Layout requireUser>
             <div>
                 <Container className="mainContainer">
                     <br />
@@ -598,18 +587,20 @@ export default function Modules() {
                             </Row>
                         </Col>
                         <Col className="Right Column">
-                            <MainModuleView
-                                currentClass={selectedClass}
-                                curModule={currentModule}
-                                questions={questions}
-                                mentorQuestions={mentorQuestions}
-                                updateCurrentModule={updateCurrentModule}
-                                allAnswers={allAnswers}
-                                modificationWarning={modificationWarning}
-                                toggleModificationWarning={
-                                    toggleModificationWarning
-                                }
-                            />
+                            {currentModule && (
+                                <MainModuleView
+                                    currentClass={selectedClass}
+                                    curModule={currentModule}
+                                    questions={questions}
+                                    mentorQuestions={mentorQuestions}
+                                    updateCurrentModule={updateCurrentModule}
+                                    allAnswers={allAnswers}
+                                    modificationWarning={modificationWarning}
+                                    toggleModificationWarning={
+                                        toggleModificationWarning
+                                    }
+                                />
+                            )}
                         </Col>
                     </Row>
                 </Container>

@@ -55,7 +55,7 @@ export default function Autocomplete({
     };
 
     const handleCreateTag = () => {
-        createTag && createTag({ termID: 0, tagName: userInput });
+        createTag && createTag(userInput);
         setActiveSuggestion(0);
         setShowSuggestions(false);
         setUserInput('');
@@ -74,10 +74,8 @@ export default function Autocomplete({
 
         // Filter our suggestions that don't contain the user's input
         const filteredSuggestions = suggestions.filter((suggestion) => {
-            suggestion.tagName
-                ? suggestion.tagName
-                      .toLowerCase()
-                      .indexOf(userInput.toLowerCase()) > -1
+            suggestion
+                ? suggestion.toLowerCase().indexOf(userInput.toLowerCase()) > -1
                 : null;
         });
         // Update the user input and filtered suggestions, reset the active
@@ -97,13 +95,13 @@ export default function Autocomplete({
         setUserInput('');
 
         if (handleAddTag !== undefined) {
-            handleAddTag({ termID: 0, tagName: e.currentTarget.innerText });
+            handleAddTag(e.currentTarget.innerText);
         } else if (handleAddAnswer !== undefined) {
             if (needID === 0) {
                 handleAddAnswer({ answer: e.currentTarget.innerText });
             } else {
                 let index = suggestions.findIndex(
-                    (entry) => entry.tagName === e.currentTarget.innerText
+                    (entry) => entry === e.currentTarget.innerText
                 );
                 handleAddAnswer({
                     answer: e.currentTarget.innerText,
@@ -125,10 +123,7 @@ export default function Autocomplete({
                 setUserInput('');
 
                 if (handleAddTag !== undefined) {
-                    handleAddTag({
-                        termID: 0,
-                        tagName: filteredSuggestions[0].tagName,
-                    });
+                    handleAddTag(filteredSuggestions[0]);
                 } else if (handleAddAnswer !== undefined) {
                     if (needID === 0) {
                         handleAddAnswer({ answer: filteredSuggestions[0] });
@@ -143,13 +138,12 @@ export default function Autocomplete({
                     }
                 }
             } else if (filteredSuggestions.length > 1) {
-                let tempUserInput =
-                    filteredSuggestions[activeSuggestion].tagName;
+                let tempUserInput = filteredSuggestions[activeSuggestion];
 
                 let tempFilteredSuggestions = suggestions.filter(
                     (suggestion) => {
-                        return suggestion.tagName
-                            ? suggestion.tagName
+                        return suggestion
+                            ? suggestion
                                   ?.toLowerCase()
                                   .indexOf(
                                       tempUserInput
@@ -200,10 +194,10 @@ export default function Autocomplete({
                         return (
                             <li
                                 className={className}
-                                key={suggestion?.tagName}
+                                key={suggestion}
                                 onClick={onClick}
                             >
-                                {suggestion?.tagName}
+                                {suggestion}
                             </li>
                         );
                     })}

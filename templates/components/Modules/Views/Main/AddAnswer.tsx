@@ -55,10 +55,10 @@ export default function AddAnswer({
                 termID: 0,
                 front: front,
                 back: back,
-                tags: tags.map((tag) => tag.tagName),
+                tags: tags.map((tag) => tag),
                 type: '',
                 gender: 'N',
-                language: 'Latin',
+                language: 'la',
             });
         } else {
             e.preventDefault();

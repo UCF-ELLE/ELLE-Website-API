@@ -1,26 +1,26 @@
+import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import {
+    Alert,
     Button,
+    Col,
     Form,
     FormGroup,
-    Label,
     Input,
+    Label,
     Row,
-    Col,
-    Alert,
     Tooltip,
 } from 'reactstrap';
-import axios from 'axios';
 
-import TagList from './TagList';
-import Autocomplete from './Autocomplete';
 import Image from 'next/image';
+import Autocomplete from '../Autocomplete';
+import TagList from '../TagList';
 
-import MicRecorder from 'mic-recorder';
-import { Module } from '@/types/api/modules';
 import { useUser } from '@/hooks/useUser';
-import InfoImage from '../../Images/info.png';
+import InfoImage from '@/public/static/images/info.png';
+import { Module } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';
+// import MicRecorder from 'mic-recorder';
 
 export default function AddTerm({
     curModule,
@@ -32,7 +32,7 @@ export default function AddTerm({
     setOpenForm,
 }: {
     curModule: Module;
-    updateCurrentModule: (module: { module: Module }) => void;
+    updateCurrentModule: (module: Module, task?: string) => void;
     currentClass: { value: number; label: string };
     allTags: Tag[];
     addTag: (tagList: Tag[], tag: Tag) => Tag[];
@@ -63,9 +63,9 @@ export default function AddTerm({
     const [tagInfoModalOpen, setTagInfoModalOpen] = useState<boolean>(false);
     const [error, setError] = useState<boolean>(false);
     const [errMsg, setErrMsg] = useState<string>('');
-    const [Mp3Recorder, setMp3Recorder] = useState<MicRecorder>(
-        new MicRecorder({ bitRate: 128 })
-    );
+    // const [Mp3Recorder, setMp3Recorder] = useState<MicRecorder>(
+    //     new MicRecorder({ bitRate: 128 })
+    // );
     const [isRecording, setIsRecording] = useState<boolean>(false);
     const [blobURL, setBlobURL] = useState<string>('');
     const [isBlocked, setIsBlocked] = useState<boolean>(false);
@@ -98,11 +98,11 @@ export default function AddTerm({
         if (isBlocked) {
             console.log('Permission Denied');
         } else {
-            Mp3Recorder.start()
-                .then(() => {
-                    setIsRecording(true);
-                })
-                .catch((e: string) => console.error(e));
+            // Mp3Recorder.start()
+            //     .then(() => {
+            //         setIsRecording(true);
+            //     })
+            //     .catch((e: string) => console.error(e));
 
             // this.state.disable = true
             setDisable(true);
@@ -110,38 +110,38 @@ export default function AddTerm({
     };
 
     const stop = () => {
-        Mp3Recorder.stop()
-            .getAudio()
-            .then(([buffer, blob]) => {
-                const blobURL = URL.createObjectURL(blob);
-                setBlobURL(blobURL);
-                setIsRecording(false);
+        // Mp3Recorder.stop()
+        //     .getAudio()
+        //     .then(([buffer, blob]) => {
+        //         const blobURL = URL.createObjectURL(blob);
+        //         setBlobURL(blobURL);
+        //         setIsRecording(false);
 
-                const moduleIdentifier = document
-                    .getElementById('module-name')
-                    ?.textContent?.replace(/\s+/g, '-')
-                    .toLowerCase();
-                const termName = (
-                    document.getElementById('back') as HTMLInputElement
-                ).value
-                    ?.replace(/\s+/g, '-')
-                    .toLowerCase();
+        //         const moduleIdentifier = document
+        //             .getElementById('module-name')
+        //             ?.textContent?.replace(/\s+/g, '-')
+        //             .toLowerCase();
+        //         const termName = (
+        //             document.getElementById('back') as HTMLInputElement
+        //         ).value
+        //             ?.replace(/\s+/g, '-')
+        //             .toLowerCase();
 
-                // this.state.file = new File(buffer, `term_${moduleIdentifier}_${termName}.mp3`, {
-                // 		type: blob.type,
-                // 		lastModified: Date.now()
-                // });
-                setFile(
-                    new File(
-                        buffer,
-                        `term_${moduleIdentifier}_${termName}.mp3`,
-                        { type: blob.type, lastModified: Date.now() }
-                    )
-                );
+        //         // this.state.file = new File(buffer, `term_${moduleIdentifier}_${termName}.mp3`, {
+        //         // 		type: blob.type,
+        //         // 		lastModified: Date.now()
+        //         // });
+        //         setFile(
+        //             new File(
+        //                 buffer,
+        //                 `term_${moduleIdentifier}_${termName}.mp3`,
+        //                 { type: blob.type, lastModified: Date.now() }
+        //             )
+        //         );
 
-                console.log(file);
-            })
-            .catch((e) => console.log(e));
+        //         console.log(file);
+        //     })
+        //     .catch((e) => console.log(e));
 
         // this.state.disable = false
         // this.setState({ disable: false });
@@ -212,7 +212,7 @@ export default function AddTerm({
 
             //map through all the tags and make a tag field object for them
             tags.map((label) => {
-                return data.append('tag', label.tagName || '');
+                return data.append('tag', label || '');
             });
 
             if (selectedImgFile != undefined)
@@ -225,7 +225,7 @@ export default function AddTerm({
                 .post('/elleapi/term', data, header)
                 .then((res) => {
                     resetFields();
-                    updateCurrentModule({ module: curModule });
+                    updateCurrentModule(curModule);
                 })
                 .catch((error) => {
                     console.log('submitTerm error: ', error.response);
@@ -407,8 +407,9 @@ export default function AddTerm({
                                     form.
                                 </p>
                                 <p style={{ textAlign: 'left' }}>
-                                    i.e. The term "apple" can have the tags:
-                                    "fruit" and "food".
+                                    i.e. The term &quot;apple&quot; can have the
+                                    tags: &quot;fruit&quot; and
+                                    &quot;food&quot;.
                                 </p>
                             </Tooltip>
 

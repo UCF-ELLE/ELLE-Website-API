@@ -1,8 +1,8 @@
 import { useUser } from '@/hooks/useUser';
 import { Module } from '@/types/api/modules';
 import { Row, Col, Badge } from 'reactstrap';
-import Manual from './Manual';
-import ImportTerms from './ImportTerms';
+import Manual from '../../Manual';
+import ImportTerms from '../../ImportTerms';
 
 export default function ModuleToolRow({
     curModule,
@@ -19,10 +19,10 @@ export default function ModuleToolRow({
     return (
         <Row style={{ marginBottom: '8px' }}>
             <Col>
-                <Badge pill variant="info">
+                <Badge pill color="info" style={{ color: '#fff' }}>
                     Module ID: {curModule?.moduleID}
                 </Badge>{' '}
-                <Badge pill variant="info">
+                <Badge pill color="info" style={{ color: '#fff' }}>
                     Language: {curModule?.language}
                 </Badge>
             </Col>

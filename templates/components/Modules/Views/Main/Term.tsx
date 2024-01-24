@@ -16,7 +16,6 @@ import axios from 'axios';
 import TagList from './TagList';
 import Autocomplete from './Autocomplete';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
-import { EventType } from '@/types/events';
 import { Tag } from '@/types/api/terms';
 import { useUser } from '@/hooks/useUser';
 import Image from 'next/image';
@@ -26,7 +25,7 @@ import imageImage from '@/public/static/images/image.png';
 import headphonesImage from '@/public/static/images/headphones.png';
 import toolsImage from '@/public/static/images/tools.png';
 import deleteImage from '@/public/static/images/delete.png';
-import uploadImage from '@/public/static/images/upload.png';
+import uploadImage from '@/public/static/images/uploadImage.png';
 import uploadAudioImage from '@/public/static/images/uploadAudio.png';
 import submitImage from '@/public/static/images/submit.png';
 import cancelImage from '@/public/static/images/cancel.png';
@@ -41,10 +40,10 @@ export default function Term({
 }: {
     card: ModuleQuestionAnswer;
     currentClass: { value: number; label: string };
-    updateCurrentModule: (event: EventType) => void;
+    updateCurrentModule: (module?: Module, task?: string) => void;
     curModule: Module;
     addTag: (tagList: Tag[], tag: Tag) => Tag[];
-    deleteTag: (tagList: Tag[], tag: Tag) => Tag[] | undefined;
+    deleteTag: (tagList: Tag[], tag: Tag) => Tag[];
     allTags: Tag[];
 }) {
     const [modal, setModal] = useState(false);
@@ -68,14 +67,31 @@ export default function Term({
     const [changedAudio, setChangedAudio] = useState(false);
     const [tags, setTags] = useState<Tag[]>([]);
     const [originalTags, setOriginalTags] = useState([]);
-    const { user } = useUser();
+    const { user, loading } = useUser();
     const permissionLevel = user?.permissionGroup;
     let imgInput: HTMLInputElement | null;
     let audioInput: HTMLInputElement | null;
 
     useEffect(() => {
-        getTermTags(card.termID);
-    }, []);
+        if (!loading && user) {
+            let config = {
+                headers: { Authorization: 'Bearer ' + user?.jwt },
+                params: {
+                    termID: card.termID,
+                },
+            };
+
+            axios
+                .get('/elleapi/tags_in_term', config)
+                .then((res) => {
+                    setTags(res.data);
+                    setOriginalTags(JSON.parse(JSON.stringify(res.data)));
+                })
+                .catch(function (error) {
+                    console.log('getTermTags error: ', error);
+                });
+        }
+    }, [card.termID, loading, user]);
 
     //TODO: handleAddTag and createTag kinda do the same thing. Maybe they should be one thing?
     //function that adds a tag to list of tags on this card(only available when editmode is true)
@@ -143,9 +159,9 @@ export default function Term({
             data.append('audio', selectedAudioFile);
         }
 
-        data.append('front', editedFront);
-        data.append('back', editedBack);
-        data.append('language', card.language); //not editable
+        editedFront && data.append('front', editedFront);
+        editedBack && data.append('back', editedBack);
+        card.language && data.append('language', card.language); //not editable
 
         if (permissionLevel === 'ta')
             data.append('groupID', currentClass.value.toString());
@@ -155,7 +171,7 @@ export default function Term({
             return data.append('tag', JSON.stringify(label));
         });
 
-        data.append('type', editedType); //editable
+        editedType && data.append('type', editedType); //editable
         data.append('gender', editedGender); //editable
         data.append('termID', card.termID.toString()); //not editable
 
@@ -165,10 +181,23 @@ export default function Term({
                 setChangedImage(false);
                 setChangedAudio(false);
 
-                getTermTags(card.termID);
-                updateCurrentModule({
-                    module: curModule,
-                });
+                let config = {
+                    headers: { Authorization: 'Bearer ' + user?.jwt },
+                    params: {
+                        termID: card.termID,
+                    },
+                };
+
+                axios
+                    .get('/elleapi/tags_in_term', config)
+                    .then((res) => {
+                        setTags(res.data);
+                        setOriginalTags(JSON.parse(JSON.stringify(res.data)));
+                    })
+                    .catch(function (error) {
+                        console.log('getTermTags error: ', error);
+                    });
+                updateCurrentModule(curModule);
             })
             .catch((error) => {
                 console.log('submitEdit in Card.js error: ', error.response);
@@ -195,31 +224,10 @@ export default function Term({
         axios
             .delete('/elleapi/term', header)
             .then((res) => {
-                updateCurrentModule({
-                    module: curModule,
-                });
+                updateCurrentModule(curModule);
             })
             .catch((error) => {
                 console.log('deleteTerm in Card.js error: ', error.response);
-            });
-    };
-
-    const getTermTags = (id: number) => {
-        let config = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
-            params: {
-                termID: id,
-            },
-        };
-
-        axios
-            .get('/elleapi/tags_in_term', config)
-            .then((res) => {
-                setTags(res.data);
-                setOriginalTags(JSON.parse(JSON.stringify(res.data)));
-            })
-            .catch(function (error) {
-                console.log('getTermTags error: ', error);
             });
     };
 
@@ -528,25 +536,27 @@ export default function Term({
                     </td>
                 </tr>
 
-                <tr>
-                    <td style={{ border: 'none' }} colSpan={8}>
-                        <TagList
-                            tags={tags}
-                            handleDeleteTag={handleDeleteTag}
-                            deletable={true}
-                        />
-                        Add Tag:
-                        <Autocomplete
-                            name={'tags'}
-                            id={'tags'}
-                            placeholder={'Tag'}
-                            handleAddTag={handleAddTag}
-                            createTag={createTag}
-                            renderButton={true}
-                            suggestions={allTags}
-                        />
-                    </td>
-                </tr>
+                {tags && (
+                    <tr>
+                        <td style={{ border: 'none' }} colSpan={8}>
+                            <TagList
+                                tags={tags}
+                                handleDeleteTag={handleDeleteTag}
+                                deletable={true}
+                            />
+                            Add Tag:
+                            <Autocomplete
+                                name={'tags'}
+                                id={'tags'}
+                                placeholder={'Tag'}
+                                handleAddTag={handleAddTag}
+                                createTag={createTag}
+                                renderButton={true}
+                                suggestions={allTags}
+                            />
+                        </td>
+                    </tr>
+                )}
             </Fragment>
         );
     }

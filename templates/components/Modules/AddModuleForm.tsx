@@ -197,6 +197,7 @@ export default function AddModuleForm({
                                     <Label for="classContext">Class:</Label>
                                     <Select
                                         name="class"
+                                        instanceId={'select-class'}
                                         options={filteredClassOptions}
                                         className="basic-single"
                                         classNamePrefix="select"

@@ -10,7 +10,6 @@ import '@/lib/ionicons/css/ionicons.min.css';
 import { useRouter } from 'next/router';
 
 export default function Login() {
-    const router = useRouter();
     const { login } = useLogin();
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');

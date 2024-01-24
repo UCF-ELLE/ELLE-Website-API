@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "mic-recorder": "^4.9.0"
+  },
+  "devDependencies": {
+    "css-loader": "^6.9.1",
+    "style-loader": "^3.3.4"
   }
 }

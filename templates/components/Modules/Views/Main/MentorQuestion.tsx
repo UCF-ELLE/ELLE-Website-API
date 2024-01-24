@@ -15,13 +15,12 @@ import {
 import axios from 'axios';
 import { MentorQuestion } from '@/types/api/mentors';
 import { Module } from '@/types/api/modules';
-import { EventType } from '@/types/events';
 import { useUser } from '@/hooks/useUser';
 
-import submitImage from '../../Images/submit.png';
-import cancelImage from '../../Images/cancel.png';
-import toolsImage from '../../Images/tools.png';
-import deleteImage from '../../Images/delete.png';
+import submitImage from '@/public/static/images/submit.png';
+import cancelImage from '@/public/static/images/cancel.png';
+import toolsImage from '@/public/static/images/tools.png';
+import deleteImage from '@/public/static/images/delete.png';
 import Image from 'next/image';
 
 export default function MentorQuestion({
@@ -30,33 +29,9 @@ export default function MentorQuestion({
     curModule,
 }: {
     question: MentorQuestion;
-    updateCurrentModule: (event: EventType) => void;
+    updateCurrentModule: (module: Module, task?: string) => void;
     curModule: Module;
 }) {
-    //   constructor(props){
-    //     super(props);
-    //     this.toggleEditMode = this.toggleEditMode.bind(this);
-    //     this.handleDelete = this.handleDelete.bind(this);
-    //     this.deleteQuestion = this.deleteQuestion.bind(this);
-    //     this.toggleCollapsedAnswers = this.toggleCollapsedAnswers.bind(this);
-
-    //     //this.submitEdit = this.submitEdit.bind(this);
-    //     this.change = this.change.bind(this);
-
-    //     this.state = {
-    //       question: this.props.question, //contains all of the data in the question
-    //       modal: false,
-
-    //       myAnswers : ["", "", "", "", ""],
-    //       editMode: false, //determines whether or not the editable version of the question is showing
-    //       editedQuestionText: this.props.question.questionText, //contains the English word that can be edited
-    //       newAnswer1: "",
-    //       newAnswer2: "",
-    //       newAnswer3: "",
-    //       collapseAnswers: false, //determines whether or not the answers are displayed on the question
-    //     }
-
-    //   }
     const [modal, setModal] = useState(false);
     const [myAnswers, setMyAnswers] = useState<
         { answerChoice: string; multipleChoiceID: number }[]
@@ -70,7 +45,7 @@ export default function MentorQuestion({
     const [newAnswer3, setNewAnswer3] = useState('');
     const [collapseAnswers, setCollapseAnswers] = useState(false);
     const [submittingAnswer, setSubmittingAnswer] = useState(false);
-    const { user } = useUser();
+    const { user, loading } = useUser();
     const permissionLevel = user?.permissionGroup;
 
     //function that allows user to cancel AddAnswer form
@@ -208,7 +183,7 @@ export default function MentorQuestion({
         axios
             .post('/elleapi/modifymentorquestions', data, header)
             .then((res) => {
-                updateCurrentModule({ module: curModule });
+                updateCurrentModule(curModule);
             })
             .catch((error) => {
                 console.log('submitQuestionEdit error: ', error.response);
@@ -234,7 +209,7 @@ export default function MentorQuestion({
         axios
             .delete('/elleapi/deletementorquestions', header)
             .then((res) => {
-                updateCurrentModule({ module: curModule });
+                updateCurrentModule(curModule);
             })
             .catch((error) => {
                 console.log(
@@ -271,12 +246,14 @@ export default function MentorQuestion({
     };
 
     useEffect(() => {
-        if (question.type === 'MENTOR_MC') {
-            updateAnswers();
-        } else {
-            setMyAnswers([]);
+        if (!loading && user) {
+            if (question.type === 'MENTOR_MC') {
+                updateAnswers();
+            } else {
+                setMyAnswers([]);
+            }
         }
-    }, [question.type, updateAnswers]);
+    }, [question.type, updateAnswers, user, loading]);
 
     return !editMode ? (
         <Fragment>
@@ -367,8 +344,9 @@ export default function MentorQuestion({
         <Fragment>
             <tr>
                 <td>
-                    {editedQuestionText.trim() === '' ||
-                    editedQuestionText.length > 200 ? (
+                    {editedQuestionText &&
+                    (editedQuestionText.trim() === '' ||
+                        editedQuestionText.length > 200) ? (
                         <Input
                             invalid
                             type="number"
@@ -395,8 +373,9 @@ export default function MentorQuestion({
 
                 <td>
                     <ButtonGroup>
-                        {editedQuestionText.trim() === '' ||
-                        editedQuestionText.length > 200 || // question invalid
+                        {(editedQuestionText &&
+                            (editedQuestionText?.trim() === '' ||
+                                editedQuestionText.length > 200)) || // question invalid
                         (question.type === 'MENTOR_MC' && // question is MC //whatever is wrong the with MC options
                             (myAnswers[0].answerChoice.trim() == '' ||
                                 myAnswers[1].answerChoice.trim() == '' ||

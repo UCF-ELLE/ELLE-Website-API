@@ -21,21 +21,21 @@ export default function SuperAdminView({
 
     return (
         <>
-            <Nav>
+            <Nav tabs>
                 <NavItem>
                     <NavLink
-                        href="#"
                         active={activeTab === 0}
                         onClick={() => setActiveTab(0)}
+                        style={{ cursor: 'pointer' }}
                     >
                         Own
                     </NavLink>
                 </NavItem>
                 <NavItem>
                     <NavLink
-                        href="#"
                         active={activeTab === 1}
                         onClick={() => setActiveTab(1)}
+                        style={{ cursor: 'pointer' }}
                     >
                         Linked
                     </NavLink>

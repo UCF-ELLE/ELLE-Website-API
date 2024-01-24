@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Input } from 'reactstrap';
-import '../../stylesheets/superadmin.css';
 import { Term } from '@/types/api/terms';
 import { Gender } from '@/types/misc';
 

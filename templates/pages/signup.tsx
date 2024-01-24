@@ -102,9 +102,15 @@ export default function Signup() {
 
     const submit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const response = await signUp(username, email, password, confirmation, classCode);
+        const response = await signUp(
+            username,
+            email,
+            password,
+            confirmation,
+            classCode
+        );
 
-        if (response?.error) {
+        if ('error' in response) {
             setRegisterErr(true);
             setErrorMsg(response.error);
         }
