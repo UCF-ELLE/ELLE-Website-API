@@ -33,8 +33,19 @@ export default function Home() {
                 <section id="about" className="wow fadeInUp">
                     <div className="container">
                         <div className="row">
-                            <div className="col-lg-6 about-img" style={{ display: 'flex', justifyContent: 'center' }} >
-                                <Image src={loginPic} alt="" height="288" width="540"/>
+                            <div
+                                className="col-lg-6 about-img"
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <Image
+                                    src={loginPic}
+                                    alt=""
+                                    height="288"
+                                    width="540"
+                                />
                             </div>
                             <div className="col-lg-5 content">
                                 <h2>Meet the Endless Learner.</h2>
@@ -70,7 +81,7 @@ export default function Home() {
                 <section id="services" className="wow fadeInUp">
                     <div className="container">
                         <div className="section-header">
-                            <h2>What's possible with ELLE</h2>
+                            <h2>What&apos;s possible with ELLE</h2>
                             <p>
                                 <Link href="/register">Sign up</Link> for ELLE
                                 now and get a unique profile and tools to make
@@ -118,10 +129,10 @@ export default function Home() {
                                     </div>
                                     <h4 className="title">View Statistics</h4>
                                     <p className="description">
-                                        Look at data from every session you've
-                                        ever played. See how well you do on
-                                        certain languages and what words you
-                                        should work on the most.
+                                        Look at data from every session
+                                        you&apos;ve ever played. See how well
+                                        you do on certain languages and what
+                                        words you should work on the most.
                                     </p>
                                 </div>
                             </div>

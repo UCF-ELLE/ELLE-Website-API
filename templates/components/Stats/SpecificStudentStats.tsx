@@ -25,7 +25,7 @@ export default function SpecificStudentStats({ groupID }: { groupID: string }) {
             loading: termStatsLoading,
             error: termStatsError,
         },
-    ] = useAxios<TermPerformance[]>({
+    ] = useAxios<TermPerformance>({
         method: 'get',
         url: '/elleapi/termsperformance',
         headers: { Authorization: 'Bearer ' + user?.jwt },
@@ -90,7 +90,7 @@ export default function SpecificStudentStats({ groupID }: { groupID: string }) {
             <br />
             <Card style={{ border: 'none' }}>
                 {termStatsResponse && !termStatsLoading && !termStatsError ? (
-                    termStatsResponse.data.length !== 0 ? (
+                    termStatsResponse.data ? (
                         <div>
                             <TermBarChart
                                 termStats={termStatsResponse.data}

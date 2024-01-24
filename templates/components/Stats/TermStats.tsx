@@ -1,11 +1,11 @@
 import React from 'react';
 import { Table } from 'reactstrap';
-import { TermStatsType } from './ClassPerformance';
+import { TermPerformance } from '@/types/api/stats';
 
 export default function TermStats({
     termStats,
 }: {
-    termStats: TermStatsType[];
+    termStats: TermPerformance;
 }) {
     return (
         <Table className="termStatsTable">

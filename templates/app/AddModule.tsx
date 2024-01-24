@@ -13,7 +13,7 @@ import Select from 'react-select';
 import axios from 'axios';
 import languageCodes from '@/public/static/json/languageCodes.json';
 import { useUser } from '@/hooks/useUser';
-import { LanguageCode } from '@/types/modules';
+import { LanguageCode } from '@/types/misc';
 
 export default function AddModule({
     updateModuleList,

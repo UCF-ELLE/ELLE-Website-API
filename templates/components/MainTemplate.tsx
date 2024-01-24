@@ -7,7 +7,7 @@ import Image from 'next/image';
 import backgroundFullImage from '../public/static/images/ELLE/ELLE-Background-Full.png';
 import { useLogout } from '@/hooks/useLogout';
 
-import styles from './Layout.module.css'
+import styles from './Layout.module.css';
 
 export default function Template(props: { permission?: string }) {
     const { logout } = useLogout();
@@ -74,18 +74,12 @@ export default function Template(props: { permission?: string }) {
                                     <Link href="/gamecode">VR Game Code</Link>
                                 </li>
                                 <li>
-                                    <Link href="/" onClick={logout}>Sign Out</Link>
+                                    <Link href="/" onClick={logout}>
+                                        Sign Out
+                                    </Link>
                                 </li>
                             </>
                         )}
-                        <li>
-                            <a
-                                href="https://github.com/Naton-1/ELLE-2023-Website-API"
-                                className="github"
-                            >
-                                <i className="fa fa-github fa-lg"></i>
-                            </a>
-                        </li>
                     </ul>
                 </nav>
             </div>

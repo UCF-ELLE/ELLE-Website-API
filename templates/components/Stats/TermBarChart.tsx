@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bar } from 'react-chartjs-2';
-import { TermStatsType } from './ClassPerformance';
+import { TermPerformance } from '@/types/api/stats';
 import {
     Chart,
     LinearScale,
@@ -13,7 +13,7 @@ export default function TermBarChart({
     termStats,
     threshold,
 }: {
-    termStats: TermStatsType[];
+    termStats: TermPerformance;
     threshold: number;
 }) {
     Chart.register(LinearScale, CategoryScale, BarElement, Legend);

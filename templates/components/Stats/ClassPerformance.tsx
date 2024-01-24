@@ -5,10 +5,10 @@ import 'rc-slider/assets/index.css';
 import axios from 'axios';
 import TermStats from './TermStats';
 import TermBarChart from './TermBarChart';
-import { Term } from '@/types/terms';
+import { TermPerformance } from '@/types/api/stats';
 
 export default function ClassPerformance({ groupID }: { groupID: string }) {
-    const [termStats, setTermStats] = React.useState<Term[]>([]);
+    const [termStats, setTermStats] = React.useState<TermPerformance>();
     const [error, setError] = React.useState<string>('');
     const [threshold, setThreshold] = React.useState(50);
 
@@ -45,7 +45,7 @@ export default function ClassPerformance({ groupID }: { groupID: string }) {
                             overflow: 'scroll',
                         }}
                     >
-                        <TermStats termStats={termStats} />
+                        {termStats && <TermStats termStats={termStats} />}
                     </Card>
                 </Col>
                 <Col xs="5" style={{ padding: '0px' }}>
@@ -56,10 +56,12 @@ export default function ClassPerformance({ groupID }: { groupID: string }) {
                             borderRightStyle: 'hidden',
                         }}
                     >
-                        <TermBarChart
-                            termStats={termStats}
-                            threshold={threshold}
-                        />
+                        {termStats && (
+                            <TermBarChart
+                                termStats={termStats}
+                                threshold={threshold}
+                            />
+                        )}
                         <Slider
                             value={threshold}
                             style={{ width: '80%', margin: '5px 30px' }}

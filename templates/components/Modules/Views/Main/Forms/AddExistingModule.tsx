@@ -3,7 +3,7 @@ import { Input, Label, Row, Col, Table, Card, InputGroup } from 'reactstrap';
 import Select from 'react-select';
 import axios from 'axios';
 
-import ExistingModule from './ExistingModule';
+import ExistingModule from '@/components/Modules/ExistingModule';
 import languageCodes from '@/public/static/json/languageCodes.json';
 import { useUser } from '@/hooks/useUser';
 import Image from 'next/image';
@@ -11,7 +11,8 @@ import Image from 'next/image';
 import moduleImage from '@/public/static/images/module.png';
 import langImage from '@/public/static/images/languages.png';
 import creatorImage from '@/public/static/images/creator.png';
-import { Module, LanguageCode } from '@/types/modules';
+import { Module } from '@/types/api/modules';
+import { LanguageCode } from '@/types/misc';
 
 export default function AddExistingModule({
     updateModuleList,
@@ -121,10 +122,11 @@ export default function AddExistingModule({
 
     let filteredModules = reusuableModules.filter((module: Module) => {
         return (
-            module.name.toLowerCase().indexOf(searchName.toLowerCase()) !==
+            module.name?.toLowerCase().indexOf(searchName.toLowerCase()) !==
                 -1 &&
             module.language.toLowerCase().indexOf(language) !== -1 &&
-            module.username?.toLowerCase()
+            module.username
+                ?.toLowerCase()
                 .indexOf(searchCreator.toLowerCase()) !== -1
         );
     });

@@ -3,7 +3,7 @@ import { Input, Label, Row, Col, Table, Card, InputGroup } from 'reactstrap';
 import Select from 'react-select';
 import axios from 'axios';
 
-import ExistingModule from './ExistingModule';
+import ExistingModule from '@/components/Modules/ExistingModule';
 import languageCodes from '@/public/static/json/languageCodes.json';
 import { useUser } from '@/hooks/useUser';
 import Image from 'next/image';

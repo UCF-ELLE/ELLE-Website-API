@@ -6,11 +6,6 @@ const nextConfig = {
         if (!isServer) {
             config.resolve.modules.push(path.resolve('./node_modules'));
         }
-        config.module.rules.push({
-            test: /\.css$/,
-            use: ['style-loader', 'css-loader'],
-        });
-
         return config;
     },
 
