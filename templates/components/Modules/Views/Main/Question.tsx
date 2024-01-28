@@ -424,7 +424,7 @@ export default function Question({
 
             {question.answers && (
                 <tr>
-                    <td style={{ border: 'none' }} colSpan={8}>
+                    <td style={{ border: 'none', padding: 0 }} colSpan={8}>
                         <Collapse isOpen={collapseAnswers}>
                             Answers:
                             <AnswerButtonList

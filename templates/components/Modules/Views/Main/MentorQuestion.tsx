@@ -310,7 +310,7 @@ export default function MentorQuestion({
             </tr>
 
             <tr>
-                <td style={{ border: 'none' }} colSpan={8}>
+                <td style={{ border: 'none', padding: 0 }} colSpan={8}>
                     <Collapse isOpen={collapseAnswers}>
                         <b>Answers: </b>
                         <br />

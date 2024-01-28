@@ -32,7 +32,7 @@ export default function TagList({
     };
 
     return (
-        <div>
+        <div style={{ padding: 8 }}>
             <Label> Tags: </Label>
             <Row>{renderList()}</Row>
         </div>
