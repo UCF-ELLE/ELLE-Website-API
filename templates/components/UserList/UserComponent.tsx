@@ -19,6 +19,7 @@ import { useUser } from '@/hooks/useUser';
 import Image from 'next/image';
 import moreImage from '@/public/static/images/more.png';
 import shuffleImage from '@/public/static/images/shuffle.png';
+import { GroupUser } from '@/types/api/group';
 
 export default function UserComponent({
     user,
@@ -26,10 +27,10 @@ export default function UserComponent({
     group,
     getUsers,
 }: {
-    user: User;
+    user: User | GroupUser;
     type: string;
-    group: PermissionGroup;
-    getUsers: () => void;
+    group?: PermissionGroup;
+    getUsers?: () => void;
 }) {
     const { user: currentUser } = useUser();
     const [pfDetailModalOpen, setPfDetailModalOpen] = useState(false);
@@ -53,7 +54,12 @@ export default function UserComponent({
             <Card style={{ margin: '0 20px 0 20px', border: 'none' }}>
                 <Row>ID: {user.userID}</Row>
                 <Row>Name: {user.username}</Row>
-                <Row>Permission Level: {user.permissionGroup}</Row>
+                <Row>
+                    Permission Level:{' '}
+                    {'permissionGroup' in user
+                        ? user.permissionGroup
+                        : user.accessLevel}
+                </Row>
                 <Row style={{ paddingTop: '10px' }}>
                     Reset Password:
                     <Col xs="7" style={{ paddingRight: '0px' }}>
@@ -81,7 +87,7 @@ export default function UserComponent({
         axios
             .get('/elleapi/generategroupcode', header)
             .then((res) => {
-                getUsers();
+                getUsers && getUsers();
             })
             .catch((error) => {
                 console.log('ERROR in generating new group code: ', error);
@@ -172,7 +178,7 @@ export default function UserComponent({
                     {renderUserInfo()}
                     <br />
                     {group === 'pf' ? (
-                        user.groups?.length !== 0 ? (
+                        (user as User).groups?.length !== 0 ? (
                             <>
                                 <Row>
                                     <Col style={{ paddingLeft: '20px' }}>
@@ -195,37 +201,45 @@ export default function UserComponent({
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {user.groups?.map((group, i) => {
-                                                return (
-                                                    <tr key={i}>
-                                                        <td>{group.groupID}</td>
-                                                        <td>
-                                                            {group.groupName}
-                                                        </td>
-                                                        <td>
-                                                            {group.groupCode}
-                                                        </td>
-                                                        <td>
-                                                            <Image
-                                                                src={
-                                                                    shuffleImage
+                                            {(user as User).groups?.map(
+                                                (group, i) => {
+                                                    return (
+                                                        <tr key={i}>
+                                                            <td>
+                                                                {group.groupID}
+                                                            </td>
+                                                            <td>
+                                                                {
+                                                                    group.groupName
                                                                 }
-                                                                alt="Icon made by Freepik from www.flaticon.com"
-                                                                style={{
-                                                                    width: '15px',
-                                                                    height: '15px',
-                                                                    cursor: 'pointer',
-                                                                }}
-                                                                onClick={() =>
-                                                                    generateNewCode(
-                                                                        group.groupID
-                                                                    )
+                                                            </td>
+                                                            <td>
+                                                                {
+                                                                    group.groupCode
                                                                 }
-                                                            />
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
+                                                            </td>
+                                                            <td>
+                                                                <Image
+                                                                    src={
+                                                                        shuffleImage
+                                                                    }
+                                                                    alt="Icon made by Freepik from www.flaticon.com"
+                                                                    style={{
+                                                                        width: '15px',
+                                                                        height: '15px',
+                                                                        cursor: 'pointer',
+                                                                    }}
+                                                                    onClick={() =>
+                                                                        generateNewCode(
+                                                                            group.groupID
+                                                                        )
+                                                                    }
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                }
+                                            )}
                                         </tbody>
                                     </Table>
                                 </Card>

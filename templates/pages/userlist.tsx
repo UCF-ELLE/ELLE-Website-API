@@ -306,9 +306,9 @@ export default function UserList({}: {}) {
     const resetVal = (k: string) => {
         setActiveTab(k);
         let group = '';
-        if (k === '#superAdmins') {
+        if (k === 'superAdmins') {
             group = 'su';
-        } else if (k === '#professors') {
+        } else if (k === 'professors') {
             group = 'pf';
         } else {
             group = 'st';

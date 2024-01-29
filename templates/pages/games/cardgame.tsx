@@ -18,7 +18,7 @@ import Layout from '@/app/layout';
 import { useUser } from '@/hooks/useUser';
 
 function CardGame() {
-    const { user } = useUser();
+    const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
     const router = useRouter();
     // Used to determine when the user is in the middle of a Card Game session (and NOT in any other screen e.g. the main menu)
@@ -40,10 +40,10 @@ function CardGame() {
         unload,
     } = useUnityContext({
         // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
-        loaderUrl: 'Unity-Game-WebGL-Builds/Card-Game/Build.loader.js',
-        dataUrl: 'Unity-Game-WebGL-Builds/Card-Game/Build.data',
-        frameworkUrl: 'Unity-Game-WebGL-Builds/Card-Game/Build.framework.js',
-        codeUrl: 'Unity-Game-WebGL-Builds/Card-Game/Build.wasm',
+        loaderUrl: '/games/Card-Game/Build.loader.js',
+        dataUrl: '/games/Card-Game/Build.data',
+        frameworkUrl: '/games/Card-Game/Build.framework.js',
+        codeUrl: '/games/Card-Game/Build.wasm',
     });
 
     // Event handlers for when Unity sends events to Event
@@ -126,9 +126,11 @@ function CardGame() {
 
     // This runs only ONCE, when the component renders for the first time
     useEffect(() => {
-        setPermission(user?.permissionGroup);
+        if (!userLoading && user) {
+            setPermission(user?.permissionGroup);
+        }
         setDevicePixelRatio(window.devicePixelRatio);
-    }, []);
+    }, [user, userLoading]);
 
     // Sometimes the Unity window looks blurry on Retina screens. This fixes that.
     // Taken from https://react-unity-webgl.dev/docs/advanced-examples/dynamic-device-pixel-ratio
@@ -273,7 +275,7 @@ function CardGame() {
     );
 
     return (
-        <Layout>
+        <Layout requireUser>
             <div className="gamesBg mainDiv">
                 <div className="center-contents">
                     <div

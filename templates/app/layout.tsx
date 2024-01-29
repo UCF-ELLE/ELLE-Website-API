@@ -5,7 +5,7 @@ import { useUser } from '@/hooks/useUser';
 import MainTemplate from '@/components/MainTemplate';
 import Footer from '@/components/Footer';
 import { PermissionGroup } from '@/types/misc';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 type PermissionLevels = PermissionGroup | undefined;
 
