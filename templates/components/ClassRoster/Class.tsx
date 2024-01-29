@@ -4,7 +4,7 @@ import { Table } from 'reactstrap';
 import { GroupUser } from '@/types/api/group';
 import Image from 'next/image';
 
-import searchImage from '@/public/static/images/search.svg';
+import searchImage from '@/public/static/images/search.png';
 
 const styles = {
     transition: 'all .5s ease-out',

@@ -11,8 +11,9 @@ export const useLogin = () => {
         const user = await _as.login(username, password);
         if (user && 'jwt' in user) {
             Cookies.set('currentUser', JSON.stringify(user as AuthUser));
-            // Debug Temporary Code for Games
-            // Local Storage shouldn't be used, we already have cookies
+            // Temporary Code for Games, given that they use localStorage
+            // TODO: Remove this code once games are updated to use the currentUser cookie OR use the useUser hook
+            // Given that game pages already make use of the useUser hook, this should be a simple change in the Unity jslib file
             localStorage.setItem('id', user.userID.toString());
             localStorage.setItem('jwt', user.jwt);
             localStorage.setItem('per', user.permissionGroup);
