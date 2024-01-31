@@ -29,9 +29,11 @@ export default function AddPhrase({
     const permissionLevel = user?.permissionGroup;
     const [phFront, setPhFront] = useState<string>('');
     const [phBack, setPhBack] = useState<string>('');
-    const [selectedImgFile, setSelectedImgFile] = useState<File | null>(null);
-    const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(
-        null
+    const [selectedImgFile, setSelectedImgFile] = useState<File>(
+        new File([], '')
+    );
+    const [selectedAudioFile, setSelectedAudioFile] = useState<File>(
+        new File([], '')
     );
     const [imgLabel, setImgLabel] = useState<string>(
         'Pick an image for the term'
@@ -43,7 +45,7 @@ export default function AddPhrase({
     const [blobURL, setBlobURL] = useState<string>('');
     const [isBlocked, setIsBlocked] = useState<boolean>(false);
     const [disable, setDisable] = useState<boolean>(true);
-    const [file, setFile] = useState<File | null>(null);
+    const [file, setFile] = useState<File>(new File([], ''));
     const [didUpload, setDidUpload] = useState<boolean>(false);
     // const [Mp3Recorder, setMp3Recorder] = useState(
     //     new MicRecorder({ bitRate: 128 })
@@ -165,8 +167,9 @@ export default function AddPhrase({
                 data.append('groupID', currentClass.value.toString());
 
             //optional fields for adding a phrase
-            selectedImgFile && data.append('image', selectedImgFile);
-            selectedAudioFile && data.append('audio', selectedAudioFile);
+            selectedImgFile.size !== 0 && data.append('image', selectedImgFile);
+            selectedAudioFile.size !== 0 &&
+                data.append('audio', selectedAudioFile);
 
             console.log(selectedAudioFile);
 
@@ -188,8 +191,8 @@ export default function AddPhrase({
     const resetFields = () => {
         setPhFront('');
         setPhBack('');
-        setSelectedImgFile(null);
-        setSelectedAudioFile(null);
+        setSelectedImgFile(new File([], ''));
+        setSelectedAudioFile(new File([], ''));
         setImgLabel('Pick an image for the term');
         setAudioLabel('Pick an audio for the term');
     };

@@ -1,53 +1,26 @@
 import Layout from '@/app/layout';
 import { useUser } from '@/hooks/useUser';
-import {
-    Button,
-    ButtonDropdown,
-    Col,
-    Collapse,
-    Container,
-    DropdownItem,
-    DropdownMenu,
-    DropdownToggle,
-    Input,
-    InputGroup,
-    Label,
-    Modal,
-    ModalBody,
-    ModalHeader,
-    Row,
-} from 'reactstrap';
-import Image from 'next/image';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Col, Container, Label, Row } from 'reactstrap';
 
-import searchImage from '@/public/static/images/search.png';
-import AddModuleForm from '@/components/Modules/AddModuleForm';
-import axios from 'axios';
+import ModuleSearch from '@/components/Modules/ModuleSearch';
+import MainModuleView from '@/components/Modules/Views/Main/MainModuleView';
+import { UserGroup } from '@/types/api/group';
+import { MentorQuestion } from '@/types/api/mentors';
 import {
     Module,
     ModuleQuestion,
     ModuleQuestionAnswer,
 } from '@/types/api/modules';
-import { MentorQuestion } from '@/types/api/mentors';
 import { Term } from '@/types/api/terms';
-import { PermissionGroup } from '@/types/misc';
-import { UserGroup } from '@/types/api/group';
 import { UserLevel } from '@/types/api/user';
+import { PermissionGroup } from '@/types/misc';
+import axios from 'axios';
 import Select from 'react-select';
-import { useRouter } from 'next/router';
-import AddExistingModule from '@/components/Modules/AddExistingModule';
-import SuperAdminView from '@/components/Modules/Views/SuperAdminView';
-import StudentView from '@/components/Modules/Views/StudentView';
-import AdminView from '@/components/Modules/Views/AdminView';
-import MainModuleView from '@/components/Modules/Views/Main/MainModuleView';
 
 export default function Modules() {
     const { user, loading } = useUser();
     const permissionLevel = user?.permissionGroup;
-    const router = useRouter();
-
-    const [searchDeck, setSearchDeck] = useState('');
-    const [openForm, setOpenForm] = useState(0);
     const [modules, setModules] = useState<Module[]>([]);
     const [dynamicModules, setDynamicModules] = useState<Module[]>([]);
     const [currentModule, setCurrentModule] = useState<Module>();
@@ -68,7 +41,6 @@ export default function Modules() {
         UserLevel[]
     >([]);
     const [modificationWarning, setModificationWarning] = useState(false);
-    const [addModuleButtonOpen, setAddModuleButtonOpen] = useState(false);
 
     useEffect(() => {
         if (!loading) {
@@ -80,9 +52,35 @@ export default function Modules() {
         }
     }, [loading]);
 
-    const openAddModuleForm = (num: number) => {
-        openForm === num ? setOpenForm(0) : setOpenForm(num);
-    };
+    useEffect(() => {
+        if (!currentModule) return;
+
+        const header = {
+            headers: { Authorization: 'Bearer ' + user?.jwt },
+            params: { language: currentModule?.language },
+        };
+
+        axios
+            .get<Term[]>('/elleapi/term', header)
+            .then((res) => {
+                const allAnswersInDB = res.data.filter((answer) => {
+                    if (answer.type !== 'PH') return true;
+                    return false;
+                });
+
+                const frontArray: string[] = [];
+                const allAnswersWithoutDupes: ModuleQuestionAnswer[] = [];
+
+                allAnswersInDB.forEach((answer) => {
+                    if (answer.front && !frontArray.includes(answer.front)) {
+                        frontArray.push(answer.front);
+                        allAnswersWithoutDupes.push(answer);
+                    }
+                });
+                setAllAnswers(allAnswersWithoutDupes);
+            })
+            .catch((error) => console.log('error in getAllAnswers: ', error));
+    }, [currentModule, user?.jwt]);
 
     const updateModuleList = (task: string, moduleID?: number) => {
         let header = {
@@ -175,7 +173,6 @@ export default function Modules() {
             .catch((error) =>
                 console.log('updateCurrentModule error: ', error)
             );
-
         axios
             .post<MentorQuestion[]>('/elleapi/getmentorquestions', data, header)
             .then((res) => {
@@ -186,46 +183,6 @@ export default function Modules() {
             .catch((error) =>
                 console.log('updateCurrentModule error: ', error)
             );
-    };
-
-    const getAllAnswers = () => {
-        let allAnswersInDB: ModuleQuestionAnswer[] = [];
-
-        const header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
-            params: { language: currentModule?.language },
-        };
-
-        axios
-            .get<Term[]>('/elleapi/terms', header)
-            .then((res) => {
-                const termArray = res.data.filter((answer) => {
-                    if (answer.type !== 'PH') return true;
-                    return false;
-                });
-
-                allAnswersInDB = termArray.map((answer) => {
-                    return {
-                        front: answer.front,
-                        back: answer.back,
-                        termID: answer.termID,
-                        gender: answer.gender,
-                    };
-                });
-
-                const frontArray: string[] = [];
-                const allAnswersWithoutDupes: ModuleQuestionAnswer[] = [];
-
-                allAnswersInDB.forEach((answer) => {
-                    if (answer.front && frontArray.includes(answer.front)) {
-                        frontArray.push(answer.front);
-                        allAnswersWithoutDupes.push(answer);
-                    }
-                });
-
-                setAllAnswers(allAnswersWithoutDupes);
-            })
-            .catch((error) => console.log('error in getAllAnswers: ', error));
     };
 
     const editModule = (editedName: string, module: Module) => {
@@ -294,20 +251,6 @@ export default function Modules() {
                 updateModuleList('unlink', id);
             })
             .catch((error) => console.log('error in unlinkModule: ', error));
-    };
-
-    const updateSearchDeck = (e: any) => {
-        const newModuleList = modules.filter((module) => {
-            return (
-                module?.name &&
-                module?.name
-                    .toLowerCase()
-                    .includes(e.target.value.toLowerCase())
-            );
-        });
-
-        setSearchDeck(e.target.value.substring(0, 20));
-        setDynamicModules(newModuleList);
     };
 
     const toggleModificationWarning = (condition: string) => {
@@ -448,144 +391,18 @@ export default function Modules() {
                         ) : null}
                     </Row>
                     <Row className="Seperated Col">
-                        <Col className="Left Column" xs="3">
-                            <InputGroup stylee={{ borderRadius: '12px' }}>
-                                <div style={{ margin: '10px' }}>
-                                    <Image
-                                        src={searchImage}
-                                        alt="Icon made by Freepik from www.flaticon.com"
-                                        style={{
-                                            width: '15px',
-                                            height: '15px',
-                                        }}
-                                    />
-                                </div>
-                                <Input
-                                    style={{ border: 'none' }}
-                                    placeholder="Search"
-                                    value={searchDeck}
-                                    onChange={(e) => console.log(e)}
-                                />
-                                {permissionLevel === 'su' ? (
-                                    <div>
-                                        <Button
-                                            style={{
-                                                backgroundColor: '#3e6184',
-                                            }}
-                                            onClick={() => openAddModuleForm(2)}
-                                        >
-                                            {' '}
-                                            Add Module{' '}
-                                        </Button>
-                                    </div>
-                                ) : null}
-                                {permissionLevel === 'pf' ||
-                                permissionLevel === 'ta' ? (
-                                    <div>
-                                        <ButtonDropdown
-                                            isOpen={addModuleButtonOpen}
-                                            toggle={() =>
-                                                setAddModuleButtonOpen(
-                                                    !addModuleButtonOpen
-                                                )
-                                            }
-                                        >
-                                            <DropdownToggle
-                                                style={{
-                                                    backgroundColor: '#3e6184',
-                                                    borderTopLeftRadius: '0px',
-                                                    borderBottomLeftRadius:
-                                                        '0px',
-                                                }}
-                                                caret
-                                            >
-                                                Add Module
-                                            </DropdownToggle>
-                                            <DropdownMenu>
-                                                <DropdownItem
-                                                    onClick={() =>
-                                                        setOpenForm(1)
-                                                    }
-                                                >
-                                                    {' '}
-                                                    Add Existing{' '}
-                                                </DropdownItem>
-                                                <DropdownItem
-                                                    onClick={() =>
-                                                        setOpenForm(2)
-                                                    }
-                                                >
-                                                    {' '}
-                                                    Add New{' '}
-                                                </DropdownItem>
-                                            </DropdownMenu>
-                                        </ButtonDropdown>
-                                    </div>
-                                ) : null}
-                            </InputGroup>
-                            <br />
-                            <Modal
-                                isOpen={openForm === 1}
-                                toggle={() => setOpenForm(1)}
-                            >
-                                <ModalHeader toggle={() => setOpenForm(1)}>
-                                    Existing Modules
-                                </ModalHeader>
-                                <ModalBody
-                                    style={{ padding: '0 20px 30px 20px' }}
-                                >
-                                    <AddExistingModule
-                                        updateModuleList={updateModuleList}
-                                        classOptions={classOptions}
-                                        currentClass={selectedClass}
-                                    />
-                                </ModalBody>
-                            </Modal>
-                            <Collapse isOpen={openForm === 2}>
-                                <AddModuleForm
-                                    updateModuleList={updateModuleList}
-                                    classOptions={classOptions}
-                                    currentClass={selectedClass}
-                                />
-                            </Collapse>
-                            <Row>
-                                <Col>
-                                    {permissionLevel === 'st' ? (
-                                        <StudentView
-                                            modules={dynamicModules}
-                                            updateCurrentModule={
-                                                updateCurrentModule
-                                            }
-                                        />
-                                    ) : null}
-                                    {permissionLevel === 'pf' ||
-                                    permissionLevel === 'ta' ? (
-                                        <AdminView
-                                            currentClassView={
-                                                selectedClass.value
-                                            }
-                                            modules={dynamicModules}
-                                            updateCurrentModule={
-                                                updateCurrentModule
-                                            }
-                                            deleteModule={deleteModule}
-                                            editModule={editModule}
-                                            unlinkModule={unlinkModule}
-                                        />
-                                    ) : null}
-                                    {permissionLevel === 'su' ? (
-                                        <SuperAdminView
-                                            modules={dynamicModules}
-                                            updateCurrentModule={
-                                                updateCurrentModule
-                                            }
-                                            deleteModule={deleteModule}
-                                            editModule={editModule}
-                                        />
-                                    ) : null}
-                                </Col>
-                            </Row>
-                        </Col>
+                        <ModuleSearch
+                            modules={modules}
+                            updateModuleList={updateModuleList}
+                            dynamicModules={dynamicModules}
+                            setDynamicModules={setDynamicModules}
+                            selectedClass={selectedClass}
+                            classOptions={classOptions}
+                            updateCurrentModule={updateCurrentModule}
+                            deleteModule={deleteModule}
+                            editModule={editModule}
+                            unlinkModule={unlinkModule}
+                        />
                         <Col className="Right Column">
                             {currentModule && (
                                 <MainModuleView

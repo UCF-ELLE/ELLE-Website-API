@@ -19,6 +19,7 @@ import { Tag, Term } from '@/types/api/terms';
 import { useUser } from '@/hooks/useUser';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
 import { LoggedAnswer } from '@/types/api/logged_answer';
+import { Typeahead } from 'react-bootstrap-typeahead';
 
 export default function AddExistingTerm({
     currentClass,
@@ -273,30 +274,27 @@ export default function AddExistingTerm({
                             <br />
 
                             <FormGroup width="50%">
-                                <Autocomplete
-                                    name={'tags'}
-                                    id={'tags'}
-                                    placeholder={'Tag'}
-                                    handleAddTag={handleAddTag}
-                                    createTag={createTag}
-                                    renderButton={false}
-                                    autoCompleteStyle={{
-                                        borderWidth: '0px',
-                                        borderStyle: 'none',
-                                        width: '40%',
+                                <Typeahead
+                                    id="tags"
+                                    multiple
+                                    options={allTags}
+                                    allowNew
+                                    placeholder="Choose a tag..."
+                                    newSelectionPrefix="Add a new tag: "
+                                    selected={tags}
+                                    onChange={(e) => {
+                                        const tempList = [];
+                                        for (let tag of e) {
+                                            if (typeof tag === 'object') {
+                                                tempList.push(tag.label);
+                                            } else {
+                                                tempList.push(tag);
+                                            }
+                                        }
+                                        setTags(tempList);
                                     }}
-                                    suggestions={allTags}
                                 />
                             </FormGroup>
-
-                            {/*Lists all of the tags on this term, displayed as buttons*/}
-                            <Alert color="warning">
-                                <TagList
-                                    tags={tags}
-                                    handleDeleteTag={handleDeleteTag}
-                                    deletable={true}
-                                />
-                            </Alert>
                         </Col>
                     </Row>
 

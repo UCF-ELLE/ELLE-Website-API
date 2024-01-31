@@ -133,8 +133,6 @@ export default function MainModuleView({
     const phrases: ModuleQuestionAnswer[] = [];
     const longformQuestions: ModuleQuestion[] = [];
 
-    console.log('questions', questions);
-
     questions.map((question) => {
         if (question.type === 'MATCH' && question.answers !== undefined) {
             terms.push(question.answers[0]);

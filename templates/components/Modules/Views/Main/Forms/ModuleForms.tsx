@@ -84,6 +84,7 @@ export default function ModuleForms({
                         allTags={allTags}
                         setOpenForm={setOpenForm}
                         getAllTags={getAllTags}
+                        allAnswersNotInThisModule={allAnswersNotInThisModule}
                     />
                 </Collapse>
 

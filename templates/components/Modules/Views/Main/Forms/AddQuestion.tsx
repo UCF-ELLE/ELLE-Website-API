@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Button,
     Form,
@@ -23,6 +23,7 @@ import SearchAnswersByTag from '../SearchAnswerByTag';
 import { useUser } from '@/hooks/useUser';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';
+import { Typeahead } from 'react-bootstrap-typeahead';
 
 export default function AddQuestion({
     curModule,
@@ -34,6 +35,7 @@ export default function AddQuestion({
     allAnswers,
     currentClass,
     setOpenForm,
+    allAnswersNotInThisModule,
 }: {
     curModule: Module;
     updateCurrentModule: (module: Module, task?: string) => void;
@@ -44,6 +46,7 @@ export default function AddQuestion({
     addTag: (tagList: Tag[], tag: Tag) => Tag[];
     deleteTag: (tagList: Tag[], tag: Tag) => Tag[];
     setOpenForm: (form: number) => void;
+    allAnswersNotInThisModule: ModuleQuestionAnswer[];
 }) {
     const [questionText, setQuestionText] = useState('');
     const [front, setFront] = useState('');
@@ -92,8 +95,35 @@ export default function AddQuestion({
     const { user } = useUser();
     const permissionLevel = user?.permissionGroup;
 
+    //sets this.state.validAnswers to be all of the answers not already added to this form
+    const setValidAnswers = useCallback(() => {
+        let tempValidAnswers = allAnswers;
+
+        let frontArray = answers.map((answer) => {
+            return answer.front;
+        });
+        let backArray = answers.map((answer) => {
+            return answer.back;
+        });
+
+        tempValidAnswers = tempValidAnswers.filter((answer) => {
+            if (
+                frontArray.indexOf(answer.front) === -1 &&
+                backArray.indexOf(answer.back) === -1
+            ) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        setValidAnswersState(tempValidAnswers);
+    }, [allAnswers, answers]);
+
     useEffect(() => {
-        setValidAnswers();
+        if (allAnswers.length > 0) {
+            setValidAnswers();
+        }
         try {
             navigator.mediaDevices.getUserMedia({ audio: true }).then(
                 () => {
@@ -112,7 +142,7 @@ export default function AddQuestion({
                 err
             );
         }
-    }, []);
+    }, [allAnswers.length, setValidAnswers]);
 
     const start = () => {
         if (isBlocked) {
@@ -200,8 +230,8 @@ export default function AddQuestion({
     };
 
     const submitQuestion = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
         if (questionText.length !== 0) {
-            e.preventDefault();
             let data = new FormData();
             let header = {
                 headers: { Authorization: 'Bearer ' + user?.jwt },
@@ -215,10 +245,10 @@ export default function AddQuestion({
                 ? data.append('groupID', currentClass.value.toString())
                 : null;
 
-            if (selectedImgFile !== null || selectedImgFile !== undefined)
+            if (selectedImgFile.size !== 0)
                 data.append('image', selectedImgFile);
 
-            if (selectedAudioFile !== null || selectedAudioFile !== undefined)
+            if (selectedAudioFile.size !== 0)
                 data.append('audio', selectedAudioFile);
 
             data.append(
@@ -293,31 +323,6 @@ export default function AddQuestion({
         setValidAnswers();
     };
 
-    //sets this.state.validAnswers to be all of the answers not already added to this form
-    const setValidAnswers = () => {
-        let tempValidAnswers = allAnswers;
-
-        let frontArray = answers.map((answer) => {
-            return answer.front;
-        });
-        let backArray = answers.map((answer) => {
-            return answer.back;
-        });
-
-        tempValidAnswers = tempValidAnswers.filter((answer) => {
-            if (
-                frontArray.indexOf(answer.front) === -1 &&
-                backArray.indexOf(answer.back) === -1
-            ) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-
-        setValidAnswersState(tempValidAnswers);
-    };
-
     //function that adds a new answer from user input to list of answers on this form
     const createAnswer = (answer: string) => {
         setSubmittingAnswer(true);
@@ -343,51 +348,6 @@ export default function AddQuestion({
         setSubmittingAnswer(false);
     };
 
-    //function that removes a answer from the list of answers on this form
-    const handleDeleteAnswer = (event: { answer: string }) => {
-        let tempAnswerButtonList = answers;
-
-        let answerObject = answers.find((answer) => {
-            if (answer.front === event.answer) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-
-        if (answerObject !== undefined) {
-            let answerIndex = tempAnswerButtonList.indexOf(answerObject);
-
-            if (answerIndex !== -1) {
-                tempAnswerButtonList.splice(answerIndex, 1);
-            }
-        }
-        setAnswers(tempAnswerButtonList);
-        setValidAnswers();
-    };
-
-    const handleDeleteNewAnswer = (event: { answer: string }) => {
-        let tempAnswerButtonList = newlyCreatedAnswers;
-
-        let answerObject = newlyCreatedAnswers.find((answer) => {
-            if (answer.front === event.answer) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-
-        if (answerObject !== undefined) {
-            let answerIndex = tempAnswerButtonList.indexOf(answerObject);
-
-            if (answerIndex !== -1) {
-                tempAnswerButtonList.splice(answerIndex, 1);
-            }
-        }
-
-        setNewlyCreatedAnswers(tempAnswerButtonList);
-    };
-
     //clears the input fields of the addQuestion form
     //cannot however change questionID back to blank or else adding a newly created term as an answer would not work
     //questionID itself will be updated correctly when the addQuestion API request is called
@@ -407,6 +367,10 @@ export default function AddQuestion({
 
         setValidAnswers();
     };
+
+    const filteredAnswers = allAnswersNotInThisModule.filter(
+        (answer) => answer.language === curModule.language
+    );
 
     return (
         <div>
@@ -447,36 +411,16 @@ export default function AddQuestion({
                             <br />
 
                             <FormGroup width="200%">
-                                <Autocomplete
-                                    name={'answers'}
-                                    id={'answers'}
-                                    placeholder={'Answer'}
-                                    handleAddAnswer={handleAddAnswer}
-                                    createAnswer={createAnswer}
-                                    renderButton={true}
-                                    autoCompleteStyle={{
-                                        borderWidth: '0px',
-                                        borderStyle: 'none',
-                                        width: '100%',
-                                    }}
-                                    needID={0}
-                                    suggestions={validAnswersState
-                                        .map((answer) => answer.front || '')
-                                        .concat(
-                                            validAnswersState.map(
-                                                (answer) => answer.back || ''
-                                            )
-                                        )
-                                        .filter((answer, i, validAnswers) => {
-                                            if (
-                                                validAnswers.indexOf(answer) !==
-                                                i
-                                            ) {
-                                                return false;
-                                            } else {
-                                                return true;
-                                            }
-                                        })}
+                                <Typeahead
+                                    id="answers"
+                                    labelKey="front"
+                                    multiple
+                                    onChange={(e) =>
+                                        setAnswers(e as ModuleQuestionAnswer[])
+                                    }
+                                    options={filteredAnswers}
+                                    placeholder="Choose answers..."
+                                    selected={answers}
                                 />
                             </FormGroup>
                         </Col>
@@ -486,29 +430,6 @@ export default function AddQuestion({
                             <Button onClick={toggleSearchByTagForm}>
                                 Search By Tag
                             </Button>
-                        </Col>
-                    </Row>
-
-                    <Row>
-                        <Col>
-                            <Alert color="warning">
-                                <Label> Answers: </Label>
-                                <AnswerButtonList
-                                    answers={answers.map(
-                                        (answer) => answer.front || ''
-                                    )}
-                                    handleDeleteAnswer={handleDeleteAnswer}
-                                    deletable={true}
-                                />
-
-                                <AnswerButtonList
-                                    answers={newlyCreatedAnswers.map(
-                                        (answer) => answer.front || ''
-                                    )}
-                                    handleDeleteAnswer={handleDeleteNewAnswer}
-                                    deletable={true}
-                                />
-                            </Alert>
                         </Col>
                     </Row>
 

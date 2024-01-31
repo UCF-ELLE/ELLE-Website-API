@@ -20,6 +20,7 @@ import { useUser } from '@/hooks/useUser';
 import InfoImage from '@/public/static/images/info.png';
 import { Module } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';
+import { Typeahead } from 'react-bootstrap-typeahead';
 // import MicRecorder from 'mic-recorder';
 
 export default function AddTerm({
@@ -72,6 +73,10 @@ export default function AddTerm({
     const [disable, setDisable] = useState<boolean>(true);
     const [file, setFile] = useState<File>(new File([], ''));
     const [didUpload, setDidUpload] = useState<boolean>(false);
+
+    useEffect(() => {
+        console.log('Tags', tags);
+    }, [tags]);
 
     useEffect(() => {
         try {
@@ -215,10 +220,10 @@ export default function AddTerm({
                 return data.append('tag', label || '');
             });
 
-            if (selectedImgFile != undefined)
+            if (selectedImgFile.size !== 0)
                 data.append('image', selectedImgFile);
 
-            if (selectedAudioFile !== null || selectedAudioFile !== undefined)
+            if (selectedAudioFile.size !== 0)
                 data.append('audio', selectedAudioFile);
 
             axios
@@ -416,30 +421,29 @@ export default function AddTerm({
                             <br />
 
                             <FormGroup width="50%">
-                                <Autocomplete
-                                    name={'tags'}
-                                    id={'tags'}
-                                    placeholder={'Tag'}
-                                    handleAddTag={handleAddTag}
-                                    createTag={createTag}
-                                    renderButton={true}
-                                    autoCompleteStyle={{
-                                        borderWidth: '0px',
-                                        borderStyle: 'none',
-                                        width: '40%',
+                                <Typeahead
+                                    id="tags"
+                                    multiple
+                                    options={allTags}
+                                    allowNew
+                                    placeholder="Choose a tag..."
+                                    newSelectionPrefix="Add a new tag: "
+                                    selected={tags}
+                                    onChange={(e) => {
+                                        const tempList = [];
+                                        for (let tag of e) {
+                                            if (typeof tag === 'object') {
+                                                console.log('bye');
+                                                tempList.push(tag.label);
+                                            } else {
+                                                console.log('hi');
+                                                tempList.push(tag);
+                                            }
+                                        }
+                                        setTags(tempList);
                                     }}
-                                    suggestions={allTags}
                                 />
                             </FormGroup>
-
-                            {/*Lists all of the tags on this term, displayed as buttons*/}
-                            <Alert color="warning">
-                                <TagList
-                                    tags={tags}
-                                    handleDeleteTag={handleDeleteTag}
-                                    deletable={true}
-                                />
-                            </Alert>
                         </Col>
                     </Row>
 

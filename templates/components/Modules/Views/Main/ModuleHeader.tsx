@@ -35,9 +35,18 @@ export default function ModuleHeader({
     return (
         <Row className="Header" style={{ marginBottom: '15px' }}>
             {/*Search Bar for all cards in a deck, with the buttons for adding new items as appendages*/}
-            <InputGroup style={{ borderRadius: '12px' }}>
-                <div>
-                    <InputGroupText id="module-name" style={{ border: 'none' }}>
+            <InputGroup
+                style={{ borderRadius: '12px', padding: 0 }}
+                className="shadow"
+            >
+                <div style={{ display: 'flex' }}>
+                    <InputGroupText
+                        id="module-name"
+                        style={{
+                            border: 'none',
+                            borderRadius: '12px 0px 0px 12px',
+                        }}
+                    >
                         {curModule?.name}
                     </InputGroupText>
                 </div>
@@ -59,7 +68,7 @@ export default function ModuleHeader({
                 {permissionLevel !== 'st' ? (
                     <>
                         {/* The button for the Add Term forms */}
-                        <div>
+                        <div style={{ display: 'flex' }}>
                             <ButtonDropdown
                                 isOpen={addTermButtonOpen}
                                 toggle={toggleAddTermButton}
@@ -91,9 +100,12 @@ export default function ModuleHeader({
                         </div>
 
                         {/* The button for the Add Phrase form */}
-                        <div>
+                        <div style={{ display: 'flex' }}>
                             <Button
-                                style={{ backgroundColor: '#3e6184' }}
+                                style={{
+                                    backgroundColor: '#3e6184',
+                                    borderRadius: '0px',
+                                }}
                                 onClick={() => changeOpenForm(3)}
                             >
                                 Add Phrase
@@ -101,9 +113,12 @@ export default function ModuleHeader({
                         </div>
 
                         {/* The button for the Add Question form */}
-                        <div>
+                        <div style={{ display: 'flex' }}>
                             <Button
-                                style={{ backgroundColor: '#3e6184' }}
+                                style={{
+                                    backgroundColor: '#3e6184',
+                                    borderRadius: '0px',
+                                }}
                                 onClick={() => changeOpenForm(4)}
                             >
                                 Add Question
@@ -111,9 +126,12 @@ export default function ModuleHeader({
                         </div>
 
                         {/* The button for the Add Mentor Question form */}
-                        <div>
+                        <div style={{ display: 'flex' }}>
                             <Button
-                                style={{ backgroundColor: '#3e6184' }}
+                                style={{
+                                    backgroundColor: '#3e6184',
+                                    borderRadius: '0px 12px 12px 0px',
+                                }}
                                 onClick={() => changeOpenForm(5)}
                             >
                                 Add Mentor Question

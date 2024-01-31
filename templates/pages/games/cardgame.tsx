@@ -85,13 +85,21 @@ function CardGame() {
     const handleEarlyNavigation = useCallback(() => {
         // Only run it if the user is currently in the middle of a session
         if (isLoaded) {
-            if (UNITY_userIsPlayingGame) {
-                // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
-                sendMessage('GameManager', 'WEBGL_ExtractGameInfo');
-            }
+            try {
+                if (UNITY_userIsPlayingGame) {
+                    // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
+                    sendMessage('GameManager', 'WEBGL_ExtractGameInfo');
+                }
 
-            if (!window.confirm('Are you sure you want to leave?')) {
-                throw Error('User cancelled the navigation.');
+                if (!window.confirm('Are you sure you want to leave?')) {
+                    throw Error('User cancelled the navigation.');
+                }
+            } catch (e: any) {
+                // Prevents the navigation from happening
+                if (e.message === 'User cancelled the navigation.') return;
+                else {
+                    console.log(e);
+                }
             }
         }
     }, [UNITY_userIsPlayingGame, isLoaded, sendMessage]);
@@ -197,10 +205,7 @@ function CardGame() {
                 // Have to use xhr because Axios's async property fails to do the API call when the browser closes
                 let xhr = new XMLHttpRequest();
                 xhr.open('POST', '/elleapi/endsession', false);
-                xhr.setRequestHeader(
-                    'Authorization',
-                    'Bearer ' + localStorage.getItem('jwt')
-                );
+                xhr.setRequestHeader('Authorization', 'Bearer ' + user?.jwt);
                 xhr.setRequestHeader('Content-Type', 'application/json');
                 let data = JSON.stringify({
                     sessionID: UNITY_sessionID,
@@ -235,11 +240,12 @@ function CardGame() {
         isLoaded,
         sendMessage,
         unload,
+        user?.jwt,
     ]);
 
     // Automatically log the user into the Unity Card Game
     if (isLoaded === true) {
-        const jwt = localStorage.getItem('jwt');
+        const jwt = user?.jwt;
         if (jwt) sendMessage('LoadingText', 'WebGLLoginAttempt', jwt);
     }
 
