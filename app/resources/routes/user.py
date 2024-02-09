@@ -22,17 +22,20 @@ def get_users(current_user):
     try:
         # Get all users except for the current user
         users = User.query.filter(User.userID != current_user.userID).all()
+        users = [user.serialize() for user in users]
 
         # Get all groups associated with each user
         for user in users:
             groups = (
                 Group.query.join(GroupUser, Group.groupID == GroupUser.groupID)
-                .filter(GroupUser.userID == user.userID)
+                .filter(GroupUser.userID == user["userID"])
                 .all()
             )
-            user.groups = groups
+            user["groups"] = [group.serialize() for group in groups]
 
-        return make_response(jsonify([user.serialize() for user in users]), 200)
+        print(users)
+
+        return make_response(jsonify(users), 200)
     except Exception as e:
         print(e)
         return make_response(jsonify({"message": "Server error"}), 500)
@@ -58,8 +61,13 @@ def update_user_email(current_user):
         user = User.query.filter_by(userID=current_user.userID).first()
         user.email = email
         db.session.commit()
+
+        print(user.serialize())
         return make_response(
-            jsonify(user.serialize()), "Successfully changed email", 200
+            jsonify(
+                {"user": user.serialize(), "message": "Successfully changed email"}
+            ),
+            200,
         )
     except Exception as e:
         print(e)
@@ -96,7 +104,7 @@ def get_highscores(current_user):
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@user_bp.get("/levels")
+@user_bp.get("/userlevels")
 @token_required
 def get_user_levels(current_user):
     try:
@@ -105,6 +113,9 @@ def get_user_levels(current_user):
             .filter(GroupUser.userID == current_user.userID)
             .all()
         )
+        group_user = GroupUser.query.filter_by(userID=current_user.userID).all()
+        print([group.serialize() for group in groups])
+        print([group.serialize() for group in group_user])
 
         userLevels = []
         for userLevel in groups:
@@ -122,7 +133,7 @@ def get_user_levels(current_user):
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@user_bp.get("/preferences")
+@user_bp.get("/userpreferences")
 @token_required
 def get_user_preferences(current_user):
     try:
@@ -137,7 +148,7 @@ def get_user_preferences(current_user):
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@user_bp.put("/preferences")
+@user_bp.put("/userpreferences")
 @token_required
 def update_user_preferences(current_user):
     data = request.form

@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy.dialects.mysql import DATE, TIME
 from app.db import db
+from app.serializer import Serializer
 
 """
 Session:
@@ -16,19 +18,21 @@ Session:
 """
 
 
-class Session(db.Model):
+class Session(db.Model, Serializer):
     __tablename__ = "session"
 
     sessionID = Column(Integer, primary_key=True, autoincrement=True)
     userID = Column(Integer, nullable=False)
-    moduleID = Column(Integer, nullable=False)
-    sessionDate = Column(String(10), nullable=True)
+    moduleID = Column(Integer, nullable=True)
+    sessionDate = Column(DATE, nullable=True)
     playerScore = Column(Integer, nullable=True)
-    startTime = Column(String(5), nullable=True)
-    endTime = Column(String(5), nullable=True)
+    startTime = Column(TIME(fsp=5), nullable=True)
+    endTime = Column(TIME(fsp=5), nullable=True)
     platform = Column(String(3), nullable=True)
     mode = Column(String(7), nullable=False)
     deleted_moduleID = Column(Integer, nullable=True)
+
+    __table_args__ = (Index("deleted_module_key", "deleted_moduleID"),)
 
     def __init__(
         self,

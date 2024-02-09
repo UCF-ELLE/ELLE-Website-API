@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from app.db import db
+from app.serializer import Serializer
 
 """
 Group:
@@ -9,7 +10,7 @@ Group:
 """
 
 
-class Group(db.Model):
+class Group(db.Model, Serializer):
     __tablename__ = "group"
 
     groupID = Column(Integer, primary_key=True, autoincrement=True)

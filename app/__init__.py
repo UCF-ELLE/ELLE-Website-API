@@ -1,6 +1,6 @@
 from flask import Flask
 from app.resources.root import root_bp
-from app.db import db, mail
+from app.db import db, mail, migrate
 
 
 def create_app():
@@ -13,6 +13,7 @@ def create_app():
 
     db.init_app(app)
     mail.init_app(app)
+    migrate.init_app(app, db)
 
     with app.app_context():
         db.create_all()

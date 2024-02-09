@@ -12,7 +12,7 @@ from app.resources.models.Group import Group
 from app.resources.models.Token import Token
 from app.db import db, mail
 from flask_mail import Message
-
+from random_username.generate import generate_username
 from utils import token_required
 
 auth_bp = Blueprint("auth", __name__)
@@ -28,7 +28,6 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user:
             if check_password_hash(user.password, password):
-                print("checked")
                 expires = datetime.timedelta(hours=18)
                 user_obj = {
                     "user_id": user.userID,
@@ -39,7 +38,8 @@ def login():
                     current_app.config["SECRET_KEY"],
                 )
                 return make_response(
-                    jsonify({"token": access_token, "id": user.userID}), 200
+                    jsonify({"token": access_token.decode("utf-8"), "id": user.userID}),
+                    200,
                 )
             else:
                 return make_response(jsonify({"message": "Invalid password"}), 403)
@@ -70,7 +70,7 @@ def register():
             return make_response(
                 jsonify({"message": "Username should be less than 20 characters"}), 400
             )
-        if not any(char.isDigit() for char in username):
+        if not any(char.isdigit() for char in username):
             return make_response(
                 jsonify({"message": "Username should contain at least one number"}), 400
             )
@@ -79,20 +79,27 @@ def register():
         if email and User.query.filter_by(email=email).first():
             return make_response(jsonify({"message": "Email already exists"}), 409)
 
-        salted_password = generate_password_hash(password)
+        # pbkdf2:sha256:150000 is technically less secure than bcrypt, but it's what has been used in the past
+        # It also fits the password hash length of 100
+        salted_password = generate_password_hash(
+            password, method="pbkdf2:sha256:150000", salt_length=8
+        )
 
         user = User(username, salted_password, "st", email)
         db.session.add(user)
+        db.session.commit()
 
         userPreferences = UserPreferences(user.userID)
         db.session.add(userPreferences)
 
         if groupCode:
             group = Group.query.filter_by(groupCode=groupCode).first()
+            print(group)
             if group:
                 groupUser = GroupUser(user.userID, group.groupID, "st")
                 db.session.add(groupUser)
 
+        db.session.commit()
         return make_response(jsonify({"message": "Successfully registered!"}), 201)
     except Exception as e:
         print(e)
@@ -105,13 +112,14 @@ def reset_password():
     email = data["email"]
     reset_token = data["resetToken"]
     password = data["password"]
-    password_confirm = data["password_confirm"]
+    password_confirm = data["confirm_password"]
 
     if password != password_confirm:
         return make_response(jsonify({"message": "Passwords do not match"}), 400)
 
     try:
         user = User.query.filter_by(email=email).first()
+        print(user, user.pwdResetToken, reset_token)
         if (
             not user
             or not user.pwdResetToken
@@ -121,7 +129,9 @@ def reset_password():
                 jsonify({"message": "No records match what was provided"}), 404
             )
 
-        user.password = generate_password_hash(password)
+        user.password = generate_password_hash(
+            password, method="pbkdf2:sha256:150000", salt_length=8
+        )
         user.pwdResetToken = None
         db.session.commit()
 
@@ -135,28 +145,39 @@ def reset_password():
 def forgot_password():
     data = request.form
     email = data["email"]
-    returnMessage = {"message": "Processed"}
+    returnMessage = {"message": "User not found"}
 
     user = User.query.filter_by(email=email).first()
     if not user:
-        return make_response(returnMessage, 202)
+        return make_response(returnMessage, 404)
 
     resetToken = "".join(random.choice(string.hexdigits + "!#_@") for _ in range(6))
-    if_exist = User.query.filter_by(pwdResetToken=resetToken).first().userID
+    if_exist = User.query.filter_by(pwdResetToken=resetToken).first()
     while if_exist:
         resetToken = "".join(random.choice(string.hexdigits + "!#_@") for _ in range(6))
-        if_exist = User.query.filter_by(pwdResetToken=resetToken).first().userID
+        if_exist = User.query.filter_by(pwdResetToken=resetToken).first()
 
-    user.pwdResetToken = generate_password_hash(resetToken)
+    user.pwdResetToken = generate_password_hash(
+        resetToken, method="pbkdf2:sha256:150000", salt_length=8
+    )
     db.session.commit()
 
-    msg = Message(
-        "Forgot Password - EndLess Learner",
-        sender="ellegamesucf@gmail.com",
-        recipients=[data["email"]],
-    )
-    msg.html = f"""You are receiving this email because you requested to reset your ELLE account password.<br><br>Please visit <a href="https://chdr.cs.ucf.edu/elle/resetpassword">https://chdr.cs.ucf.edu/elle/resetpassword</a> and use the following token to reset your password:<br><br><b>{resetToken}</b><br><br>If you did not request to reset your password, you can ignore this email."""
-    mail.send(msg)
+    returnMessage = {"message": "Processed"}
+
+    try:
+        msg = Message(
+            "Forgot Password - EndLess Learner",
+            sender="ellegamesucf@gmail.com",
+            recipients=[data["email"]],
+        )
+        msg.html = f"""You are receiving this email because you requested to reset your ELLE account password.<br><br>Please visit <a href="https://chdr.cs.ucf.edu/elle/resetpassword">https://chdr.cs.ucf.edu/elle/resetpassword</a> and use the following token to reset your password:<br><br><b>{resetToken}</b><br><br>If you did not request to reset your password, you can ignore this email."""
+        mail.send(msg)
+    except Exception as e:
+        print(e)
+        returnMessage = {
+            "message": "Email server error, returning resetToken",
+            "resetToken": resetToken,
+        }
 
     return make_response(returnMessage, 202)
 
@@ -204,10 +225,14 @@ def change_password(current_user):
             user_id = current_user.userID
 
         user = User.query.filter_by(userID=user_id).first()
-        user.password = generate_password_hash(password)
+        user.password = generate_password_hash(
+            password, method="pbkdf2:sha256:150000", salt_length=8
+        )
         db.session.commit()
 
-        return make_response(jsonify({"message": "Successfully reset password"}), 200)
+        return make_response(
+            jsonify({"message": f"Successfully reset {user.username}'s password"}), 200
+        )
     except Exception as e:
         print(e)
         return make_response(jsonify({"message": "Server error"}), 500)
@@ -221,20 +246,28 @@ def forgot_username():
 
     user = User.query.filter_by(email=email).first()
     if not user:
-        return make_response(returnMessage, 202)
+        returnMessage = {"message": "User not found"}
+        return make_response(returnMessage, 404)
 
-    msg = Message(
-        "Forgot Username - EndLess Learner",
-        sender="ellegamesucf@gmail.com",
-        recipients=[data["email"]],
-    )
-    msg.html = f"""You are receiving this email because you requested to receive your ELLE account username.<br><br>The username associated with this email is <b>{username[0][0]}</b>.<br><br>Please visit <a href="https://chdr.cs.ucf.edu/elle/login">https://chdr.cs.ucf.edu/elle/login</a> to login with that username."""
-    mail.send(msg)
+    try:
+        msg = Message(
+            "Forgot Username - EndLess Learner",
+            sender="ellegamesucf@gmail.com",
+            recipients=[data["email"]],
+        )
+        msg.html = f"""You are receiving this email because you requested to receive your ELLE account username.<br><br>The username associated with this email is <b>{username[0][0]}</b>.<br><br>Please visit <a href="https://chdr.cs.ucf.edu/elle/login">https://chdr.cs.ucf.edu/elle/login</a> to login with that username."""
+        mail.send(msg)
+    except Exception as e:
+        print(e)
+        returnMessage = {
+            "message": "Email server error, returning username",
+            "username": user.username,
+        }
 
     return make_response(returnMessage, 202)
 
 
-@auth_bp.post("/checkifactive")
+@auth_bp.post("/activejwt")
 @token_required
 def check_if_active(current_user):
     data = request.form
@@ -250,44 +283,22 @@ def check_if_active(current_user):
 
 
 @auth_bp.get("/generateusername")
-def get(self):
-
-    def generateusername(num_results=1):
-        directory_path = os.path.dirname(__file__)
-        adjectives, nouns = [], []
-        with open(
-            os.path.join(directory_path, "data", "adjectives.txt"), "r"
-        ) as file_adjective:
-            with open(
-                os.path.join(directory_path, "data", "nouns.txt"), "r"
-            ) as file_noun:
-                for line in file_adjective:
-                    adjectives.append(line.strip())
-                for line in file_noun:
-                    nouns.append(line.strip())
-
-        usernames = []
-        for _ in range(num_results):
-            adjective = random.choice(adjectives)
-            noun = random.choice(nouns).capitalize()
-            num = str(random.randrange(10))
-            usernames.append(adjective + noun + num)
-        return usernames
-
-    return make_response(jsonify(generateusername()), 200)
+def generate():
+    return make_response({"username": generate_username()}, 200)
 
 
 @auth_bp.get("/getusernames")
 def get_usernames():
     try:
-        usernames = User.query.with_entities(User.username).all()
+        username_list = User.query.with_entities(User.username).all()
+        usernames = [username[0] for username in username_list]
         return make_response(jsonify(usernames), 200)
     except Exception as e:
         print(e)
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@auth_bp.get("/generatetotc")
+@auth_bp.get("/generateotc")
 @token_required
 def generate_otc(current_user):
     try:
@@ -301,7 +312,7 @@ def generate_otc(current_user):
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@auth_bp.get("/otclogin")
+@auth_bp.post("/otclogin")
 def otc_login():
     data = request.form
     otc = data["otc"]
@@ -321,7 +332,7 @@ def otc_login():
                 current_app.config["SECRET_KEY"],
             )
             return make_response(
-                jsonify({"token": access_token, "id": user.userID}), 200
+                jsonify({"token": access_token.decode("utf-8"), "id": user.userID}), 200
             )
         else:
             return make_response(jsonify({"message": "Invalid otc"}), 400)

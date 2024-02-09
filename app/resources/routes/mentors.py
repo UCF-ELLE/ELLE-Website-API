@@ -7,7 +7,7 @@ from app.resources.models.Question import Question, DeletedQuestion
 from app.resources.models.MentorResponses import MentorResponses
 from app.resources.models.MultipleChoiceAnswers import MultipleChoiceAnswers
 from app.resources.models.ModuleQuestion import ModuleQuestion
-from utils import token_required
+from utils import is_ta, token_required
 
 MENTOR_QUESTION_TYPE_1 = "MENTOR_FR"
 MENTOR_QUESTION_TYPE_2 = "MENTOR_MC"
@@ -203,18 +203,15 @@ def post_modify_mentor_questions(current_user):
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@mentors_bp.delete("/deletementorquestion")
+@mentors_bp.delete("/deletementorquestions")
 @token_required
 def delete_mentor_question(current_user):
     data = request.form
     questionID = data["questionID"]
+    groupID = data["groupID"]
     try:
 
-        groupAccessLevel = (
-            GroupUser.query.filter_by(userID=current_user.userID).first().access_level
-        )
-
-        if current_user.permissionGroup == "st" and groupAccessLevel != "ta":
+        if current_user.permissionGroup == "st" and is_ta(current_user.userID, groupID):
             return make_response(
                 jsonify({"message": "User not authorized to delete questions."}), 400
             )
@@ -267,7 +264,7 @@ def post_get_multiple_choice_options(current_user):
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@mentors_bp.post("/modifymultiplechoiceoption")
+@mentors_bp.post("/modifymultiplechoiceoptions")
 @token_required
 def post_modify_multiple_choice_option(current_user):
     data = request.form
@@ -287,7 +284,7 @@ def post_modify_multiple_choice_option(current_user):
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@mentors_bp.post("/createmultiplechoiceoption")
+@mentors_bp.post("/createmultiplechoiceoptions")
 @token_required
 def post_create_multiple_choice_option(current_user):
     data = request.form
@@ -305,7 +302,7 @@ def post_create_multiple_choice_option(current_user):
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@mentors_bp.delete("/deletemultiplechoiceoption")
+@mentors_bp.delete("/deletemultiplechoiceoptions")
 @token_required
 def delete_multiple_choice_option(current_user):
     data = request.form
@@ -324,7 +321,7 @@ def delete_multiple_choice_option(current_user):
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@mentors_bp.post("/creatementorquestionfrequency")
+@mentors_bp.post("/setmentorquestionfrequency")
 @token_required
 def post_create_mentor_question_frequency(current_user):
     data = request.form

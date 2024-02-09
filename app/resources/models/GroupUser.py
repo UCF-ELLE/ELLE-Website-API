@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Enum
 from app.db import db
+from app.serializer import Serializer
+import enum
 
 """
 GroupUser:
@@ -9,15 +11,25 @@ GroupUser:
 """
 
 
-class GroupUser(db.Model):
+class AccessLevel(enum.Enum):
+    st = "st"
+    pf = "pf"
+    ta = "ta"
+
+
+class GroupUser(db.Model, Serializer):
     __tablename__ = "group_user"
 
     groupUserID = Column(Integer, primary_key=True, autoincrement=True)
     userID = Column(Integer, db.ForeignKey("user.userID"), nullable=False)
     groupID = Column(Integer, db.ForeignKey("group.groupID"), nullable=False)
-    accessLevel = Column(String(2), nullable=False, default="st")
+    accessLevel = Column(
+        Enum(AccessLevel, values_callable=lambda x: [e.value for e in AccessLevel]),
+        nullable=False,
+        default=AccessLevel.st,
+    )
 
-    def __init__(self, userID, groupID, accessLevel="st"):
+    def __init__(self, userID, groupID, accessLevel=AccessLevel.st):
         self.userID = userID
         self.groupID = groupID
         self.accessLevel = accessLevel

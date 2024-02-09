@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Index, Integer
 from app.db import db
+from app.serializer import Serializer
 
 """
 MentorQuestionFrequency:
@@ -11,7 +12,7 @@ MentorQuestionFrequency:
 """
 
 
-class MentorQuestionFrequency(db.Model):
+class MentorQuestionFrequency(db.Model, Serializer):
     __tablename__ = "mentor_question_frequency"
 
     ID = Column(Integer, primary_key=True, autoincrement=True)
@@ -19,6 +20,8 @@ class MentorQuestionFrequency(db.Model):
     numCorrectCards = Column(Integer, nullable=True)
     time = Column(Integer, nullable=True)
     moduleID = Column(Integer, db.ForeignKey("module.moduleID"), nullable=False)
+
+    __table_args__ = (Index("module_key", "moduleID"),)
 
     def __init__(self, numIncorrectCards, numCorrectCards, time, moduleID):
         self.numIncorrectCards = numIncorrectCards

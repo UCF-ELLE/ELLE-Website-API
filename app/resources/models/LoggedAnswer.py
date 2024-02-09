@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Index
+from sqlalchemy.dialects.mysql import TINYINT, TIME
 from app.db import db
+from app.serializer import Serializer
 
 """
 LoggedAnswer:
@@ -15,18 +17,27 @@ LoggedAnswer:
 """
 
 
-class LoggedAnswer(db.Model):
+class LoggedAnswer(db.Model, Serializer):
     __tablename__ = "logged_answer"
 
     logID = Column(Integer, primary_key=True, autoincrement=True)
     questionID = Column(Integer, db.ForeignKey("question.questionID"), nullable=True)
     termID = Column(Integer, db.ForeignKey("term.termID"), nullable=True)
     sessionID = Column(Integer, db.ForeignKey("session.sessionID"), nullable=True)
-    correct = Column(Integer, nullable=True)
-    mode = Column(String(7), default="quiz")
-    log_time = Column(String(19), nullable=True)
-    deleted_questionID = Column(Integer, nullable=True)
-    deleted_termID = Column(Integer, nullable=True)
+    correct = Column(TINYINT, nullable=True)
+    mode = Column(String(7), default="quiz", nullable=False)
+    log_time = Column(TIME, nullable=True)
+    deleted_questionID = Column(
+        Integer, db.ForeignKey("deleted_question.questionID"), nullable=True
+    )
+    deleted_termID = Column(
+        Integer, db.ForeignKey("deleted_term.termID"), nullable=True
+    )
+
+    __table_args__ = (
+        Index("logged_answer_ibfk_1", "questionID"),
+        Index("logged_answer_ibfk_4", "termID"),
+    )
 
     def __init__(
         self,

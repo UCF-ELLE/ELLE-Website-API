@@ -1,6 +1,8 @@
 from functools import wraps
 from flask import request, jsonify, current_app
+from app.resources.models.GroupUser import GroupUser
 from app.resources.models.User import User
+from sqlalchemy.inspection import inspect
 import jwt
 
 
@@ -24,3 +26,15 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
 
     return decorated
+
+
+def is_ta(user_id, group_id):
+    groupAccessLevel = (
+        GroupUser.query.filter_by(userID=user_id, group_id=group_id)
+        .first()
+        .access_level
+    )
+    if groupAccessLevel == "ta":
+        return True
+    else:
+        return False

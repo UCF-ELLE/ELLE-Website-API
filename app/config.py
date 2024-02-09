@@ -53,7 +53,14 @@ REDIS_PORT = 6379
 REDIS_CHARSET = "utf-8"
 
 # SMTP server configuration
-SMTP_SERVER = os.getenv("SMTP_SERVER") if os.getenv("SMTP_SERVER") else "localhost"
-SMTP_USERNAME = os.getenv("SMTP_USERNAME")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-SMTP_PORT = os.getenv("SMTP_PORT") if os.getenv("SMTP_PORT") else "25"
+MAIL_SERVER = os.getenv("SMTP_SERVER") if os.getenv("SMTP_SERVER") else "localhost"
+MAIL_USERNAME = os.getenv("SMTP_USERNAME")
+MAIL_PASSWORD = os.getenv("SMTP_PASSWORD")
+MAIL_PORT = os.getenv("SMTP_PORT") if os.getenv("SMTP_PORT") else "25"
+MAIL_USE_TLS = True
+MAIL_USE_SSL = False
+
+# Other
+JWT_BLACKLIST_ENABLED = True
+JWT_BLACKLIST_TOKEN_CHECKS = ["access", "refresh"]
+PROPOGATE_EXCEPTIONS = True

@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Index
 from app.db import db
+from app.serializer import Serializer
 
 """
 MultipleChoiceAnswers:
@@ -9,12 +10,14 @@ MultipleChoiceAnswers:
 """
 
 
-class MultipleChoiceAnswers(db.Model):
+class MultipleChoiceAnswers(db.Model, Serializer):
     __tablename__ = "multiple_choice_answers"
 
     multipleChoiceID = Column(Integer, primary_key=True, autoincrement=True)
-    questionID = Column(Integer, db.ForeignKey("question.questionID"), nullable=True)
+    questionID = Column(Integer, db.ForeignKey("question.questionID"), nullable=False)
     answerChoice = Column(String(255), nullable=True)
+
+    __table_args__ = (Index("multiple_choice_answers_questionID", "questionID"),)
 
     def __init__(self, questionID, answerChoice):
         self.questionID = questionID

@@ -7,12 +7,12 @@ from app.resources.models.DeletedTerm import DeletedTerm
 from app.resources.models.LoggedAnswer import LoggedAnswer
 from utils import token_required
 import redis
-from config import REDIS_HOST, REDIS_PORT, REDIS_CHARSET
+from app.config import REDIS_HOST, REDIS_PORT, REDIS_CHARSET
 
-loggedAnswer_bp = Blueprint("loggedAnswer", __name__)
+logged_answer_bp = Blueprint("loggedAnswer", __name__)
 
 
-@loggedAnswer_bp.post("/loggedAnswer")
+@logged_answer_bp.post("/loggedanswer")
 @token_required
 def post_logged_answer(current_user):
     data = request.form
@@ -48,7 +48,7 @@ def post_logged_answer(current_user):
         return make_response(jsonify({"message": "Server error"}), 500)
 
 
-@loggedAnswer_bp.get("/loggedAnswer")
+@logged_answer_bp.get("/loggedanswer")
 @token_required
 def get_logged_answer(current_user):
     data = request.form
@@ -114,7 +114,7 @@ def get_logged_answer(current_user):
 
 
 # TODO: Make this fit within SQLAlchemy instead of using raw SQL statements
-@loggedAnswer_bp.get("/loggedAnswerCSV")
+@logged_answer_bp.get("/getloggedanswercsv")
 @token_required
 def get_logged_answer_csv(current_user):
     try:

@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from app.db import db
+from app.serializer import Serializer
 
 """
 Token:
@@ -8,7 +9,7 @@ Token:
 """
 
 
-class Token(db.Model):
+class Token(db.Model, Serializer):
     __tablename__ = "tokens"
 
     tokenID = Column(Integer, primary_key=True)

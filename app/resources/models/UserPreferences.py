@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Enum
+import enum
 from app.db import db
+from app.serializer import Serializer
 
 """
 UserPreferences:
@@ -10,12 +12,25 @@ UserPreferences:
 """
 
 
-class UserPreferences(db.Model):
+class HandPreference(enum.Enum):
+    R = "R"
+    L = "L"
+    A = "A"
+    N = ""
+
+
+class UserPreferences(db.Model, Serializer):
     __tablename__ = "user_preferences"
 
     userPreferenceID = Column(Integer, primary_key=True, autoincrement=True)
     userID = Column(Integer, db.ForeignKey("user.userID"), nullable=False)
-    preferredHand = Column(String(1), nullable=False, default="A")
+    preferredHand = Column(
+        Enum(
+            HandPreference, values_callable=lambda x: [i.value for i in HandPreference]
+        ),
+        nullable=False,
+        default=HandPreference.A,
+    )
     vrGloveColor = Column(String(15), nullable=False, default="brown")
 
     def __init__(self, userID, preferredHand="A", vrGloveColor="brown"):

@@ -7,7 +7,7 @@ from flask import Blueprint, request, jsonify, make_response
 access_bp = Blueprint("access", __name__)
 
 
-@access_bp.post("/access")
+@access_bp.post("/elevateaccess")
 @token_required
 def change_access(current_user):
     try:

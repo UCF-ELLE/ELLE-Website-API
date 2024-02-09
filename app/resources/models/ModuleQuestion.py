@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer
 from app.db import db
+from app.serializer import Serializer
 
 """
 ModuleQuestion:
@@ -8,11 +9,11 @@ ModuleQuestion:
 """
 
 
-class ModuleQuestion(db.Model):
+class ModuleQuestion(db.Model, Serializer):
     __tablename__ = "module_question"
 
     moduleID = Column(Integer, primary_key=True, autoincrement=True)
-    questionID = Column(Integer, db.ForeignKey("question.questionID"), nullable=True)
+    questionID = Column(Integer, db.ForeignKey("question.questionID"), nullable=False)
 
     def __init__(self, questionID):
         self.questionID = questionID

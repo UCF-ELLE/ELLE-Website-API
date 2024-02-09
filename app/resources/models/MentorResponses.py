@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Index
 from app.db import db
+from app.serializer import Serializer
 
 """
 MentorResponses:
@@ -11,7 +12,7 @@ MentorResponses:
 """
 
 
-class MentorResponses(db.Model):
+class MentorResponses(db.Model, Serializer):
     __tablename__ = "mentor_responses"
 
     mentorResponseID = Column(Integer, primary_key=True, autoincrement=True)
@@ -19,6 +20,11 @@ class MentorResponses(db.Model):
     sessionID = Column(Integer, db.ForeignKey("session.sessionID"), nullable=False)
     response = Column(String(255), nullable=True)
     deleted_questionID = Column(Integer, nullable=True)
+
+    __table_args__ = (
+        Index("mentor_responses_questionID", "questionID"),
+        Index("mentor_responses_sessionID", "sessionID"),
+    )
 
     def __init__(self, questionID, sessionID, response, deleted_questionID):
         self.questionID = questionID
