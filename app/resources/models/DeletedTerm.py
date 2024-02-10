@@ -27,7 +27,7 @@ DeletedTerm:
 """
 
 
-class Gender(enum.Enum):
+class Gender(str, enum.Enum):
     F = "F"
     M = "M"
     N = "N"

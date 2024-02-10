@@ -11,7 +11,7 @@ GroupUser:
 """
 
 
-class AccessLevel(enum.Enum):
+class AccessLevel(str, enum.Enum):
     st = "st"
     pf = "pf"
     ta = "ta"

@@ -12,7 +12,7 @@ UserPreferences:
 """
 
 
-class HandPreference(enum.Enum):
+class HandPreference(str, enum.Enum):
     R = "R"
     L = "L"
     A = "A"

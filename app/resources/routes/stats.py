@@ -1,6 +1,9 @@
-import datetime
+from datetime import datetime, timedelta, date
+import time
 from flask import Blueprint, jsonify, make_response, request
 import redis
+from sqlalchemy import text
+from sqlalchemy.sql import functions
 from app.resources.models.Group import Group
 from app.db import db
 from app.resources.models.GroupUser import GroupUser
@@ -10,7 +13,7 @@ from app.resources.models.Module import GroupModule
 from app.resources.models.Term import Term
 from app.resources.models.LoggedAnswer import LoggedAnswer
 from app.resources.models.Session import Session
-from utils import token_required
+from utils import completeSessions, token_required
 from app.config import GAME_PLATFORMS, REDIS_CHARSET, REDIS_HOST, REDIS_PORT
 
 
@@ -22,20 +25,81 @@ def get_averages(sessions):
     time_total = 0
     logged_answer_count = 0
     for session in sessions:
-        for logged_answer in session["logged_answers"]:
-            logged_answer_count += 1
-            score_total += logged_answer["correct"]
+        module = Module.query.get(session["moduleID"]).serialize()
+        if not session["startTime"]:
+            continue
+        if not session["endTime"]:
+            # Get logged answers where sessionID = session["sessionID"], order by logID, limit 1
+            last_log_time = (
+                LoggedAnswer.query.filter_by(sessionID=session["sessionID"])
+                .order_by(LoggedAnswer.logID.desc())
+                .first()
+            )
+            if last_log_time and last_log_time.log_time:
+                if session["sessionDate"] != time.strftime("%Y-%m-%d"):
+                    session["endTime"] = last_log_time.log_time
+                    db.session.commit()
+                    try:
+                        redis_conn = redis.StrictRedis(
+                            host=REDIS_HOST,
+                            port=REDIS_PORT,
+                            charset=REDIS_CHARSET,
+                            decode_responses=True,
+                        )
+                        redis_conn.delete("sessions_csv")
+                    except redis.exceptions.ConnectionError:
+                        pass
+            else:
+                continue
 
-        start_date_time = session["startTime"]
-        end_date_time = session["endTime"]
-        elapsedTime = end_date_time - start_date_time
-        time_total += elapsedTime.seconds
-
+        if not session["playerScore"]:
+            correct_answers = sum(
+                [
+                    logged_answer.correct
+                    for logged_answer in LoggedAnswer.query.filter_by(
+                        sessionID=session["sessionID"]
+                    ).all()
+                ]
+            )
+            if session["sessionDate"] != time.strftime("%Y-%m-%d"):
+                session["playerScore"] = correct_answers
+                db.session.commit()
+                try:
+                    redis_conn = redis.StrictRedis(
+                        host=REDIS_HOST,
+                        port=REDIS_PORT,
+                        charset=REDIS_CHARSET,
+                        decode_responses=True,
+                    )
+                    redis_conn.delete("sessions_csv")
+                except redis.exceptions.ConnectionError:
+                    pass
+                if correct_answers:
+                    session["playerScore"] = correct_answers
+        score_total += session["playerScore"] or 0
+        logged_answer_count += len(
+            LoggedAnswer.query.filter_by(sessionID=session["sessionID"]).all()
+        )
+        # time delta startTime
+        start_delta = timedelta(
+            hours=session["startTime"].hour,
+            minutes=session["startTime"].minute,
+            seconds=session["startTime"].second,
+        )
+        # time delta endTime
+        end_delta = timedelta(
+            hours=session["endTime"].hour,
+            minutes=session["endTime"].minute,
+            seconds=session["endTime"].second,
+        )
+        time_total += (end_delta - start_delta).seconds
     stat = {}
     stat["averageScore"] = (
-        score_total / logged_answer_count if logged_answer_count != 0 else 0
+        (score_total / logged_answer_count)
+        if (score_total and logged_answer_count != 0.0)
+        else 0.0
     )
-    stat["averageSessionLength"] = str(datetime.timedelta(seconds=time_total))
+    stat["averageSessionLength"] = str(timedelta(seconds=(time_total)))
     return stat
 
 
@@ -67,7 +131,8 @@ def get_module_report(current_user):
             .filter(Session.moduleID == module_id, permission_options)
             .all()
         )
-        sessions = [session.serialize for session in sessions]
+        sessions = completeSessions(sessions)
+        sessions = [session.serialize() for session in sessions]
 
         for session in sessions:
             logged_answers = LoggedAnswer.query.filter_by(
@@ -92,9 +157,9 @@ def get_platform_names(current_user):
 @stats_bp.get("/modulestats")
 @token_required
 def get_module_stats(current_user):
-    module_id = request.form["moduleID"]
-    include_su_stats = request.form["includeSuStats"]
-    include_pf_stats = request.form["includePfStats"]
+    module_id = request.args.get("moduleID")
+    include_su_stats = request.args.get("includeSuStats")
+    include_pf_stats = request.args.get("includePfStats")
 
     permission_options = "`user`.`permissionGroup` = 'st'"
     if current_user.permissionGroup in ("su", "pf"):
@@ -130,6 +195,7 @@ def get_module_stats(current_user):
                 )
                 .all()
             )
+        sessions = completeSessions(sessions)
         sessions = [session.serialize for session in sessions]
 
         if not sessions:
@@ -146,11 +212,11 @@ def get_module_stats(current_user):
 @stats_bp.get("/allmodulestats")
 @token_required
 def get_all_module_stats(current_user):
-    include_su_stats = request.form["includeSuStats"]
-    include_pf_stats = request.form["includePfStats"]
+    include_su_stats = request.args.get("includeSuStats")
+    include_pf_stats = request.args.get("includePfStats")
 
     if current_user.permissionGroup == "su":
-        module_ids = [module.serialize["moduleID"] for module in Module.query.all()]
+        module_ids = [module.moduleID for module in Module.query.all()]
     else:
         module_ids = [
             group_module.serialize["moduleID"]
@@ -159,41 +225,39 @@ def get_all_module_stats(current_user):
             ).all()
         ]
 
-    permission_options = "`user`.`permissionGroup` = 'st'"
+    permission_options = text("`user`.`permissionGroup` = 'st'")
     if current_user.permissionGroup in ("su", "pf"):
         if include_su_stats:
-            permission_options = (
-                permission_options + " OR `user`.`permissionGroup` = 'su'"
+            permission_options = permission_options + text(
+                " OR `user`.`permissionGroup` = 'su'"
             )
         if include_pf_stats:
-            permission_options = (
-                permission_options + " OR `user`.`permissionGroup` = 'pf'"
+            permission_options = permission_options + text(
+                " OR `user`.`permissionGroup` = 'pf'"
             )
 
+    permission_options = text(f"({permission_options})")
     stats = []
     for module_id in module_ids:
         if current_user.permissionGroup not in ("su", "pf"):
-            sessions = (
-                Session.query.join(User.userID == Session.userID)
-                .filter(
-                    Session.moduleID == module_id,
-                    User.userID == current_user.userID,
-                    permission_options,
-                )
-                .all()
+            sessions = Session.query.join(User.userID == Session.userID).filter(
+                Session.moduleID == module_id,
+                User.userID == current_user.userID,
+                permission_options,
             )
         else:
             sessions = (
-                Session.query.join(User.userID == Session.userID)
-                .filter(Session.moduleID == module_id, permission_options)
+                Session.query.filter(Session.moduleID == module_id)
+                .join(User, User.userID == Session.userID)
+                .filter(permission_options)
                 .all()
             )
-        sessions = [session.serialize for session in sessions]
-
-        if not sessions:
-            continue
-
+        sessions = completeSessions(sessions)
+        db.session.commit()
+        sessions = [session.serialize() for session in sessions]
         stat = get_averages(sessions)
+        if not stat:
+            continue
         stat["moduleID"] = module_id
         stat["name"] = Module.query.get(module_id).name
         stats.append(stat)
@@ -205,25 +269,27 @@ def get_all_module_stats(current_user):
 @stats_bp.get("/platformstats")
 @token_required
 def get_platform_stats(current_user):
-    include_su_stats = request.form["includeSuStats"]
-    include_pf_stats = request.form["includePfStats"]
+    include_su_stats = request.args.get("includeSuStats")
+    include_pf_stats = request.args.get("includePfStats")
 
-    permission_options = "`user`.`permissionGroup` = 'st'"
+    permission_options = text("`user`.`permissionGroup` = 'st'")
     if current_user.permissionGroup in ("su", "pf"):
         if include_su_stats:
-            permission_options = (
-                permission_options + " OR `user`.`permissionGroup` = 'su'"
+            permission_options = permission_options + text(
+                " OR `user`.`permissionGroup` = 'su'"
             )
         if include_pf_stats:
-            permission_options = (
-                permission_options + " OR `user`.`permissionGroup` = 'pf'"
+            permission_options = permission_options + text(
+                " OR `user`.`permissionGroup` = 'pf'"
             )
+
+    permission_options = text(f"({permission_options})")
 
     if current_user.permissionGroup != "su" and current_user.permissionGroup != "pf":
         sessions = Session.filter(Session.userID == current_user.userID).all()
     else:
         sessions = (
-            Session.query.join(User.userID == Session.userID)
+            Session.query.join(User, User.userID == Session.userID)
             .filter(permission_options)
             .all()
         )
@@ -236,7 +302,9 @@ def get_platform_stats(current_user):
         performance_objs = 0
         total_platform_objs = 0
 
-        platform_sessions = sessions.filter(Session.platform == platform).all()
+        platform_sessions = [
+            session for session in sessions if session.platform == platform
+        ]
         if not platform_sessions:
             continue
         for session in platform_sessions:
@@ -264,18 +332,26 @@ def get_platform_stats(current_user):
                             pass
                 else:
                     continue
-            time_spent = time_spent + (session.endTime - session.startTime).seconds
+            start_delta = timedelta(
+                hours=session.startTime.hour,
+                minutes=session.startTime.minute,
+                seconds=session.startTime.second,
+            )
+            # time delta endTime
+            end_delta = timedelta(
+                hours=session.endTime.hour,
+                minutes=session.endTime.minute,
+                seconds=session.endTime.second,
+            )
+            time_spent += (end_delta - start_delta).seconds
 
             if not session.playerScore:
-                correct_answers = sum(
-                    [
-                        logged_answer.correct
-                        for logged_answer in LoggedAnswer.query.filter_by(
-                            sessionID=session.sessionID
-                        ).all()
-                    ]
+                correct_answers = (
+                    db.session.query(functions.sum(LoggedAnswer.correct))
+                    .filter(LoggedAnswer.sessionID == session.sessionID)
+                    .scalar()
                 )
-                if session.sessionDate != datetime.datetime.now().strftime("%Y-%m-%d"):
+                if correct_answers != None:
                     session.playerScore = correct_answers
                     db.session.commit()
                     try:
@@ -288,6 +364,8 @@ def get_platform_stats(current_user):
                         redis_conn.delete("sessions_csv")
                     except redis.exceptions.ConnectionError:
                         pass
+                else:
+                    continue
             total_score = total_score + session.playerScore
 
             total_platform_objs = total_platform_objs + 1
@@ -296,12 +374,12 @@ def get_platform_stats(current_user):
         stats[platform] = {
             "frequency": total_platform_objs,
             "total_score": total_score,
-            "time_spent": str(datetime.timedelta(seconds=time_spent)),
+            "time_spent": str(timedelta(seconds=time_spent)),
             "avg_score": (
                 total_score / total_platform_objs if total_platform_objs != 0 else 0
             ),
             "avg_time_spent": str(
-                datetime.timedelta(seconds=(time_spent / total_platform_objs))
+                timedelta(seconds=(time_spent / total_platform_objs))
                 if total_platform_objs != 0
                 else 0
             ),

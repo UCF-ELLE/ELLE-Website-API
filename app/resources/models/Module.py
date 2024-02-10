@@ -40,7 +40,7 @@ GroupModule:
 """
 
 
-class GroupModule(db.Model):
+class GroupModule(db.Model, Serializer):
     __tablename__ = "group_module"
 
     groupModuleID = Column(Integer, primary_key=True, autoincrement=True)
@@ -65,7 +65,7 @@ DeletedModule:
 """
 
 
-class DeletedModule(db.Model):
+class DeletedModule(db.Model, Serializer):
     __tablename__ = "deleted_module"
 
     moduleID = Column(Integer, primary_key=True, autoincrement=True)

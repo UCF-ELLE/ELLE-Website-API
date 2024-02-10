@@ -1,6 +1,10 @@
 from functools import wraps
+import time
 from flask import request, jsonify, current_app
+import redis
+from app import db
 from app.resources.models.GroupUser import GroupUser
+from app.resources.models.LoggedAnswer import LoggedAnswer
 from app.resources.models.User import User
 from sqlalchemy.inspection import inspect
 import jwt
@@ -38,3 +42,36 @@ def is_ta(user_id, group_id):
         return True
     else:
         return False
+
+
+def completeSessions(sessions):
+    completeSessions = []
+    for session in sessions:
+        if (
+            session.startTime != None
+            and session.endTime != None
+            and session.playerScore != None
+        ):
+            completeSessions.append(session)
+        else:
+            log_time = (
+                LoggedAnswer.query.filter_by(sessionID=session.sessionID)
+                .order_by(LoggedAnswer.logID.desc())
+                .first()
+            )
+            if log_time is not None:
+                log_time = log_time.log_time
+                if session.sessionDate != time.strftime("%Y-%m-%d"):
+                    session.endTime = log_time
+                    completeSessions.append(session)
+                    try:
+                        redis_conn = redis.StrictRedis(
+                            host=current_app.config["REDIS_HOST"],
+                            port=current_app.config["REDIS_PORT"],
+                            charset=current_app.config["REDIS_CHARSET"],
+                            decode_responses=True,
+                        )
+                        redis_conn.delete("sessions_csv")
+                    except redis.exceptions.ConnectionError:
+                        pass
+    return completeSessions

@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import random
 import string
@@ -20,7 +21,7 @@ auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.post("/login")
 def login():
-    data = request.form
+    data = request.json
     username = data["username"].lower()
     password = data["password"]
 
@@ -31,14 +32,19 @@ def login():
                 expires = datetime.timedelta(hours=18)
                 user_obj = {
                     "user_id": user.userID,
-                    "permissionGroup": user.permissionGroup,
+                    "permissionGroup": user.permissionGroup.value,
                 }
                 access_token = jwt.encode(
                     {"user": user_obj, "exp": datetime.datetime.utcnow() + expires},
                     current_app.config["SECRET_KEY"],
                 )
                 return make_response(
-                    jsonify({"token": access_token.decode("utf-8"), "id": user.userID}),
+                    jsonify(
+                        {
+                            "access_token": access_token.decode("utf-8"),
+                            "id": user.userID,
+                        }
+                    ),
                     200,
                 )
             else:
@@ -52,7 +58,7 @@ def login():
 
 @auth_bp.post("/register")
 def register():
-    data = request.form
+    data = request.json
     username = data["username"].lower()
     password = data["password"]
     password_confirm = data["password_confirm"]
@@ -108,7 +114,7 @@ def register():
 
 @auth_bp.post("/resetpassword")
 def reset_password():
-    data = request.form
+    data = request.json
     email = data["email"]
     reset_token = data["resetToken"]
     password = data["password"]
@@ -143,7 +149,7 @@ def reset_password():
 
 @auth_bp.post("/forgotpassword")
 def forgot_password():
-    data = request.form
+    data = request.json
     email = data["email"]
     returnMessage = {"message": "User not found"}
 
@@ -185,7 +191,7 @@ def forgot_password():
 @auth_bp.post("/changepassword")
 @token_required
 def change_password(current_user):
-    data = request.form
+    data = request.json
     user_id = data["userID"]
     password = data["password"]
 
@@ -240,7 +246,7 @@ def change_password(current_user):
 
 @auth_bp.post("/forgotusername")
 def forgot_username():
-    data = request.form
+    data = request.json
     email = data["email"]
     returnMessage = {"message": "Processed"}
 
@@ -267,10 +273,11 @@ def forgot_username():
     return make_response(returnMessage, 202)
 
 
+# Possibly deprecated? This is not used, period
 @auth_bp.post("/activejwt")
 @token_required
 def check_if_active(current_user):
-    data = request.form
+    data = request.json
     token = data["token"]
 
     try:
@@ -314,7 +321,7 @@ def generate_otc(current_user):
 
 @auth_bp.post("/otclogin")
 def otc_login():
-    data = request.form
+    data = request.json
     otc = data["otc"]
 
     try:

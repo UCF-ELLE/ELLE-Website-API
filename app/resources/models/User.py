@@ -15,7 +15,7 @@ User:
 """
 
 
-class PermissionGroup(enum.Enum):
+class PermissionGroup(str, enum.Enum):
     st = "st"
     pf = "pf"
     su = "su"
