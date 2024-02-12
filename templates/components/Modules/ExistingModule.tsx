@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from 'reactstrap';
 import axios from 'axios';
 import { Module } from '@/types/api/modules';
+import { useUser } from '@/hooks/useUser';
 
 export default function ExistingModule({
     module,
@@ -12,6 +13,7 @@ export default function ExistingModule({
     selectedClass?: { value: number; label: string };
     updateModuleList: (task: string, moduleID?: number) => void;
 }) {
+    const { user } = useUser();
     const [linked, setLinked] = useState(false);
 
     const link = () => {
@@ -21,7 +23,7 @@ export default function ExistingModule({
         };
 
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
         };
 
         axios

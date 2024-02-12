@@ -21,6 +21,7 @@ import hidePasswordImage from '@/public/static/images/hide.png';
 import showPasswordImage from '@/public/static/images/show.png';
 import Image from 'next/image';
 import styles from './SuperAdminView.module.css';
+import { useUser } from '@/hooks/useUser';
 
 export default function Password({
     userType,
@@ -31,6 +32,7 @@ export default function Password({
     email?: string;
     editEmail: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
+    const { user } = useUser();
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [validConfirm, setValidConfirm] = useState(false);
@@ -92,7 +94,7 @@ export default function Password({
         };
 
         const header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
         };
 
         axios
@@ -138,7 +140,7 @@ export default function Password({
         };
 
         const header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
         };
 
         axios

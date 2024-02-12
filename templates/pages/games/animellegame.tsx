@@ -16,8 +16,15 @@ import { useRouter } from 'next/router';
 import { ReactUnityEventParameter } from 'react-unity-webgl/distribution/types/react-unity-event-parameters';
 import Layout from '@/app/layout';
 import { useUser } from '@/hooks/useUser';
+import Image from 'next/image';
 
-function CardGame() {
+import logo from '@/public/static/images/AnimELLE/logo0309.svg';
+import instruct from '@/public/static/images/AnimELLE/instructions.png';
+import keys from '@/public/static/images/AnimELLE/keyboard.png';
+import cursor from '@/public/static/images/AnimELLE/mouse.svg';
+import e from '@/public/static/images/AnimELLE/ekey.svg';
+
+function AnimELLEGame() {
     const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
     const router = useRouter();
@@ -40,10 +47,10 @@ function CardGame() {
         unload,
     } = useUnityContext({
         // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
-        loaderUrl: '/games/Card-Game/Build.loader.js',
-        dataUrl: '/games/Card-Game/Build.data',
-        frameworkUrl: '/games/Card-Game/Build.framework.js',
-        codeUrl: '/games/Card-Game/Build.wasm',
+        loaderUrl: '/games/AnimELLE-Crossing/Build.loader.js',
+        dataUrl: '/games/AnimELLE-Crossing/Build.data',
+        frameworkUrl: '/games/AnimELLE-Crossing/Build.framework.js',
+        codeUrl: '/games/AnimELLE-Crossing/Build.wasm',
     });
 
     // Event handlers for when Unity sends events to Event
@@ -71,12 +78,6 @@ function CardGame() {
     const UNITY_setPlayerScore = useCallback(
         (score: ReactUnityEventParameter) => {
             setUNITY_playerScore(score as number);
-        },
-        []
-    );
-    const UNITY_setPausedTime = useCallback(
-        (time: ReactUnityEventParameter) => {
-            setUNITY_pausedTime(time as number);
         },
         []
     );
@@ -109,7 +110,6 @@ function CardGame() {
         addEventListener('setUserIsPlayingGame', UNITY_setUserIsPlayingGame);
         addEventListener('setSessionID', UNITY_setSessionID);
         addEventListener('setPlayerScore', UNITY_setPlayerScore);
-        addEventListener('setPausedTime', UNITY_setPausedTime);
         router.events.on('routeChangeStart', handleEarlyNavigation);
         return () => {
             removeEventListener(
@@ -118,7 +118,6 @@ function CardGame() {
             );
             removeEventListener('setSessionID', UNITY_setSessionID);
             removeEventListener('setPlayerScore', UNITY_setPlayerScore);
-            removeEventListener('setPausedTime', UNITY_setPausedTime);
             router.events.off('routeChangeStart', handleEarlyNavigation);
         };
     }, [
@@ -127,7 +126,6 @@ function CardGame() {
         UNITY_setUserIsPlayingGame,
         UNITY_setSessionID,
         UNITY_setPlayerScore,
-        UNITY_setPausedTime,
         router.events,
         handleEarlyNavigation,
     ]);
@@ -155,7 +153,7 @@ function CardGame() {
             // Only run if the user is currently in the middle of a session
             if (UNITY_userIsPlayingGame) {
                 // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
-                sendMessage('GameManager', 'WEBGL_ExtractGameInfo');
+                sendMessage('GameManager', 'LeavingPageEvents');
             }
 
             // Ask user to confirm if they want to leave the page
@@ -179,29 +177,6 @@ function CardGame() {
         const endOngoingSession = () => {
             // Only run it if the user is currently in the middle of a session
             if (UNITY_userIsPlayingGame) {
-                // Get current time
-                let date = new Date();
-
-                // Subtract in-game paused time
-                let pausedTimeMilliSeconds = UNITY_pausedTime * 1000;
-                let finalDate = new Date(
-                    date.getTime() - pausedTimeMilliSeconds
-                );
-
-                // 0-pad the minutes if it's less than 10 minutes (so it shows up like "09")
-                let finalTimeMinutes =
-                    finalDate.getMinutes() < 10
-                        ? '0' + finalDate.getMinutes()
-                        : finalDate.getMinutes();
-                let finalTime = finalDate.getHours() + ':' + finalTimeMinutes;
-
-                /* Debug statements
-                console.log("Unity paused time: " + UNITY_pausedTime.current);
-                console.log("Unity paused time (in milliseconds): " + pausedTimeMilliSeconds);
-
-                console.log(currentTime + " - " + pausedTimeMilliSeconds + " milliseconds = " + finalTime);
-                */
-
                 // Have to use xhr because Axios's async property fails to do the API call when the browser closes
                 let xhr = new XMLHttpRequest();
                 xhr.open('POST', '/elleapi/endsession', false);
@@ -209,7 +184,6 @@ function CardGame() {
                 xhr.setRequestHeader('Content-Type', 'application/json');
                 let data = JSON.stringify({
                     sessionID: UNITY_sessionID,
-                    endTime: finalTime,
                     playerScore: UNITY_playerScore,
                 });
                 xhr.send(data);
@@ -233,7 +207,6 @@ function CardGame() {
             window.removeEventListener('unload', endOngoingSession);
         };
     }, [
-        UNITY_pausedTime,
         UNITY_playerScore,
         UNITY_sessionID,
         UNITY_userIsPlayingGame,
@@ -246,7 +219,7 @@ function CardGame() {
     // Automatically log the user into the Unity Card Game
     if (isLoaded === true) {
         const jwt = user?.jwt;
-        if (jwt) sendMessage('LoadingText', 'WebGLLoginAttempt', jwt);
+        if (jwt) sendMessage('GameManager', 'loginAttempt', jwt);
     }
 
     // Fullscreen button
@@ -282,7 +255,7 @@ function CardGame() {
 
     return (
         <Layout requireUser>
-            <div className="gamesBg mainDiv">
+            <div className="animelle-game-container">
                 <div className="center-contents">
                     <div
                         className="webglLoadingStatusBox"
@@ -292,30 +265,123 @@ function CardGame() {
                             Loading {Math.round(loadingProgression * 100)}%
                         </p>
                     </div>
-
-                    <Unity
-                        unityProvider={unityProvider}
-                        devicePixelRatio={devicePixelRatio}
-                        style={{
-                            width: '1152px',
-                            height: '648px',
-                            visibility: isLoaded ? 'visible' : 'hidden',
-                        }}
-                    />
-                    <br />
-                    <br />
-                    <Button
-                        onClick={handleOnClickFullscreen}
-                        style={{ visibility: isLoaded ? 'visible' : 'hidden' }}
-                    >
-                        Fullscreen
-                    </Button>
+                    <div className="gameContainer">
+                        <Unity
+                            unityProvider={unityProvider}
+                            style={{
+                                height: 600,
+                                width: 800,
+                                visibility: isLoaded ? 'visible' : 'hidden',
+                                background: 'transparent',
+                            }}
+                            devicePixelRatio={devicePixelRatio}
+                        />
+                        <Button
+                            className="fsbtn"
+                            onClick={handleOnClickFullscreen}
+                            style={{
+                                visibility: isLoaded ? 'visible' : 'hidden',
+                            }}
+                        >
+                            Fullscreen
+                        </Button>
+                    </div>
                 </div>
-                <br />
-                <br />
+                <div className="divContainer">
+                    <div className="instruct-filler">
+                        {/* <h4>Listen to Tito!</h4> <img src={tito} className='tito' alt="tito" /> */}
+                    </div>
+                    <div className="logoContainer">
+                        <div className="imgContainer">
+                            <Image
+                                src={logo}
+                                className="logo"
+                                alt="game logo"
+                            />
+                            <h3 className="credits">Credits:</h3>
+                        </div>
+                        <div className="row">
+                            <div className="column">
+                                <p className="names">Tam Nguyen </p>
+                                <p className="names">Justin Reeves</p>
+                                <p className="names">Natali Siam-Pollo</p>
+                            </div>
+                            <div className="column">
+                                <p className="names">Derek Dyer</p>
+                                <p className="names">Trevor Larson</p>
+                            </div>
+                        </div>{' '}
+                        {/*<!--row--> */}
+                    </div>{' '}
+                    {/*<!--logo--> */}
+                    <div className="instruct-actual">
+                        <Image
+                            src={instruct}
+                            className="instruct"
+                            alt="game logo"
+                        />
+                        <div className="keyContainer">
+                            <Image src={keys} className="keys" alt="keys" />
+                            <p className="instructions">
+                                Moving the Player (arrow keys work too!)
+                            </p>
+                            <br></br>
+                        </div>
+                        <div className="keyContainer">
+                            <Image src={cursor} className="keys" alt="keys" />
+                            <p className="instructions">
+                                Hovering Tooltips, Button Selection
+                            </p>
+                            <br></br>
+                        </div>
+                        <div className="keyContainer">
+                            <Image src={e} className="keys" alt="keys" />
+                            <p className="instructions">
+                                For interacting with objects/NPCs with Emotes,
+                                Continue Dialogue
+                            </p>
+                            <br></br>
+                        </div>
+                        {/* <div className="keyContainer">
+                        <img src={q} className='keys' alt="keys" />
+                        <p className='instructions'>Opening Fast Travel Menu</p><br></br>
+                    </div>
+                    <div className="keyContainer">
+                        <img src={p} className='keys' alt="keys" />
+                        <p className='instructions'>Opening Pause Menu</p><br></br>
+                    </div>
+                    <div className="keyContainer">
+                        <img src={a} className='keys' alt="keys" />
+                        <p className='instructions'>Opening "Ask Tito" Menu</p><br></br>
+                    </div> */}
+                        <br></br>
+                        <br></br>
+                        {/* <p className='instructions'>-Scavenger Hunt:<br></br><br></br>"Spacebar" - For picking up Scavenger Hunt items, Continue Dialogue</p><br></br> */}
+
+                        {/* CONTROLS FOR ANIMELLE CROSSING:
+                        - General:
+                        * Arrow Keys - Moving the Player
+                        * Mouse - Hovering Tooltips, Button Selection
+                        * "E" Key - For interacting with objects/NPCs with Emotes, Continue Dialogue
+                        * "Q" - Opening Fast Travel Menu
+                        * "P" - Opening Pause Menu
+                        * "A" - Opening "Ask Tito" Menu
+
+
+                        -Scavenger Hunt:
+                        * W/A/S/D - Moving the Player
+                        * Mouse -  Button Selection
+                        * "E" Key - For interacting with NPCs with Emotes
+                        * "Spacebar" - For picking up Scavenger Hunt items, Continue Dialogue 
+
+                        - Matching Game, Fill-In-The-Blank, Multiple Choice
+                        * Mouse -  Button Selection */}
+                    </div>
+                </div>{' '}
+                {/*<!--divContainer--> */}
             </div>
         </Layout>
     );
 }
 
-export default CardGame;
+export default AnimELLEGame;

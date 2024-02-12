@@ -64,7 +64,7 @@ export default function SessionComponent({
         console.log('sessionId: ', sessionID);
 
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
             params: { sessionID: sessionID },
         };
 

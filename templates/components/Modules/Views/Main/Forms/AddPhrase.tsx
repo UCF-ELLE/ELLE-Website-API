@@ -171,8 +171,6 @@ export default function AddPhrase({
             selectedAudioFile.size !== 0 &&
                 data.append('audio', selectedAudioFile);
 
-            console.log(selectedAudioFile);
-
             axios
                 .post('/elleapi/term', data, header)
                 .then((res) => {
@@ -201,6 +199,7 @@ export default function AddPhrase({
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
         if (event.target.files) {
+            console.log('image', event.target.files[0]);
             setSelectedImgFile(event.target.files[0]);
             setImgLabel(
                 event.target.files[0] === undefined

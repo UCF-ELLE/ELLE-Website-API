@@ -18,7 +18,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     return (
         <>
             <Head>
-                <title>{`Elle 2.0${env === 'development' && ' Dev'}`}</title>
+                <title>{`Elle 2.0${
+                    env === 'development' ? ' Dev' : ''
+                }`}</title>
                 <link
                     rel="icon"
                     href={

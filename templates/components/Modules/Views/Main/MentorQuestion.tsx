@@ -94,7 +94,7 @@ export default function MentorQuestion({
                         mc_id: myAnswers[i].multipleChoiceID,
                     },
                     headers: {
-                        Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+                        Authorization: 'Bearer ' + user?.jwt,
                     },
                 };
 

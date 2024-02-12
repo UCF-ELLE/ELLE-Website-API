@@ -6,15 +6,17 @@ import axios from 'axios';
 import TermStats from './TermStats';
 import TermBarChart from './TermBarChart';
 import { TermPerformance } from '@/types/api/stats';
+import { useUser } from '@/hooks/useUser';
 
 export default function ClassPerformance({ groupID }: { groupID: string }) {
+    const { user } = useUser();
     const [termStats, setTermStats] = React.useState<TermPerformance>();
     const [error, setError] = React.useState<string>('');
     const [threshold, setThreshold] = React.useState(50);
 
     const getTermsPerformance = useCallback(() => {
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
             params: { groupID },
         };
 
@@ -27,7 +29,7 @@ export default function ClassPerformance({ groupID }: { groupID: string }) {
                 setError(error.response);
                 console.log(error.response);
             });
-    }, [groupID]);
+    }, [groupID, user?.jwt]);
 
     useEffect(() => {
         getTermsPerformance();

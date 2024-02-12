@@ -119,7 +119,7 @@ export default function AddMentorQuestion({
         };
 
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
         };
 
         axios

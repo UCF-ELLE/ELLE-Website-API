@@ -17,6 +17,7 @@ import Autocomplete from './Autocomplete';
 import AnswerButtonList from './AnswerButtonList';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Tag, Term } from '@/types/api/terms';
+import { useUser } from '@/hooks/useUser';
 
 export default function SearchAnswersByTag({
     curModule,
@@ -37,6 +38,7 @@ export default function SearchAnswersByTag({
     handleAddAnswer: (answer: string) => void;
     toggleSearchByTagForm: () => void;
 }) {
+    const { user } = useUser();
     const [search, setSearch] = useState('');
     const [tags, setTags] = useState<Tag[]>([]);
     const [previousTags, setPreviousTags] = useState<Tag[]>([]);
@@ -137,7 +139,7 @@ export default function SearchAnswersByTag({
         for (let i = 0; i < tags.length; i++) {
             let header = {
                 headers: {
-                    Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+                    Authorization: 'Bearer ' + user?.jwt,
                 },
                 params: { tag_name: tags[i] },
             };

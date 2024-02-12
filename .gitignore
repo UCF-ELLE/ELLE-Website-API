@@ -1,6 +1,4 @@
 **/__pycache__
-deletes
-uploads
 .vscode/
 templates/node_modules
 .DS_Store
@@ -11,6 +9,16 @@ templates/package-lock.json
 templates/package.json
 node_modules/
 
+
+# Upload-related folders
+deletes
+uploads
+images/*
+!images/.gitkeep
+audios/*
+!audios/.gitkeep
+temp_uploads/*
+!temp_uploads/.gitkeep
 
 ### PyCharm ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider

@@ -152,7 +152,7 @@ export default function AdminView(props: AdminViewProps) {
         toggleEditClass();
 
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
         };
 
         let config = {
@@ -172,7 +172,7 @@ export default function AdminView(props: AdminViewProps) {
 
     const generateNewCode = () => {
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
             params: { groupID: currentClassDetails.groupID },
         };
 
@@ -200,7 +200,7 @@ export default function AdminView(props: AdminViewProps) {
         e.preventDefault();
 
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
         };
 
         let config = {
@@ -220,7 +220,7 @@ export default function AdminView(props: AdminViewProps) {
 
     const deleteClass = () => {
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
             data: { groupID: currentClassDetails.groupID },
         };
 

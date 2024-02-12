@@ -158,7 +158,7 @@ export function ModuleStats() {
 
     const getTermStats = (id: number) => {
         let header = {
-            headers: { Authorization: 'Bearer ' + localStorage.getItem('jwt') },
+            headers: { Authorization: 'Bearer ' + user?.jwt },
             params: { moduleID: id },
         };
 

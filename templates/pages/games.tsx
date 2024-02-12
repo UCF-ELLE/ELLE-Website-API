@@ -38,7 +38,7 @@ export default function Games() {
     };
 
     const options = [
-        { value: 'CardGame', label: 'ELLE Card Game' },
+        { value: 'VirtuELLEMentor', label: 'VirtuELLE Mentor' },
         { value: 'AnimELLE', label: 'AnimELLE Crossing' },
         { value: 'Maze', label: 'Maze Game' },
         { value: 'HELLEsKitchen', label: 'HELLEs Kitchen' },
@@ -63,7 +63,7 @@ export default function Games() {
                     placeholder="Select a Game"
                 />
 
-                <a id="CardGame"></a>
+                <a id="VirtuELLEMentor"></a>
                 <section style={{ color: 'white' }}>
                     <div className="container">
                         <div
@@ -73,7 +73,7 @@ export default function Games() {
                             <Row>
                                 <Col>
                                     <h3 className="cta-title">
-                                        ELLE Card Game
+                                        VirtuELLE Mentor
                                     </h3>
                                     <p className="cta-text">
                                         Original Senior Design Team:
@@ -131,7 +131,7 @@ export default function Games() {
                                         <Link
                                             href={
                                                 user?.jwt
-                                                    ? '/games/cardgame'
+                                                    ? '/games/virtuellementor'
                                                     : '/login'
                                             }
                                             className={`cardGameButton ${
@@ -203,7 +203,7 @@ export default function Games() {
                                         <Link
                                             href={
                                                 user
-                                                    ? '/animellegame'
+                                                    ? '/games/animellegame'
                                                     : '/login'
                                             }
                                             className={`animelleButton ${
@@ -268,7 +268,11 @@ export default function Games() {
                                     <p className="cta-text">
                                         <br />
                                         <Link
-                                            href={user ? '/mazegame' : '/login'}
+                                            href={
+                                                user
+                                                    ? '/games/mazegame'
+                                                    : '/login'
+                                            }
                                             className={`mazeButton ${
                                                 !user ? 'disabled' : ''
                                             }`}

@@ -63,16 +63,17 @@ export default function UserList({}: {}) {
     );
 
     const getUsers = () => {
-        if (!loading && !error && response) {
-            let su = response.filter((user) => user.permissionGroup === 'su');
-            let pf = response.filter((user) => user.permissionGroup === 'pf');
-            let st = response.filter((user) => user.permissionGroup === 'st');
+        refetchUsers().then((response) => {
+            const data = response.data;
+            let su = data.filter((user) => user.permissionGroup === 'su');
+            let pf = data.filter((user) => user.permissionGroup === 'pf');
+            let st = data.filter((user) => user.permissionGroup === 'st');
 
-            setUsers(response);
+            setUsers(data);
             setSuperAdmins(su);
             setProfessors(pf);
             setStudents(st);
-        }
+        });
     };
 
     useEffect(() => {
@@ -82,6 +83,8 @@ export default function UserList({}: {}) {
                 let su = data.filter((user) => user.permissionGroup === 'su');
                 let pf = data.filter((user) => user.permissionGroup === 'pf');
                 let st = data.filter((user) => user.permissionGroup === 'st');
+
+                console.log(data, su, pf, st);
 
                 setUsers(data);
                 setSuperAdmins(su);
@@ -97,7 +100,7 @@ export default function UserList({}: {}) {
 
     const elevateUser = (group: PermissionGroup) => {
         const data = {
-            userID: selectedUser,
+            userID: selectedUser?.value,
             accessLevel: group,
         };
 
