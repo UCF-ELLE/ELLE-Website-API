@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Row,
     Col,
@@ -13,9 +13,11 @@ import useAxios from 'axios-hooks';
 import Spinner from '../Loading/Spinner';
 import ThreeDots from '../Loading/ThreeDots';
 import { Bar } from 'react-chartjs-2';
+import { Chart } from 'chart.js';
 import moreRegImage from '@/public/static/images/moreReg.png';
 import Image from 'next/image';
 import { useUser } from '@/hooks/useUser';
+import { Tooltip } from 'chart.js';
 
 type ModulePerformanceType = {
     moduleID: string;
@@ -30,6 +32,7 @@ type TermStats = {
 };
 
 export default function ModulePerformance() {
+    Chart.register(Tooltip);
     const { user } = useUser();
 
     const [
@@ -60,13 +63,12 @@ export default function ModulePerformance() {
     );
 
     useEffect(() => {
-        console.log('user', user);
         if (user?.jwt) {
             console.log('refetching');
             refetchModuleStats();
-            refetchTermStats();
+            if (moduleID) refetchTermStats();
         }
-    }, [refetchModuleStats, refetchTermStats, user?.jwt]);
+    }, [moduleID, refetchModuleStats, refetchTermStats, user?.jwt]);
 
     const [modules, setModules] = useState<ModulePerformanceType[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
@@ -161,13 +163,12 @@ export default function ModulePerformance() {
         if (modalOpen === false) {
             setShowTermStats(true);
             setModuleID(id);
-            refetchTermStats();
         } else {
             setShowTermStats(false);
         }
     };
 
-    const renderChart = () => {
+    const renderChart = useCallback(() => {
         // check if response exists and or if loading
         if (termError || termLoading || termResponse === undefined) {
             return <Spinner chart="performance" />;
@@ -186,39 +187,40 @@ export default function ModulePerformance() {
             datasets: [
                 {
                     label: 'Correctness (%)',
-                    data: terms.map((term) => term.percentage.toFixed(2)),
+                    data: terms.map((term) => term.percentage),
                     backgroundColor: chartColors,
                 },
             ],
         };
 
+        console.log('performanceData', performanceData);
+
         return termData.length !== 0 ? (
             <Bar
+                width={500}
+                height={250}
                 data={performanceData}
                 options={{
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { mode: 'index', intersect: false },
+                    },
                     scales: {
-                        yAxis: {
+                        y: {
                             min: 0,
                             max: 100,
                             ticks: {
-                                color: 'black',
+                                stepSize: 5,
                             },
                         },
-                        xAxis: {
-                            ticks: {
-                                color: 'black',
-                            },
-                        },
-                    },
-                    plugins: {
-                        legend: { labels: { color: 'black' } },
                     },
                 }}
             />
         ) : (
             <p>No records found.</p>
         );
-    };
+    }, [termError, termLoading, termResponse]);
 
     const getColors = (len: number) => {
         let list = [];
@@ -269,6 +271,7 @@ export default function ModulePerformance() {
                 <Modal
                     isOpen={modalOpen}
                     toggle={() => setModalOpen(!modalOpen)}
+                    style={{ maxWidth: '40%' }}
                 >
                     <ModalHeader toggle={() => setModalOpen(!modalOpen)}>
                         Terms Performance

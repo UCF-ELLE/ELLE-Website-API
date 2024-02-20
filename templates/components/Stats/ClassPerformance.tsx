@@ -32,8 +32,8 @@ export default function ClassPerformance({ groupID }: { groupID: string }) {
     }, [groupID, user?.jwt]);
 
     useEffect(() => {
-        getTermsPerformance();
-    }, [getTermsPerformance]);
+        if (user?.jwt) getTermsPerformance();
+    }, [getTermsPerformance, user?.jwt]);
 
     const renderCharts = () => {
         return (

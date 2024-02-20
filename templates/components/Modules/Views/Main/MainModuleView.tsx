@@ -13,6 +13,7 @@ import axios from 'axios';
 import { Tag } from '@/types/api/terms';
 import ModuleCardList from './ModuleCardList';
 import ModuleForms from './Forms/ModuleForms';
+import { QuestionFrame } from '@/types/api/pastagame';
 
 export default function MainModuleView({
     currentClass,
@@ -41,6 +42,7 @@ export default function MainModuleView({
     const [freq, setFreq] = useState<
         Omit<MentorQuestionFrequency, 'moduleID'>[]
     >([]);
+    const [questionFrames, setQuestionFrames] = useState<QuestionFrame[]>([]);
 
     const changeOpenForm = (form: number) => {
         if (form === openForm) {
@@ -129,6 +131,37 @@ export default function MainModuleView({
             });
     }, [curModule.moduleID, getAllTags, loading, user]);
 
+    const getAllQuestionFrames = useCallback(() => {
+        const config = {
+            headers: {
+                Authorization: `Bearer ${user?.jwt}`,
+            },
+            params: {
+                moduleID: curModule?.moduleID,
+            },
+        };
+
+        axios
+            .get<QuestionFrame[]>('/elleapi/pastagame/qframe/all', config)
+            .then((res) => {
+                if (res.data.length > 0) {
+                    setQuestionFrames(res.data);
+                } else {
+                    setQuestionFrames([]);
+                }
+            })
+            .catch((err) => {
+                console.log('error in pastagame/frame/all: ', err.response);
+            });
+    }, [curModule?.moduleID, user?.jwt]);
+
+    // TODO: Service this, as with all other axios calls.
+    // Grab all question frames for the current module if it is a pasta module
+    useEffect(() => {
+        if (loading || !user || !curModule?.isPastaModule) return;
+        getAllQuestionFrames();
+    }, [curModule?.isPastaModule, getAllQuestionFrames, loading, user]);
+
     const terms: ModuleQuestionAnswer[] = [];
     const phrases: ModuleQuestionAnswer[] = [];
     const longformQuestions: ModuleQuestion[] = [];
@@ -205,6 +238,7 @@ export default function MainModuleView({
                         setOpenForm={(num: number) => setOpenForm(num)}
                         getAllTags={getAllTags}
                         allAnswersNotInThisModule={allAnswersNotInThisModule}
+                        questionFrames={questionFrames}
                     />
                     <ModuleCardList
                         currentClass={currentClass}
@@ -212,6 +246,7 @@ export default function MainModuleView({
                         terms={filteredTerms}
                         phrases={filteredPhrases}
                         questions={filteredQuestions}
+                        questionFrames={questionFrames}
                         mentorQuestions={mentorQuestions}
                         updateCurrentModule={updateCurrentModule}
                         allAnswers={allAnswers}

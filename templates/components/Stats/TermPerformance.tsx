@@ -16,7 +16,7 @@ import { useUser } from '@/hooks/useUser';
 export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
     const [collapseTab, setCollapseTab] = React.useState(-1);
     const [modalOpen, setModalOpen] = React.useState(false);
-    const [currentGroup, setCurrentGroup] = React.useState<string>('');
+    const [currentGroup, setCurrentGroup] = React.useState<string>();
 
     console.log(classes);
 
@@ -31,10 +31,8 @@ export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
         setCollapseTab(collapseTab === Number(event) ? -1 : Number(event));
     };
 
-    const toggleModal = (id: string) => {
-        // this.setState({ modalOpen: !this.state.modalOpen, currentGroup: id });
+    const toggleModal = () => {
         setModalOpen(!modalOpen);
-        setCurrentGroup(id);
     };
 
     return (
@@ -75,9 +73,13 @@ export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
                                         padding: '2px 4px',
                                         fontSize: 'small',
                                     }}
-                                    onClick={() =>
-                                        toggleModal(group.groupID.toString())
-                                    }
+                                    onClick={() => {
+                                        console.log("I'm clicked");
+                                        setCurrentGroup(
+                                            group.groupID.toString()
+                                        );
+                                        toggleModal();
+                                    }}
                                 >
                                     Lookup Student
                                 </Button>

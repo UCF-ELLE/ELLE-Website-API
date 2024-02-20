@@ -6,6 +6,9 @@ import AddQuestion from './AddQuestion';
 import AddTerm from './AddTerm';
 import AddPhrase from './AddPhrase';
 import AddMentorQuestion from './AddMentorQuestion';
+import AddQuestionFrame from './Pasta/AddQuestionFrame';
+import { QuestionFrame } from '@/types/api/pastagame';
+import AddPasta from './Pasta/AddPasta';
 
 export default function ModuleForms({
     currentClass,
@@ -19,6 +22,7 @@ export default function ModuleForms({
     setOpenForm,
     getAllTags,
     allAnswersNotInThisModule,
+    questionFrames,
 }: {
     currentClass: { value: number; label: string };
     curModule: Module;
@@ -31,6 +35,7 @@ export default function ModuleForms({
     setOpenForm: (num: number) => void;
     getAllTags: () => void;
     allAnswersNotInThisModule: ModuleQuestionAnswer[];
+    questionFrames: QuestionFrame[];
 }) {
     return (
         <Row>
@@ -101,6 +106,23 @@ export default function ModuleForms({
                         allTags={allTags}
                         setOpenForm={setOpenForm}
                         getAllTags={getAllTags}
+                    />
+                </Collapse>
+                {/*Form for adding a Pasta Question Frame*/}
+                <Collapse isOpen={openForm === 6 && curModule.isPastaModule}>
+                    <AddQuestionFrame
+                        questionFrames={questionFrames}
+                        curModule={curModule}
+                        updateCurrentModule={updateCurrentModule}
+                        setOpenForm={setOpenForm}
+                    />
+                </Collapse>
+                <Collapse isOpen={openForm === 7 && curModule.isPastaModule}>
+                    <AddPasta
+                        questionFrames={questionFrames}
+                        curModule={curModule}
+                        updateCurrentModule={updateCurrentModule}
+                        setOpenForm={setOpenForm}
                     />
                 </Collapse>
             </Col>

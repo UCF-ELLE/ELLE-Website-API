@@ -11,13 +11,15 @@ import axios from 'axios';
 import { useUser } from '@/hooks/useUser';
 import { TermPerformance } from '@/types/api/stats';
 
-export default function SpecificStudentStats({ groupID }: { groupID: string }) {
+export default function SpecificStudentStats({
+    groupID,
+}: {
+    groupID?: string;
+}) {
     const [students, setStudents] = React.useState([]);
-    const [selectedStudent, setSelectedStudent] = React.useState<string | null>(
-        ''
-    );
+    const [selectedStudent, setSelectedStudent] = React.useState<string>();
     const [threshold, setThreshold] = React.useState(50);
-    const { user } = useUser();
+    const { user, loading: userLoading } = useUser();
 
     const [
         {
@@ -25,12 +27,16 @@ export default function SpecificStudentStats({ groupID }: { groupID: string }) {
             loading: termStatsLoading,
             error: termStatsError,
         },
-    ] = useAxios<TermPerformance>({
-        method: 'get',
-        url: '/elleapi/termsperformance',
-        headers: { Authorization: 'Bearer ' + user?.jwt },
-        params: { userID: selectedStudent, groupID: groupID },
-    });
+        refreshTermStats,
+    ] = useAxios<TermPerformance>(
+        {
+            method: 'get',
+            url: '/elleapi/termsperformance',
+            headers: { Authorization: `Bearer ${user?.jwt}` },
+            params: { userID: selectedStudent, groupID: groupID },
+        },
+        { manual: true }
+    );
 
     const getStudents = useCallback(() => {
         let header = {
@@ -55,11 +61,13 @@ export default function SpecificStudentStats({ groupID }: { groupID: string }) {
             .catch((error) => {
                 console.log(error.response);
             });
-    }, [groupID]);
+    }, [groupID, user?.jwt]);
 
     useEffect(() => {
-        getStudents();
-    }, [getStudents]);
+        if (user?.jwt) {
+            getStudents();
+        }
+    }, [getStudents, user?.jwt]);
 
     const changeThreshold = (value: number | number[]) => {
         if (typeof value === 'number') setThreshold(value);
@@ -80,12 +88,15 @@ export default function SpecificStudentStats({ groupID }: { groupID: string }) {
                         classNamePrefix="select"
                         isClearable={true}
                         value={selectedStudent}
-                        onChange={setSelectedStudent}
+                        onChange={(e) => {
+                            console.log('selected student', e);
+                            setSelectedStudent(e || undefined);
+                        }}
                     />
                 </Col>
-                {/* <Col xs="3">
-                        <Button onClick={this.onSearch}>Search</Button>
-                    </Col> */}
+                <Col xs="3">
+                    <Button onClick={() => refreshTermStats()}>Search</Button>
+                </Col>
             </Row>
             <br />
             <Card style={{ border: 'none' }}>

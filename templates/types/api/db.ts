@@ -92,6 +92,7 @@ export type DBModule = {
     language: LanguageCode;
     complexity?: number;
     userID: number;
+    isPastaModule?: boolean;
 };
 
 export type DBTag = {
@@ -122,4 +123,28 @@ export type DBUserPreferences = {
     userID: number;
     preeferredHand: 'R' | 'L' | 'A' | '';
     vrGloveColor: string;
+};
+
+export type DBPastaQuestionFrame = {
+    qframeID: number;
+    moduleID: number;
+    displayName?: string;
+    category: string;
+    mc1QuestionText?: string;
+    mc1Options?: string[];
+    splitQuestionVar: string;
+    identifyQuestionVar?: string;
+    mc2QuestionText?: string;
+    mc2Options?: string[];
+};
+
+export type DBPasta = {
+    pastaID: number;
+    moduleID: number;
+    category: string;
+    utterance: string;
+    mc1Answer?: number;
+    splitAnswer: number[];
+    identifyAnswer?: number[];
+    mc2Answer?: number;
 };

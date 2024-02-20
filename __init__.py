@@ -16,6 +16,20 @@ from flask_mail import Mail
 from db import mysql
 from db_utils import *
 from pathlib import Path
+from resources.pasta import (
+    AllPastaInModule,
+    Pasta,
+    PastaFrame,
+    PastaFrameModule,
+)
+from resources.store import (
+    AllStoreItems,
+    AllUserItems,
+    AllUserPurchasableItems,
+    PurchaseUserItem,
+    StoreItem,
+    WearUserItem,
+)
 from resources.user import (
     UserRegister,
     Users,
@@ -275,6 +289,20 @@ api.add_resource(
     GetMentorQuestionFrequency, API_ENDPOINT_PREFIX + "getmentorquestionfrequency"
 )
 api.add_resource(AnimELLESaveData, API_ENDPOINT_PREFIX + "animellesavedata")
+# Pasta Game Specific Endpoints
+api.add_resource(Pasta, API_ENDPOINT_PREFIX + "pastagame/pasta")
+api.add_resource(AllPastaInModule, API_ENDPOINT_PREFIX + "pastagame/pasta/all")
+api.add_resource(PastaFrame, API_ENDPOINT_PREFIX + "pastagame/qframe")
+api.add_resource(PastaFrameModule, API_ENDPOINT_PREFIX + "pastagame/qframe/all")
+# Store Specific Endpoints
+api.add_resource(StoreItem, API_ENDPOINT_PREFIX + "store/item")
+api.add_resource(AllStoreItems, API_ENDPOINT_PREFIX + "store/items")
+api.add_resource(PurchaseUserItem, API_ENDPOINT_PREFIX + "store/purchase")
+api.add_resource(WearUserItem, API_ENDPOINT_PREFIX + "store/wear")
+api.add_resource(AllUserItems, API_ENDPOINT_PREFIX + "store/user/items")
+api.add_resource(
+    AllUserPurchasableItems, API_ENDPOINT_PREFIX + "store/user/purchasable"
+)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)

@@ -72,8 +72,8 @@ export default function AdminView(props: AdminViewProps) {
     }, [user?.jwt]);
 
     useEffect(() => {
-        getClasses();
-    }, [getClasses]);
+        if (user?.jwt) getClasses();
+    }, [getClasses, user?.jwt]);
 
     const toggleTooltipOpen = () => {
         setTooltipOpen(!tooltipOpen);
@@ -218,6 +218,28 @@ export default function AdminView(props: AdminViewProps) {
             });
     };
 
+    const submitClassCode = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        let data = {
+            groupCode: classCode,
+        };
+
+        const headers = {
+            Authorization: 'Bearer ' + user?.jwt,
+        };
+
+        axios
+            .post('/elleapi/groupregister', data, { headers: headers })
+            .then((res) => {
+                getClasses();
+                setClassCode('');
+            })
+            .catch((error) => {
+                console.log(error.response);
+            });
+    };
+
     const deleteClass = () => {
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
@@ -251,7 +273,11 @@ export default function AdminView(props: AdminViewProps) {
             <Row>
                 <Col xs="3">
                     <Card
-                        style={{ backgroundColor: 'lightblue', height: '65vh' }}
+                        style={{
+                            backgroundColor: 'lightblue',
+                            height: '65vh',
+                            overflowY: 'auto',
+                        }}
                     >
                         <CardBody>
                             <h6>Username:</h6>
@@ -344,6 +370,27 @@ export default function AdminView(props: AdminViewProps) {
                                 </FormGroup>
                                 <Button block type="submit">
                                     Create
+                                </Button>
+                            </Form>
+
+                            <Form onSubmit={(e) => submitClassCode(e)}>
+                                <h5 style={{ marginTop: '8px' }}>
+                                    Join a New Class
+                                </h5>
+                                <FormGroup>
+                                    <Label for="classCode">Class Code: </Label>
+                                    <Input
+                                        type="text"
+                                        name="classCode"
+                                        id="classCode"
+                                        onChange={(e) =>
+                                            setClassCode(e.target.value)
+                                        }
+                                        value={classCode}
+                                    />
+                                </FormGroup>
+                                <Button block type="submit">
+                                    Join
                                 </Button>
                             </Form>
                         </CardBody>

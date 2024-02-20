@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { Card, CardHeader, Collapse } from 'reactstrap';
 import CardList from './CardList';
 import { Tag } from '@/types/api/terms';
+import { QuestionFrame } from '@/types/api/pastagame';
+import PastaModuleCardList from './Pasta/PastaModuleCardList';
 
 export default function ModuleCardList({
     currentClass,
@@ -16,6 +18,7 @@ export default function ModuleCardList({
     phrases,
     questions,
     mentorQuestions,
+    questionFrames,
     updateCurrentModule,
     allAnswers,
     addTag,
@@ -29,6 +32,7 @@ export default function ModuleCardList({
     phrases: ModuleQuestionAnswer[];
     questions: ModuleQuestion[];
     mentorQuestions: MentorQuestion[];
+    questionFrames?: QuestionFrame[];
     updateCurrentModule: (module?: Module, task?: string) => void;
     allAnswers: ModuleQuestionAnswer[];
     addTag: (tagList: Tag[], tag: Tag) => Tag[];
@@ -39,10 +43,52 @@ export default function ModuleCardList({
     const [activeTab, setActiveTab] = useState('terms');
 
     const toggleTab = (tab: string) => {
-        console.log(tab, activeTab);
         if (activeTab !== tab) setActiveTab(tab);
         else setActiveTab('');
     };
+
+    if (curModule?.isPastaModule) {
+        return (
+            <>
+                <Card style={{ marginBottom: '1rem' }}>
+                    <CardHeader
+                        onClick={() => toggleTab('questionFrames')}
+                        data-event={4}
+                    >
+                        Question Frames
+                    </CardHeader>
+
+                    <Collapse isOpen={activeTab === 'questionFrames'}>
+                        <PastaModuleCardList
+                            type={'questionFrames'}
+                            questionFrames={questionFrames || []}
+                            currentClass={currentClass}
+                            curModule={curModule}
+                            updateCurrentModule={updateCurrentModule}
+                        />
+                    </Collapse>
+                </Card>
+                <Card style={{ marginBottom: '1rem' }}>
+                    <CardHeader
+                        onClick={() => toggleTab('pastas')}
+                        data-event={5}
+                    >
+                        Pastas
+                    </CardHeader>
+
+                    <Collapse isOpen={activeTab === 'pastas'}>
+                        <PastaModuleCardList
+                            type={'pastas'}
+                            questionFrames={questionFrames || []}
+                            currentClass={currentClass}
+                            curModule={curModule}
+                            updateCurrentModule={updateCurrentModule}
+                        />
+                    </Collapse>
+                </Card>
+            </>
+        );
+    }
 
     return (
         <>

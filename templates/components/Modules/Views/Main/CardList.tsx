@@ -179,7 +179,7 @@ export default function CardList({
                     </tr>
                 </thead>;
             default:
-                return null;
+                return <></>;
         }
     }, [permissionLevel, type]);
 
@@ -194,265 +194,376 @@ export default function CardList({
     return (
         <>
             {type === 'terms' && (
-                <div>
-                    {len === 0 ? (
-                        <Alert>
-                            {' '}
-                            There are currently no terms in this module.{' '}
-                        </Alert>
-                    ) : (
-                        <Table hover className="tableList">
-                            {HeadRow}
-                            <tbody>
-                                {(list as ModuleQuestionAnswer[]).map(
-                                    (card) => {
-                                        return (
-                                            <Term
-                                                key={card.termID}
-                                                card={card}
-                                                currentClass={currentClass}
-                                                curModule={curModule}
-                                                updateCurrentModule={
-                                                    updateCurrentModule
-                                                }
-                                                deleteTag={deleteTag}
-                                                addTag={addTag}
-                                                allTags={allTags}
-                                            />
-                                        );
-                                    }
-                                )}
-                            </tbody>
-                        </Table>
-                    )}
-                </div>
+                <TermCardList
+                    list={list as ModuleQuestionAnswer[]}
+                    len={len}
+                    currentClass={currentClass}
+                    curModule={curModule}
+                    updateCurrentModule={updateCurrentModule}
+                    deleteTag={deleteTag}
+                    addTag={addTag}
+                    allTags={allTags}
+                    HeadRow={HeadRow}
+                />
             )}
             {type === 'phrases' && (
-                <div>
-                    {len === 0 ? (
-                        <Alert>
-                            {' '}
-                            There are currently no phrases in this module.{' '}
-                        </Alert>
-                    ) : (
-                        <Table hover className="tableList">
-                            {HeadRow}
-                            <tbody>
-                                {(list as ModuleQuestionAnswer[]).map(
-                                    (card) => {
-                                        return (
-                                            <Phrase
-                                                key={card.termID}
-                                                card={card}
-                                                currentClass={currentClass}
-                                                curModule={curModule}
-                                                updateCurrentModule={
-                                                    updateCurrentModule
-                                                }
-                                            />
-                                        );
-                                    }
-                                )}
-                            </tbody>
-                        </Table>
-                    )}
-                </div>
+                <PhraseCardList
+                    list={list as ModuleQuestionAnswer[]}
+                    len={len}
+                    currentClass={currentClass}
+                    curModule={curModule}
+                    updateCurrentModule={updateCurrentModule}
+                    HeadRow={HeadRow}
+                />
             )}
             {type === 'questions' && (
-                <div>
-                    {cards.length === 0 ? (
-                        <Alert>
-                            {' '}
-                            There are currently no questions in this module.{' '}
-                        </Alert>
-                    ) : (
-                        <Table hover className="tableList">
-                            {HeadRow}
-                            <tbody>
-                                {(list as ModuleQuestion[]).map((card) => {
-                                    return (
-                                        <Question
-                                            key={card.questionID}
-                                            question={card}
-                                            currentClass={currentClass}
-                                            curModule={curModule}
-                                            updateCurrentModule={
-                                                updateCurrentModule
-                                            }
-                                            deleteTag={deleteTag}
-                                            addTag={addTag}
-                                            allAnswers={
-                                                allAnswers as ModuleQuestionAnswer[]
-                                            }
-                                            allTags={allTags}
-                                        />
-                                    );
-                                })}
-                            </tbody>
-                        </Table>
-                    )}
-                </div>
+                <QuestionCardList
+                    cards={cards as ModuleQuestion[]}
+                    list={cards as ModuleQuestion[]}
+                    currentClass={currentClass}
+                    curModule={curModule}
+                    updateCurrentModule={updateCurrentModule}
+                    deleteTag={deleteTag}
+                    addTag={addTag}
+                    allTags={allTags}
+                    allAnswers={allAnswers as ModuleQuestionAnswer[]}
+                    HeadRow={HeadRow}
+                />
             )}
-            {type === 'mentorQuestions' && (
-                <div>
-                    {mentorQuestions?.length === 0 ? (
-                        <Alert>
-                            {' '}
-                            There are currently no mentor questions in this
-                            module.{' '}
-                        </Alert>
-                    ) : (
-                        <div>
-                            <br />
-                            <h3>Mentor Question Frequency</h3>
-                            <br />
-                            <Form onSubmit={(e) => updateMentorFrequency(e)}>
-                                <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-                                    <Label for="cfrequency" className="mr-sm-2">
-                                        <b>Every X cards correctly matched:</b>
-                                    </Label>
-                                    {cfreq <= 0 ? (
-                                        <Input
-                                            invalid
-                                            placeholder="Enter a number"
-                                            type="number"
-                                            min="1"
-                                            name="cfrequency"
-                                            id="cfrequency"
-                                            value={cfreq || 1}
-                                            onChange={(e) =>
-                                                setcFreq(
-                                                    parseInt(e.target.value)
-                                                )
-                                            }
-                                        />
-                                    ) : (
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            name="cfrequency"
-                                            id="cfrequency"
-                                            value={cfreq || 1}
-                                            onChange={(e) =>
-                                                setcFreq(
-                                                    parseInt(e.target.value)
-                                                )
-                                            }
-                                        />
-                                    )}
-                                </FormGroup>
-                                <br />
-                                <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-                                    <Label for="frequency" className="mr-sm-2">
-                                        <b>
-                                            Every X cards incorrectly matched:
-                                        </b>
-                                    </Label>
-                                    {freq <= 0 ? (
-                                        <Input
-                                            invalid
-                                            placeholder="Enter a number"
-                                            type="number"
-                                            min="1"
-                                            name="frequency"
-                                            id="frequency"
-                                            value={freq || 1}
-                                            onChange={(e) =>
-                                                setFreq(
-                                                    parseInt(e.target.value)
-                                                )
-                                            }
-                                        />
-                                    ) : (
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            name="frequency"
-                                            id="frequency"
-                                            value={freq || 1}
-                                            onChange={(e) =>
-                                                setFreq(
-                                                    parseInt(e.target.value)
-                                                )
-                                            }
-                                        />
-                                    )}
-                                </FormGroup>
-                                <br />
-                                <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-                                    <Label for="tfrequency" className="mr-sm-2">
-                                        <b>Every X seconds:</b>
-                                    </Label>
-                                    {tfreq <= 0 ? (
-                                        <Input
-                                            invalid
-                                            placeholder="Enter a number"
-                                            type="number"
-                                            min="1"
-                                            name="tfrequency"
-                                            id="tfrequency"
-                                            value={tfreq || 1}
-                                            onChange={(e) =>
-                                                settFreq(
-                                                    parseInt(e.target.value)
-                                                )
-                                            }
-                                        />
-                                    ) : (
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            name="tfrequency"
-                                            id="tfrequency"
-                                            value={tfreq || 1}
-                                            onChange={(e) =>
-                                                settFreq(
-                                                    parseInt(e.target.value)
-                                                )
-                                            }
-                                        />
-                                    )}
-                                </FormGroup>
-                                <br />
-                                {cfreq <= 0 || freq <= 0 || tfreq <= 0 ? (
-                                    <Button disabled>
-                                        Submit (fields must be greater than 0){' '}
-                                    </Button>
-                                ) : (
-                                    <Button>Submit</Button>
-                                )}
-                            </Form>
-                            <br />
-                            <Table hover className="tableList">
-                                <thead>
-                                    <tr>
-                                        <th style={{ width: '64%' }}>
-                                            Question
-                                        </th>
-                                        {permissionLevel !== 'st' ? (
-                                            <th style={{ width: '9%' }}> </th>
-                                        ) : null}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {mentorQuestions?.map((question) => {
-                                        return (
-                                            <MentorQuestion
-                                                key={question.questionID}
-                                                question={question}
-                                                curModule={curModule}
-                                                updateCurrentModule={
-                                                    updateCurrentModule
-                                                }
-                                            />
-                                        );
-                                    })}
-                                </tbody>
-                            </Table>
-                        </div>
-                    )}
-                </div>
+            {type === 'mentorQuestions' && permissionLevel && (
+                <MentorQuestionCardList
+                    mentorQuestions={mentorQuestions as MentorQuestionType[]}
+                    curModule={curModule}
+                    updateCurrentModule={updateCurrentModule}
+                    cfreq={cfreq}
+                    setcFreq={setcFreq}
+                    freq={freq}
+                    setFreq={setFreq}
+                    tfreq={tfreq}
+                    settFreq={settFreq}
+                    updateMentorFrequency={updateMentorFrequency}
+                    permissionLevel={permissionLevel}
+                />
             )}
         </>
+    );
+}
+
+function TermCardList({
+    list,
+    len,
+    currentClass,
+    curModule,
+    updateCurrentModule,
+    deleteTag,
+    addTag,
+    allTags,
+    HeadRow,
+}: {
+    list: ModuleQuestionAnswer[];
+    len: number;
+    currentClass: { value: number; label: string };
+    curModule: Module;
+    updateCurrentModule: (module?: Module, task?: string) => void;
+    deleteTag: (tagList: Tag[], tag: Tag) => Tag[];
+    addTag: (tagList: Tag[], tag: Tag) => Tag[];
+    allTags: Tag[];
+    HeadRow: JSX.Element;
+}) {
+    return (
+        <div>
+            {len === 0 ? (
+                <Alert> There are currently no terms in this module. </Alert>
+            ) : (
+                <Table hover className="tableList">
+                    {HeadRow}
+                    <tbody>
+                        {(list as ModuleQuestionAnswer[]).map((card) => {
+                            return (
+                                <Term
+                                    key={card.termID}
+                                    card={card}
+                                    currentClass={currentClass}
+                                    curModule={curModule}
+                                    updateCurrentModule={updateCurrentModule}
+                                    deleteTag={deleteTag}
+                                    addTag={addTag}
+                                    allTags={allTags}
+                                />
+                            );
+                        })}
+                    </tbody>
+                </Table>
+            )}
+        </div>
+    );
+}
+
+function PhraseCardList({
+    list,
+    len,
+    currentClass,
+    curModule,
+    updateCurrentModule,
+    HeadRow,
+}: {
+    list: ModuleQuestionAnswer[];
+    len: number;
+    currentClass: { value: number; label: string };
+    curModule: Module;
+    updateCurrentModule: (module?: Module, task?: string) => void;
+    HeadRow: JSX.Element;
+}) {
+    return (
+        <div>
+            {len === 0 ? (
+                <Alert> There are currently no phrases in this module. </Alert>
+            ) : (
+                <Table hover className="tableList">
+                    {HeadRow}
+                    <tbody>
+                        {(list as ModuleQuestionAnswer[]).map((card) => {
+                            return (
+                                <Phrase
+                                    key={card.termID}
+                                    card={card}
+                                    currentClass={currentClass}
+                                    curModule={curModule}
+                                    updateCurrentModule={updateCurrentModule}
+                                />
+                            );
+                        })}
+                    </tbody>
+                </Table>
+            )}
+        </div>
+    );
+}
+
+function QuestionCardList({
+    cards,
+    list,
+    currentClass,
+    curModule,
+    updateCurrentModule,
+    deleteTag,
+    addTag,
+    allTags,
+    allAnswers,
+    HeadRow,
+}: {
+    cards: ModuleQuestion[];
+    list: ModuleQuestion[];
+    currentClass: { value: number; label: string };
+    curModule: Module;
+    updateCurrentModule: (module?: Module, task?: string) => void;
+    deleteTag: (tagList: Tag[], tag: Tag) => Tag[];
+    addTag: (tagList: Tag[], tag: Tag) => Tag[];
+    allTags: Tag[];
+    allAnswers: ModuleQuestionAnswer[];
+    HeadRow: JSX.Element;
+}) {
+    return (
+        <div>
+            {cards.length === 0 ? (
+                <Alert>
+                    {' '}
+                    There are currently no questions in this module.{' '}
+                </Alert>
+            ) : (
+                <Table hover className="tableList">
+                    {HeadRow}
+                    <tbody>
+                        {list.map((card) => {
+                            return (
+                                <Question
+                                    key={card.questionID}
+                                    question={card}
+                                    currentClass={currentClass}
+                                    curModule={curModule}
+                                    updateCurrentModule={updateCurrentModule}
+                                    deleteTag={deleteTag}
+                                    addTag={addTag}
+                                    allAnswers={
+                                        allAnswers as ModuleQuestionAnswer[]
+                                    }
+                                    allTags={allTags}
+                                />
+                            );
+                        })}
+                    </tbody>
+                </Table>
+            )}
+        </div>
+    );
+}
+
+function MentorQuestionCardList({
+    mentorQuestions,
+    curModule,
+    updateCurrentModule,
+    cfreq,
+    setcFreq,
+    freq,
+    setFreq,
+    tfreq,
+    settFreq,
+    updateMentorFrequency,
+    permissionLevel,
+}: {
+    mentorQuestions: MentorQuestionType[];
+    curModule: Module;
+    updateCurrentModule: (module?: Module, task?: string) => void;
+    cfreq: number;
+    setcFreq: (cfreq: number) => void;
+    freq: number;
+    setFreq: (freq: number) => void;
+    tfreq: number;
+    settFreq: (tfreq: number) => void;
+    updateMentorFrequency: (e: React.FormEvent<HTMLFormElement>) => void;
+    permissionLevel: string;
+}) {
+    return (
+        <div>
+            {mentorQuestions?.length === 0 ? (
+                <Alert>
+                    {' '}
+                    There are currently no mentor questions in this module.{' '}
+                </Alert>
+            ) : (
+                <div>
+                    <br />
+                    <h3>Mentor Question Frequency</h3>
+                    <br />
+                    <Form onSubmit={(e) => updateMentorFrequency(e)}>
+                        <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+                            <Label for="cfrequency" className="mr-sm-2">
+                                <b>Every X cards correctly matched:</b>
+                            </Label>
+                            {cfreq <= 0 ? (
+                                <Input
+                                    invalid
+                                    placeholder="Enter a number"
+                                    type="number"
+                                    min="1"
+                                    name="cfrequency"
+                                    id="cfrequency"
+                                    value={cfreq || 1}
+                                    onChange={(e) =>
+                                        setcFreq(parseInt(e.target.value))
+                                    }
+                                />
+                            ) : (
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    name="cfrequency"
+                                    id="cfrequency"
+                                    value={cfreq || 1}
+                                    onChange={(e) =>
+                                        setcFreq(parseInt(e.target.value))
+                                    }
+                                />
+                            )}
+                        </FormGroup>
+                        <br />
+                        <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+                            <Label for="frequency" className="mr-sm-2">
+                                <b>Every X cards incorrectly matched:</b>
+                            </Label>
+                            {freq <= 0 ? (
+                                <Input
+                                    invalid
+                                    placeholder="Enter a number"
+                                    type="number"
+                                    min="1"
+                                    name="frequency"
+                                    id="frequency"
+                                    value={freq || 1}
+                                    onChange={(e) =>
+                                        setFreq(parseInt(e.target.value))
+                                    }
+                                />
+                            ) : (
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    name="frequency"
+                                    id="frequency"
+                                    value={freq || 1}
+                                    onChange={(e) =>
+                                        setFreq(parseInt(e.target.value))
+                                    }
+                                />
+                            )}
+                        </FormGroup>
+                        <br />
+                        <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+                            <Label for="tfrequency" className="mr-sm-2">
+                                <b>Every X seconds:</b>
+                            </Label>
+                            {tfreq <= 0 ? (
+                                <Input
+                                    invalid
+                                    placeholder="Enter a number"
+                                    type="number"
+                                    min="1"
+                                    name="tfrequency"
+                                    id="tfrequency"
+                                    value={tfreq || 1}
+                                    onChange={(e) =>
+                                        settFreq(parseInt(e.target.value))
+                                    }
+                                />
+                            ) : (
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    name="tfrequency"
+                                    id="tfrequency"
+                                    value={tfreq || 1}
+                                    onChange={(e) =>
+                                        settFreq(parseInt(e.target.value))
+                                    }
+                                />
+                            )}
+                        </FormGroup>
+                        <br />
+                        {cfreq <= 0 || freq <= 0 || tfreq <= 0 ? (
+                            <Button disabled>
+                                Submit (fields must be greater than 0){' '}
+                            </Button>
+                        ) : (
+                            <Button>Submit</Button>
+                        )}
+                    </Form>
+                    <br />
+                    <Table hover className="tableList">
+                        <thead>
+                            <tr>
+                                <th style={{ width: '64%' }}>Question</th>
+                                {permissionLevel !== 'st' ? (
+                                    <th style={{ width: '9%' }}> </th>
+                                ) : null}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {mentorQuestions?.map((question) => {
+                                return (
+                                    <MentorQuestion
+                                        key={question.questionID}
+                                        question={question}
+                                        curModule={curModule}
+                                        updateCurrentModule={
+                                            updateCurrentModule
+                                        }
+                                    />
+                                );
+                            })}
+                        </tbody>
+                    </Table>
+                </div>
+            )}
+        </div>
     );
 }

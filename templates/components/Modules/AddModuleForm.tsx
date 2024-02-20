@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 import {
     Alert,
@@ -50,6 +50,7 @@ export default function AddModuleForm({
         value: number;
         label: string;
     }>();
+    const [isPastaModule, setIsPastaModule] = useState<boolean>(false);
     const [status, setStatus] = useState<boolean>(false);
     const [success, setSuccess] = useState<boolean>(false);
 
@@ -63,6 +64,7 @@ export default function AddModuleForm({
                 name,
                 language: selectedLanguage.value,
                 complexity: 2,
+                isPastaModule,
             };
         } else {
             data = {
@@ -73,6 +75,7 @@ export default function AddModuleForm({
                     currentClass.value === 0
                         ? classState?.value
                         : currentClass.value,
+                isPastaModule,
             };
         }
 
@@ -164,7 +167,7 @@ export default function AddModuleForm({
                                     type="text"
                                     placeholder="Module Name"
                                     value={name}
-                                    onChange={(e) => setName(e.target.name)}
+                                    onChange={(e) => setName(e.target.value)}
                                 />
                             </FormGroup>
                         </Col>
@@ -187,6 +190,22 @@ export default function AddModuleForm({
                                         })
                                     }
                                 />
+                            </FormGroup>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col className="mb-3">
+                            <FormGroup check>
+                                <Input
+                                    type="checkbox"
+                                    name="isPastaModule"
+                                    onClick={() =>
+                                        setIsPastaModule(!isPastaModule)
+                                    }
+                                />
+                                <Label check for="isPastaModule">
+                                    Pasta Module
+                                </Label>
                             </FormGroup>
                         </Col>
                     </Row>

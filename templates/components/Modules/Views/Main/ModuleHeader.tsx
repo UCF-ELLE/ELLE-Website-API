@@ -45,6 +45,7 @@ export default function ModuleHeader({
                         style={{
                             border: 'none',
                             borderRadius: '12px 0px 0px 12px',
+                            color: curModule?.isPastaModule ? 'red' : undefined,
                         }}
                     >
                         {curModule?.name}
@@ -65,7 +66,7 @@ export default function ModuleHeader({
                     onChange={(e) => updateSearchCard(e)}
                 />
 
-                {permissionLevel !== 'st' ? (
+                {permissionLevel !== 'st' && !curModule?.isPastaModule ? (
                     <>
                         {/* The button for the Add Term forms */}
                         <div style={{ display: 'flex' }}>
@@ -135,6 +136,33 @@ export default function ModuleHeader({
                                 onClick={() => changeOpenForm(5)}
                             >
                                 Add Mentor Question
+                            </Button>
+                        </div>
+                    </>
+                ) : null}
+                {permissionLevel !== 'st' && curModule?.isPastaModule ? (
+                    <>
+                        <div style={{ display: 'flex' }}>
+                            <Button
+                                style={{
+                                    backgroundColor: '#3e6184',
+                                    borderRadius: '0px',
+                                }}
+                                onClick={() => changeOpenForm(6)}
+                            >
+                                Add Question Frame
+                            </Button>
+                        </div>
+                        {/* The button for the Add Pasta form */}
+                        <div style={{ display: 'flex' }}>
+                            <Button
+                                style={{
+                                    backgroundColor: '#3e6184',
+                                    borderRadius: '0px 12px 12px 0px',
+                                }}
+                                onClick={() => changeOpenForm(7)}
+                            >
+                                Add Pasta
                             </Button>
                         </div>
                     </>
