@@ -1,8 +1,4 @@
-import {
-    Module,
-    ModuleQuestion,
-    ModuleQuestionAnswer,
-} from '@/types/api/modules';
+import { Module, ModuleQuestion, ModuleQuestionAnswer } from '@/types/api/modules';
 import ModuleHeader from './ModuleHeader';
 import { MentorQuestion, MentorQuestionFrequency } from '@/types/api/mentors';
 import { useCallback, useEffect, useState } from 'react';
@@ -23,7 +19,7 @@ export default function MainModuleView({
     updateCurrentModule,
     allAnswers,
     modificationWarning,
-    toggleModificationWarning,
+    toggleModificationWarning
 }: {
     currentClass: { value: number; label: string };
     curModule: Module;
@@ -39,9 +35,7 @@ export default function MainModuleView({
     const [addTermButtonOpen, setAddTermButtonOpen] = useState(false);
     const [openForm, setOpenForm] = useState(0);
     const [allTags, setAllTags] = useState<Tag[]>([]);
-    const [freq, setFreq] = useState<
-        Omit<MentorQuestionFrequency, 'moduleID'>[]
-    >([]);
+    const [freq, setFreq] = useState<Omit<MentorQuestionFrequency, 'moduleID'>[]>([]);
     const [questionFrames, setQuestionFrames] = useState<QuestionFrame[]>([]);
 
     const changeOpenForm = (form: number) => {
@@ -78,8 +72,8 @@ export default function MainModuleView({
     const getAllTags = useCallback(() => {
         const header = {
             headers: {
-                Authorization: `Bearer ${user?.jwt}`,
-            },
+                Authorization: `Bearer ${user?.jwt}`
+            }
         };
 
         axios
@@ -101,44 +95,35 @@ export default function MainModuleView({
 
         const header = {
             headers: {
-                Authorization: `Bearer ${user?.jwt}`,
-            },
+                Authorization: `Bearer ${user?.jwt}`
+            }
         };
         let data = {
-            module_id: curModule?.moduleID,
+            module_id: curModule?.moduleID
         };
 
         axios
-            .post<MentorQuestionFrequency[]>(
-                '/elleapi/getmentorquestionfrequency',
-                data,
-                header
-            )
+            .post<MentorQuestionFrequency[]>('/elleapi/getmentorquestionfrequency', data, header)
             .then((res) => {
                 if (res.data.length > 0) {
                     setFreq(res.data);
                 } else {
-                    setFreq([
-                        { incorrectCardsFreq: 0, correctCardsFreq: 0, time: 0 },
-                    ]);
+                    setFreq([{ incorrectCardsFreq: 0, correctCardsFreq: 0, time: 0 }]);
                 }
             })
             .catch((err) => {
-                console.log(
-                    'error in getMentorQuestionFrequency(): ',
-                    err.response
-                );
+                console.log('error in getMentorQuestionFrequency(): ', err.response);
             });
     }, [curModule.moduleID, getAllTags, loading, user]);
 
     const getAllQuestionFrames = useCallback(() => {
         const config = {
             headers: {
-                Authorization: `Bearer ${user?.jwt}`,
+                Authorization: `Bearer ${user?.jwt}`
             },
             params: {
-                moduleID: curModule?.moduleID,
-            },
+                moduleID: curModule?.moduleID
+            }
         };
 
         axios
@@ -169,10 +154,7 @@ export default function MainModuleView({
     questions.map((question) => {
         if (question.type === 'MATCH' && question.answers !== undefined) {
             terms.push(question.answers[0]);
-        } else if (
-            question.type === 'PHRASE' &&
-            question.answers !== undefined
-        ) {
+        } else if (question.type === 'PHRASE' && question.answers !== undefined) {
             phrases.push(question.answers[0]);
         } else if (question.type === 'LONGFORM') {
             longformQuestions.push(question);
@@ -190,42 +172,28 @@ export default function MainModuleView({
     });
 
     const filteredTerms = terms.filter(
-        (term) =>
-            term.front?.toLowerCase().includes(searchCard.toLowerCase()) ||
-            term.back?.toLowerCase().includes(searchCard.toLowerCase())
+        (term) => term.front?.toLowerCase().includes(searchCard.toLowerCase()) || term.back?.toLowerCase().includes(searchCard.toLowerCase())
     );
 
     const filteredPhrases = phrases.filter(
-        (phrase) =>
-            phrase.front?.toLowerCase().includes(searchCard.toLowerCase()) ||
-            phrase.back?.toLowerCase().includes(searchCard.toLowerCase())
+        (phrase) => phrase.front?.toLowerCase().includes(searchCard.toLowerCase()) || phrase.back?.toLowerCase().includes(searchCard.toLowerCase())
     );
 
-    const filteredQuestions = longformQuestions.filter((question) =>
-        question.questionText?.toLowerCase().includes(searchCard.toLowerCase())
-    );
+    const filteredQuestions = longformQuestions.filter((question) => question.questionText?.toLowerCase().includes(searchCard.toLowerCase()));
 
     return (
         <Row>
             <Col>
-                <Container className="Deck">
+                <Container className='Deck'>
                     <ModuleHeader
                         curModule={curModule}
                         searchCard={searchCard}
-                        updateSearchCard={(e) =>
-                            setSearchCard(e.target.value.substring(0, 20))
-                        }
+                        updateSearchCard={(e) => setSearchCard(e.target.value.substring(0, 20))}
                         addTermButtonOpen={addTermButtonOpen}
-                        toggleAddTermButton={() =>
-                            setAddTermButtonOpen(!addTermButtonOpen)
-                        }
+                        toggleAddTermButton={() => setAddTermButtonOpen(!addTermButtonOpen)}
                         changeOpenForm={changeOpenForm}
                     />
-                    <ModuleToolRow
-                        curModule={curModule}
-                        updateCurrentModule={updateCurrentModule}
-                        currentClass={currentClass}
-                    />
+                    <ModuleToolRow curModule={curModule} updateCurrentModule={updateCurrentModule} currentClass={currentClass} />
                     <ModuleForms
                         currentClass={currentClass}
                         curModule={curModule}

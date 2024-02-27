@@ -2,15 +2,7 @@ import { Tag } from '@/types/api/terms';
 import React, { useState } from 'react';
 import { Button } from 'reactstrap';
 
-export default function TagItem({
-    tag,
-    handleDeleteTag,
-    deletable,
-}: {
-    tag: Tag;
-    handleDeleteTag: (tag: Tag) => void;
-    deletable: boolean;
-}) {
+export default function TagItem({ tag, handleDeleteTag, deletable }: { tag: Tag; handleDeleteTag: (tag: Tag) => void; deletable: boolean }) {
     const [removeMode, setRemoveMode] = useState(false);
 
     //function that sets the style of the button, either removable or not
@@ -21,7 +13,7 @@ export default function TagItem({
             return {
                 margin: '3px',
                 border: '1px solid black',
-                backgroundColor: 'red',
+                backgroundColor: 'red'
             };
         }
     };
@@ -30,7 +22,7 @@ export default function TagItem({
         <div>
             <Button
                 style={setStyle()}
-                color="secondary"
+                color='secondary'
                 onClick={() => {
                     handleDeleteTag(tag);
                 }}
@@ -42,7 +34,7 @@ export default function TagItem({
         </div>
     ) : (
         <div>
-            <Button style={setStyle()} color="secondary">
+            <Button style={setStyle()} color='secondary'>
                 {tag}
             </Button>{' '}
         </div>

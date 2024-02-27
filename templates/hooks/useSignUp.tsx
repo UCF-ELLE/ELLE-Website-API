@@ -5,27 +5,18 @@ import { useRouter } from 'next/router';
 export const useSignUp = () => {
     const router = useRouter();
 
-    const signUp = async (
-        username: string,
-        email: string,
-        password: string,
-        confirmation: string,
-        groupCode: string
-    ) => {
+    const signUp = async (username: string, email: string, password: string, confirmation: string, groupCode: string) => {
         const _as = new AuthService();
         const data = {
             username,
             email,
             password,
             password_confirm: confirmation,
-            groupCode,
+            groupCode
         } as UserRegisterInfo;
         const response = await _as.signup(data);
         console.log(response);
-        if (
-            'Message' in response &&
-            response.Message.toLowerCase().includes('success')
-        ) {
+        if ('Message' in response && response.Message.toLowerCase().includes('success')) {
             router.push('/login');
         }
         return response;

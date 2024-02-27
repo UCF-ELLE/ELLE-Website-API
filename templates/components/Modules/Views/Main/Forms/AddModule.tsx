@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-    Button,
-    Form,
-    FormGroup,
-    Label,
-    Input,
-    Row,
-    Col,
-    Alert,
-} from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Row, Col, Alert } from 'reactstrap';
 import Select from 'react-select';
 import axios from 'axios';
 import languageCodes from '@/public/static/json/languageCodes.json';
@@ -18,7 +9,7 @@ import { LanguageCode } from '@/types/misc';
 export default function AddModule({
     updateModuleList,
     classOptions,
-    currentClass,
+    currentClass
 }: {
     updateModuleList: (task: string, moduleID?: number) => void;
     classOptions: { value: number; label: string }[];
@@ -29,14 +20,12 @@ export default function AddModule({
     const [name, setName] = useState<string>('');
     const [language, setLanguage] = useState<{ label: string; value: string }>({
         label: '',
-        value: '',
+        value: ''
     });
     const [status, setStatus] = useState<boolean>(false);
     const [success, setSuccess] = useState<boolean>(false);
     const [classID, setClassID] = useState<string>('');
-    const [languageCodesList, setLanguageCodesList] = useState<
-        { label: string; value: string }[]
-    >([]);
+    const [languageCodesList, setLanguageCodesList] = useState<{ label: string; value: string }[]>([]);
     const [classState, setClassState] = useState<{
         label: string;
         value: string;
@@ -48,7 +37,7 @@ export default function AddModule({
         for (let key in languageCodes) {
             tempCodeList.push({
                 label: languageCodes[key as LanguageCode],
-                value: key,
+                value: key
             });
         }
 
@@ -64,21 +53,18 @@ export default function AddModule({
             data = {
                 name: name,
                 language,
-                complexity: 2,
+                complexity: 2
             };
         } else {
             data = {
                 name: name,
                 language,
                 complexity: 2,
-                groupID:
-                    currentClass.value === 0
-                        ? classState.value
-                        : currentClass.value,
+                groupID: currentClass.value === 0 ? classState.value : currentClass.value
             };
 
             let header = {
-                headers: { Authorization: 'Bearer ' + user?.jwt },
+                headers: { Authorization: 'Bearer ' + user?.jwt }
             };
 
             let modID = -1;
@@ -94,27 +80,20 @@ export default function AddModule({
                         numIncorrectCards: 10,
                         numCorrectCards: 10,
                         time: 10,
-                        module_id: modID,
+                        module_id: modID
                     };
 
                     let header = {
-                        headers: { Authorization: 'Bearer ' + user?.jwt },
+                        headers: { Authorization: 'Bearer ' + user?.jwt }
                     };
 
                     axios
-                        .post(
-                            '/elleapi/setmentorquestionfrequency',
-                            data,
-                            header
-                        )
+                        .post('/elleapi/setmentorquestionfrequency', data, header)
                         .then((res) => {
                             //updateCurrentModule({ module: curModule.moduleID });
                         })
                         .catch((error) => {
-                            console.log(
-                                'updateMentorFrequency error: ',
-                                error.response
-                            );
+                            console.log('updateMentorFrequency error: ', error.response);
                         });
                 })
                 .catch((error) => {
@@ -140,61 +119,51 @@ export default function AddModule({
     const renderStatus = () => {
         if (status && success) {
             return (
-                <Alert color="success" isOpen={status}>
+                <Alert color='success' isOpen={status}>
                     {name} has been added successfully!{' '}
                 </Alert>
             );
         } else if (status && !success) {
             return (
-                <Alert color="danger" isOpen={status}>
+                <Alert color='danger' isOpen={status}>
                     Failure to add {name}
                 </Alert>
             );
         }
     };
 
-    const classSelectOptions = classOptions.map(
-        (option: { value: number; label: string }) => {
-            return { value: option.value.toString(), label: option.label };
-        }
-    );
+    const classSelectOptions = classOptions.map((option: { value: number; label: string }) => {
+        return { value: option.value.toString(), label: option.label };
+    });
 
     return (
         <div>
-            <Alert
-                color="none"
-                style={{ color: '#004085', backgroundColor: 'aliceblue' }}
-            >
+            <Alert color='none' style={{ color: '#004085', backgroundColor: 'aliceblue' }}>
                 <Form onSubmit={submitModule}>
                     {renderStatus()}
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for="moduleName">Module Name:</Label>
-                                <Input
-                                    type="text"
-                                    placeholder="Module Name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.name)}
-                                />
+                                <Label for='moduleName'>Module Name:</Label>
+                                <Input type='text' placeholder='Module Name' value={name} onChange={(e) => setName(e.target.name)} />
                             </FormGroup>
                         </Col>
                     </Row>
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for="moduleLang">Language:</Label>
+                                <Label for='moduleLang'>Language:</Label>
                                 <Select
-                                    name="languageCode"
+                                    name='languageCode'
                                     options={languageCodesList}
-                                    className="basic-single"
-                                    classNamePrefix="select"
+                                    className='basic-single'
+                                    classNamePrefix='select'
                                     isClearable={true}
                                     value={language}
                                     onChange={(e) =>
                                         setLanguage({
                                             label: e?.label as string,
-                                            value: e?.value as string,
+                                            value: e?.value as string
                                         })
                                     }
                                 />
@@ -205,18 +174,18 @@ export default function AddModule({
                         <Row>
                             <Col>
                                 <FormGroup>
-                                    <Label for="classContext">Class:</Label>
+                                    <Label for='classContext'>Class:</Label>
                                     <Select
-                                        name="class"
+                                        name='class'
                                         options={classSelectOptions}
-                                        className="basic-single"
-                                        classNamePrefix="select"
+                                        className='basic-single'
+                                        classNamePrefix='select'
                                         isClearable={true}
                                         value={classState}
                                         onChange={(e) =>
                                             setClassState({
                                                 label: e?.label as string,
-                                                value: e?.value as string,
+                                                value: e?.value as string
                                             })
                                         }
                                     />
@@ -229,9 +198,9 @@ export default function AddModule({
                             <Button
                                 style={{
                                     backgroundColor: '#004085',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
-                                type="submit"
+                                type='submit'
                                 block
                             >
                                 Create

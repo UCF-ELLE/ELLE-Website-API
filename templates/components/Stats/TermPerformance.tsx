@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-    Card,
-    CardHeader,
-    Collapse,
-    Button,
-    Modal,
-    ModalHeader,
-    ModalBody,
-} from 'reactstrap';
+import { Card, CardHeader, Collapse, Button, Modal, ModalHeader, ModalBody } from 'reactstrap';
 import ClassPerformance from './ClassPerformance';
 import SpecificStudentStats from './SpecificStudentStats';
 import { UserGroup } from '@/types/api/group';
@@ -42,7 +34,7 @@ export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
                 color: 'aqua',
                 overflow: 'scroll',
                 height: '45vh',
-                borderTopLeftRadius: '0px',
+                borderTopLeftRadius: '0px'
             }}
         >
             {classes.map((group, i) => {
@@ -52,7 +44,7 @@ export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
                         style={{
                             border: 'none',
                             color: 'black',
-                            borderRadius: '0px',
+                            borderRadius: '0px'
                         }}
                     >
                         <CardHeader
@@ -60,7 +52,7 @@ export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
                                 backgroundColor: '#74b7bd',
                                 color: 'white',
                                 borderRadius: '0px',
-                                padding: '5px 20px',
+                                padding: '5px 20px'
                             }}
                             onClick={(e) => toggleTab(e)}
                             data-event={i}
@@ -71,13 +63,11 @@ export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
                                     style={{
                                         float: 'right',
                                         padding: '2px 4px',
-                                        fontSize: 'small',
+                                        fontSize: 'small'
                                     }}
                                     onClick={() => {
                                         console.log("I'm clicked");
-                                        setCurrentGroup(
-                                            group.groupID.toString()
-                                        );
+                                        setCurrentGroup(group.groupID.toString());
                                         toggleModal();
                                     }}
                                 >
@@ -86,22 +76,15 @@ export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
                             ) : null}
                         </CardHeader>
 
-                        <Collapse
-                            isOpen={collapseTab === i}
-                            style={{ border: 'none' }}
-                        >
-                            <ClassPerformance
-                                groupID={group.groupID.toString()}
-                            />
+                        <Collapse isOpen={collapseTab === i} style={{ border: 'none' }}>
+                            <ClassPerformance groupID={group.groupID.toString()} />
                         </Collapse>
                     </Card>
                 );
             })}
 
             <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)}>
-                <ModalHeader toggle={() => setModalOpen(!modalOpen)}>
-                    Lookup Student
-                </ModalHeader>
+                <ModalHeader toggle={() => setModalOpen(!modalOpen)}>Lookup Student</ModalHeader>
                 <ModalBody>
                     <SpecificStudentStats groupID={currentGroup} />
                 </ModalBody>

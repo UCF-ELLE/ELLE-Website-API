@@ -17,7 +17,7 @@ export default function ClassPerformance({ groupID }: { groupID: string }) {
     const getTermsPerformance = useCallback(() => {
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
-            params: { groupID },
+            params: { groupID }
         };
 
         axios
@@ -38,42 +38,33 @@ export default function ClassPerformance({ groupID }: { groupID: string }) {
     const renderCharts = () => {
         return (
             <Row style={{ margin: '0px' }}>
-                <Col xs="7" style={{ padding: '0px' }}>
+                <Col xs='7' style={{ padding: '0px' }}>
                     <Card
                         style={{
                             height: '35vh',
                             borderRadius: '0px',
                             border: 'none',
-                            overflow: 'scroll',
+                            overflow: 'scroll'
                         }}
                     >
                         {termStats && <TermStats termStats={termStats} />}
                     </Card>
                 </Col>
-                <Col xs="5" style={{ padding: '0px' }}>
+                <Col xs='5' style={{ padding: '0px' }}>
                     <Card
                         style={{
                             height: '35vh',
                             borderRadius: '0px',
-                            borderRightStyle: 'hidden',
+                            borderRightStyle: 'hidden'
                         }}
                     >
-                        {termStats && (
-                            <TermBarChart
-                                termStats={termStats}
-                                threshold={threshold}
-                            />
-                        )}
-                        <Slider
-                            value={threshold}
-                            style={{ width: '80%', margin: '5px 30px' }}
-                            onChange={changeThreshold}
-                        />
+                        {termStats && <TermBarChart termStats={termStats} threshold={threshold} />}
+                        <Slider value={threshold} style={{ width: '80%', margin: '5px 30px' }} onChange={changeThreshold} />
                         <p
                             style={{
                                 textAlign: 'end',
                                 padding: '0px 30px',
-                                fontSize: '10px',
+                                fontSize: '10px'
                             }}
                         >
                             Threshold: {threshold}%
@@ -89,9 +80,5 @@ export default function ClassPerformance({ groupID }: { groupID: string }) {
         else setThreshold(value[0]);
     };
 
-    return error ? (
-        <p style={{ margin: '10px 15px' }}>No records found.</p>
-    ) : (
-        renderCharts()
-    );
+    return error ? <p style={{ margin: '10px 15px' }}>No records found.</p> : renderCharts();
 }

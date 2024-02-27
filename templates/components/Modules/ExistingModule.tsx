@@ -7,7 +7,7 @@ import { useUser } from '@/hooks/useUser';
 export default function ExistingModule({
     module,
     selectedClass,
-    updateModuleList,
+    updateModuleList
 }: {
     module: Module;
     selectedClass?: { value: number; label: string };
@@ -19,11 +19,11 @@ export default function ExistingModule({
     const link = () => {
         const data = {
             moduleID: module.moduleID,
-            groupID: selectedClass?.value,
+            groupID: selectedClass?.value
         };
 
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -43,11 +43,7 @@ export default function ExistingModule({
             <td>{module.language}</td>
             <td>{module.username}</td>
             <td>
-                <Button
-                    size="sm"
-                    onClick={() => link()}
-                    disabled={linked ? true : false}
-                >
+                <Button size='sm' onClick={() => link()} disabled={linked ? true : false}>
                     {linked ? 'Linked' : 'Link'}
                 </Button>
             </td>

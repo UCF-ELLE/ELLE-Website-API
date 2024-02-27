@@ -6,7 +6,7 @@ export const SplitComponent = ({
     indexes,
     setIndexes,
     dotSize,
-    fontSize,
+    fontSize
 }: {
     text: string;
     indexes: number[];
@@ -36,16 +36,12 @@ export const SplitComponent = ({
                     fontSize: fontSize ? `${fontSize}px` : undefined,
                     fontWeight: 700,
                     display: 'flex',
-                    alignItems: 'center',
+                    alignItems: 'center'
                 }}
             >
                 {char}
                 {index < text.length - 1 ? (
-                    <Dot
-                        sendFeedback={() => onDotClick(index + 1)}
-                        size={dotSize}
-                        selected={indexes.includes(index + 1)}
-                    />
+                    <Dot sendFeedback={() => onDotClick(index + 1)} size={dotSize} selected={indexes.includes(index + 1)} />
                 ) : null}
             </span>
         ));
@@ -57,7 +53,7 @@ export const SplitComponent = ({
                 display: 'flex',
                 alignItems: 'center',
                 flexWrap: 'wrap',
-                justifyContent: 'center',
+                justifyContent: 'center'
             }}
         >
             {SplitText}
@@ -66,15 +62,7 @@ export const SplitComponent = ({
 };
 
 /* Create a dot element that is a red circle. When the circle is clicked, change the circle color to green and call a "sendFeedback" function from props. */
-const Dot = ({
-    sendFeedback,
-    selected,
-    size,
-}: {
-    sendFeedback: () => void;
-    selected: boolean;
-    size?: number;
-}) => {
+const Dot = ({ sendFeedback, selected, size }: { sendFeedback: () => void; selected: boolean; size?: number }) => {
     const [color, setColor] = useState('red');
 
     useEffect(() => {
@@ -89,7 +77,7 @@ const Dot = ({
                 borderRadius: '50%',
                 backgroundColor: color,
                 display: 'inline-block',
-                margin: '0 3px',
+                margin: '0 3px'
             }}
             onClick={sendFeedback}
             onMouseEnter={() => setColor('yellow')}

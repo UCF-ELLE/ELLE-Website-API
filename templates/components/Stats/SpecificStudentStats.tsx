@@ -11,29 +11,18 @@ import axios from 'axios';
 import { useUser } from '@/hooks/useUser';
 import { TermPerformance } from '@/types/api/stats';
 
-export default function SpecificStudentStats({
-    groupID,
-}: {
-    groupID?: string;
-}) {
+export default function SpecificStudentStats({ groupID }: { groupID?: string }) {
     const [students, setStudents] = React.useState([]);
     const [selectedStudent, setSelectedStudent] = React.useState<string>();
     const [threshold, setThreshold] = React.useState(50);
     const { user, loading: userLoading } = useUser();
 
-    const [
-        {
-            response: termStatsResponse,
-            loading: termStatsLoading,
-            error: termStatsError,
-        },
-        refreshTermStats,
-    ] = useAxios<TermPerformance>(
+    const [{ response: termStatsResponse, loading: termStatsLoading, error: termStatsError }, refreshTermStats] = useAxios<TermPerformance>(
         {
             method: 'get',
             url: '/elleapi/termsperformance',
             headers: { Authorization: `Bearer ${user?.jwt}` },
-            params: { userID: selectedStudent, groupID: groupID },
+            params: { userID: selectedStudent, groupID: groupID }
         },
         { manual: true }
     );
@@ -41,7 +30,7 @@ export default function SpecificStudentStats({
     const getStudents = useCallback(() => {
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
-            params: { groupID: groupID },
+            params: { groupID: groupID }
         };
 
         axios
@@ -52,7 +41,7 @@ export default function SpecificStudentStats({
                     .map((student: any) => {
                         return {
                             label: student.username,
-                            value: student.userID,
+                            value: student.userID
                         };
                     });
 
@@ -77,15 +66,15 @@ export default function SpecificStudentStats({
     return (
         <div>
             <Row>
-                <Col xs="3" style={{ paddingRight: '0px', margin: '8px' }}>
+                <Col xs='3' style={{ paddingRight: '0px', margin: '8px' }}>
                     <Label>Student:</Label>
                 </Col>
-                <Col xs="6" style={{ marginLeft: '-35px', padding: '0px' }}>
+                <Col xs='6' style={{ marginLeft: '-35px', padding: '0px' }}>
                     <Select
-                        name="students"
+                        name='students'
                         options={students}
-                        className="basic-single"
-                        classNamePrefix="select"
+                        className='basic-single'
+                        classNamePrefix='select'
                         isClearable={true}
                         value={selectedStudent}
                         onChange={(e) => {
@@ -94,7 +83,7 @@ export default function SpecificStudentStats({
                         }}
                     />
                 </Col>
-                <Col xs="3">
+                <Col xs='3'>
                     <Button onClick={() => refreshTermStats()}>Search</Button>
                 </Col>
             </Row>
@@ -103,27 +92,18 @@ export default function SpecificStudentStats({
                 {termStatsResponse && !termStatsLoading && !termStatsError ? (
                     termStatsResponse.data ? (
                         <div>
-                            <TermBarChart
-                                termStats={termStatsResponse.data}
-                                threshold={threshold}
-                            />
-                            <Slider
-                                value={threshold}
-                                style={{ width: '90%', margin: '5px 30px' }}
-                                onChange={changeThreshold}
-                            />
+                            <TermBarChart termStats={termStatsResponse.data} threshold={threshold} />
+                            <Slider value={threshold} style={{ width: '90%', margin: '5px 30px' }} onChange={changeThreshold} />
                             <p
                                 style={{
                                     textAlign: 'end',
                                     padding: '0px 20px',
-                                    fontSize: '10px',
+                                    fontSize: '10px'
                                 }}
                             >
                                 Threshold: {threshold}%
                             </p>
-                            <Card
-                                style={{ height: '25vh', overflow: 'scroll' }}
-                            >
+                            <Card style={{ height: '25vh', overflow: 'scroll' }}>
                                 <TermStats termStats={termStatsResponse.data} />
                             </Card>
                         </div>

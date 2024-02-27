@@ -1,14 +1,5 @@
 import React from 'react';
-import {
-    Form,
-    FormGroup,
-    Label,
-    Input,
-    FormFeedback,
-    Button,
-    InputGroup,
-    Card,
-} from 'reactstrap';
+import { Form, FormGroup, Label, Input, FormFeedback, Button, InputGroup, Card } from 'reactstrap';
 import Link from 'next/link';
 import axios from 'axios';
 
@@ -44,7 +35,7 @@ export default function Signup() {
 
     const generateUsername = () => {
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -61,10 +52,7 @@ export default function Signup() {
         if (e.target.name === 'password') {
             setPassword(e.target.value);
 
-            if (
-                (e.target.value.length === 0 && confirmation.length === 0) ||
-                (e.target.value.length > 0 && confirmation.length === 0)
-            ) {
+            if ((e.target.value.length === 0 && confirmation.length === 0) || (e.target.value.length > 0 && confirmation.length === 0)) {
                 setValidConfirm(false);
                 setInvalidConfirm(false);
             } else if (e.target.value.localeCompare(confirmation) === 0) {
@@ -90,9 +78,7 @@ export default function Signup() {
         }
     };
 
-    const togglePWPrivacy = (
-        e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-    ) => {
+    const togglePWPrivacy = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         if (e.currentTarget.name === 'hiddenPassword') {
             setHiddenPassword(!hiddenPassword);
         } else {
@@ -102,13 +88,7 @@ export default function Signup() {
 
     const submit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const response = await signUp(
-            username,
-            email,
-            password,
-            confirmation,
-            classCode
-        );
+        const response = await signUp(username, email, password, confirmation, classCode);
 
         if ('error' in response) {
             setRegisterErr(true);
@@ -117,52 +97,43 @@ export default function Signup() {
     };
 
     const generateErrorMsg = () => {
-        return (
-            <Card style={{ border: 'none', backgroundColor: 'transparent' }}>
-                {errorMsg || 'An error occurred, please try again.'}
-            </Card>
-        );
+        return <Card style={{ border: 'none', backgroundColor: 'transparent' }}>{errorMsg || 'An error occurred, please try again.'}</Card>;
     };
 
     return (
-        <div className="signup-bg">
+        <div className='signup-bg'>
             <MainTemplate />
             <div>
-                <div className="login-form">
-                    <h4 style={{ textAlign: 'center', color: 'white' }}>
-                        Start your ELLE experience today.
-                    </h4>
+                <div className='login-form'>
+                    <h4 style={{ textAlign: 'center', color: 'white' }}>Start your ELLE experience today.</h4>
                     {registerErr ? generateErrorMsg() : null}
-                    <Form
-                        onSubmit={(e) => submit(e)}
-                        className="signup-form-details"
-                    >
+                    <Form onSubmit={(e) => submit(e)} className='signup-form-details'>
                         <FormGroup>
-                            <Label for="userName">Username:</Label>
+                            <Label for='userName'>Username:</Label>
                             <InputGroup>
                                 <Input
                                     value={username}
-                                    id="username"
-                                    name="username"
-                                    placeholder="Roll the dice for a random username"
-                                    autoComplete="off"
+                                    id='username'
+                                    name='username'
+                                    placeholder='Roll the dice for a random username'
+                                    autoComplete='off'
                                     disabled={true}
                                 />
                                 <div>
                                     <Button
                                         style={{
                                             backgroundColor: 'white',
-                                            border: 'none',
+                                            border: 'none'
                                         }}
-                                        name="dice"
+                                        name='dice'
                                         onClick={() => generateUsername()}
                                     >
                                         <Image
                                             src={diceImage}
-                                            alt="Icon made by Freepik from www.flaticon.com"
+                                            alt='Icon made by Freepik from www.flaticon.com'
                                             style={{
                                                 width: '24px',
-                                                height: '24px',
+                                                height: '24px'
                                             }}
                                         />
                                     </Button>
@@ -170,55 +141,55 @@ export default function Signup() {
                             </InputGroup>
                         </FormGroup>
                         <FormGroup>
-                            <Label for="classCode">Email:</Label>
+                            <Label for='classCode'>Email:</Label>
                             <Input
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                type="text"
-                                id="email"
-                                name="email"
-                                placeholder="Optional"
-                                autoComplete="off"
+                                type='text'
+                                id='email'
+                                name='email'
+                                placeholder='Optional'
+                                autoComplete='off'
                             />
                         </FormGroup>
                         <FormGroup>
-                            <Label for="password">Password:</Label>
+                            <Label for='password'>Password:</Label>
                             <InputGroup>
                                 <Input
                                     value={password}
                                     onChange={(e) => validatePassword(e)}
                                     type={hiddenPassword ? 'password' : 'text'}
-                                    id="password"
-                                    name="password"
-                                    placeholder="*********"
-                                    autoComplete="new-password"
+                                    id='password'
+                                    name='password'
+                                    placeholder='*********'
+                                    autoComplete='new-password'
                                     style={{ border: 'none' }}
                                 />
                                 <div>
                                     <Button
                                         style={{
                                             backgroundColor: 'white',
-                                            border: 'none',
+                                            border: 'none'
                                         }}
-                                        name="hiddenPassword"
+                                        name='hiddenPassword'
                                         onClick={(e) => togglePWPrivacy(e)}
                                     >
                                         {hiddenPassword ? (
                                             <Image
                                                 src={hideImage}
-                                                alt="Icon made by Pixel perfect from www.flaticon.com"
+                                                alt='Icon made by Pixel perfect from www.flaticon.com'
                                                 style={{
                                                     width: '24px',
-                                                    height: '24px',
+                                                    height: '24px'
                                                 }}
                                             />
                                         ) : (
                                             <Image
                                                 src={showImage}
-                                                alt="Icon made by Kiranshastry from www.flaticon.com"
+                                                alt='Icon made by Kiranshastry from www.flaticon.com'
                                                 style={{
                                                     width: '24px',
-                                                    height: '24px',
+                                                    height: '24px'
                                                 }}
                                             />
                                         )}
@@ -227,7 +198,7 @@ export default function Signup() {
                             </InputGroup>
                         </FormGroup>
                         <FormGroup>
-                            <Label for="confirmation">Confirm Password:</Label>
+                            <Label for='confirmation'>Confirm Password:</Label>
                             <InputGroup>
                                 <Input
                                     value={confirmation}
@@ -235,10 +206,10 @@ export default function Signup() {
                                     invalid={invalidConfirm}
                                     onChange={(e) => validatePassword(e)}
                                     type={hiddenConfirm ? 'password' : 'text'}
-                                    id="confirmation"
-                                    name="confirmation"
-                                    placeholder="*********"
-                                    autoComplete="new-password"
+                                    id='confirmation'
+                                    name='confirmation'
+                                    placeholder='*********'
+                                    autoComplete='new-password'
                                     style={{ border: 'none' }}
                                 />
                                 <div>
@@ -246,65 +217,49 @@ export default function Signup() {
                                         style={{
                                             backgroundColor: 'white',
                                             border: 'none',
-                                            borderRadius: '0 5px 5px 0',
+                                            borderRadius: '0 5px 5px 0'
                                         }}
-                                        name="hiddenConfirm"
+                                        name='hiddenConfirm'
                                         onClick={(e) => togglePWPrivacy(e)}
                                     >
                                         {hiddenConfirm ? (
                                             <Image
                                                 src={hideImage}
-                                                alt="Icon made by Pixel perfect from www.flaticon.com"
+                                                alt='Icon made by Pixel perfect from www.flaticon.com'
                                                 style={{
                                                     width: '24px',
-                                                    height: '24px',
+                                                    height: '24px'
                                                 }}
                                             />
                                         ) : (
                                             <Image
                                                 src={showImage}
-                                                alt="Icon made by Kiranshastry from www.flaticon.com"
+                                                alt='Icon made by Kiranshastry from www.flaticon.com'
                                                 style={{
                                                     width: '24px',
-                                                    height: '24px',
+                                                    height: '24px'
                                                 }}
                                             />
                                         )}
                                     </Button>
                                 </div>
-                                <FormFeedback valid>
-                                    The passwords match!
-                                </FormFeedback>
-                                <FormFeedback
-                                    invalid={invalidConfirm.toString()}
-                                >
-                                    The passwords do not match, please try
-                                    again.
-                                </FormFeedback>
+                                <FormFeedback valid>The passwords match!</FormFeedback>
+                                <FormFeedback invalid={invalidConfirm.toString()}>The passwords do not match, please try again.</FormFeedback>
                             </InputGroup>
                         </FormGroup>
                         <FormGroup>
-                            <Label for="classCode">Class Code:</Label>
+                            <Label for='classCode'>Class Code:</Label>
                             <Input
                                 value={classCode}
                                 onChange={(e) => setClassCode(e.target.value)}
-                                type="text"
-                                id="classCode"
-                                name="classCode"
-                                placeholder="Optional"
-                                autoComplete="off"
+                                type='text'
+                                id='classCode'
+                                name='classCode'
+                                placeholder='Optional'
+                                autoComplete='off'
                             />
                         </FormGroup>
-                        <Button
-                            color="primary"
-                            type="submit"
-                            className="btn-block"
-                            disabled={
-                                username.length > 0 && validConfirm
-                                    ? false
-                                    : true
-                            }
-                        >
+                        <Button color='primary' type='submit' className='btn-block' disabled={username.length > 0 && validConfirm ? false : true}>
                             Signup
                         </Button>
                     </Form>
@@ -312,10 +267,10 @@ export default function Signup() {
                     <p>
                         Already have an account? &nbsp;
                         <Link
-                            href="/Login"
+                            href='/Login'
                             style={{
                                 color: '#007bff',
-                                textDecoration: 'underline',
+                                textDecoration: 'underline'
                             }}
                         >
                             Log in.

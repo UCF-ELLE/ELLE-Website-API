@@ -10,7 +10,7 @@ import styles from './SuperAdminView.module.css';
 export default function SuperAdminView({
     username,
     email,
-    editEmail,
+    editEmail
 }: {
     username: string;
     email?: string;
@@ -18,17 +18,13 @@ export default function SuperAdminView({
 }) {
     return (
         <div className={styles.suContainer}>
-            <Row className="Top Row">
-                <Col className="Left Column" xs="3">
+            <Row className='Top Row'>
+                <Col className='Left Column' xs='3'>
                     <Row>
                         <Col>
                             <div className={styles.greetingsTag}>
                                 Welcome back {username}!
-                                <Password
-                                    userType="su"
-                                    email={email}
-                                    editEmail={editEmail}
-                                />
+                                <Password userType='su' email={email} editEmail={editEmail} />
                             </div>
                         </Col>
                     </Row>
@@ -40,7 +36,7 @@ export default function SuperAdminView({
                     </Row>
                 </Col>
 
-                <Col className="Right Column">
+                <Col className='Right Column'>
                     <Row>
                         <PlatformStats />
                     </Row>
@@ -49,7 +45,7 @@ export default function SuperAdminView({
 
             <br />
 
-            <Row className="Bottom Row">
+            <Row className='Bottom Row'>
                 <ModuleStats />
             </Row>
         </div>

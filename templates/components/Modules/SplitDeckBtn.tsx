@@ -17,7 +17,7 @@ import {
     ModalHeader,
     ModalBody,
     ModalFooter,
-    Alert,
+    Alert
 } from 'reactstrap';
 
 import toolsImage from '@/public/static/images/tools.png';
@@ -32,7 +32,7 @@ export default function SplitDeckBtn({
     editModule,
     deleteModule,
     unlinkModule,
-    currentClassView,
+    currentClassView
 }: {
     currentModule: Module;
     updateCurrentModule: (module?: Module, task?: string) => void;
@@ -65,22 +65,17 @@ export default function SplitDeckBtn({
                     backgroundColor: '#5faeb5',
                     border: 'none',
                     borderRadius: '0px',
-                    overflowX: 'scroll',
+                    overflowX: 'scroll'
                 }}
                 id={'deckButton' + currentModule.moduleID}
-                type="button"
+                type='button'
                 onClick={() => {
                     updateCurrentModule(currentModule);
                 }}
             >
                 {currentModule.name}
             </Button>
-            <Popover
-                trigger="legacy"
-                placement="bottom"
-                isOpen={popoverOpen}
-                target={'deckButton' + currentModule.moduleID}
-            >
+            <Popover trigger='legacy' placement='bottom' isOpen={popoverOpen} target={'deckButton' + currentModule.moduleID}>
                 <PopoverHeader>
                     Edit Module
                     <Button
@@ -93,12 +88,12 @@ export default function SplitDeckBtn({
                 <PopoverBody>
                     <Form>
                         <FormGroup>
-                            <Label for="moduleName">Name:</Label>
+                            <Label for='moduleName'>Name:</Label>
                             <Input
-                                type="text"
-                                name="mName"
-                                id="moduleName"
-                                autoComplete="off"
+                                type='text'
+                                name='mName'
+                                id='moduleName'
+                                autoComplete='off'
                                 placeholder={currentModule.name}
                                 value={editedModuleName}
                                 onChange={(e) => setName(e.target.value)}
@@ -106,8 +101,7 @@ export default function SplitDeckBtn({
                         </FormGroup>
                         <Button
                             onClick={() => {
-                                editModule &&
-                                    editModule(editedModuleName, currentModule);
+                                editModule && editModule(editedModuleName, currentModule);
                                 togglePopover();
                             }}
                         >
@@ -121,11 +115,11 @@ export default function SplitDeckBtn({
                 <>
                     <DropdownToggle
                         caret
-                        color="info"
+                        color='info'
                         style={{
                             backgroundColor: '#5faeb5',
                             border: 'none',
-                            borderRadius: '0px',
+                            borderRadius: '0px'
                         }}
                     >
                         {''}
@@ -134,7 +128,7 @@ export default function SplitDeckBtn({
                         style={{
                             minWidth: '50px',
                             padding: '0px',
-                            backgroundColor: 'gray',
+                            backgroundColor: 'gray'
                         }}
                     >
                         <DropdownItem
@@ -142,62 +136,44 @@ export default function SplitDeckBtn({
                                 padding: '4px 24px 4px 10px',
                                 backgroundColor: 'lightcyan',
                                 color: 'black',
-                                outline: 'none',
+                                outline: 'none'
                             }}
                             onClick={() => {
                                 togglePopover();
                             }}
                         >
-                            <Image
-                                src={toolsImage}
-                                alt="edit icon"
-                                style={{ width: '18px', height: '18px' }}
-                            />{' '}
-                            Edit
+                            <Image src={toolsImage} alt='edit icon' style={{ width: '18px', height: '18px' }} /> Edit
                         </DropdownItem>
 
-                        {currentModule.userID === user?.userID ||
-                        permission === 'su' ? (
+                        {currentModule.userID === user?.userID || permission === 'su' ? (
                             <DropdownItem
                                 style={{
                                     padding: '4px 24px 4px 10px',
                                     backgroundColor: 'lightcoral',
                                     color: 'black',
-                                    outline: 'none',
+                                    outline: 'none'
                                 }}
                                 onClick={() => {
                                     toggleModal();
                                 }}
                             >
-                                <Image
-                                    src={deleteImage}
-                                    alt="trash can icon"
-                                    style={{ width: '18px', height: '20px' }}
-                                />{' '}
-                                Delete
+                                <Image src={deleteImage} alt='trash can icon' style={{ width: '18px', height: '20px' }} /> Delete
                             </DropdownItem>
                         ) : null}
 
-                        {(permission === 'pf' || permission === 'ta') &&
-                        currentClassView !== 0 &&
-                        currentModule.userID !== user?.userID ? (
+                        {(permission === 'pf' || permission === 'ta') && currentClassView !== 0 && currentModule.userID !== user?.userID ? (
                             <DropdownItem
                                 style={{
                                     padding: '4px 24px 4px 10px',
                                     backgroundColor: 'lightsalmon',
                                     color: 'black',
-                                    outline: 'none',
+                                    outline: 'none'
                                 }}
                                 onClick={() => {
                                     toggleUnlinkModal();
                                 }}
                             >
-                                <Image
-                                    src={unlinkImage}
-                                    alt="unlink icon"
-                                    style={{ width: '18px', height: '20px' }}
-                                />{' '}
-                                Unlink
+                                <Image src={unlinkImage} alt='unlink icon' style={{ width: '18px', height: '20px' }} /> Unlink
                             </DropdownItem>
                         ) : null}
                     </DropdownMenu>
@@ -207,10 +183,7 @@ export default function SplitDeckBtn({
             <Modal isOpen={unlinkModalOpen}>
                 <ModalHeader toggle={toggleUnlinkModal}>Delete</ModalHeader>
                 <ModalBody>
-                    <p style={{ paddingLeft: '20px' }}>
-                        Are you sure you want to unlink the module:{' '}
-                        {currentModule.name}?
-                    </p>
+                    <p style={{ paddingLeft: '20px' }}>Are you sure you want to unlink the module: {currentModule.name}?</p>
                 </ModalBody>
                 <ModalFooter>
                     <Button
@@ -221,10 +194,9 @@ export default function SplitDeckBtn({
                         Cancel
                     </Button>
                     <Button
-                        color="danger"
+                        color='danger'
                         onClick={() => {
-                            unlinkModule &&
-                                unlinkModule(currentModule.moduleID);
+                            unlinkModule && unlinkModule(currentModule.moduleID);
                             toggleUnlinkModal();
                         }}
                     >
@@ -236,14 +208,8 @@ export default function SplitDeckBtn({
             <Modal isOpen={modalOpen}>
                 <ModalHeader toggle={toggleModal}>Delete</ModalHeader>
                 <ModalBody>
-                    <Alert color="primary">
-                        Deleting this module will remove it from all the users
-                        who are currently using this module as well.
-                    </Alert>
-                    <p style={{ paddingLeft: '20px' }}>
-                        Are you sure you want to delete the module:{' '}
-                        {currentModule.name}?
-                    </p>
+                    <Alert color='primary'>Deleting this module will remove it from all the users who are currently using this module as well.</Alert>
+                    <p style={{ paddingLeft: '20px' }}>Are you sure you want to delete the module: {currentModule.name}?</p>
                 </ModalBody>
                 <ModalFooter>
                     <Button
@@ -254,10 +220,9 @@ export default function SplitDeckBtn({
                         Cancel
                     </Button>
                     <Button
-                        color="danger"
+                        color='danger'
                         onClick={() => {
-                            deleteModule &&
-                                deleteModule(currentModule.moduleID);
+                            deleteModule && deleteModule(currentModule.moduleID);
                             toggleModal();
                         }}
                     >

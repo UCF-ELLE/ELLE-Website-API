@@ -1,9 +1,5 @@
 import { MentorQuestion, MentorQuestionFrequency } from '@/types/api/mentors';
-import {
-    Module,
-    ModuleQuestion,
-    ModuleQuestionAnswer,
-} from '@/types/api/modules';
+import { Module, ModuleQuestion, ModuleQuestionAnswer } from '@/types/api/modules';
 import { useState } from 'react';
 import { Card, CardHeader, Collapse } from 'reactstrap';
 import CardList from './CardList';
@@ -24,7 +20,7 @@ export default function ModuleCardList({
     addTag,
     deleteTag,
     allTags,
-    frequency,
+    frequency
 }: {
     currentClass: { value: number; label: string };
     curModule: Module;
@@ -60,16 +56,11 @@ export default function ModuleCardList({
         return (
             <>
                 <Card style={{ marginBottom: '1rem' }}>
-                    <CardHeader
-                        onClick={() => togglePastaTab('questionFrames')}
-                        data-event={4}
-                    >
+                    <CardHeader onClick={() => togglePastaTab('questionFrames')} data-event={4}>
                         Question Frames
                     </CardHeader>
 
-                    <Collapse
-                        isOpen={activePastaTabs.includes('questionFrames')}
-                    >
+                    <Collapse isOpen={activePastaTabs.includes('questionFrames')}>
                         <PastaModuleCardList
                             type={'questionFrames'}
                             questionFrames={questionFrames || []}
@@ -80,10 +71,7 @@ export default function ModuleCardList({
                     </Collapse>
                 </Card>
                 <Card style={{ marginBottom: '1rem' }}>
-                    <CardHeader
-                        onClick={() => togglePastaTab('pastas')}
-                        data-event={5}
-                    >
+                    <CardHeader onClick={() => togglePastaTab('pastas')} data-event={5}>
                         Pastas
                     </CardHeader>
 
@@ -144,10 +132,7 @@ export default function ModuleCardList({
                 </Collapse>
             </Card>
             <Card style={{ marginBottom: '1rem' }}>
-                <CardHeader
-                    onClick={() => toggleTab('questions')}
-                    data-event={3}
-                >
+                <CardHeader onClick={() => toggleTab('questions')} data-event={3}>
                     Questions
                 </CardHeader>
 
@@ -167,10 +152,7 @@ export default function ModuleCardList({
                 </Collapse>
             </Card>
             <Card style={{ marginBottom: '1rem' }}>
-                <CardHeader
-                    onClick={() => toggleTab('mentorQuestions')}
-                    data-event={3}
-                >
+                <CardHeader onClick={() => toggleTab('mentorQuestions')} data-event={3}>
                     Mentor Questions
                 </CardHeader>
 

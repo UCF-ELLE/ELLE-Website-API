@@ -9,15 +9,7 @@ import { useRouter } from 'next/navigation';
 
 type PermissionLevels = PermissionGroup | undefined;
 
-export default function RootLayout({
-    children,
-    noFooter,
-    requireUser,
-}: {
-    children: React.ReactNode;
-    noFooter?: boolean;
-    requireUser?: boolean;
-}) {
+export default function RootLayout({ children, noFooter, requireUser }: { children: React.ReactNode; noFooter?: boolean; requireUser?: boolean }) {
     const { user, loading } = useUser();
     const router = useRouter();
     const [permission, setPermission] = useState<PermissionLevels>(undefined);

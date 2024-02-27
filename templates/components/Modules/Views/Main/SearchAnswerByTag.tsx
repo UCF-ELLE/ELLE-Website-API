@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-    Button,
-    Form,
-    FormGroup,
-    Label,
-    Input,
-    Row,
-    Col,
-    Alert,
-    Card,
-} from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Row, Col, Alert, Card } from 'reactstrap';
 import axios from 'axios';
 
 import TagList from './TagList';
@@ -27,7 +17,7 @@ export default function SearchAnswersByTag({
     allTags,
     allAnswers,
     handleAddAnswer,
-    toggleSearchByTagForm,
+    toggleSearchByTagForm
 }: {
     curModule: Module;
     updateCurrentModule: (module: Module, task?: string) => void;
@@ -49,9 +39,7 @@ export default function SearchAnswersByTag({
     const [type, setType] = useState('');
     const [gender, setGender] = useState('');
     const [selectedImgFile, setSelectedImgFile] = useState<File | null>(null);
-    const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(
-        null
-    );
+    const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null);
     const [imgLabel, setImgLabel] = useState('Pick an image for the term');
     const [audioLabel, setAudioLabel] = useState('Pick an audio for the term');
 
@@ -110,9 +98,7 @@ export default function SearchAnswersByTag({
     const handleDeleteAnswer = (event: { answer: string }) => {
         let tempAnswerButtonList = addedTerms;
 
-        let answerObject = addedTerms.find(
-            (answer) => answer.front === event.answer
-        ) || { termID: -1, gender: 'N' };
+        let answerObject = addedTerms.find((answer) => answer.front === event.answer) || { termID: -1, gender: 'N' };
         let answerIndex = tempAnswerButtonList.indexOf(answerObject);
 
         if (answerIndex !== -1) {
@@ -127,7 +113,7 @@ export default function SearchAnswersByTag({
         tempAddedTerms.push({
             front: event.front,
             termID: event.termID,
-            gender: event.gender,
+            gender: event.gender
         });
 
         setAddedTerms(tempAddedTerms);
@@ -139,9 +125,9 @@ export default function SearchAnswersByTag({
         for (let i = 0; i < tags.length; i++) {
             let header = {
                 headers: {
-                    Authorization: 'Bearer ' + user?.jwt,
+                    Authorization: 'Bearer ' + user?.jwt
                 },
-                params: { tag_name: tags[i] },
+                params: { tag_name: tags[i] }
             };
 
             axios
@@ -150,10 +136,7 @@ export default function SearchAnswersByTag({
                     let tempTagFilteredTerms = tagFilteredTerms;
 
                     res.data.map((term) => {
-                        if (
-                            term.front &&
-                            tempTagFilteredTerms.indexOf(term.front) === -1
-                        ) {
+                        if (term.front && tempTagFilteredTerms.indexOf(term.front) === -1) {
                             tempTagFilteredTerms.push(term.front);
                         }
                     });
@@ -175,10 +158,7 @@ export default function SearchAnswersByTag({
         let namePrefix = termFront.substring(0, search.length);
 
         if (namePrefix.toLowerCase() === search.toLowerCase()) {
-            if (
-                (term.front && tagFilteredTerms.indexOf(term.front) !== -1) ||
-                tagFilteredTerms.length === 0
-            ) {
+            if ((term.front && tagFilteredTerms.indexOf(term.front) !== -1) || tagFilteredTerms.length === 0) {
                 return true;
             } else {
                 return false;
@@ -204,19 +184,19 @@ export default function SearchAnswersByTag({
     return (
         <div>
             <Form onSubmit={(e) => submitSearchedAnswers(e)}>
-                <input type="hidden" value="prayer" />
+                <input type='hidden' value='prayer' />
 
                 <Alert
                     style={{
                         color: '#004085',
                         backgroundColor: 'lightskyblue',
                         border: 'none',
-                        borderRadius: '0px',
+                        borderRadius: '0px'
                     }}
                 >
                     <Row>
                         <Col>
-                            <FormGroup width="50%">
+                            <FormGroup width='50%'>
                                 <Autocomplete
                                     name={'tags'}
                                     id={'tags'}
@@ -227,62 +207,50 @@ export default function SearchAnswersByTag({
                                     autoCompleteStyle={{
                                         borderWidth: '0px',
                                         borderStyle: 'none',
-                                        width: '100%',
+                                        width: '100%'
                                     }}
                                     suggestions={allTags}
                                 />
                             </FormGroup>
 
                             {/*Lists all of the tags on this term, displayed as buttons*/}
-                            <Alert color="warning">
-                                <TagList
-                                    tags={tags}
-                                    handleDeleteTag={handleDeleteTag}
-                                    deletable={true}
-                                />
+                            <Alert color='warning'>
+                                <TagList tags={tags} handleDeleteTag={handleDeleteTag} deletable={true} />
                             </Alert>
                         </Col>
                     </Row>
 
                     <Row>
                         <Col>
-                            <h6 style={{ color: 'black', fontWeight: '300' }}>
-                                All Terms:
-                            </h6>
+                            <h6 style={{ color: 'black', fontWeight: '300' }}>All Terms:</h6>
                             <Card
-                                color="info"
+                                color='info'
                                 style={{
                                     overflow: 'scroll',
                                     height: '35vh',
-                                    width: '100%',
+                                    width: '100%'
                                 }}
                             >
                                 {dynamicTerms
                                     .filter((answer) => {
-                                        let tempAddedTermsIDArray =
-                                            addedTerms.map((term) => {
-                                                return term.termID;
-                                            });
-                                        return (
-                                            tempAddedTermsIDArray.indexOf(
-                                                answer.termID
-                                            ) === -1
-                                        );
+                                        let tempAddedTermsIDArray = addedTerms.map((term) => {
+                                            return term.termID;
+                                        });
+                                        return tempAddedTermsIDArray.indexOf(answer.termID) === -1;
                                     })
                                     .map((answer) => {
                                         return (
                                             <Button
                                                 style={{
-                                                    backgroundColor:
-                                                        'dodgerBlue',
-                                                    border: 'none',
+                                                    backgroundColor: 'dodgerBlue',
+                                                    border: 'none'
                                                 }}
                                                 key={answer.termID}
                                                 onClick={() =>
                                                     handleAddExistingTerm({
                                                         front: answer.front,
                                                         termID: answer.termID,
-                                                        gender: answer.gender,
+                                                        gender: answer.gender
                                                     })
                                                 }
                                             >
@@ -293,16 +261,14 @@ export default function SearchAnswersByTag({
                             </Card>
                         </Col>
                         <Col>
-                            <h6 style={{ color: 'black', fontWeight: '300' }}>
-                                Added Terms:
-                            </h6>
+                            <h6 style={{ color: 'black', fontWeight: '300' }}>Added Terms:</h6>
                             <Alert
                                 style={{
                                     backgroundColor: 'deepSkyBlue',
                                     overflow: 'scroll',
                                     height: '35vh',
                                     width: '100%',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
                             >
                                 <AnswerButtonList
@@ -321,9 +287,9 @@ export default function SearchAnswersByTag({
                             <Button
                                 style={{
                                     backgroundColor: '#004085',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
-                                type="submit"
+                                type='submit'
                                 block
                             >
                                 Add
@@ -331,7 +297,7 @@ export default function SearchAnswersByTag({
                             <Button
                                 style={{
                                     backgroundColor: 'steelblue',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
                                 onClick={toggleSearchByTagForm}
                                 block

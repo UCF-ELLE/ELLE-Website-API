@@ -1,19 +1,6 @@
 import React, { useState } from 'react';
 import { Button, FormGroup, Input } from 'reactstrap';
-import {
-    Card,
-    Label,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Table,
-    Row,
-    Col,
-    Badge,
-    Alert,
-    Tooltip,
-} from 'reactstrap';
+import { Card, Label, Modal, ModalHeader, ModalBody, ModalFooter, Table, Row, Col, Badge, Alert, Tooltip } from 'reactstrap';
 import { useCSVReader } from 'react-papaparse';
 import axios from 'axios';
 
@@ -33,7 +20,7 @@ type ImportTermsTerm = Omit<Term, 'termID'> & {
 export default function ImportTerms({
     module,
     updateCurrentModule,
-    currentClass,
+    currentClass
 }: {
     module?: Module;
     updateCurrentModule: (module?: Module, task?: string) => void;
@@ -64,27 +51,14 @@ export default function ImportTerms({
         const listTerms: ImportTermsTerm[] = [];
         for (let i = 1; i < data.length; i++) {
             const formData: ImportTermsTerm = {
-                front:
-                    data[i]['data'][frontIndex] === ''
-                        ? null
-                        : data[i]['data'][frontIndex],
-                back:
-                    data[i]['data'][backIndex] === ''
-                        ? null
-                        : data[i]['data'][backIndex],
-                type:
-                    data[i]['data'][typeIndex] === ''
-                        ? ''
-                        : data[i]['data'][typeIndex],
-                gender:
-                    data[i]['data'][genderIndex] === ''
-                        ? null
-                        : data[i]['data'][genderIndex],
-                selected: true,
+                front: data[i]['data'][frontIndex] === '' ? null : data[i]['data'][frontIndex],
+                back: data[i]['data'][backIndex] === '' ? null : data[i]['data'][backIndex],
+                type: data[i]['data'][typeIndex] === '' ? '' : data[i]['data'][typeIndex],
+                gender: data[i]['data'][genderIndex] === '' ? null : data[i]['data'][genderIndex],
+                selected: true
             };
 
-            if (formData['front'] !== null && formData['back'] !== null)
-                listTerms.push(formData);
+            if (formData['front'] !== null && formData['back'] !== null) listTerms.push(formData);
         }
 
         setTerms(listTerms);
@@ -120,9 +94,9 @@ export default function ImportTerms({
                     method: 'post',
                     url: '/elleapi/term',
                     headers: {
-                        Authorization: 'Bearer ' + user?.jwt,
+                        Authorization: 'Bearer ' + user?.jwt
                     },
-                    data: data,
+                    data: data
                 };
 
                 axios(config)
@@ -144,12 +118,7 @@ export default function ImportTerms({
         }
     };
 
-    const handleOnError = (
-        err: string,
-        file: string,
-        inputElem: string,
-        reason: string
-    ) => {
+    const handleOnError = (err: string, file: string, inputElem: string, reason: string) => {
         console.log(err, file, inputElem, reason);
     };
 
@@ -162,7 +131,7 @@ export default function ImportTerms({
             back: tempTerm.back,
             type: tempTerm.type,
             gender: tempTerm.gender,
-            selected: !tempTerm.selected,
+            selected: !tempTerm.selected
         };
 
         setTerms(tempList);
@@ -177,7 +146,7 @@ export default function ImportTerms({
                 back: term.back,
                 type: term.type,
                 gender: term.gender,
-                selected: e.target.checked,
+                selected: e.target.checked
             };
         });
 
@@ -192,7 +161,7 @@ export default function ImportTerms({
             back: term.back,
             type: term.type,
             gender: term.gender,
-            selected: terms[ind].selected,
+            selected: terms[ind].selected
         };
 
         setTerms(tempList);
@@ -205,10 +174,7 @@ export default function ImportTerms({
     return (
         <>
             <Modal isOpen={modalOpen} toggle={() => toggleModal()}>
-                <ModalHeader
-                    style={{ paddingBottom: '0px', border: 'none' }}
-                    toggle={() => toggleModal()}
-                >
+                <ModalHeader style={{ paddingBottom: '0px', border: 'none' }} toggle={() => toggleModal()}>
                     Mass Import Terms
                     <Row>
                         <Col>
@@ -221,74 +187,52 @@ export default function ImportTerms({
                 </ModalHeader>
                 <ModalBody>
                     <CSVReader onUploadAccepted={handleOnFileLoad}>
-                        {({
-                            getRootProps,
-                            acceptedFile,
-                            ProgressBar,
-                            getRemoveFileProps,
-                        }: any) => (
+                        {({ getRootProps, acceptedFile, ProgressBar, getRemoveFileProps }: any) => (
                             <div style={{ marginBottom: '10px' }}>
                                 <Button
-                                    id="fileUploader"
+                                    id='fileUploader'
                                     {...getRootProps}
                                     style={{
                                         padding: '5px',
                                         border: 'none',
-                                        backgroundColor: 'cadetblue',
+                                        backgroundColor: 'cadetblue'
                                     }}
                                 >
                                     <Image
                                         src={uploadCSVImage}
-                                        alt="Icon made by Smashicons from www.flaticon.com"
+                                        alt='Icon made by Smashicons from www.flaticon.com'
                                         style={{
                                             width: '25px',
                                             height: '25px',
-                                            marginRight: '5px',
+                                            marginRight: '5px'
                                         }}
                                     />
                                     Upload
                                 </Button>
-                                <Label style={{ margin: '10px' }}>
-                                    {acceptedFile && acceptedFile.name}
-                                </Label>
+                                <Label style={{ margin: '10px' }}>{acceptedFile && acceptedFile.name}</Label>
                             </div>
                         )}
                     </CSVReader>
 
-                    {error ? (
-                        <Alert color="danger">Failure to add terms.</Alert>
-                    ) : null}
+                    {error ? <Alert color='danger'>Failure to add terms.</Alert> : null}
 
                     <Card
                         style={{
                             marginTop: '15px',
                             height: '40vh',
-                            overflow: 'scroll',
+                            overflow: 'scroll'
                         }}
                     >
                         {terms.length !== 0 ? (
-                            <Table hover className="minimalisticTable">
+                            <Table hover className='minimalisticTable'>
                                 <thead>
                                     <tr>
                                         <th style={{ zIndex: '1' }}>
-                                            <FormGroup
-                                                check
-                                                style={{ margin: '0px' }}
-                                            >
+                                            <FormGroup check style={{ margin: '0px' }}>
                                                 <Input
-                                                    type="checkbox"
-                                                    checked={
-                                                        terms.find(
-                                                            (term) =>
-                                                                term.selected ===
-                                                                false
-                                                        )
-                                                            ? false
-                                                            : true
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleOnSelectAll(e)
-                                                    }
+                                                    type='checkbox'
+                                                    checked={terms.find((term) => term.selected === false) ? false : true}
+                                                    onChange={(e) => handleOnSelectAll(e)}
                                                 />
                                             </FormGroup>
                                         </th>
@@ -304,33 +248,19 @@ export default function ImportTerms({
                                             <tr key={i}>
                                                 <td
                                                     style={{
-                                                        paddingTop: '20px',
+                                                        paddingTop: '20px'
                                                     }}
                                                 >
                                                     <FormGroup
                                                         check
                                                         style={{
-                                                            margin: '0px',
+                                                            margin: '0px'
                                                         }}
                                                     >
-                                                        <Input
-                                                            type="checkbox"
-                                                            checked={
-                                                                term.selected
-                                                            }
-                                                            onChange={() =>
-                                                                handleOnCheck(i)
-                                                            }
-                                                        />
+                                                        <Input type='checkbox' checked={term.selected} onChange={() => handleOnCheck(i)} />
                                                     </FormGroup>
                                                 </td>
-                                                <TermFields
-                                                    term={term}
-                                                    index={i}
-                                                    handleOnFieldChange={
-                                                        handleOnFieldChange
-                                                    }
-                                                />
+                                                <TermFields term={term} index={i} handleOnFieldChange={handleOnFieldChange} />
                                             </tr>
                                         );
                                     })}
@@ -340,7 +270,7 @@ export default function ImportTerms({
                             <p
                                 style={{
                                     display: 'flex',
-                                    justifyContent: 'center',
+                                    justifyContent: 'center'
                                 }}
                             >
                                 No terms could be found at the moment.
@@ -356,32 +286,32 @@ export default function ImportTerms({
                                 <a
                                     style={{
                                         textDecoration: 'underline',
-                                        color: 'blue',
+                                        color: 'blue'
                                     }}
                                     href={'/static/csv/Template.csv'}
-                                    download="template.csv"
+                                    download='template.csv'
                                 >
                                     here
                                 </a>{' '}
                                 to download.
                             </p>
                         </Col>
-                        <Col xs="3" style={{ paddingLeft: '30px' }}>
+                        <Col xs='3' style={{ paddingLeft: '30px' }}>
                             <Button
                                 style={{
                                     padding: '5px',
                                     border: 'none',
-                                    backgroundColor: 'cadetblue',
+                                    backgroundColor: 'cadetblue'
                                 }}
                                 onClick={() => uploadTerms()}
                             >
                                 <Image
                                     src={importImage}
-                                    alt="Icon made by Smashicons from www.flaticon.com"
+                                    alt='Icon made by Smashicons from www.flaticon.com'
                                     style={{
                                         width: '25px',
                                         height: '25px',
-                                        marginRight: '5px',
+                                        marginRight: '5px'
                                     }}
                                 />
                                 Import
@@ -391,25 +321,11 @@ export default function ImportTerms({
                 </ModalFooter>
             </Modal>
 
-            <Button
-                id="importBtn"
-                onClick={() => toggleModal()}
-                size="sm"
-                style={{ border: 'none', backgroundColor: '#5faeb4' }}
-            >
-                <Image
-                    src={importImage}
-                    alt="Icon made by Smashicons from www.flaticon.com"
-                    style={{ width: '25px', height: '25px' }}
-                />
+            <Button id='importBtn' onClick={() => toggleModal()} size='sm' style={{ border: 'none', backgroundColor: '#5faeb4' }}>
+                <Image src={importImage} alt='Icon made by Smashicons from www.flaticon.com' style={{ width: '25px', height: '25px' }} />
             </Button>
 
-            <Tooltip
-                placement="right"
-                isOpen={tooltipOpen}
-                target="importBtn"
-                toggle={() => toggleTooltip()}
-            >
+            <Tooltip placement='right' isOpen={tooltipOpen} target='importBtn' toggle={() => toggleTooltip()}>
                 Mass Import
             </Tooltip>
         </>

@@ -44,40 +44,28 @@ export default function Games() {
         { value: 'HELLEsKitchen', label: 'HELLEs Kitchen' },
         { value: 'SpinNSpELLE', label: 'Spin N SpELLE' },
         { value: 'HighriseHELLEp', label: 'HighRise HELLEp' },
-        { value: 'Millenielle', label: 'Milleni Elle' },
+        { value: 'Millenielle', label: 'Milleni Elle' }
 
         // add more games as needed
     ];
 
     return (
         <Layout>
-            <div className="gamesBg">
-                <a id="top"></a>
+            <div className='gamesBg'>
+                <a id='top'></a>
 
                 {/* Create the game selection dropdown menu */}
                 <br />
-                <Select
-                    className="dropdown button"
-                    options={options}
-                    onChange={(e) => handleGameChange(e)}
-                    placeholder="Select a Game"
-                />
+                <Select className='dropdown button' options={options} onChange={(e) => handleGameChange(e)} placeholder='Select a Game' />
 
-                <a id="VirtuELLEMentor"></a>
+                <a id='VirtuELLEMentor'></a>
                 <section style={{ color: 'white' }}>
-                    <div className="container">
-                        <div
-                            className="infoCard"
-                            style={{ backgroundColor: '#3f6184' }}
-                        >
+                    <div className='container'>
+                        <div className='infoCard' style={{ backgroundColor: '#3f6184' }}>
                             <Row>
                                 <Col>
-                                    <h3 className="cta-title">
-                                        VirtuELLE Mentor
-                                    </h3>
-                                    <p className="cta-text">
-                                        Original Senior Design Team:
-                                    </p>
+                                    <h3 className='cta-title'>VirtuELLE Mentor</h3>
+                                    <p className='cta-text'>Original Senior Design Team:</p>
                                     <ul style={{ color: '#ffffff' }}>
                                         <Row>
                                             <Col>
@@ -88,9 +76,7 @@ export default function Games() {
                                         </Row>
                                     </ul>
 
-                                    <p className="cta-text">
-                                        Version 2 Senior Design Team:
-                                    </p>
+                                    <p className='cta-text'>Version 2 Senior Design Team:</p>
                                     <ul style={{ color: '#ffffff' }}>
                                         <Row>
                                             <Col>
@@ -104,9 +90,7 @@ export default function Games() {
                                             </Col>
                                         </Row>
                                     </ul>
-                                    <p className="cta-text">
-                                        Version 3 Senior Design Team
-                                    </p>
+                                    <p className='cta-text'>Version 3 Senior Design Team</p>
                                     <ul style={{ color: '#ffffff' }}>
                                         <Row>
                                             <Col>
@@ -121,26 +105,16 @@ export default function Games() {
                                         </Row>
                                     </ul>
                                     <br />
-                                    <p className="cta-text">
+                                    <p className='cta-text'>
                                         {' '}
-                                        Come learn a language, select your own
-                                        mentor, and play to unlock unique prizes
-                                        and customization!{' '}
+                                        Come learn a language, select your own mentor, and play to unlock unique prizes and customization!{' '}
                                     </p>
-                                    <p className="cta-text">
+                                    <p className='cta-text'>
                                         <Link
-                                            href={
-                                                user?.jwt
-                                                    ? '/games/virtuellementor'
-                                                    : '/login'
-                                            }
-                                            className={`cardGameButton ${
-                                                !user?.jwt ? 'disabled' : ''
-                                            }`}
+                                            href={user?.jwt ? '/games/virtuellementor' : '/login'}
+                                            className={`cardGameButton ${!user?.jwt ? 'disabled' : ''}`}
                                         >
-                                            {user?.jwt
-                                                ? 'Play Here!'
-                                                : 'Log In to Play'}
+                                            {user?.jwt ? 'Play Here!' : 'Log In to Play'}
                                         </Link>
                                     </p>
                                 </Col>
@@ -150,9 +124,9 @@ export default function Games() {
                                             width: 'auto',
                                             height: '280px',
                                             marginLeft: '70px',
-                                            marginTop: '80px',
+                                            marginTop: '80px'
                                         }}
-                                        alt="Card Game Image"
+                                        alt='Card Game Image'
                                         src={CardGameImage}
                                     />
                                 </Col>
@@ -161,21 +135,14 @@ export default function Games() {
                     </div>
                 </section>
 
-                <a id="AnimELLE"></a>
+                <a id='AnimELLE'></a>
                 <section style={{ color: 'white' }}>
-                    <div className="container">
-                        <div
-                            className="infoCard"
-                            style={{ backgroundColor: '#5da8af' }}
-                        >
+                    <div className='container'>
+                        <div className='infoCard' style={{ backgroundColor: '#5da8af' }}>
                             <Row>
                                 <Col>
-                                    <h3 className="cta-title">
-                                        AnimELLE Crossing
-                                    </h3>
-                                    <p className="cta-text">
-                                        Senior Design Team:
-                                    </p>
+                                    <h3 className='cta-title'>AnimELLE Crossing</h3>
+                                    <p className='cta-text'>Senior Design Team:</p>
                                     <ul style={{ color: '#ffffff' }}>
                                         <Row>
                                             <Col>
@@ -189,30 +156,14 @@ export default function Games() {
                                             </Col>
                                         </Row>
                                     </ul>
-                                    <p className="cta-text">
-                                        AnimELLE Crossing is an educational game
-                                        with the intent to help students with
-                                        their language learning journey.
-                                        Students will get to play multiple mini
-                                        games that are encompassed within the
-                                        AnimELLE Crossing world, interact with
-                                        non-playable characters, and personalize
-                                        different aspects of their gameplay.
+                                    <p className='cta-text'>
+                                        AnimELLE Crossing is an educational game with the intent to help students with their language learning
+                                        journey. Students will get to play multiple mini games that are encompassed within the AnimELLE Crossing
+                                        world, interact with non-playable characters, and personalize different aspects of their gameplay.
                                     </p>
-                                    <p className="cta-text">
-                                        <Link
-                                            href={
-                                                user
-                                                    ? '/games/animellegame'
-                                                    : '/login'
-                                            }
-                                            className={`animelleButton ${
-                                                !user ? 'disabled' : ''
-                                            }`}
-                                        >
-                                            {user
-                                                ? 'Play Here!'
-                                                : 'Log In to Play'}
+                                    <p className='cta-text'>
+                                        <Link href={user ? '/games/animellegame' : '/login'} className={`animelleButton ${!user ? 'disabled' : ''}`}>
+                                            {user ? 'Play Here!' : 'Log In to Play'}
                                         </Link>
                                     </p>
                                 </Col>
@@ -222,9 +173,9 @@ export default function Games() {
                                             width: '520px',
                                             height: '320px',
                                             marginLeft: '70px',
-                                            marginTop: '40px',
+                                            marginTop: '40px'
                                         }}
-                                        alt="AnimELLE Crossing Image"
+                                        alt='AnimELLE Crossing Image'
                                         src={AnimelleGameImage}
                                     />
                                 </Col>
@@ -233,21 +184,14 @@ export default function Games() {
                     </div>
                 </section>
 
-                <a id="Maze"></a>
+                <a id='Maze'></a>
                 <section style={{ color: 'white' }}>
-                    <div className="container">
-                        <div
-                            className="infoCard"
-                            style={{ backgroundColor: '#3f6184' }}
-                        >
+                    <div className='container'>
+                        <div className='infoCard' style={{ backgroundColor: '#3f6184' }}>
                             <Row>
                                 <Col>
-                                    <h3 className="cta-title">
-                                        ELLE aMAZEing Game
-                                    </h3>
-                                    <p className="cta-text">
-                                        Senior Design Team:
-                                    </p>
+                                    <h3 className='cta-title'>ELLE aMAZEing Game</h3>
+                                    <p className='cta-text'>Senior Design Team:</p>
                                     <ul style={{ color: '#ffffff' }}>
                                         <Row>
                                             <Col>
@@ -262,24 +206,12 @@ export default function Games() {
                                         </Row>
                                     </ul>
                                     <br />
-                                    Follow the instructions to choose the
-                                    correct path from a few options while
-                                    learning Spanish in this immersive game!
-                                    <p className="cta-text">
+                                    Follow the instructions to choose the correct path from a few options while learning Spanish in this immersive
+                                    game!
+                                    <p className='cta-text'>
                                         <br />
-                                        <Link
-                                            href={
-                                                user
-                                                    ? '/games/mazegame'
-                                                    : '/login'
-                                            }
-                                            className={`mazeButton ${
-                                                !user ? 'disabled' : ''
-                                            }`}
-                                        >
-                                            {user
-                                                ? 'Play Here!'
-                                                : 'Log In to Play'}
+                                        <Link href={user ? '/games/mazegame' : '/login'} className={`mazeButton ${!user ? 'disabled' : ''}`}>
+                                            {user ? 'Play Here!' : 'Log In to Play'}
                                         </Link>
                                     </p>
                                 </Col>
@@ -288,9 +220,9 @@ export default function Games() {
                                         style={{
                                             width: '520px',
                                             height: '320px',
-                                            marginLeft: '70px',
+                                            marginLeft: '70px'
                                         }}
-                                        alt="Maze Game Image"
+                                        alt='Maze Game Image'
                                         src={MazeGameImage}
                                     />
                                 </Col>
@@ -299,21 +231,14 @@ export default function Games() {
                     </div>
                 </section>
 
-                <a id="HELLEsKitchen"></a>
+                <a id='HELLEsKitchen'></a>
                 <section style={{ color: 'white' }}>
-                    <div className="container">
-                        <div
-                            className="infoCard"
-                            style={{ backgroundColor: '#5da8af' }}
-                        >
+                    <div className='container'>
+                        <div className='infoCard' style={{ backgroundColor: '#5da8af' }}>
                             <Row>
                                 <Col>
-                                    <h3 className="cta-title">
-                                        HELLE&apos;s Kitchen
-                                    </h3>
-                                    <p className="cta-text">
-                                        Senior Design Team:
-                                    </p>
+                                    <h3 className='cta-title'>HELLE&apos;s Kitchen</h3>
+                                    <p className='cta-text'>Senior Design Team:</p>
                                     <ul style={{ color: '#ffffff' }}>
                                         <Row>
                                             <Col>
@@ -328,15 +253,10 @@ export default function Games() {
                                         </Row>
                                     </ul>
                                     <br />
-                                    Follow recipes in Spanish to search the
-                                    kitchen for ingredients. Cook them up to
-                                    discover the dish of the unit!
-                                    <p className="cta-text">
+                                    Follow recipes in Spanish to search the kitchen for ingredients. Cook them up to discover the dish of the unit!
+                                    <p className='cta-text'>
                                         <br />
-                                        <a
-                                            className="helleButton"
-                                            href="https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning"
-                                        >
+                                        <a className='helleButton' href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>
                                             Available Here!
                                         </a>
                                     </p>
@@ -347,7 +267,7 @@ export default function Games() {
                                         style={{
                                             width: '514px',
                                             height: '289px',
-                                            marginLeft: '100px',
+                                            marginLeft: '100px'
                                         }}
                                         alt="HELLE's Kitchen Image"
                                         src={HellesKitchenImage}
@@ -358,19 +278,14 @@ export default function Games() {
                     </div>
                 </section>
 
-                <a id="SpinNSpELLE"></a>
+                <a id='SpinNSpELLE'></a>
                 <section style={{ color: 'white' }}>
-                    <div className="container">
-                        <div
-                            className="infoCard"
-                            style={{ backgroundColor: '#3f6184' }}
-                        >
+                    <div className='container'>
+                        <div className='infoCard' style={{ backgroundColor: '#3f6184' }}>
                             <Row>
                                 <Col>
-                                    <h3 className="cta-title">Spin N SpELLE</h3>
-                                    <p className="cta-text">
-                                        Senior Design Team:
-                                    </p>
+                                    <h3 className='cta-title'>Spin N SpELLE</h3>
+                                    <p className='cta-text'>Senior Design Team:</p>
                                     <ul style={{ color: '#ffffff' }}>
                                         <Row>
                                             <Col>
@@ -385,15 +300,10 @@ export default function Games() {
                                         </Row>
                                     </ul>
                                     <br />
-                                    Spell out the translation of terms using
-                                    alphabet blocks. Play in endless mode or try
-                                    your luck at quiz mode!
-                                    <p className="cta-text">
+                                    Spell out the translation of terms using alphabet blocks. Play in endless mode or try your luck at quiz mode!
+                                    <p className='cta-text'>
                                         <br />
-                                        <a
-                                            className="spinButton"
-                                            href="https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning"
-                                        >
+                                        <a className='spinButton' href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>
                                             Available Here!
                                         </a>
                                     </p>
@@ -403,9 +313,9 @@ export default function Games() {
                                         style={{
                                             width: '350px',
                                             height: '255px',
-                                            marginLeft: '100px',
+                                            marginLeft: '100px'
                                         }}
-                                        alt="Spin N SpELLE Image"
+                                        alt='Spin N SpELLE Image'
                                         src={SpinNSpellImage}
                                     />
                                 </Col>
@@ -414,21 +324,14 @@ export default function Games() {
                     </div>
                 </section>
 
-                <a id="HighriseHELLEp"></a>
+                <a id='HighriseHELLEp'></a>
                 <section style={{ color: 'white' }}>
-                    <div className="container">
-                        <div
-                            className="infoCard"
-                            style={{ backgroundColor: '#5da8af' }}
-                        >
+                    <div className='container'>
+                        <div className='infoCard' style={{ backgroundColor: '#5da8af' }}>
                             <Row>
                                 <Col>
-                                    <h3 className="cta-title">
-                                        Highrise HELLEp
-                                    </h3>
-                                    <p className="cta-text">
-                                        Senior Design Team:
-                                    </p>
+                                    <h3 className='cta-title'>Highrise HELLEp</h3>
+                                    <p className='cta-text'>Senior Design Team:</p>
                                     <ul style={{ color: '#ffffff' }}>
                                         <Row>
                                             <Col>
@@ -443,16 +346,11 @@ export default function Games() {
                                         </Row>
                                     </ul>
                                     <br />
-                                    Play as a firefighter in this action packed
-                                    game. Connect terms to their correct
-                                    categories to put out fires and save the
-                                    day!
-                                    <p className="cta-text">
+                                    Play as a firefighter in this action packed game. Connect terms to their correct categories to put out fires and
+                                    save the day!
+                                    <p className='cta-text'>
                                         <br />
-                                        <a
-                                            className="highriseButton"
-                                            href="https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning"
-                                        >
+                                        <a className='highriseButton' href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>
                                             Available Here!
                                         </a>
                                     </p>
@@ -462,9 +360,9 @@ export default function Games() {
                                         style={{
                                             width: '470px',
                                             height: '255px',
-                                            marginLeft: '100px',
+                                            marginLeft: '100px'
                                         }}
-                                        alt="Highrise HELLEp Image"
+                                        alt='Highrise HELLEp Image'
                                         src={HighRiseImage}
                                     />
                                 </Col>
@@ -473,19 +371,14 @@ export default function Games() {
                     </div>
                 </section>
 
-                <a id="Millenielle"></a>
+                <a id='Millenielle'></a>
                 <section style={{ color: 'white' }}>
-                    <div className="container">
-                        <div
-                            className="infoCard"
-                            style={{ backgroundColor: '#3f6184' }}
-                        >
+                    <div className='container'>
+                        <div className='infoCard' style={{ backgroundColor: '#3f6184' }}>
                             <Row>
                                 <Col>
-                                    <h3 className="cta-title">MilleniElle</h3>
-                                    <p className="cta-text">
-                                        Senior Design Team:
-                                    </p>
+                                    <h3 className='cta-title'>MilleniElle</h3>
+                                    <p className='cta-text'>Senior Design Team:</p>
                                     <ul style={{ color: '#ffffff' }}>
                                         <Row>
                                             <Col>
@@ -500,20 +393,12 @@ export default function Games() {
                                         </Row>
                                     </ul>
                                     <br />
-                                    Milleni-ELLE is a Spanish language game
-                                    emphasizing context and immersion. The
-                                    player arrives in an airport (tutorial
-                                    scene) where they learn the basic mechanics
-                                    of the game and board a virtual bus. The bus
-                                    will take them to a house to pack for their
-                                    next trip or to the grocery store to
-                                    practice food-based vocabulary.
-                                    <p className="cta-text">
+                                    Milleni-ELLE is a Spanish language game emphasizing context and immersion. The player arrives in an airport
+                                    (tutorial scene) where they learn the basic mechanics of the game and board a virtual bus. The bus will take them
+                                    to a house to pack for their next trip or to the grocery store to practice food-based vocabulary.
+                                    <p className='cta-text'>
                                         <br />
-                                        <a
-                                            className="milleniButton"
-                                            href="https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning"
-                                        >
+                                        <a className='milleniButton' href='https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning'>
                                             Available Here!
                                         </a>
                                     </p>
@@ -524,9 +409,9 @@ export default function Games() {
                                             width: '470px',
                                             height: '255px',
                                             marginLeft: '100px',
-                                            marginTop: '60px',
+                                            marginTop: '60px'
                                         }}
-                                        alt="MilleniElle Image"
+                                        alt='MilleniElle Image'
                                         src={MillenIElleImage}
                                     />
                                 </Col>

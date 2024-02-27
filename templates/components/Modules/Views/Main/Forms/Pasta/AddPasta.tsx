@@ -1,15 +1,5 @@
 import React, { createRef, useState } from 'react';
-import {
-    Alert,
-    Badge,
-    Button,
-    Col,
-    Form,
-    FormGroup,
-    Input,
-    Label,
-    Row,
-} from 'reactstrap';
+import { Alert, Badge, Button, Col, Form, FormGroup, Input, Label, Row } from 'reactstrap';
 
 import { useUser } from '@/hooks/useUser';
 import { Module } from '@/types/api/modules';
@@ -22,7 +12,7 @@ export default function AddPasta({
     curModule,
     questionFrames,
     updateCurrentModule,
-    setOpenForm,
+    setOpenForm
 }: {
     curModule: Module;
     questionFrames: QuestionFrame[];
@@ -34,14 +24,9 @@ export default function AddPasta({
 
     const [utterance, setUtterance] = useState<string>('');
     const [category, setCategory] = useState<string>('');
-    const [selectedQuestionFrame, setSelectedQuestionFrame] =
-        useState<QuestionFrame>();
-    const [splitQuestionAnswer, setSplitQuestionAnswer] = useState<number[]>(
-        []
-    );
-    const [identifyQuestionAnswer, setIdentityQuestionAnswer] = useState<
-        Number[]
-    >([]);
+    const [selectedQuestionFrame, setSelectedQuestionFrame] = useState<QuestionFrame>();
+    const [splitQuestionAnswer, setSplitQuestionAnswer] = useState<number[]>([]);
+    const [identifyQuestionAnswer, setIdentityQuestionAnswer] = useState<Number[]>([]);
     const [mc1Answer, setMC1Answer] = useState<Number>(-1);
     const [mc2Answer, setMC2Answer] = useState<Number>(-1);
     const [error, setError] = useState<boolean>(false);
@@ -57,14 +42,8 @@ export default function AddPasta({
             category &&
             splitQuestionAnswer.length > 0 &&
             selectedQuestionFrame &&
-            (selectedQuestionFrame.identifyQuestionVar
-                ? identifyQuestionAnswer.length > 0
-                : true) &&
-            (selectedQuestionFrame.mc1Options
-                ? mc1Answer !== -1
-                : selectedQuestionFrame.mc2Options
-                ? mc2Answer !== -1
-                : true)
+            (selectedQuestionFrame.identifyQuestionVar ? identifyQuestionAnswer.length > 0 : true) &&
+            (selectedQuestionFrame.mc1Options ? mc1Answer !== -1 : selectedQuestionFrame.mc2Options ? mc2Answer !== -1 : true)
         );
     };
 
@@ -85,7 +64,7 @@ export default function AddPasta({
 
         const data = new FormData();
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         data.append('moduleID', curModule.moduleID.toString());
@@ -93,10 +72,7 @@ export default function AddPasta({
         data.append('category', category);
         data.append('splitAnswer', JSON.stringify(splitQuestionAnswer));
         if (selectedQuestionFrame?.identifyQuestionVar) {
-            data.append(
-                'identifyAnswer',
-                JSON.stringify(identifyQuestionAnswer)
-            );
+            data.append('identifyAnswer', JSON.stringify(identifyQuestionAnswer));
         }
         if (selectedQuestionFrame?.mc1Options) {
             data.append('mc1Answer', mc1Answer.toString());
@@ -133,9 +109,7 @@ export default function AddPasta({
         // Select the category from the list of question frames
         const category = e.target.value;
         setCategory(category);
-        const frame = questionFrames.filter(
-            (frame) => frame.category === category
-        )[0];
+        const frame = questionFrames.filter((frame) => frame.category === category)[0];
         setSelectedQuestionFrame(frame);
     };
 
@@ -155,18 +129,13 @@ export default function AddPasta({
     const createIdentityAnswerList = () => {
         const list = splitQuestionAnswer.map((val, index) => {
             return {
-                label: utterance.substring(
-                    index === 0 ? 0 : splitQuestionAnswer[index - 1],
-                    val
-                ),
-                value: index,
+                label: utterance.substring(index === 0 ? 0 : splitQuestionAnswer[index - 1], val),
+                value: index
             };
         });
         list.push({
-            label: utterance.substring(
-                splitQuestionAnswer[splitQuestionAnswer.length - 1]
-            ),
-            value: splitQuestionAnswer.length,
+            label: utterance.substring(splitQuestionAnswer[splitQuestionAnswer.length - 1]),
+            value: splitQuestionAnswer.length
         });
         return list;
     };
@@ -174,31 +143,24 @@ export default function AddPasta({
     const createFields = () => {
         return (
             <div>
-                {selectedQuestionFrame?.identifyQuestionVar &&
-                splitQuestionAnswer.length > 0 ? (
+                {selectedQuestionFrame?.identifyQuestionVar && splitQuestionAnswer.length > 0 ? (
                     <FormGroup>
-                        <Label for="selectIdentityAnswer">
-                            Identify{' '}
-                            <Badge>
-                                {selectedQuestionFrame.identifyQuestionVar}
-                            </Badge>{' '}
-                            of this <Badge>{category}</Badge>
+                        <Label for='selectIdentityAnswer'>
+                            Identify <Badge>{selectedQuestionFrame.identifyQuestionVar}</Badge> of this <Badge>{category}</Badge>
                         </Label>
                         {/* Typeahead to include all of the possible split utterances, multiple selected */}
                         <Typeahead
-                            id="selectIdentityAnswer"
+                            id='selectIdentityAnswer'
                             ref={ref}
                             multiple
                             // Return the substring between the previous index and the current index for options
                             options={createIdentityAnswerList()}
-                            placeholder="Select the correct split utterance"
+                            placeholder='Select the correct split utterance'
                             onChange={(selected) => {
                                 const tempList: number[] = [];
                                 for (let index of selected) {
-                                    if (typeof index === 'object')
-                                        tempList.push(index.value);
-                                    else if (typeof index === 'number')
-                                        tempList.push(index);
+                                    if (typeof index === 'object') tempList.push(index.value);
+                                    else if (typeof index === 'number') tempList.push(index);
                                 }
                                 tempList.sort((a, b) => a - b);
                                 setIdentityQuestionAnswer(tempList);
@@ -206,53 +168,39 @@ export default function AddPasta({
                         />
                     </FormGroup>
                 ) : null}
-                {selectedQuestionFrame?.mc1Options &&
-                selectedQuestionFrame.mc1Options?.length > 0 ? (
+                {selectedQuestionFrame?.mc1Options && selectedQuestionFrame.mc1Options?.length > 0 ? (
                     <FormGroup>
-                        <Label for="selectMC1Answer">
-                            {selectedQuestionFrame.mc1QuestionText}
-                        </Label>
+                        <Label for='selectMC1Answer'>{selectedQuestionFrame.mc1QuestionText}</Label>
                         <Input
-                            type="select"
-                            name="selectMC1Answer"
-                            id="selectMC1Answer"
+                            type='select'
+                            name='selectMC1Answer'
+                            id='selectMC1Answer'
                             value={mc1Answer.toString()}
-                            onChange={(e) =>
-                                setMC1Answer(Number(e.target.value))
-                            }
+                            onChange={(e) => setMC1Answer(Number(e.target.value))}
                         >
-                            {selectedQuestionFrame.mc1Options.map(
-                                (leadup, index) => (
-                                    <option key={index} value={index}>
-                                        {leadup}
-                                    </option>
-                                )
-                            )}
+                            {selectedQuestionFrame.mc1Options.map((leadup, index) => (
+                                <option key={index} value={index}>
+                                    {leadup}
+                                </option>
+                            ))}
                         </Input>
                     </FormGroup>
                 ) : null}
-                {selectedQuestionFrame?.mc2Options &&
-                selectedQuestionFrame.mc2Options?.length > 0 ? (
+                {selectedQuestionFrame?.mc2Options && selectedQuestionFrame.mc2Options?.length > 0 ? (
                     <FormGroup>
-                        <Label for="selectMC2Answer">
-                            {selectedQuestionFrame.mc2QuestionText}
-                        </Label>
+                        <Label for='selectMC2Answer'>{selectedQuestionFrame.mc2QuestionText}</Label>
                         <Input
-                            type="select"
-                            name="selectMC2Answer"
-                            id="selectMC2Answer"
+                            type='select'
+                            name='selectMC2Answer'
+                            id='selectMC2Answer'
                             value={mc2Answer.toString()}
-                            onChange={(e) =>
-                                setMC2Answer(Number(e.target.value))
-                            }
+                            onChange={(e) => setMC2Answer(Number(e.target.value))}
                         >
-                            {selectedQuestionFrame.mc2Options.map(
-                                (leadup, index) => (
-                                    <option key={index} value={index}>
-                                        {leadup}
-                                    </option>
-                                )
-                            )}
+                            {selectedQuestionFrame.mc2Options.map((leadup, index) => (
+                                <option key={index} value={index}>
+                                    {leadup}
+                                </option>
+                            ))}
                         </Input>
                     </FormGroup>
                 ) : null}
@@ -263,28 +211,28 @@ export default function AddPasta({
     return (
         <div>
             <Form onSubmit={(e) => submitPasta(e)}>
-                <input type="hidden" value="prayer" />
-                {error ? <Alert color="danger">{errMsg}</Alert> : null}
+                <input type='hidden' value='prayer' />
+                {error ? <Alert color='danger'>{errMsg}</Alert> : null}
                 <Alert
                     style={{
                         color: '#004085',
                         backgroundColor: 'lightskyblue',
-                        border: 'none',
+                        border: 'none'
                     }}
                 >
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for="utterance">Utterance:</Label>
+                                <Label for='utterance'>Utterance:</Label>
 
                                 <Input
-                                    type="text"
-                                    name="utterance"
+                                    type='text'
+                                    name='utterance'
                                     onChange={(e) => selectUtterance(e)}
                                     value={utterance}
-                                    id="utterance"
-                                    placeholder="Indistinquisable"
-                                    autoComplete="off"
+                                    id='utterance'
+                                    placeholder='Indistinquisable'
+                                    autoComplete='off'
                                 />
                             </FormGroup>
                         </Col>
@@ -294,25 +242,20 @@ export default function AddPasta({
                         <Col>
                             {questionFrames.length > 0 ? (
                                 <FormGroup>
-                                    <Label for="selectCategory">
-                                        Category:
-                                    </Label>
+                                    <Label for='selectCategory'>Category:</Label>
 
                                     <Input
-                                        type="select"
-                                        name="selectCategory"
-                                        id="selectCategory"
+                                        type='select'
+                                        name='selectCategory'
+                                        id='selectCategory'
                                         value={category}
                                         onChange={(e) => selectCategory(e)}
                                     >
-                                        <option disabled value="">
+                                        <option disabled value=''>
                                             Select a category
                                         </option>
                                         {questionFrames.map((frame) => (
-                                            <option
-                                                key={frame.category}
-                                                value={frame.category}
-                                            >
+                                            <option key={frame.category} value={frame.category}>
                                                 {frame.category}
                                             </option>
                                         ))}
@@ -320,9 +263,7 @@ export default function AddPasta({
                                 </FormGroup>
                             ) : (
                                 // If there are no question frames, display a message to create one first
-                                <p style={{ color: 'red', fontWeight: 700 }}>
-                                    Please create a question frame first.
-                                </p>
+                                <p style={{ color: 'red', fontWeight: 700 }}>Please create a question frame first.</p>
                             )}
                         </Col>
                     </Row>
@@ -333,20 +274,14 @@ export default function AddPasta({
                                 flexDirection: 'column',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                marginBottom: '12px',
+                                marginBottom: '12px'
                             }}
                         >
                             {category && utterance ? (
                                 <>
                                     <div style={{ marginBottom: 8 }}>
                                         {' '}
-                                        Split the <Badge>{category}</Badge> by
-                                        its{' '}
-                                        <Badge>
-                                            {
-                                                selectedQuestionFrame?.splitQuestionVar
-                                            }
-                                        </Badge>
+                                        Split the <Badge>{category}</Badge> by its <Badge>{selectedQuestionFrame?.splitQuestionVar}</Badge>
                                     </div>
                                     <SplitComponent
                                         text={utterance}
@@ -362,18 +297,16 @@ export default function AddPasta({
                         </Col>
                     </Row>
                     <Row>
-                        <Col>
-                            {selectedQuestionFrame ? createFields() : null}
-                        </Col>
+                        <Col>{selectedQuestionFrame ? createFields() : null}</Col>
                     </Row>
                     <Row>
                         <Col>
                             <Button
                                 style={{
                                     backgroundColor: 'rgb(0, 64, 133)',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
-                                type="submit"
+                                type='submit'
                                 block
                                 disabled={!validateButton()}
                             >
@@ -382,7 +315,7 @@ export default function AddPasta({
                             <Button
                                 style={{
                                     backgroundColor: 'steelblue',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
                                 onClick={() => setOpenForm(0)}
                                 block

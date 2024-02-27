@@ -12,9 +12,7 @@ export default function Profile() {
     const { user, getUserInfo } = useUser();
     const [username, setUsername] = useState<string>('');
     const [email, setEmail] = useState<string | undefined>(undefined);
-    const [permission, setPermission] = useState<string>(
-        user?.permissionGroup as string
-    );
+    const [permission, setPermission] = useState<string>(user?.permissionGroup as string);
 
     useEffect(() => {
         if (user && !username && !email) {
@@ -35,29 +33,11 @@ export default function Profile() {
     return (
         <Layout>
             <div>
-                <Container className="mainContainer">
+                <Container className='mainContainer'>
                     <br></br>
-                    {permission === 'su' ? (
-                        <SuperAdminView
-                            username={username}
-                            email={email}
-                            editEmail={editEmail}
-                        />
-                    ) : null}
-                    {permission === 'pf' ? (
-                        <AdminView
-                            username={username}
-                            email={email}
-                            editEmail={editEmail}
-                        />
-                    ) : null}
-                    {permission === 'st' ? (
-                        <StudentView
-                            username={username}
-                            email={email}
-                            editEmail={editEmail}
-                        />
-                    ) : null}
+                    {permission === 'su' ? <SuperAdminView username={username} email={email} editEmail={editEmail} /> : null}
+                    {permission === 'pf' ? <AdminView username={username} email={email} editEmail={editEmail} /> : null}
+                    {permission === 'st' ? <StudentView username={username} email={email} editEmail={editEmail} /> : null}
                     <br />
                 </Container>
             </div>

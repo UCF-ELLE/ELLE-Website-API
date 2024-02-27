@@ -14,10 +14,7 @@ export type Module = DBModule & {
 };
 
 // POST /elleapi/modulequestions
-export type ModuleQuestion = Pick<
-    DBQuestion,
-    'questionID' | 'type' | 'questionText'
-> & {
+export type ModuleQuestion = Pick<DBQuestion, 'questionID' | 'type' | 'questionText'> & {
     audioLocation?: string;
     imageLocation?: string;
     answers?: ModuleQuestionAnswer[];

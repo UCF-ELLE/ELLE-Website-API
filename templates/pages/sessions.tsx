@@ -1,16 +1,5 @@
 import React, { Component, useCallback, useEffect, useState } from 'react';
-import {
-    Container,
-    Row,
-    Col,
-    Button,
-    Card,
-    Form,
-    FormGroup,
-    Label,
-    Input,
-    Alert,
-} from 'reactstrap';
+import { Container, Row, Col, Button, Card, Form, FormGroup, Label, Input, Alert } from 'reactstrap';
 import axios from 'axios';
 
 import '../lib/bootstrap/css/bootstrap.min.css';
@@ -69,8 +58,8 @@ export default function Sessions() {
                 userID: userID.length !== 0 ? parseInt(userID) : null,
                 userName: username.length !== 0 ? username : null,
                 platform: platform.length !== 0 ? platform : null,
-                sessionDate: date.length !== 0 ? date : null,
-            },
+                sessionDate: date.length !== 0 ? date : null
+            }
         };
 
         axios
@@ -91,30 +80,25 @@ export default function Sessions() {
     return (
         <Layout requireUser>
             <div>
-                <Container className="mainContainer">
+                <Container className='mainContainer'>
                     <br />
                     <br />
                     <Row>
-                        <Col xs="4">
+                        <Col xs='4'>
                             <h3>Your ELLE Sessions:</h3>
                         </Col>
                         <Col
                             xs={permission === 'su' ? '6' : '8'}
                             style={{
-                                padding:
-                                    permission === 'su'
-                                        ? '0 0 0 30px'
-                                        : '0 30px 0 30px',
+                                padding: permission === 'su' ? '0 0 0 30px' : '0 30px 0 30px'
                             }}
                         >
-                            {searched &&
-                            sessions.length !== 0 &&
-                            loading === false ? (
+                            {searched && sessions.length !== 0 && loading === false ? (
                                 <Alert
-                                    color="info"
+                                    color='info'
                                     style={{
                                         margin: '0px',
-                                        textAlign: 'center',
+                                        textAlign: 'center'
                                     }}
                                 >
                                     Click on a row to reveal logged answers.
@@ -122,7 +106,7 @@ export default function Sessions() {
                             ) : null}
                         </Col>
                         {permission === 'su' ? (
-                            <Col xs="2" style={{ padding: '0px' }}>
+                            <Col xs='2' style={{ padding: '0px' }}>
                                 <Downloads />
                             </Col>
                         ) : null}
@@ -130,115 +114,87 @@ export default function Sessions() {
 
                     <br />
 
-                    <Row className="Seperated Col">
-                        <Col className="Left Column" xs="4">
+                    <Row className='Seperated Col'>
+                        <Col className='Left Column' xs='4'>
                             <Row>
                                 <Col>
                                     <Card style={{ padding: '20px' }}>
                                         <Form>
                                             <FormGroup>
-                                                <Label for="platform">
+                                                <Label for='platform'>
                                                     Platform{' '}
                                                     <a
                                                         style={{
                                                             fontSize: '10px',
-                                                            color: 'red',
+                                                            color: 'red'
                                                         }}
                                                     >
-                                                        *Only select to filter
-                                                        based on a platform
+                                                        *Only select to filter based on a platform
                                                     </a>
                                                 </Label>
                                                 <div
                                                     style={{
                                                         display: 'flex',
-                                                        justifyContent:
-                                                            'space-around',
+                                                        justifyContent: 'space-around'
                                                     }}
                                                 >
                                                     <div>
                                                         <Input
-                                                            type="radio"
-                                                            id="mb"
-                                                            name="platform"
+                                                            type='radio'
+                                                            id='mb'
+                                                            name='platform'
                                                             inline
-                                                            checked={
-                                                                platform ===
-                                                                'mb'
-                                                            }
-                                                            onChange={(e) =>
-                                                                setPlatform(
-                                                                    e.target.id
-                                                                )
-                                                            }
+                                                            checked={platform === 'mb'}
+                                                            onChange={(e) => setPlatform(e.target.id)}
                                                         />
                                                         <Image
                                                             style={{
                                                                 width: '20px',
                                                                 height: '20px',
-                                                                marginRight:
-                                                                    '5px',
+                                                                marginRight: '5px'
                                                             }}
                                                             src={phoneGameImage}
-                                                            alt="phone icon"
+                                                            alt='phone icon'
                                                         />
                                                         Mobile
                                                     </div>
                                                     <div>
                                                         <Input
-                                                            type="radio"
-                                                            id="cp"
-                                                            name="platform"
+                                                            type='radio'
+                                                            id='cp'
+                                                            name='platform'
                                                             inline
-                                                            checked={
-                                                                platform ===
-                                                                'cp'
-                                                            }
-                                                            onChange={(e) =>
-                                                                setPlatform(
-                                                                    e.target.id
-                                                                )
-                                                            }
+                                                            checked={platform === 'cp'}
+                                                            onChange={(e) => setPlatform(e.target.id)}
                                                         />
                                                         <Image
                                                             style={{
                                                                 width: '20px',
                                                                 height: '20px',
-                                                                marginRight:
-                                                                    '5px',
+                                                                marginRight: '5px'
                                                             }}
-                                                            src={
-                                                                computerGameImage
-                                                            }
-                                                            alt="computer icon"
+                                                            src={computerGameImage}
+                                                            alt='computer icon'
                                                         />
                                                         PC
                                                     </div>
                                                     <div>
                                                         <Input
-                                                            type="radio"
-                                                            id="vr"
-                                                            name="platform"
+                                                            type='radio'
+                                                            id='vr'
+                                                            name='platform'
                                                             inline
-                                                            checked={
-                                                                platform ===
-                                                                'vr'
-                                                            }
-                                                            onChange={(e) =>
-                                                                setPlatform(
-                                                                    e.target.id
-                                                                )
-                                                            }
+                                                            checked={platform === 'vr'}
+                                                            onChange={(e) => setPlatform(e.target.id)}
                                                         />
                                                         <Image
                                                             style={{
                                                                 width: '20px',
                                                                 height: '20px',
-                                                                marginRight:
-                                                                    '5px',
+                                                                marginRight: '5px'
                                                             }}
                                                             src={vrGameImage}
-                                                            alt="vr icon"
+                                                            alt='vr icon'
                                                         />
                                                         VR
                                                     </div>
@@ -247,97 +203,63 @@ export default function Sessions() {
                                             {permission !== 'st' ? (
                                                 <FormGroup>
                                                     <Row>
-                                                        <Col xs="5">
-                                                            <Label for="userID">
-                                                                User ID
-                                                            </Label>
+                                                        <Col xs='5'>
+                                                            <Label for='userID'>User ID</Label>
                                                             <Input
-                                                                type="text"
-                                                                name="userID"
-                                                                placeholder="Filter by user ID"
+                                                                type='text'
+                                                                name='userID'
+                                                                placeholder='Filter by user ID'
                                                                 value={userID}
-                                                                onChange={(e) =>
-                                                                    setUserID(
-                                                                        e.target
-                                                                            .value
-                                                                    )
-                                                                }
+                                                                onChange={(e) => setUserID(e.target.value)}
                                                             />
                                                         </Col>
-                                                        <Col xs="7">
-                                                            <Label for="userName">
-                                                                User Name
-                                                            </Label>
+                                                        <Col xs='7'>
+                                                            <Label for='userName'>User Name</Label>
                                                             <Input
-                                                                type="text"
-                                                                name="username"
-                                                                placeholder="Filter by username"
+                                                                type='text'
+                                                                name='username'
+                                                                placeholder='Filter by username'
                                                                 value={username}
-                                                                onChange={(e) =>
-                                                                    setUsername(
-                                                                        e.target
-                                                                            .value
-                                                                    )
-                                                                }
+                                                                onChange={(e) => setUsername(e.target.value)}
                                                             />
                                                         </Col>
                                                     </Row>
                                                 </FormGroup>
                                             ) : null}
                                             <FormGroup>
-                                                <Label for="moduleID">
-                                                    Module ID
-                                                </Label>
+                                                <Label for='moduleID'>Module ID</Label>
                                                 <Input
-                                                    type="text"
-                                                    name="moduleID"
+                                                    type='text'
+                                                    name='moduleID'
                                                     placeholder="Enter a module ID to find a specific module's sessions"
                                                     value={moduleID}
-                                                    onChange={(e) =>
-                                                        setModuleID(
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                    onChange={(e) => setModuleID(e.target.value)}
                                                 />
                                             </FormGroup>
                                             <FormGroup>
-                                                <Label for="date">Date</Label>
-                                                <Input
-                                                    type="date"
-                                                    name="date"
-                                                    value={date}
-                                                    onChange={(e) =>
-                                                        setDate(e.target.value)
-                                                    }
-                                                />
+                                                <Label for='date'>Date</Label>
+                                                <Input type='date' name='date' value={date} onChange={(e) => setDate(e.target.value)} />
                                             </FormGroup>
                                             <Row>
                                                 <Col>
                                                     <Button
                                                         block
                                                         style={{
-                                                            backgroundColor:
-                                                                '#37f0f9',
+                                                            backgroundColor: '#37f0f9',
                                                             color: 'black',
                                                             border: 'none',
-                                                            fontWeight: '500',
+                                                            fontWeight: '500'
                                                         }}
                                                         disabled={
-                                                            platform.length ===
-                                                                0 &&
-                                                            userID.length ===
-                                                                0 &&
-                                                            username.length ===
-                                                                0 &&
-                                                            moduleID.length ===
-                                                                0 &&
+                                                            platform.length === 0 &&
+                                                            userID.length === 0 &&
+                                                            username.length === 0 &&
+                                                            moduleID.length === 0 &&
                                                             date.length === 0
                                                                 ? true
                                                                 : false
                                                         }
-                                                        onClick={() =>
-                                                            clearInputs()
-                                                        }
+                                                        onClick={() => clearInputs()}
                                                     >
                                                         Clear
                                                     </Button>
@@ -346,28 +268,21 @@ export default function Sessions() {
                                                     <Button
                                                         block
                                                         style={{
-                                                            backgroundColor:
-                                                                '#37f0f9',
+                                                            backgroundColor: '#37f0f9',
                                                             color: 'black',
                                                             border: 'none',
-                                                            fontWeight: '500',
+                                                            fontWeight: '500'
                                                         }}
                                                         disabled={
-                                                            platform.length ===
-                                                                0 &&
-                                                            userID.length ===
-                                                                0 &&
-                                                            username.length ===
-                                                                0 &&
-                                                            moduleID.length ===
-                                                                0 &&
+                                                            platform.length === 0 &&
+                                                            userID.length === 0 &&
+                                                            username.length === 0 &&
+                                                            moduleID.length === 0 &&
                                                             date.length === 0
                                                                 ? true
                                                                 : false
                                                         }
-                                                        onClick={() =>
-                                                            handleSearch()
-                                                        }
+                                                        onClick={() => handleSearch()}
                                                     >
                                                         Search
                                                     </Button>
@@ -378,58 +293,42 @@ export default function Sessions() {
                                 </Col>
                             </Row>
                         </Col>
-                        <Col className="Right Column">
+                        <Col className='Right Column'>
                             <Row>
                                 <Col>
                                     <Container>
                                         {!searched && loading === false ? (
-                                            <Card
-                                                style={{ paddingBottom: '52%' }}
-                                            >
+                                            <Card style={{ paddingBottom: '52%' }}>
                                                 <div>
                                                     <h3
                                                         style={{
-                                                            textAlign: 'center',
+                                                            textAlign: 'center'
                                                         }}
                                                     >
-                                                        Please search for a
-                                                        session on the left.
+                                                        Please search for a session on the left.
                                                     </h3>
                                                 </div>
                                             </Card>
                                         ) : null}
 
-                                        {searched &&
-                                        sessions.length !== 0 &&
-                                        loading === false ? (
-                                            <SessionComponent
-                                                sessions={sessions}
-                                            />
-                                        ) : null}
+                                        {searched && sessions.length !== 0 && loading === false ? <SessionComponent sessions={sessions} /> : null}
 
-                                        {searched &&
-                                        sessions.length === 0 &&
-                                        loading === false ? (
-                                            <Card
-                                                style={{ paddingBottom: '46%' }}
-                                            >
+                                        {searched && sessions.length === 0 && loading === false ? (
+                                            <Card style={{ paddingBottom: '46%' }}>
                                                 <div>
                                                     <h3
                                                         style={{
-                                                            textAlign: 'center',
+                                                            textAlign: 'center'
                                                         }}
                                                     >
-                                                        No matching sessions
-                                                        could be found.
+                                                        No matching sessions could be found.
                                                     </h3>
                                                     <h3
                                                         style={{
-                                                            textAlign: 'center',
+                                                            textAlign: 'center'
                                                         }}
                                                     >
-                                                        Please search for
-                                                        another session on the
-                                                        left.
+                                                        Please search for another session on the left.
                                                     </h3>
                                                 </div>
                                             </Card>

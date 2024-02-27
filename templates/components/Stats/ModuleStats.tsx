@@ -5,15 +5,7 @@ import axios from 'axios';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { Bar, Pie } from 'react-chartjs-2';
-import {
-    Button,
-    Card,
-    Col,
-    Modal,
-    ModalBody,
-    ModalHeader,
-    Table,
-} from 'reactstrap';
+import { Button, Card, Col, Modal, ModalBody, ModalHeader, Table } from 'reactstrap';
 import Wave from '../Loading/Wave';
 import { useUser } from '@/hooks/useUser';
 import styles from '../Profile/SuperAdminView.module.css';
@@ -39,34 +31,20 @@ type LanguageCodesType = typeof languageCodes;
 export function ModuleStats() {
     const { user } = useUser();
 
-    const [
-        {
-            response: moduleResponse,
-            error: moduleError,
-            loading: moduleLoading,
-        },
-        refetchModuleStats,
-    ] = useAxios<ModuleStatsType[]>(
+    const [{ response: moduleResponse, error: moduleError, loading: moduleLoading }, refetchModuleStats] = useAxios<ModuleStatsType[]>(
         {
             url: '/elleapi/allmodulestats',
             method: 'get',
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         },
         { manual: true }
     );
 
-    const [
-        {
-            response: languageResponse,
-            error: languageError,
-            loading: languageLoading,
-        },
-        refetchLanguageStats,
-    ] = useAxios<LanguageStatsType>(
+    const [{ response: languageResponse, error: languageError, loading: languageLoading }, refetchLanguageStats] = useAxios<LanguageStatsType>(
         {
             url: '/elleapi/languagestats',
             method: 'get',
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         },
         { manual: true }
     );
@@ -84,7 +62,7 @@ export function ModuleStats() {
     const renderModulesChart = () => {
         // check if response exists and or if loading
         if (moduleError || moduleLoading || moduleResponse === undefined) {
-            return <Wave chart="modules" />;
+            return <Wave chart='modules' />;
         }
 
         const moduleData = moduleResponse.data;
@@ -96,10 +74,10 @@ export function ModuleStats() {
                     overflow: 'scroll',
                     height: '25vh',
                     backgroundColor: 'transparent',
-                    border: 'none',
+                    border: 'none'
                 }}
             >
-                <Table className="statsTable">
+                <Table className='statsTable'>
                     <thead>
                         <tr>
                             <th>Module ID</th>
@@ -115,28 +93,23 @@ export function ModuleStats() {
                                 <tr key={i}>
                                     <td>{module.moduleID}</td>
                                     <td>{module.name}</td>
-                                    <td>
-                                        {(module.averageScore * 100).toFixed(2)}
-                                        %
-                                    </td>
+                                    <td>{(module.averageScore * 100).toFixed(2)}%</td>
                                     <td>{module.averageSessionLength}</td>
                                     <td>
                                         <Button
                                             style={{
                                                 backgroundColor: 'transparent',
                                                 border: 'none',
-                                                padding: '0px',
+                                                padding: '0px'
                                             }}
-                                            onClick={() =>
-                                                toggleModal(module.moduleID)
-                                            }
+                                            onClick={() => toggleModal(module.moduleID)}
                                         >
                                             <Image
                                                 src={moreRegImage}
-                                                alt="Icon made by xnimrodx from www.flaticon.com"
+                                                alt='Icon made by xnimrodx from www.flaticon.com'
                                                 style={{
                                                     width: '20px',
-                                                    height: '20px',
+                                                    height: '20px'
                                                 }}
                                             />
                                         </Button>
@@ -159,7 +132,7 @@ export function ModuleStats() {
     const getTermStats = (id: number) => {
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
-            params: { moduleID: id },
+            params: { moduleID: id }
         };
 
         axios
@@ -186,9 +159,9 @@ export function ModuleStats() {
                 {
                     label: 'Correctness (%)',
                     data: terms.map((term) => term.percentage.toFixed(2)),
-                    backgroundColor: chartColors,
-                },
-            ],
+                    backgroundColor: chartColors
+                }
+            ]
         };
 
         return termStats.length !== 0 ? (
@@ -200,18 +173,18 @@ export function ModuleStats() {
                             min: 0,
                             max: 100,
                             ticks: {
-                                color: 'black',
-                            },
+                                color: 'black'
+                            }
                         },
                         xAxis: {
                             ticks: {
-                                color: 'black',
-                            },
-                        },
+                                color: 'black'
+                            }
+                        }
                     },
                     plugins: {
-                        legend: { labels: { color: 'black' } },
-                    },
+                        legend: { labels: { color: 'black' } }
+                    }
                 }}
             />
         ) : (
@@ -232,7 +205,7 @@ export function ModuleStats() {
             '#1e91c0',
             '#225ea8',
             '#263494',
-            '#091d58',
+            '#091d58'
         ];
 
         let index = 0;
@@ -248,26 +221,18 @@ export function ModuleStats() {
 
     const renderLanguageChart = () => {
         // check if response exists and or if loading
-        if (
-            languageError ||
-            languageLoading ||
-            languageResponse === undefined
-        ) {
-            return <Wave chart="language" />;
+        if (languageError || languageLoading || languageResponse === undefined) {
+            return <Wave chart='language' />;
         }
 
         const languages = languageResponse.data;
 
         let languageData = {
-            labels: Object.keys(languages).map(
-                (item) => languageCodes[item as keyof LanguageCodesType]
-            ) as string[],
+            labels: Object.keys(languages).map((item) => languageCodes[item as keyof LanguageCodesType]) as string[],
             datasets: [
                 {
                     label: 'Platforms',
-                    data: Object.keys(languages).map((item) =>
-                        (languages[item] * 100).toFixed(2)
-                    ),
+                    data: Object.keys(languages).map((item) => (languages[item] * 100).toFixed(2)),
                     backgroundColor: [
                         '#96384e',
                         '#eda48e',
@@ -291,10 +256,10 @@ export function ModuleStats() {
                         '#C71585',
                         '#DB7093',
                         '#FF1493',
-                        '#FF69B4',
-                    ],
-                },
-            ],
+                        '#FF69B4'
+                    ]
+                }
+            ]
         };
 
         return (
@@ -302,7 +267,7 @@ export function ModuleStats() {
                 style={{
                     overflow: 'scroll',
                     backgroundColor: 'transparent',
-                    border: 'none',
+                    border: 'none'
                 }}
             >
                 <Pie
@@ -319,11 +284,11 @@ export function ModuleStats() {
                                 align: 'start',
                                 labels: {
                                     color: 'white',
-                                    boxWidth: 10,
+                                    boxWidth: 10
                                 },
-                                display: true,
-                            },
-                        },
+                                display: true
+                            }
+                        }
                     }}
                 />
             </Card>
@@ -332,29 +297,17 @@ export function ModuleStats() {
 
     return (
         <>
-            <Col className="Module Left Columns" xs="7">
-                <div
-                    className={styles.suCardGreen}
-                    style={{ height: 'fit-content' }}
-                >
+            <Col className='Module Left Columns' xs='7'>
+                <div className={styles.suCardGreen} style={{ height: 'fit-content' }}>
                     Module Performance
                     {renderModulesChart()}
                 </div>
-                <Modal
-                    isOpen={modalOpen}
-                    toggle={() => setModalOpen(!modalOpen)}
-                >
-                    <ModalHeader toggle={() => setModalOpen(!modalOpen)}>
-                        Terms Performance
-                    </ModalHeader>
+                <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)}>
+                    <ModalHeader toggle={() => setModalOpen(!modalOpen)}>Terms Performance</ModalHeader>
                     <ModalBody>{renderBarChart()}</ModalBody>
                 </Modal>
             </Col>
-            <Col
-                className="Module Right Columns"
-                xs="5"
-                style={{ paddingLeft: '0px' }}
-            >
+            <Col className='Module Right Columns' xs='5' style={{ paddingLeft: '0px' }}>
                 <div className={styles.suCardBlue}>
                     Module Languages
                     {renderLanguageChart()}

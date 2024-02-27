@@ -20,7 +20,7 @@ import {
     NavItem,
     NavLink,
     TabContent,
-    TabPane,
+    TabPane
 } from 'reactstrap';
 import axios from 'axios';
 import Password from './Password';
@@ -45,7 +45,7 @@ export default function AdminView(props: AdminViewProps) {
         groupName: '',
         groupCode: '',
         accessLevel: 'st',
-        group_users: [],
+        group_users: []
     });
     const [className, setClassName] = useState('');
     const [classCode, setClassCode] = useState('');
@@ -60,8 +60,8 @@ export default function AdminView(props: AdminViewProps) {
         axios
             .get('/elleapi/searchusergroups', {
                 headers: {
-                    Authorization: 'Bearer ' + user?.jwt,
-                },
+                    Authorization: 'Bearer ' + user?.jwt
+                }
             })
             .then((res) => {
                 setClasses(res.data);
@@ -81,17 +81,8 @@ export default function AdminView(props: AdminViewProps) {
 
     const revealClassDetails = () => {
         return (
-            <Modal
-                isOpen={classDetailModalOpen}
-                toggle={() => setClassDetailModalOpen(!classDetailModalOpen)}
-            >
-                <ModalHeader
-                    toggle={() =>
-                        setClassDetailModalOpen(!classDetailModalOpen)
-                    }
-                >
-                    Class Details
-                </ModalHeader>
+            <Modal isOpen={classDetailModalOpen} toggle={() => setClassDetailModalOpen(!classDetailModalOpen)}>
+                <ModalHeader toggle={() => setClassDetailModalOpen(!classDetailModalOpen)}>Class Details</ModalHeader>
                 <ModalBody>
                     <ClassDetailsComponent
                         item={currentClassDetails}
@@ -102,21 +93,15 @@ export default function AdminView(props: AdminViewProps) {
                 </ModalBody>
                 <ModalFooter>
                     {editClass ? (
-                        <Button
-                            color="primary"
-                            onClick={() => updateClassName()}
-                        >
+                        <Button color='primary' onClick={() => updateClassName()}>
                             Save
                         </Button>
                     ) : (
-                        <Button
-                            color="primary"
-                            onClick={() => toggleEditClass()}
-                        >
+                        <Button color='primary' onClick={() => toggleEditClass()}>
                             Edit
                         </Button>
                     )}{' '}
-                    <Button color="secondary" onClick={() => deleteClass()}>
+                    <Button color='secondary' onClick={() => deleteClass()}>
                         Delete
                     </Button>
                 </ModalFooter>
@@ -142,7 +127,7 @@ export default function AdminView(props: AdminViewProps) {
             groupCode: temp.groupCode,
             groupID: temp.groupID,
             groupName: e.target.value,
-            group_users: temp.group_users,
+            group_users: temp.group_users
         };
 
         setCurrentClassDetails(newClassDetails);
@@ -152,12 +137,12 @@ export default function AdminView(props: AdminViewProps) {
         toggleEditClass();
 
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         let config = {
             groupID: currentClassDetails.groupID,
-            groupName: currentClassDetails.groupName,
+            groupName: currentClassDetails.groupName
         };
 
         axios
@@ -173,7 +158,7 @@ export default function AdminView(props: AdminViewProps) {
     const generateNewCode = () => {
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
-            params: { groupID: currentClassDetails.groupID },
+            params: { groupID: currentClassDetails.groupID }
         };
 
         axios
@@ -186,7 +171,7 @@ export default function AdminView(props: AdminViewProps) {
                     groupCode: res.data.groupCode,
                     groupID: temp.groupID,
                     groupName: temp.groupName,
-                    group_users: temp.group_users,
+                    group_users: temp.group_users
                 };
 
                 setCurrentClassDetails(newClassDetails);
@@ -200,11 +185,11 @@ export default function AdminView(props: AdminViewProps) {
         e.preventDefault();
 
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         let config = {
-            groupName: className,
+            groupName: className
         };
 
         axios
@@ -222,11 +207,11 @@ export default function AdminView(props: AdminViewProps) {
         e.preventDefault();
 
         let data = {
-            groupCode: classCode,
+            groupCode: classCode
         };
 
         const headers = {
-            Authorization: 'Bearer ' + user?.jwt,
+            Authorization: 'Bearer ' + user?.jwt
         };
 
         axios
@@ -243,7 +228,7 @@ export default function AdminView(props: AdminViewProps) {
     const deleteClass = () => {
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
-            data: { groupID: currentClassDetails.groupID },
+            data: { groupID: currentClassDetails.groupID }
         };
 
         axios
@@ -254,7 +239,7 @@ export default function AdminView(props: AdminViewProps) {
                     groupName: '',
                     groupCode: '',
                     accessLevel: 'st',
-                    group_users: [],
+                    group_users: []
                 });
                 getClasses();
             })
@@ -266,17 +251,15 @@ export default function AdminView(props: AdminViewProps) {
     return (
         <>
             <h3>
-                <Badge style={{ backgroundColor: 'cadetblue' }}>
-                    Your Profile
-                </Badge>
+                <Badge style={{ backgroundColor: 'cadetblue' }}>Your Profile</Badge>
             </h3>
             <Row>
-                <Col xs="3">
+                <Col xs='3'>
                     <Card
                         style={{
                             backgroundColor: 'lightblue',
                             height: '65vh',
-                            overflowY: 'auto',
+                            overflowY: 'auto'
                         }}
                     >
                         <CardBody>
@@ -284,20 +267,16 @@ export default function AdminView(props: AdminViewProps) {
                             <Card>
                                 <Row>
                                     <Col
-                                        xs="9"
+                                        xs='9'
                                         style={{
                                             paddingLeft: '35px',
-                                            paddingTop: '5px',
+                                            paddingTop: '5px'
                                         }}
                                     >
                                         {props.username}
                                     </Col>
-                                    <Col xs="3">
-                                        <Password
-                                            userType="pf"
-                                            email={props.email}
-                                            editEmail={props.editEmail}
-                                        />
+                                    <Col xs='3'>
+                                        <Password userType='pf' email={props.email} editEmail={props.editEmail} />
                                     </Col>
                                 </Row>
                             </Card>
@@ -305,16 +284,10 @@ export default function AdminView(props: AdminViewProps) {
                             <br />
 
                             <h6>Classes:</h6>
-                            <Card
-                                style={{ overflow: 'scroll', height: '20vh' }}
-                            >
+                            <Card style={{ overflow: 'scroll', height: '20vh' }}>
                                 <ListGroup flush>
                                     {classes.length === 0 ? (
-                                        <ListGroupItem>
-                                            {' '}
-                                            You currently are not part of any
-                                            classes.{' '}
-                                        </ListGroupItem>
+                                        <ListGroupItem> You currently are not part of any classes. </ListGroupItem>
                                     ) : (
                                         classes.map((item, i) => {
                                             return (
@@ -323,23 +296,18 @@ export default function AdminView(props: AdminViewProps) {
                                                     <Button
                                                         style={{
                                                             float: 'right',
-                                                            backgroundColor:
-                                                                'white',
+                                                            backgroundColor: 'white',
                                                             border: 'none',
-                                                            padding: '0',
+                                                            padding: '0'
                                                         }}
-                                                        onClick={() =>
-                                                            toggleClassDetailModal(
-                                                                item
-                                                            )
-                                                        }
+                                                        onClick={() => toggleClassDetailModal(item)}
                                                     >
                                                         <Image
                                                             src={moreImage}
-                                                            alt="Icon made by xnimrodx from www.flaticon.com"
+                                                            alt='Icon made by xnimrodx from www.flaticon.com'
                                                             style={{
                                                                 width: '24px',
-                                                                height: '24px',
+                                                                height: '24px'
                                                             }}
                                                         />
                                                     </Button>
@@ -353,43 +321,35 @@ export default function AdminView(props: AdminViewProps) {
                             {classDetailModalOpen ? revealClassDetails() : null}
 
                             <Form onSubmit={(e) => createClass(e)}>
-                                <h5 style={{ marginTop: '8px' }}>
-                                    Create a New Class
-                                </h5>
+                                <h5 style={{ marginTop: '8px' }}>Create a New Class</h5>
                                 <FormGroup>
-                                    <Label for="className">Class Name: </Label>
+                                    <Label for='className'>Class Name: </Label>
                                     <Input
-                                        type="text"
-                                        name="className"
-                                        id="className"
-                                        onChange={(e) =>
-                                            setClassName(e.target.value)
-                                        }
+                                        type='text'
+                                        name='className'
+                                        id='className'
+                                        onChange={(e) => setClassName(e.target.value)}
                                         value={className}
                                     />
                                 </FormGroup>
-                                <Button block type="submit">
+                                <Button block type='submit'>
                                     Create
                                 </Button>
                             </Form>
 
                             <Form onSubmit={(e) => submitClassCode(e)}>
-                                <h5 style={{ marginTop: '8px' }}>
-                                    Join a New Class
-                                </h5>
+                                <h5 style={{ marginTop: '8px' }}>Join a New Class</h5>
                                 <FormGroup>
-                                    <Label for="classCode">Class Code: </Label>
+                                    <Label for='classCode'>Class Code: </Label>
                                     <Input
-                                        type="text"
-                                        name="classCode"
-                                        id="classCode"
-                                        onChange={(e) =>
-                                            setClassCode(e.target.value)
-                                        }
+                                        type='text'
+                                        name='classCode'
+                                        id='classCode'
+                                        onChange={(e) => setClassCode(e.target.value)}
                                         value={classCode}
                                     />
                                 </FormGroup>
-                                <Button block type="submit">
+                                <Button block type='submit'>
                                     Join
                                 </Button>
                             </Form>
@@ -397,30 +357,20 @@ export default function AdminView(props: AdminViewProps) {
                     </Card>
                 </Col>
 
-                <Col xs="9">
-                    <Card
-                        style={{ backgroundColor: 'cadetblue', height: '65vh' }}
-                    >
+                <Col xs='9'>
+                    <Card style={{ backgroundColor: 'cadetblue', height: '65vh' }}>
                         <CardBody style={{ color: '#04354b' }}>
                             <h1>Welcome back {props.username}!</h1>
                             <Row>
                                 <Col>
                                     <Nav tabs>
                                         <NavItem>
-                                            <NavLink
-                                                href="#"
-                                                active={activeTab === 0}
-                                                onClick={() => setActiveTab(0)}
-                                            >
+                                            <NavLink href='#' active={activeTab === 0} onClick={() => setActiveTab(0)}>
                                                 Module Performance
                                             </NavLink>
                                         </NavItem>
                                         <NavItem>
-                                            <NavLink
-                                                href="#"
-                                                active={activeTab === 1}
-                                                onClick={() => setActiveTab(1)}
-                                            >
+                                            <NavLink href='#' active={activeTab === 1} onClick={() => setActiveTab(1)}>
                                                 Term Performance
                                             </NavLink>
                                         </NavItem>
@@ -430,9 +380,7 @@ export default function AdminView(props: AdminViewProps) {
                                             <ModulePerformance />
                                         </TabPane>
                                         <TabPane tabId={1}>
-                                            <TermPerformance
-                                                classes={classes}
-                                            />
+                                            <TermPerformance classes={classes} />
                                         </TabPane>
                                     </TabContent>
                                 </Col>

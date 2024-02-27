@@ -1,14 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-    Card,
-    Table,
-    Button,
-    Row,
-    Col,
-    Modal,
-    ModalHeader,
-    ModalBody,
-} from 'reactstrap';
+import { Card, Table, Button, Row, Col, Modal, ModalHeader, ModalBody } from 'reactstrap';
 import { Pie } from 'react-chartjs-2';
 import { Chart, ArcElement, Tooltip, Legend } from 'chart.js';
 import Wave from '../Loading/Wave';
@@ -30,7 +21,7 @@ export default function TagStats() {
         {
             url: '/elleapi/tagcount',
             method: 'get',
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         },
         { manual: true }
     );
@@ -53,7 +44,7 @@ export default function TagStats() {
     const renderTagStats = useMemo(() => {
         // check if response exists and or if loading
         if (error || loading || response === undefined) {
-            return <Wave chart="tag" />;
+            return <Wave chart='tag' />;
         }
 
         const tagData = response.data;
@@ -66,10 +57,10 @@ export default function TagStats() {
                 style={{
                     overflow: 'scroll',
                     height: '23vh',
-                    backgroundColor: 'transparent',
+                    backgroundColor: 'transparent'
                 }}
             >
-                <Table hover className="statsTable" style={{ color: 'black' }}>
+                <Table hover className='statsTable' style={{ color: 'black' }}>
                     <thead style={{ color: 'white' }}>
                         <tr>
                             <th>Tag</th>
@@ -82,16 +73,8 @@ export default function TagStats() {
                             return (
                                 <tr key={i}>
                                     <td style={{ fontSize: '14px' }}>{item}</td>
-                                    <td style={{ fontSize: '14px' }}>
-                                        {tagData[item]}
-                                    </td>
-                                    <td style={{ fontSize: '14px' }}>
-                                        {(
-                                            (tagData[item] / numTerms) *
-                                            100
-                                        ).toFixed(2)}
-                                        %
-                                    </td>
+                                    <td style={{ fontSize: '14px' }}>{tagData[item]}</td>
+                                    <td style={{ fontSize: '14px' }}>{((tagData[item] / numTerms) * 100).toFixed(2)}%</td>
                                 </tr>
                             );
                         })}
@@ -104,7 +87,7 @@ export default function TagStats() {
     const renderPieChart = () => {
         // check if response exists and or if loading
         if (error || loading || response === undefined) {
-            return <Wave chart="tag" />;
+            return <Wave chart='tag' />;
         }
 
         const tagData = response.data;
@@ -117,9 +100,9 @@ export default function TagStats() {
                 {
                     label: 'tags',
                     data: Object.values(tagData),
-                    backgroundColor: chartColors,
-                },
-            ],
+                    backgroundColor: chartColors
+                }
+            ]
         };
 
         return (
@@ -128,7 +111,7 @@ export default function TagStats() {
                     style={{
                         height: '20vh',
                         backgroundColor: 'transparent',
-                        border: 'none',
+                        border: 'none'
                     }}
                 >
                     <Pie
@@ -138,9 +121,9 @@ export default function TagStats() {
                             maintainAspectRatio: false,
                             plugins: {
                                 legend: {
-                                    display: false,
-                                },
-                            },
+                                    display: false
+                                }
+                            }
                         }}
                     />
                 </Card>
@@ -161,7 +144,7 @@ export default function TagStats() {
             '#1e91c0',
             '#225ea8',
             '#263494',
-            '#091d58',
+            '#091d58'
         ];
 
         let index = 0;
@@ -187,34 +170,32 @@ export default function TagStats() {
                     <>
                         {renderPieChart()}
                         <Row>
-                            <Col xs="11" style={{ padding: '0px' }}>
-                                <span style={{ fontSize: '12px' }}>
-                                    # of Terms with Tags: {numTerms}
-                                </span>
+                            <Col xs='11' style={{ padding: '0px' }}>
+                                <span style={{ fontSize: '12px' }}># of Terms with Tags: {numTerms}</span>
                             </Col>
-                            <Col xs="1" style={{ padding: '0px' }}>
+                            <Col xs='1' style={{ padding: '0px' }}>
                                 <Button
                                     style={{
                                         backgroundColor: 'transparent',
                                         border: 'none',
-                                        padding: '0px',
+                                        padding: '0px'
                                     }}
                                     onClick={() => toggleModal()}
                                 >
                                     <Image
                                         style={{
                                             width: '20px',
-                                            height: '20px',
+                                            height: '20px'
                                         }}
                                         src={moreRegImage}
-                                        alt="More Reg Image"
+                                        alt='More Reg Image'
                                     />
                                 </Button>
                             </Col>
                         </Row>
                     </>
                 ) : (
-                    <Wave chart="tag" />
+                    <Wave chart='tag' />
                 )}
             </div>
 
@@ -224,15 +205,10 @@ export default function TagStats() {
                     {renderPieChart()}
                     <Row style={{ margin: '12px 0 0 0' }}>
                         <Col>
-                            <p style={{ fontSize: '12px' }}>
-                                # of Terms with Tags: {numTerms}
-                            </p>
+                            <p style={{ fontSize: '12px' }}># of Terms with Tags: {numTerms}</p>
                         </Col>
                         <Col>
-                            <p style={{ fontSize: '12px' }}>
-                                # of Tag Types:{' '}
-                                {response && Object.keys(response.data).length}
-                            </p>
+                            <p style={{ fontSize: '12px' }}># of Tag Types: {response && Object.keys(response.data).length}</p>
                         </Col>
                     </Row>
                     {renderTagStats}

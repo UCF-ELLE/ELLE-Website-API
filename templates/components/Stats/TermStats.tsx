@@ -2,13 +2,9 @@ import React from 'react';
 import { Table } from 'reactstrap';
 import { TermPerformance } from '@/types/api/stats';
 
-export default function TermStats({
-    termStats,
-}: {
-    termStats: TermPerformance;
-}) {
+export default function TermStats({ termStats }: { termStats: TermPerformance }) {
     return (
-        <Table className="termStatsTable">
+        <Table className='termStatsTable'>
             <thead>
                 <tr>
                     <th>Term ID</th>
@@ -29,12 +25,7 @@ export default function TermStats({
                                 <td>{term.back}</td>
                                 <td>{(term.correctness * 100).toFixed(2)}%</td>
                                 <td>{term.count}</td>
-                                <td>
-                                    {term.modules &&
-                                        Object.values(term.modules).map(
-                                            (module) => module
-                                        )}
-                                </td>
+                                <td>{term.modules && Object.values(term.modules).map((module) => module)}</td>
                             </tr>
                         );
                     })}

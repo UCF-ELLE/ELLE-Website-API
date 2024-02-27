@@ -11,7 +11,7 @@ import {
     ModalHeader,
     ModalBody,
     Collapse,
-    Row,
+    Row
 } from 'reactstrap';
 import AddExistingModule from './AddExistingModule';
 import AddModuleForm from './AddModuleForm';
@@ -34,7 +34,7 @@ export default function ModuleSearch({
     updateCurrentModule,
     deleteModule,
     editModule,
-    unlinkModule,
+    unlinkModule
 }: {
     modules: Module[];
     updateModuleList: (task: string, ModuleID?: number) => void;
@@ -55,12 +55,7 @@ export default function ModuleSearch({
 
     const updateSearchDeck = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newModuleList = modules.filter((module) => {
-            return (
-                module?.name &&
-                module?.name
-                    .toLowerCase()
-                    .includes(e.target.value.toLowerCase())
-            );
+            return module?.name && module?.name.toLowerCase().includes(e.target.value.toLowerCase());
         });
 
         setSearchDeck(e.target.value.substring(0, 20));
@@ -75,30 +70,25 @@ export default function ModuleSearch({
     };
 
     return (
-        <Col className="Left Column" xs="3">
-            <InputGroup className="shadow" style={{ borderRadius: '12px' }}>
+        <Col className='Left Column' xs='3'>
+            <InputGroup className='shadow' style={{ borderRadius: '12px' }}>
                 <div style={{ margin: '10px' }}>
                     <Image
                         src={searchImage}
-                        alt="Icon made by Freepik from www.flaticon.com"
+                        alt='Icon made by Freepik from www.flaticon.com'
                         style={{
                             width: '15px',
-                            height: '15px',
+                            height: '15px'
                         }}
                     />
                 </div>
-                <Input
-                    style={{ border: 'none' }}
-                    placeholder="Search"
-                    value={searchDeck}
-                    onChange={(e) => updateSearchDeck(e)}
-                />
+                <Input style={{ border: 'none' }} placeholder='Search' value={searchDeck} onChange={(e) => updateSearchDeck(e)} />
                 {permissionLevel === 'su' ? (
                     <div style={{ display: 'flex' }}>
                         <Button
                             style={{
                                 backgroundColor: '#3e6184',
-                                borderRadius: '0px 12px 12px 0px',
+                                borderRadius: '0px 12px 12px 0px'
                             }}
                             onClick={() => openAddModuleForm(2)}
                         >
@@ -109,31 +99,20 @@ export default function ModuleSearch({
                 ) : null}
                 {permissionLevel === 'pf' || permissionLevel === 'ta' ? (
                     <div>
-                        <ButtonDropdown
-                            isOpen={addModuleButtonOpen}
-                            toggle={() =>
-                                setAddModuleButtonOpen(!addModuleButtonOpen)
-                            }
-                        >
+                        <ButtonDropdown isOpen={addModuleButtonOpen} toggle={() => setAddModuleButtonOpen(!addModuleButtonOpen)}>
                             <DropdownToggle
                                 style={{
                                     backgroundColor: '#3e6184',
                                     borderTopLeftRadius: '0px',
-                                    borderBottomLeftRadius: '0px',
+                                    borderBottomLeftRadius: '0px'
                                 }}
                                 caret
                             >
                                 Add Module
                             </DropdownToggle>
                             <DropdownMenu>
-                                <DropdownItem onClick={() => setOpenForm(1)}>
-                                    {' '}
-                                    Add Existing{' '}
-                                </DropdownItem>
-                                <DropdownItem onClick={() => setOpenForm(2)}>
-                                    {' '}
-                                    Add New{' '}
-                                </DropdownItem>
+                                <DropdownItem onClick={() => setOpenForm(1)}> Add Existing </DropdownItem>
+                                <DropdownItem onClick={() => setOpenForm(2)}> Add New </DropdownItem>
                             </DropdownMenu>
                         </ButtonDropdown>
                     </div>
@@ -141,32 +120,17 @@ export default function ModuleSearch({
             </InputGroup>
             <br />
             <Modal isOpen={openForm === 1} toggle={() => setOpenForm(1)}>
-                <ModalHeader toggle={() => setOpenForm(1)}>
-                    Existing Modules
-                </ModalHeader>
+                <ModalHeader toggle={() => setOpenForm(1)}>Existing Modules</ModalHeader>
                 <ModalBody style={{ padding: '0 20px 30px 20px' }}>
-                    <AddExistingModule
-                        updateModuleList={updateModuleList}
-                        classOptions={classOptions}
-                        currentClass={selectedClass}
-                    />
+                    <AddExistingModule updateModuleList={updateModuleList} classOptions={classOptions} currentClass={selectedClass} />
                 </ModalBody>
             </Modal>
             <Collapse isOpen={openForm === 2}>
-                <AddModuleForm
-                    updateModuleList={updateModuleList}
-                    classOptions={classOptions}
-                    currentClass={selectedClass}
-                />
+                <AddModuleForm updateModuleList={updateModuleList} classOptions={classOptions} currentClass={selectedClass} />
             </Collapse>
             <Row>
                 <Col>
-                    {permissionLevel === 'st' ? (
-                        <StudentView
-                            modules={dynamicModules}
-                            updateCurrentModule={updateCurrentModule}
-                        />
-                    ) : null}
+                    {permissionLevel === 'st' ? <StudentView modules={dynamicModules} updateCurrentModule={updateCurrentModule} /> : null}
                     {permissionLevel === 'pf' || permissionLevel === 'ta' ? (
                         <AdminView
                             currentClassView={selectedClass.value}

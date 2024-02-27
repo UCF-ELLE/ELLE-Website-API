@@ -17,14 +17,13 @@ export function Downloads() {
 export function DownloadGameLogs() {
     const { user } = useUser();
     const [loggedAnsTooltipOpen, setLoggedAnsTooltipOpen] = useState(false);
-    const toggleLoggedAnsTooltip = () =>
-        setLoggedAnsTooltipOpen(!loggedAnsTooltipOpen);
+    const toggleLoggedAnsTooltip = () => setLoggedAnsTooltipOpen(!loggedAnsTooltipOpen);
 
     const [{ data, loading, error }, refetchCSV] = useAxios<string>(
         {
             method: 'get',
             url: '/elleapi/getloggedanswercsv',
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         },
         { manual: true }
     );
@@ -42,7 +41,7 @@ export function DownloadGameLogs() {
     return (
         <>
             <Button
-                id="downloadLoggedAnswers"
+                id='downloadLoggedAnswers'
                 style={{
                     backgroundColor: '#37f0f9',
                     color: 'black',
@@ -51,19 +50,14 @@ export function DownloadGameLogs() {
                     display: 'grid',
                     fontSize: '10px',
                     fontWeight: '700',
-                    padding: '2px 2px 0 2px',
+                    padding: '2px 2px 0 2px'
                 }}
                 onClick={() => refetchCSV()}
             >
                 <DownloadSpinner loading={loading} />
             </Button>
 
-            <Tooltip
-                placement="top"
-                isOpen={loggedAnsTooltipOpen}
-                target="downloadLoggedAnswers"
-                toggle={() => toggleLoggedAnsTooltip()}
-            >
+            <Tooltip placement='top' isOpen={loggedAnsTooltipOpen} target='downloadLoggedAnswers' toggle={() => toggleLoggedAnsTooltip()}>
                 Download Logged Answers
             </Tooltip>
         </>
@@ -73,14 +67,13 @@ export function DownloadGameLogs() {
 export function DownloadSessionLogs() {
     const { user } = useUser();
     const [sessionTooltipOpen, setSessionTooltipOpen] = useState(false);
-    const toggleSessionTooltip = () =>
-        setSessionTooltipOpen(!sessionTooltipOpen);
+    const toggleSessionTooltip = () => setSessionTooltipOpen(!sessionTooltipOpen);
 
     const [{ data, loading, error }, refetchCSV] = useAxios<string>(
         {
             method: 'get',
             url: '/elleapi/getsessioncsv',
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         },
         { manual: true }
     );
@@ -98,7 +91,7 @@ export function DownloadSessionLogs() {
     return (
         <>
             <Button
-                id="downloadSessions"
+                id='downloadSessions'
                 style={{
                     backgroundColor: '#37f0f9',
                     color: 'black',
@@ -107,19 +100,14 @@ export function DownloadSessionLogs() {
                     display: 'grid',
                     fontSize: '10px',
                     fontWeight: '700',
-                    padding: '2px 2px 0 2px',
+                    padding: '2px 2px 0 2px'
                 }}
                 onClick={() => refetchCSV()}
             >
-                <DownloadSpinner loading={loading} type="sessionBtn" />
+                <DownloadSpinner loading={loading} type='sessionBtn' />
             </Button>
 
-            <Tooltip
-                placement="top"
-                isOpen={sessionTooltipOpen}
-                target="downloadSessions"
-                toggle={() => toggleSessionTooltip()}
-            >
+            <Tooltip placement='top' isOpen={sessionTooltipOpen} target='downloadSessions' toggle={() => toggleSessionTooltip()}>
                 Download Sessions
             </Tooltip>
         </>

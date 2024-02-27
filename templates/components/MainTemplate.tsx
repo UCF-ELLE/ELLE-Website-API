@@ -15,66 +15,59 @@ export default function Template(props: { permission?: string }) {
     return (
         <header id={styles.header}>
             <div className={styles.container}>
-                <div id="logo" className={styles.logo}>
-                    <Link href="/home">
-                        <Image
-                            src={backgroundFullImage}
-                            alt="ELLE Ultimate"
-                            title="Home"
-                            className="mainLogoStyle"
-                            height={42}
-                            width={150}
-                        />
+                <div id='logo' className={styles.logo}>
+                    <Link href='/home'>
+                        <Image src={backgroundFullImage} alt='ELLE Ultimate' title='Home' className='mainLogoStyle' height={42} width={150} />
                     </Link>
                 </div>
 
                 <nav id={styles.nav_menu_container}>
                     <ul className={styles.nav_menu}>
                         <li>
-                            <Link href="/games">Games</Link>
+                            <Link href='/games'>Games</Link>
                         </li>
                         {props.permission ? (
                             <>
                                 <li>
-                                    <Link href="/profile">Profile</Link>
+                                    <Link href='/profile'>Profile</Link>
                                 </li>
                                 <li>
-                                    <Link href="/modules">Modules</Link>
+                                    <Link href='/modules'>Modules</Link>
                                 </li>
                                 <li>
-                                    <Link href="/sessions">Sessions</Link>
+                                    <Link href='/sessions'>Sessions</Link>
                                 </li>
                             </>
                         ) : (
                             <>
                                 <li>
-                                    <Link href="/home">Home</Link>
+                                    <Link href='/home'>Home</Link>
                                 </li>
                                 <li>
-                                    <Link href="/login">Log In</Link>
+                                    <Link href='/login'>Log In</Link>
                                 </li>
                                 <li>
-                                    <Link href="/signup">Sign Up</Link>
+                                    <Link href='/signup'>Sign Up</Link>
                                 </li>
                             </>
                         )}
                         {props.permission === 'su' ? (
                             <li>
-                                <Link href="/userlist">User List</Link>
+                                <Link href='/userlist'>User List</Link>
                             </li>
                         ) : null}
                         {props.permission === 'pf' ? (
                             <li>
-                                <Link href="/classroster">Class Roster</Link>
+                                <Link href='/classroster'>Class Roster</Link>
                             </li>
                         ) : null}
                         {props.permission && (
                             <>
                                 <li>
-                                    <Link href="/gamecode">VR Game Code</Link>
+                                    <Link href='/gamecode'>VR Game Code</Link>
                                 </li>
                                 <li>
-                                    <Link href="/" onClick={logout}>
+                                    <Link href='/' onClick={logout}>
                                         Sign Out
                                     </Link>
                                 </li>

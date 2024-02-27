@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-    Button,
-    Form,
-    FormGroup,
-    Label,
-    Input,
-    Row,
-    Col,
-    Alert,
-    Card,
-} from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Row, Col, Alert, Card } from 'reactstrap';
 import axios from 'axios';
 
 import TagList from '../TagList';
@@ -29,7 +19,7 @@ export default function AddExistingTerm({
     allTags,
     addTag,
     deleteTag,
-    setOpenForm,
+    setOpenForm
 }: {
     currentClass: { value: number; label: string };
     curModule: Module;
@@ -58,7 +48,7 @@ export default function AddExistingTerm({
         e.preventDefault();
 
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         let groupID = null;
@@ -69,7 +59,7 @@ export default function AddExistingTerm({
             let data = {
                 termID: addedTerms[i].termID,
                 moduleID: curModule.moduleID,
-                groupID: groupID,
+                groupID: groupID
             };
 
             axios
@@ -154,7 +144,7 @@ export default function AddExistingTerm({
             back: event.back,
             gender: event.gender,
             type: event.type,
-            language: event.language,
+            language: event.language
         });
 
         setAddedTerms(tempAddedTerms);
@@ -166,7 +156,7 @@ export default function AddExistingTerm({
         for (let i = 0; i < tags.length; i++) {
             let header = {
                 headers: { Authorization: 'Bearer ' + user?.jwt },
-                params: { tag_name: tags[i] },
+                params: { tag_name: tags[i] }
             };
 
             axios
@@ -175,20 +165,14 @@ export default function AddExistingTerm({
                     let tempTagFilteredTerms = tagFilteredTerms;
 
                     res.data.map((term) => {
-                        if (
-                            term.front &&
-                            tempTagFilteredTerms.indexOf(term?.front) === -1
-                        ) {
+                        if (term.front && tempTagFilteredTerms.indexOf(term?.front) === -1) {
                             tempTagFilteredTerms.push(term?.front);
                         }
                     });
                     setTagFilteredTerms(tempTagFilteredTerms);
                 })
                 .catch((error) => {
-                    console.log(
-                        'updateTagFilteredTerms error: ',
-                        error.response
-                    );
+                    console.log('updateTagFilteredTerms error: ', error.response);
                 });
         }
     };
@@ -202,10 +186,7 @@ export default function AddExistingTerm({
 
         let frontPrefix = term.front?.trim().substring(0, search.length) || '';
         if (frontPrefix.toLowerCase() === search.toLowerCase()) {
-            if (
-                tagFilteredTerms.indexOf(term.front) !== -1 ||
-                tagFilteredTerms.length === 0
-            ) {
+            if (tagFilteredTerms.indexOf(term.front) !== -1 || tagFilteredTerms.length === 0) {
                 return true;
             } else {
                 return false;
@@ -240,28 +221,28 @@ export default function AddExistingTerm({
     return (
         <div>
             <Form onSubmit={(e) => submitExistingTerms(e)}>
-                <input type="hidden" value="prayer" />
+                <input type='hidden' value='prayer' />
 
                 <Alert
                     style={{
                         color: '#004085',
                         backgroundColor: 'lightskyblue',
-                        border: 'none',
+                        border: 'none'
                     }}
                 >
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for="search">Search:</Label>
+                                <Label for='search'>Search:</Label>
 
                                 <Input
-                                    type="text"
-                                    name="search"
+                                    type='text'
+                                    name='search'
                                     onChange={(e) => setSearch(e.target.value)}
                                     value={search}
-                                    id="search"
-                                    placeholder="Search"
-                                    autoComplete="off"
+                                    id='search'
+                                    placeholder='Search'
+                                    autoComplete='off'
                                 />
                             </FormGroup>
                         </Col>
@@ -269,18 +250,18 @@ export default function AddExistingTerm({
 
                     <Row>
                         <Col>
-                            <Label for="tags">Tags:</Label>
+                            <Label for='tags'>Tags:</Label>
 
                             <br />
 
-                            <FormGroup width="50%">
+                            <FormGroup width='50%'>
                                 <Typeahead
-                                    id="tags"
+                                    id='tags'
                                     multiple
                                     options={allTags}
                                     allowNew
-                                    placeholder="Choose a tag..."
-                                    newSelectionPrefix="Add a new tag: "
+                                    placeholder='Choose a tag...'
+                                    newSelectionPrefix='Add a new tag: '
                                     selected={tags}
                                     onChange={(e) => {
                                         const tempList = [];
@@ -300,15 +281,13 @@ export default function AddExistingTerm({
 
                     <Row>
                         <Col>
-                            <h5 style={{ color: 'black', fontWeight: '300' }}>
-                                All Terms:
-                            </h5>
+                            <h5 style={{ color: 'black', fontWeight: '300' }}>All Terms:</h5>
                             <Card
-                                color="info"
+                                color='info'
                                 style={{
                                     overflow: 'scroll',
                                     height: '35vh',
-                                    width: '100%',
+                                    width: '100%'
                                 }}
                             >
                                 {validTerms &&
@@ -318,18 +297,17 @@ export default function AddExistingTerm({
                                                 style={{
                                                     backgroundColor: '#2b7e8a',
                                                     border: 'none',
-                                                    borderRadius: '0px',
+                                                    borderRadius: '0px'
                                                 }}
                                                 key={answer.termID}
                                                 onClick={() =>
                                                     handleAddExistingTerm({
-                                                        front:
-                                                            answer.front || '',
+                                                        front: answer.front || '',
                                                         termID: 0,
                                                         back: '',
                                                         type: '',
                                                         gender: 'M',
-                                                        language: 'en',
+                                                        language: 'en'
                                                     })
                                                 }
                                             >
@@ -340,16 +318,14 @@ export default function AddExistingTerm({
                             </Card>
                         </Col>
                         <Col>
-                            <h5 style={{ color: 'black', fontWeight: '300' }}>
-                                Added Terms:
-                            </h5>
+                            <h5 style={{ color: 'black', fontWeight: '300' }}>Added Terms:</h5>
                             <Alert
                                 style={{
                                     backgroundColor: '#17A2B7',
                                     overflow: 'scroll',
                                     height: '35vh',
                                     width: '100%',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
                             >
                                 {addedTerms && (
@@ -370,9 +346,9 @@ export default function AddExistingTerm({
                             <Button
                                 style={{
                                     backgroundColor: 'rgb(0, 64, 133)',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
-                                type="submit"
+                                type='submit'
                                 block
                             >
                                 Add
@@ -380,7 +356,7 @@ export default function AddExistingTerm({
                             <Button
                                 style={{
                                     backgroundColor: 'steelblue',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
                                 onClick={() => setOpenForm(0)}
                                 block

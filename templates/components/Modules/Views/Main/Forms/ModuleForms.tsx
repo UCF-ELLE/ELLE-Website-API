@@ -22,7 +22,7 @@ export default function ModuleForms({
     setOpenForm,
     getAllTags,
     allAnswersNotInThisModule,
-    questionFrames,
+    questionFrames
 }: {
     currentClass: { value: number; label: string };
     curModule: Module;

@@ -2,10 +2,7 @@ import { useUser } from '@/hooks/useUser';
 import { Module } from '@/types/api/modules';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Table } from 'reactstrap';
-import {
-    Pasta as PastaType,
-    QuestionFrame as QuestionFrameType,
-} from '@/types/api/pastagame';
+import { Pasta as PastaType, QuestionFrame as QuestionFrameType } from '@/types/api/pastagame';
 import QuestionFrame from './QuestionFrame';
 import axios from 'axios';
 import Pasta from './Pasta';
@@ -15,7 +12,7 @@ export default function PastaModuleCardList({
     questionFrames,
     currentClass,
     curModule,
-    updateCurrentModule,
+    updateCurrentModule
 }: {
     type: string;
     questionFrames: QuestionFrameType[];
@@ -31,11 +28,11 @@ export default function PastaModuleCardList({
         if (type === 'pastas' && user && curModule.moduleID) {
             const config = {
                 headers: {
-                    Authorization: `Bearer ${user?.jwt}`,
+                    Authorization: `Bearer ${user?.jwt}`
                 },
                 params: {
-                    moduleID: curModule.moduleID,
-                },
+                    moduleID: curModule.moduleID
+                }
             };
 
             axios
@@ -63,9 +60,7 @@ export default function PastaModuleCardList({
                             <th style={{ width: '30%' }}>Display In Game</th>
                             <th style={{ width: '20%' }}>Category</th>
                             <th style={{ width: '40%' }}>Split Question</th>
-                            {permissionLevel !== 'st' ? (
-                                <th style={{ width: '10%' }}> </th>
-                            ) : null}
+                            {permissionLevel !== 'st' ? <th style={{ width: '10%' }}> </th> : null}
                         </tr>
                     </thead>
                 );
@@ -75,12 +70,8 @@ export default function PastaModuleCardList({
                         <tr>
                             <th style={{ width: '30%' }}>Utterance</th>
                             <th style={{ width: '30%' }}>Category</th>
-                            <th style={{ width: '30%' }}>
-                                Split Question Answer
-                            </th>
-                            {permissionLevel !== 'st' ? (
-                                <th style={{ width: '10%' }}> </th>
-                            ) : null}
+                            <th style={{ width: '30%' }}>Split Question Answer</th>
+                            {permissionLevel !== 'st' ? <th style={{ width: '10%' }}> </th> : null}
                         </tr>
                     </thead>
                 );
@@ -119,7 +110,7 @@ function QuestionFrameCardList({
     currentClass,
     curModule,
     updateCurrentModule,
-    HeadRow,
+    HeadRow
 }: {
     questionFrames: QuestionFrameType[];
     currentClass: { value: number; label: string };
@@ -130,12 +121,9 @@ function QuestionFrameCardList({
     return (
         <div>
             {questionFrames.length === 0 ? (
-                <Alert>
-                    {' '}
-                    There are currently no question frames in this module.{' '}
-                </Alert>
+                <Alert> There are currently no question frames in this module. </Alert>
             ) : (
-                <Table hover className="tableList">
+                <Table hover className='tableList'>
                     {HeadRow}
                     <tbody>
                         {questionFrames.map((questionFrame) => {
@@ -162,7 +150,7 @@ function PastaCardList({
     currentClass,
     curModule,
     reloadPastas,
-    HeadRow,
+    HeadRow
 }: {
     pastas: PastaType[];
     questionFrames: QuestionFrameType[];
@@ -176,7 +164,7 @@ function PastaCardList({
             {pastas.length === 0 ? (
                 <Alert> There are currently no pastas in this module. </Alert>
             ) : (
-                <Table hover className="tableList">
+                <Table hover className='tableList'>
                     {HeadRow}
                     <tbody>
                         {pastas.map((pasta) => {

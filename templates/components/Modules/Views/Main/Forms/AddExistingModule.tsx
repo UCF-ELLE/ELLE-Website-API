@@ -17,7 +17,7 @@ import { LanguageCode } from '@/types/misc';
 export default function AddExistingModule({
     updateModuleList,
     classOptions,
-    currentClass,
+    currentClass
 }: {
     updateModuleList: (task: string, moduleID?: number) => void;
     classOptions: { value: number; label: string }[];
@@ -32,9 +32,7 @@ export default function AddExistingModule({
     }>();
     const [searchName, setSearchName] = useState('');
     const [searchCreator, setSearchCreator] = useState('');
-    const [languageCodeList, setLanguageCodeList] = useState<
-        { label: string; value: string }[]
-    >([]);
+    const [languageCodeList, setLanguageCodeList] = useState<{ label: string; value: string }[]>([]);
     const [selectedLanguage, setSelectedLanguage] = useState<{
         label: string;
         value: string;
@@ -48,7 +46,7 @@ export default function AddExistingModule({
         for (let key in languageCodes) {
             tempCodeList.push({
                 label: languageCodes[key as LanguageCode],
-                value: key,
+                value: key
             });
         }
 
@@ -58,7 +56,7 @@ export default function AddExistingModule({
     const getAllModulesInDB = () => {
         let config = {
             params: { groupID: currentClass.value },
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -79,7 +77,7 @@ export default function AddExistingModule({
         if (value !== null) {
             let config = {
                 params: { groupID: value.value },
-                headers: { Authorization: 'Bearer ' + user?.jwt },
+                headers: { Authorization: 'Bearer ' + user?.jwt }
             };
 
             axios
@@ -87,9 +85,7 @@ export default function AddExistingModule({
                 .then((res) => {
                     let modules: Module[] = [];
 
-                    let idList = res.data.map(
-                        (module: Module) => module.moduleID
-                    );
+                    let idList = res.data.map((module: Module) => module.moduleID);
 
                     allModulesInDB.map((module) => {
                         if (idList.indexOf(module.moduleID) === -1) {
@@ -100,10 +96,7 @@ export default function AddExistingModule({
                     setReusuableModules(modules);
                 })
                 .catch(function (error) {
-                    console.log(
-                        'updateClass in addExistingModule.js error: ',
-                        error.message
-                    );
+                    console.log('updateClass in addExistingModule.js error: ', error.message);
                 });
         } else {
             setClassState(value);
@@ -111,9 +104,7 @@ export default function AddExistingModule({
         }
     };
 
-    const classSelectOptions = classOptions.filter(
-        (option: { label: string; value: number }) => option.value !== 0
-    );
+    const classSelectOptions = classOptions.filter((option: { label: string; value: number }) => option.value !== 0);
 
     let language = '';
     if (selectedLanguage !== null && selectedLanguage.value !== undefined) {
@@ -122,12 +113,9 @@ export default function AddExistingModule({
 
     let filteredModules = reusuableModules.filter((module: Module) => {
         return (
-            module.name?.toLowerCase().indexOf(searchName.toLowerCase()) !==
-                -1 &&
+            module.name?.toLowerCase().indexOf(searchName.toLowerCase()) !== -1 &&
             module.language.toLowerCase().indexOf(language) !== -1 &&
-            module.username
-                ?.toLowerCase()
-                .indexOf(searchCreator.toLowerCase()) !== -1
+            module.username?.toLowerCase().indexOf(searchCreator.toLowerCase()) !== -1
         );
     });
 
@@ -138,38 +126,35 @@ export default function AddExistingModule({
                     style={{
                         display: 'flex',
                         justifyContent: 'flex-end',
-                        padding: '5px 15px 10px 15px',
+                        padding: '5px 15px 10px 15px'
                     }}
                 >
-                    <Label
-                        for="classContext"
-                        style={{ margin: '12px 8px 0 0', fontSize: 'large' }}
-                    >
+                    <Label for='classContext' style={{ margin: '12px 8px 0 0', fontSize: 'large' }}>
                         Class:
                     </Label>
                     {currentClass.value === 0 ? (
                         <Select
-                            name="class"
+                            name='class'
                             options={classSelectOptions}
-                            className="basic-single"
-                            classNamePrefix="select"
+                            className='basic-single'
+                            classNamePrefix='select'
                             isClearable={true}
                             value={classState}
                             onChange={(e) =>
                                 updateClass({
                                     label: e?.label as string,
-                                    value: e?.value as number,
+                                    value: e?.value as number
                                 })
                             }
                             styles={{
                                 control: (provided) => ({
                                     ...provided,
-                                    marginTop: '7px',
+                                    marginTop: '7px'
                                 }),
                                 valueContainer: (provided) => ({
                                     ...provided,
-                                    width: '400px',
-                                }),
+                                    width: '400px'
+                                })
                             }}
                         />
                     ) : (
@@ -178,7 +163,7 @@ export default function AddExistingModule({
                                 margin: '12px 8px 0 0',
                                 fontSize: 'large',
                                 display: 'flex',
-                                justifyContent: 'flex-end',
+                                justifyContent: 'flex-end'
                             }}
                         >
                             {currentClass.label}
@@ -191,20 +176,14 @@ export default function AddExistingModule({
                 <Col>
                     <InputGroup>
                         <div style={{ margin: '5px' }}>
-                            <Image
-                                src={moduleImage}
-                                alt="Icon made by Freepik from www.flaticon.com"
-                                style={{ width: '25px', height: '25px' }}
-                            />
+                            <Image src={moduleImage} alt='Icon made by Freepik from www.flaticon.com' style={{ width: '25px', height: '25px' }} />
                         </div>
                         <Input
                             style={{ borderStyle: 'hidden', padding: '6px' }}
-                            type="text"
-                            placeholder="Search Name"
+                            type='text'
+                            placeholder='Search Name'
                             value={searchName}
-                            onChange={(e) =>
-                                setSearchName(e.target.value.substring(0, 20))
-                            }
+                            onChange={(e) => setSearchName(e.target.value.substring(0, 20))}
                         />
                     </InputGroup>
                 </Col>
@@ -212,36 +191,32 @@ export default function AddExistingModule({
                 <Col>
                     <InputGroup>
                         <div style={{ margin: '5px' }}>
-                            <Image
-                                src={langImage}
-                                alt="Icon made by Smashicons from www.flaticon.com"
-                                style={{ width: '25px', height: '25px' }}
-                            />
+                            <Image src={langImage} alt='Icon made by Smashicons from www.flaticon.com' style={{ width: '25px', height: '25px' }} />
                         </div>
                         <Select
-                            name="languageCode"
+                            name='languageCode'
                             options={languageCodeList}
-                            className="basic-single"
-                            classNamePrefix="select"
+                            className='basic-single'
+                            classNamePrefix='select'
                             isClearable={true}
                             value={selectedLanguage}
                             onChange={(e) =>
                                 setSelectedLanguage({
                                     label: e?.label as string,
-                                    value: e?.value as string,
+                                    value: e?.value as string
                                 })
                             }
                             styles={{
                                 control: (provided, state) => ({
                                     ...provided,
                                     width: isSelected ? '96px' : '96px',
-                                    borderStyle: 'hidden',
+                                    borderStyle: 'hidden'
                                 }),
                                 valueContainer: (provided) => ({
                                     ...provided,
                                     width: '58px',
-                                    fontSize: '12px',
-                                }),
+                                    fontSize: '12px'
+                                })
                             }}
                         />
                     </InputGroup>
@@ -250,22 +225,14 @@ export default function AddExistingModule({
                 <Col>
                     <InputGroup>
                         <div style={{ margin: '5px' }}>
-                            <Image
-                                src={creatorImage}
-                                alt="Icon made by Freepik from www.flaticon.com"
-                                style={{ width: '25px', height: '25px' }}
-                            />
+                            <Image src={creatorImage} alt='Icon made by Freepik from www.flaticon.com' style={{ width: '25px', height: '25px' }} />
                         </div>
                         <Input
                             style={{ borderStyle: 'hidden', padding: '6px' }}
-                            type="text"
-                            placeholder="Search Creator"
+                            type='text'
+                            placeholder='Search Creator'
                             value={searchCreator}
-                            onChange={(e) =>
-                                setSearchCreator(
-                                    e.target.value.substring(0, 20)
-                                )
-                            }
+                            onChange={(e) => setSearchCreator(e.target.value.substring(0, 20))}
                         />
                     </InputGroup>
                 </Col>
@@ -275,20 +242,18 @@ export default function AddExistingModule({
                 style={{
                     height: '50vh',
                     borderRadius: '6px',
-                    borderStyle: 'hidden',
+                    borderStyle: 'hidden'
                 }}
-                className="moduleTable"
+                className='moduleTable'
             >
-                {(currentClass.value === 0 &&
-                    classState?.label === '' &&
-                    classState?.value === 0) ||
+                {(currentClass.value === 0 && classState?.label === '' && classState?.value === 0) ||
                 (currentClass.value === 0 && classState === null) ? (
                     <Card
-                        color="info"
+                        color='info'
                         style={{
                             height: '100%',
                             textAlign: 'center',
-                            color: 'white',
+                            color: 'white'
                         }}
                     >
                         Please select a class first.
@@ -297,14 +262,10 @@ export default function AddExistingModule({
                     <Table hover>
                         <thead>
                             <tr>
-                                <th style={{ borderTopLeftRadius: '5px' }}>
-                                    Name
-                                </th>
+                                <th style={{ borderTopLeftRadius: '5px' }}>Name</th>
                                 <th>Language</th>
                                 <th>Creator</th>
-                                <th
-                                    style={{ borderTopRightRadius: '5px' }}
-                                ></th>
+                                <th style={{ borderTopRightRadius: '5px' }}></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -313,11 +274,7 @@ export default function AddExistingModule({
                                     <ExistingModule
                                         key={module.moduleID}
                                         module={module}
-                                        selectedClass={
-                                            currentClass.value === 0
-                                                ? classState
-                                                : currentClass
-                                        }
+                                        selectedClass={currentClass.value === 0 ? classState : currentClass}
                                         updateModuleList={updateModuleList}
                                     />
                                 );

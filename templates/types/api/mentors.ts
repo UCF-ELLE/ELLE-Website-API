@@ -1,22 +1,11 @@
-import {
-    DBMentorResponse,
-    DBQuestion,
-    DBMultipleChoiceOption,
-    DBMentorQuestionFrequency,
-} from './db';
+import { DBMentorResponse, DBQuestion, DBMultipleChoiceOption, DBMentorQuestionFrequency } from './db';
 
 // GET /elleapi/studentresponses
-export type StudentResponse = Pick<
-    DBMentorResponse,
-    'mentorResponseID' | 'questionID' | 'sessionID' | 'response'
->;
+export type StudentResponse = Pick<DBMentorResponse, 'mentorResponseID' | 'questionID' | 'sessionID' | 'response'>;
 
 // POST /elleapi/getmentorquestions
 // I don't know why this is a POST
-export type MentorQuestion = Pick<
-    DBQuestion,
-    'questionID' | 'type' | 'questionText'
->;
+export type MentorQuestion = Pick<DBQuestion, 'questionID' | 'type' | 'questionText'>;
 
 // POST /elleapi/getmultiplechoiceoptions
 // Again, I don't know why this is a POST

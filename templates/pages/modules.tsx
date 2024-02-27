@@ -7,11 +7,7 @@ import ModuleSearch from '@/components/Modules/ModuleSearch';
 import MainModuleView from '@/components/Modules/Views/Main/MainModuleView';
 import { UserGroup } from '@/types/api/group';
 import { MentorQuestion } from '@/types/api/mentors';
-import {
-    Module,
-    ModuleQuestion,
-    ModuleQuestionAnswer,
-} from '@/types/api/modules';
+import { Module, ModuleQuestion, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Term } from '@/types/api/terms';
 import { UserLevel } from '@/types/api/user';
 import { PermissionGroup } from '@/types/misc';
@@ -28,18 +24,13 @@ export default function Modules() {
     const [classChanged, setClassChanged] = useState(false);
     const [selectedClass, setSelectedClass] = useState({
         value: 0,
-        label: 'All',
+        label: 'All'
     });
     const [questions, setQuestions] = useState<ModuleQuestion[]>([]);
-    const [mentorQuestions, setMentorQuestions] = useState<MentorQuestion[]>(
-        []
-    );
+    const [mentorQuestions, setMentorQuestions] = useState<MentorQuestion[]>([]);
     const [allAnswers, setAllAnswers] = useState<ModuleQuestionAnswer[]>([]);
-    const [currentPermissionLevel, setCurrentPermissionLevel] =
-        useState<PermissionGroup>(permissionLevel as PermissionGroup);
-    const [groupPermissionLevels, setGroupPermissionLevels] = useState<
-        UserLevel[]
-    >([]);
+    const [currentPermissionLevel, setCurrentPermissionLevel] = useState<PermissionGroup>(permissionLevel as PermissionGroup);
+    const [groupPermissionLevels, setGroupPermissionLevels] = useState<UserLevel[]>([]);
     const [modificationWarning, setModificationWarning] = useState(false);
 
     useEffect(() => {
@@ -47,8 +38,7 @@ export default function Modules() {
             updateModuleList('initialize');
             getClasses();
             getGroupPermissionLevels();
-            if (permissionLevel === 'su')
-                setCurrentPermissionLevel(permissionLevel);
+            if (permissionLevel === 'su') setCurrentPermissionLevel(permissionLevel);
         }
     }, [loading]);
 
@@ -57,7 +47,7 @@ export default function Modules() {
 
         const header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
-            params: { language: currentModule?.language },
+            params: { language: currentModule?.language }
         };
 
         axios
@@ -86,8 +76,8 @@ export default function Modules() {
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
             params: {
-                groupID: permissionLevel === 'ta' ? selectedClass.value : null,
-            },
+                groupID: permissionLevel === 'ta' ? selectedClass.value : null
+            }
         };
 
         axios
@@ -105,21 +95,15 @@ export default function Modules() {
                     setClassChanged(false);
 
                     if (task === 'add') {
-                        let newModule = allModules.find(
-                            (module: Module) => module.moduleID === moduleID
-                        );
+                        let newModule = allModules.find((module: Module) => module.moduleID === moduleID);
                         updateCurrentModule(newModule, 'all');
                     } else if (task === 'unlink') {
-                        moduleID === currentModule?.moduleID &&
-                            updateCurrentModule(allModules[0]);
+                        moduleID === currentModule?.moduleID && updateCurrentModule(allModules[0]);
                     } else if (['initialize', 'change'].includes(task)) {
                         updateCurrentModule(allModules[0]);
                     }
                 } else {
-                    let groupSpecificModules = allModules.filter(
-                        (module: Module) =>
-                            module.groupID === selectedClass.value
-                    );
+                    let groupSpecificModules = allModules.filter((module: Module) => module.groupID === selectedClass.value);
 
                     if (groupSpecificModules.length === 0) {
                         setDynamicModules([]);
@@ -133,13 +117,10 @@ export default function Modules() {
                     setClassChanged(false);
 
                     if (task === 'add') {
-                        const newModule = groupSpecificModules.find(
-                            (module: Module) => module.moduleID === moduleID
-                        );
+                        const newModule = groupSpecificModules.find((module: Module) => module.moduleID === moduleID);
                         updateCurrentModule(newModule, 'add');
                     } else if (task === 'unlink') {
-                        moduleID === currentModule?.moduleID &&
-                            updateCurrentModule(groupSpecificModules[0]);
+                        moduleID === currentModule?.moduleID && updateCurrentModule(groupSpecificModules[0]);
                     } else if (task === 'change') {
                         updateCurrentModule(groupSpecificModules[0]);
                     }
@@ -152,11 +133,11 @@ export default function Modules() {
 
     const updateCurrentModule = (module?: Module, task?: string) => {
         const data = {
-            moduleID: module?.moduleID,
+            moduleID: module?.moduleID
         };
 
         const header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -170,9 +151,7 @@ export default function Modules() {
                 if (task) toggleModificationWarning('new');
                 else toggleModificationWarning('update');
             })
-            .catch((error) =>
-                console.log('updateCurrentModule error: ', error)
-            );
+            .catch((error) => console.log('updateCurrentModule error: ', error));
         axios
             .post<MentorQuestion[]>('/elleapi/getmentorquestions', data, header)
             .then((res) => {
@@ -180,9 +159,7 @@ export default function Modules() {
 
                 setMentorQuestions(questions);
             })
-            .catch((error) =>
-                console.log('updateCurrentModule error: ', error)
-            );
+            .catch((error) => console.log('updateCurrentModule error: ', error));
     };
 
     const editModule = (editedName: string, module: Module) => {
@@ -191,12 +168,11 @@ export default function Modules() {
             name: editedName,
             language: module.language,
             complexity: 2,
-            groupID:
-                currentPermissionLevel === 'ta' ? selectedClass.value : null,
+            groupID: currentPermissionLevel === 'ta' ? selectedClass.value : null
         };
 
         const header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -215,12 +191,9 @@ export default function Modules() {
         const header = {
             data: {
                 moduleID: id,
-                groupID:
-                    currentPermissionLevel === 'st'
-                        ? selectedClass.value
-                        : null,
+                groupID: currentPermissionLevel === 'st' ? selectedClass.value : null
             },
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -238,11 +211,11 @@ export default function Modules() {
     const unlinkModule = (id: number) => {
         const data = {
             moduleID: id,
-            groupID: selectedClass.value,
+            groupID: selectedClass.value
         };
 
         const header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -265,7 +238,7 @@ export default function Modules() {
 
     const getClasses = () => {
         const header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -278,27 +251,19 @@ export default function Modules() {
             });
     };
 
-    const updateClassContext = (classContext: {
-        label: string;
-        value: number;
-    }) => {
+    const updateClassContext = (classContext: { label: string; value: number }) => {
         if (classContext) {
-            const currentClass = groupPermissionLevels.find(
-                (group) => group.groupID === classContext.value
-            );
+            const currentClass = groupPermissionLevels.find((group) => group.groupID === classContext.value);
             setSelectedClass(classContext);
             setClassChanged(true);
 
-            classContext.value !== 0 &&
-                setCurrentPermissionLevel(
-                    currentClass?.accessLevel as PermissionGroup
-                );
+            classContext.value !== 0 && setCurrentPermissionLevel(currentClass?.accessLevel as PermissionGroup);
         }
     };
 
     const getGroupPermissionLevels = () => {
         const header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
         axios
             .get<UserLevel[]>('/elleapi/userlevels', header)
@@ -315,9 +280,9 @@ export default function Modules() {
         ...classes.map((group) => {
             return {
                 value: group.groupID,
-                label: group.groupName,
+                label: group.groupName
             };
-        }),
+        })
     ];
 
     classChanged ? updateModuleList('change') : null;
@@ -325,14 +290,14 @@ export default function Modules() {
     return (
         <Layout requireUser>
             <div>
-                <Container className="mainContainer">
+                <Container className='mainContainer'>
                     <br />
                     <Row style={{ marginBottom: '15px' }}>
-                        <Col className="Left Column" xs="3">
+                        <Col className='Left Column' xs='3'>
                             <h3
                                 style={{
                                     margin: '5px 0 0 0',
-                                    color: '#16a3b8',
+                                    color: '#16a3b8'
                                 }}
                             >
                                 Your ELLE Modules:
@@ -340,57 +305,57 @@ export default function Modules() {
                         </Col>
                         {currentPermissionLevel !== 'su' ? (
                             <Col
-                                className="Right Column"
+                                className='Right Column'
                                 style={{
                                     display: 'flex',
-                                    justifyContent: 'flex-end',
+                                    justifyContent: 'flex-end'
                                 }}
                             >
                                 <Label
                                     style={{
                                         margin: '5px 8px 0 0',
-                                        fontSize: 'large',
+                                        fontSize: 'large'
                                     }}
                                 >
                                     Class:{' '}
                                 </Label>
                                 <Select
-                                    name="selectedClass"
+                                    name='selectedClass'
                                     instanceId={'select-class'}
                                     options={classOptions}
-                                    className="basic-single"
-                                    classNamePrefix="select"
+                                    className='basic-single'
+                                    classNamePrefix='select'
                                     isClearable={true}
                                     value={selectedClass}
                                     onChange={(e) =>
                                         updateClassContext({
                                             value: e?.value as number,
-                                            label: e?.label as string,
+                                            label: e?.label as string
                                         })
                                     }
                                     styles={{
                                         valueContainer: () => ({
-                                            width: '147px',
+                                            width: '147px'
                                         }),
                                         // Fixes the overlapping problem of the component
                                         menu: (provided) => ({
                                             ...provided,
-                                            zIndex: 9999,
+                                            zIndex: 9999
                                         }),
                                         singleValue: (provided) => ({
                                             ...provided,
-                                            margin: '0 0 0 10px',
+                                            margin: '0 0 0 10px'
                                         }),
                                         input: (provided) => ({
                                             ...provided,
-                                            margin: '0 0 0 10px',
-                                        }),
+                                            margin: '0 0 0 10px'
+                                        })
                                     }}
                                 />
                             </Col>
                         ) : null}
                     </Row>
-                    <Row className="Seperated Col">
+                    <Row className='Seperated Col'>
                         <ModuleSearch
                             modules={modules}
                             updateModuleList={updateModuleList}
@@ -403,7 +368,7 @@ export default function Modules() {
                             editModule={editModule}
                             unlinkModule={unlinkModule}
                         />
-                        <Col className="Right Column">
+                        <Col className='Right Column'>
                             {currentModule && (
                                 <MainModuleView
                                     currentClass={selectedClass}
@@ -413,9 +378,7 @@ export default function Modules() {
                                     updateCurrentModule={updateCurrentModule}
                                     allAnswers={allAnswers}
                                     modificationWarning={modificationWarning}
-                                    toggleModificationWarning={
-                                        toggleModificationWarning
-                                    }
+                                    toggleModificationWarning={toggleModificationWarning}
                                 />
                             )}
                         </Col>

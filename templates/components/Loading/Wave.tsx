@@ -14,7 +14,7 @@ const Wave = ({ chart }: { chart: string }) => {
 
     return (
         <div>
-            <SkeletonTheme baseColor="transparent" highlightColor="#3af0f9">
+            <SkeletonTheme baseColor='transparent' highlightColor='#3af0f9'>
                 <Skeleton width={width} height={height} />
             </SkeletonTheme>
         </div>

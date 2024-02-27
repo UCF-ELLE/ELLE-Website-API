@@ -10,7 +10,7 @@ type ImportTermsTerm = Omit<Term, 'termID'> & {
 export default function TermFields({
     term,
     index,
-    handleOnFieldChange,
+    handleOnFieldChange
 }: {
     term: ImportTermsTerm;
     index: number;
@@ -45,39 +45,23 @@ export default function TermFields({
             back: name === 'back' ? value : back,
             type: name === 'type' ? value : type,
             gender: name === 'gender' ? (value as Gender) : gender,
-            selected: true,
+            selected: true
         });
     };
 
     return (
         <>
             <td>
-                <Input
-                    name="front"
-                    onChange={(e) => handleOnChange(e)}
-                    value={term.front}
-                />
+                <Input name='front' onChange={(e) => handleOnChange(e)} value={term.front} />
             </td>
             <td>
-                <Input
-                    name="back"
-                    onChange={(e) => handleOnChange(e)}
-                    value={term.back}
-                />
+                <Input name='back' onChange={(e) => handleOnChange(e)} value={term.back} />
             </td>
             <td>
-                <Input
-                    name="type"
-                    onChange={(e) => handleOnChange(e)}
-                    value={term.type}
-                />
+                <Input name='type' onChange={(e) => handleOnChange(e)} value={term.type} />
             </td>
             <td>
-                <Input
-                    name="gender"
-                    onChange={(e) => handleOnChange(e)}
-                    value={term.gender}
-                />
+                <Input name='gender' onChange={(e) => handleOnChange(e)} value={term.gender} />
             </td>
         </>
     );

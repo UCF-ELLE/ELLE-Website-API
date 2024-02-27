@@ -1,17 +1,5 @@
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
-import {
-    Alert,
-    Button,
-    ButtonGroup,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Collapse,
-    Input,
-    Form,
-    FormGroup,
-} from 'reactstrap';
+import { Alert, Button, ButtonGroup, Modal, ModalHeader, ModalBody, ModalFooter, Collapse, Input, Form, FormGroup } from 'reactstrap';
 import axios from 'axios';
 import { MentorQuestion } from '@/types/api/mentors';
 import { Module } from '@/types/api/modules';
@@ -26,20 +14,16 @@ import Image from 'next/image';
 export default function MentorQuestion({
     question,
     updateCurrentModule,
-    curModule,
+    curModule
 }: {
     question: MentorQuestion;
     updateCurrentModule: (module: Module, task?: string) => void;
     curModule: Module;
 }) {
     const [modal, setModal] = useState(false);
-    const [myAnswers, setMyAnswers] = useState<
-        { answerChoice: string; multipleChoiceID: number }[]
-    >([]);
+    const [myAnswers, setMyAnswers] = useState<{ answerChoice: string; multipleChoiceID: number }[]>([]);
     const [editMode, setEditMode] = useState(false);
-    const [editedQuestionText, setEditedQuestionText] = useState(
-        question.questionText
-    );
+    const [editedQuestionText, setEditedQuestionText] = useState(question.questionText);
     const [newAnswer1, setNewAnswer1] = useState('');
     const [newAnswer2, setNewAnswer2] = useState('');
     const [newAnswer3, setNewAnswer3] = useState('');
@@ -61,11 +45,11 @@ export default function MentorQuestion({
 
     const updateAnswers = useCallback(() => {
         const data = {
-            question_id: question.questionID,
+            question_id: question.questionID
         };
 
         const header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -83,7 +67,7 @@ export default function MentorQuestion({
         setEditMode(false);
 
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         for (let i = 0; i < myAnswers.length; i++) {
@@ -91,11 +75,11 @@ export default function MentorQuestion({
                 //delete option
                 let header = {
                     data: {
-                        mc_id: myAnswers[i].multipleChoiceID,
+                        mc_id: myAnswers[i].multipleChoiceID
                     },
                     headers: {
-                        Authorization: 'Bearer ' + user?.jwt,
-                    },
+                        Authorization: 'Bearer ' + user?.jwt
+                    }
                 };
 
                 axios
@@ -110,7 +94,7 @@ export default function MentorQuestion({
                 //modify option
                 let data = {
                     updated_option: myAnswers[i].answerChoice,
-                    mc_id: myAnswers[i].multipleChoiceID,
+                    mc_id: myAnswers[i].multipleChoiceID
                 };
 
                 axios
@@ -129,7 +113,7 @@ export default function MentorQuestion({
         if (newAnswer1 != '') {
             let data = {
                 option: newAnswer1,
-                question_id: question.questionID,
+                question_id: question.questionID
             };
 
             axios
@@ -145,7 +129,7 @@ export default function MentorQuestion({
         if (newAnswer2 != '') {
             let data = {
                 option: newAnswer2,
-                question_id: question.questionID,
+                question_id: question.questionID
             };
 
             axios
@@ -161,7 +145,7 @@ export default function MentorQuestion({
         if (newAnswer3 != '') {
             let data = {
                 option: newAnswer3,
-                question_id: question.questionID,
+                question_id: question.questionID
             };
 
             axios
@@ -177,7 +161,7 @@ export default function MentorQuestion({
 
         let data = {
             question_id: question.questionID,
-            question_text: editedQuestionText,
+            question_text: editedQuestionText
         };
 
         axios
@@ -201,9 +185,9 @@ export default function MentorQuestion({
 
         let header = {
             data: {
-                question_id: question.questionID,
+                question_id: question.questionID
             },
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -212,10 +196,7 @@ export default function MentorQuestion({
                 updateCurrentModule(curModule);
             })
             .catch((error) => {
-                console.log(
-                    'deleteQuestion in MentorQuestion.js error: ',
-                    error.message
-                );
+                console.log('deleteQuestion in MentorQuestion.js error: ', error.message);
             });
     };
 
@@ -263,25 +244,11 @@ export default function MentorQuestion({
                 {permissionLevel !== 'st' ? (
                     <td>
                         <ButtonGroup>
-                            <Button
-                                style={{ backgroundColor: 'lightcyan' }}
-                                onClick={() => toggleEditMode()}
-                            >
-                                <Image
-                                    src={toolsImage}
-                                    alt="edit icon"
-                                    style={{ width: '25px', height: '25px' }}
-                                />
+                            <Button style={{ backgroundColor: 'lightcyan' }} onClick={() => toggleEditMode()}>
+                                <Image src={toolsImage} alt='edit icon' style={{ width: '25px', height: '25px' }} />
                             </Button>
-                            <Button
-                                style={{ backgroundColor: 'lightcoral' }}
-                                onClick={handleDelete}
-                            >
-                                <Image
-                                    src={deleteImage}
-                                    alt="trash can icon"
-                                    style={{ width: '25px', height: '25px' }}
-                                />
+                            <Button style={{ backgroundColor: 'lightcoral' }} onClick={handleDelete}>
+                                <Image src={deleteImage} alt='trash can icon' style={{ width: '25px', height: '25px' }} />
                             </Button>
                         </ButtonGroup>
                     </td>
@@ -291,18 +258,15 @@ export default function MentorQuestion({
                     <ModalHeader toggle={toggleModal}>Delete</ModalHeader>
 
                     <ModalBody>
-                        <Alert color="primary">
-                            Deleting this question will remove it from all the
-                            users who are currently using this module as well.
+                        <Alert color='primary'>
+                            Deleting this question will remove it from all the users who are currently using this module as well.
                         </Alert>
-                        <p style={{ paddingLeft: '20px' }}>
-                            Are you sure you want to delete this question?
-                        </p>
+                        <p style={{ paddingLeft: '20px' }}>Are you sure you want to delete this question?</p>
                     </ModalBody>
 
                     <ModalFooter>
                         <Button onClick={toggleModal}>Cancel</Button>
-                        <Button color="danger" onClick={deleteQuestion}>
+                        <Button color='danger' onClick={deleteQuestion}>
                             Delete
                         </Button>
                     </ModalFooter>
@@ -319,14 +283,7 @@ export default function MentorQuestion({
                             <div>
                                 {myAnswers.map((answer, index) => {
                                     return (
-                                        <p
-                                            key={
-                                                answer.multipleChoiceID +
-                                                ' ' +
-                                                index
-                                            }
-                                            id={answer.multipleChoiceID.toString()}
-                                        >
+                                        <p key={answer.multipleChoiceID + ' ' + index} id={answer.multipleChoiceID.toString()}>
                                             {' '}
                                             - {answer.answerChoice}
                                         </p>
@@ -344,28 +301,22 @@ export default function MentorQuestion({
         <Fragment>
             <tr>
                 <td>
-                    {editedQuestionText &&
-                    (editedQuestionText.trim() === '' ||
-                        editedQuestionText.length > 200) ? (
+                    {editedQuestionText && (editedQuestionText.trim() === '' || editedQuestionText.length > 200) ? (
                         <Input
                             invalid
-                            type="number"
-                            name="editedQuestionText"
-                            id="editedQuestionText"
-                            placeholder="Required"
-                            onChange={(e) =>
-                                setEditedQuestionText(e.target.value)
-                            }
+                            type='number'
+                            name='editedQuestionText'
+                            id='editedQuestionText'
+                            placeholder='Required'
+                            onChange={(e) => setEditedQuestionText(e.target.value)}
                             value={editedQuestionText}
                         />
                     ) : (
                         <Input
-                            type="number"
-                            name="editedQuestionText"
-                            id="editedQuestionText"
-                            onChange={(e) =>
-                                setEditedQuestionText(e.target.value)
-                            }
+                            type='number'
+                            name='editedQuestionText'
+                            id='editedQuestionText'
+                            onChange={(e) => setEditedQuestionText(e.target.value)}
                             value={editedQuestionText}
                         />
                     )}
@@ -373,66 +324,37 @@ export default function MentorQuestion({
 
                 <td>
                     <ButtonGroup>
-                        {(editedQuestionText &&
-                            (editedQuestionText?.trim() === '' ||
-                                editedQuestionText.length > 200)) || // question invalid
+                        {(editedQuestionText && (editedQuestionText?.trim() === '' || editedQuestionText.length > 200)) || // question invalid
                         (question.type === 'MENTOR_MC' && // question is MC //whatever is wrong the with MC options
                             (myAnswers[0].answerChoice.trim() == '' ||
                                 myAnswers[1].answerChoice.trim() == '' ||
                                 myAnswers[0].answerChoice.length > 30 ||
                                 myAnswers[1].answerChoice.length > 30 || //check for these no matter # of MC options, there will always be 2
                                 (myAnswers.length > 2 &&
-                                    ((myAnswers[2].answerChoice.trim() == '' &&
-                                        myAnswers[2].answerChoice != '') ||
-                                        myAnswers[2].answerChoice.length >
-                                            30)) || //at least a third answer
+                                    ((myAnswers[2].answerChoice.trim() == '' && myAnswers[2].answerChoice != '') ||
+                                        myAnswers[2].answerChoice.length > 30)) || //at least a third answer
                                 (myAnswers.length > 3 &&
-                                    ((myAnswers[3].answerChoice.trim() == '' &&
-                                        myAnswers[3].answerChoice != '') ||
-                                        myAnswers[3].answerChoice.length >
-                                            30)) || //at least a fourth answer
+                                    ((myAnswers[3].answerChoice.trim() == '' && myAnswers[3].answerChoice != '') ||
+                                        myAnswers[3].answerChoice.length > 30)) || //at least a fourth answer
                                 (myAnswers.length > 4 &&
-                                    ((myAnswers[4].answerChoice.trim() == '' &&
-                                        myAnswers[4].answerChoice != '') ||
-                                        myAnswers[4].answerChoice.length >
-                                            30)) || //at least a fifth answer. Note if there are 5 answers, the third and fourth answers will also be checked since 5 > 2 and 5 > 3
+                                    ((myAnswers[4].answerChoice.trim() == '' && myAnswers[4].answerChoice != '') ||
+                                        myAnswers[4].answerChoice.length > 30)) || //at least a fifth answer. Note if there are 5 answers, the third and fourth answers will also be checked since 5 > 2 and 5 > 3
                                 (newAnswer1.trim() == '' && newAnswer1 != '') ||
                                 newAnswer1.length > 30 ||
                                 (newAnswer2.trim() == '' && newAnswer2 != '') ||
                                 newAnswer2.length > 30 ||
                                 (newAnswer3.trim() == '' && newAnswer3 != '') ||
                                 newAnswer3.length > 30)) ? ( //can check newAnswers no matter what as they are always nonnull and empty is not a fail case
-                            <Button
-                                style={{ backgroundColor: 'lightcoral' }}
-                                disabled
-                            >
-                                <Image
-                                    src={submitImage}
-                                    alt="Icon made by Becris from www.flaticon.com"
-                                    style={{ width: '25px', height: '25px' }}
-                                />
+                            <Button style={{ backgroundColor: 'lightcoral' }} disabled>
+                                <Image src={submitImage} alt='Icon made by Becris from www.flaticon.com' style={{ width: '25px', height: '25px' }} />
                             </Button>
                         ) : (
-                            <Button
-                                style={{ backgroundColor: 'lightcyan' }}
-                                onClick={() => submitQuestionEdit()}
-                            >
-                                <Image
-                                    src={submitImage}
-                                    alt="Icon made by Becris from www.flaticon.com"
-                                    style={{ width: '25px', height: '25px' }}
-                                />
+                            <Button style={{ backgroundColor: 'lightcyan' }} onClick={() => submitQuestionEdit()}>
+                                <Image src={submitImage} alt='Icon made by Becris from www.flaticon.com' style={{ width: '25px', height: '25px' }} />
                             </Button>
                         )}
-                        <Button
-                            style={{ backgroundColor: 'lightcyan' }}
-                            onClick={() => handleCancelEdit()}
-                        >
-                            <Image
-                                src={cancelImage}
-                                alt="Icon made by Freepik from www.flaticon.com"
-                                style={{ width: '25px', height: '25px' }}
-                            />
+                        <Button style={{ backgroundColor: 'lightcyan' }} onClick={() => handleCancelEdit()}>
+                            <Image src={cancelImage} alt='Icon made by Freepik from www.flaticon.com' style={{ width: '25px', height: '25px' }} />
                         </Button>
                     </ButtonGroup>
                 </td>
@@ -445,36 +367,20 @@ export default function MentorQuestion({
                             <br />
                             <br />
                             <Form>
-                                <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+                                <FormGroup className='mb-2 mr-sm-2 mb-sm-0'>
                                     {myAnswers.map((answer, index) => {
-                                        if (
-                                            index == 2 ||
-                                            index == 3 ||
-                                            index == 4
-                                        ) {
-                                            if (
-                                                (answer.answerChoice.trim() ==
-                                                    '' &&
-                                                    answer.answerChoice !=
-                                                        '') ||
-                                                answer.answerChoice.length > 30
-                                            ) {
+                                        if (index == 2 || index == 3 || index == 4) {
+                                            if ((answer.answerChoice.trim() == '' && answer.answerChoice != '') || answer.answerChoice.length > 30) {
                                                 return (
                                                     <div key={index}>
                                                         <Input
                                                             invalid
-                                                            type="number"
+                                                            type='number'
                                                             id={index.toString()}
-                                                            name={
-                                                                'answer' + index
-                                                            }
-                                                            value={
-                                                                answer.answerChoice
-                                                            }
-                                                            onChange={(e) =>
-                                                                changeAnswer(e)
-                                                            }
-                                                            placeholder="Optional"
+                                                            name={'answer' + index}
+                                                            value={answer.answerChoice}
+                                                            onChange={(e) => changeAnswer(e)}
+                                                            placeholder='Optional'
                                                         />
                                                         <br></br>
                                                     </div>
@@ -483,45 +389,29 @@ export default function MentorQuestion({
                                                 return (
                                                     <div key={index}>
                                                         <Input
-                                                            type="number"
+                                                            type='number'
                                                             id={index.toString()}
-                                                            name={
-                                                                'answer' + index
-                                                            }
-                                                            value={
-                                                                answer.answerChoice
-                                                            }
-                                                            onChange={(e) =>
-                                                                changeAnswer(e)
-                                                            }
-                                                            placeholder="Optional"
+                                                            name={'answer' + index}
+                                                            value={answer.answerChoice}
+                                                            onChange={(e) => changeAnswer(e)}
+                                                            placeholder='Optional'
                                                         />
                                                         <br></br>
                                                     </div>
                                                 );
                                             }
                                         } else {
-                                            if (
-                                                answer.answerChoice.trim() ==
-                                                    '' ||
-                                                answer.answerChoice.length > 30
-                                            ) {
+                                            if (answer.answerChoice.trim() == '' || answer.answerChoice.length > 30) {
                                                 return (
                                                     <div key={index}>
                                                         <Input
                                                             invalid
-                                                            type="number"
+                                                            type='number'
                                                             id={index.toString()}
-                                                            name={
-                                                                'answer' + index
-                                                            }
-                                                            value={
-                                                                answer.answerChoice
-                                                            }
-                                                            onChange={(e) =>
-                                                                changeAnswer(e)
-                                                            }
-                                                            placeholder="Required"
+                                                            name={'answer' + index}
+                                                            value={answer.answerChoice}
+                                                            onChange={(e) => changeAnswer(e)}
+                                                            placeholder='Required'
                                                         />
                                                         <br></br>
                                                     </div>
@@ -530,17 +420,11 @@ export default function MentorQuestion({
                                                 return (
                                                     <div key={index}>
                                                         <Input
-                                                            type="number"
+                                                            type='number'
                                                             id={index.toString()}
-                                                            name={
-                                                                'answer' + index
-                                                            }
-                                                            value={
-                                                                answer.answerChoice
-                                                            }
-                                                            onChange={(e) =>
-                                                                changeAnswer(e)
-                                                            }
+                                                            name={'answer' + index}
+                                                            value={answer.answerChoice}
+                                                            onChange={(e) => changeAnswer(e)}
                                                         />
                                                         <br></br>
                                                     </div>
@@ -549,38 +433,28 @@ export default function MentorQuestion({
                                         }
                                     })}
                                     {myAnswers.length <= 2 ? (
-                                        (newAnswer1.trim() == '' &&
-                                            newAnswer1 != '') ||
-                                        newAnswer1.length > 30 ? (
+                                        (newAnswer1.trim() == '' && newAnswer1 != '') || newAnswer1.length > 30 ? (
                                             <div>
                                                 <Input
                                                     invalid
-                                                    type="number"
+                                                    type='number'
                                                     id={'2'}
                                                     name={'newAnswer1'}
                                                     value={newAnswer1}
-                                                    onChange={(e) =>
-                                                        setNewAnswer1(
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Optional"
+                                                    onChange={(e) => setNewAnswer1(e.target.value)}
+                                                    placeholder='Optional'
                                                 />
                                                 <br></br>
                                             </div>
                                         ) : (
                                             <div>
                                                 <Input
-                                                    type="number"
+                                                    type='number'
                                                     id={'2'}
                                                     name={'newAnswer1'}
                                                     value={newAnswer1}
-                                                    onChange={(e) =>
-                                                        setNewAnswer1(
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Optional"
+                                                    onChange={(e) => setNewAnswer1(e.target.value)}
+                                                    placeholder='Optional'
                                                 />
                                                 <br></br>
                                             </div>
@@ -589,38 +463,28 @@ export default function MentorQuestion({
                                         <div></div>
                                     )}
                                     {myAnswers.length <= 3 ? (
-                                        (newAnswer2.trim() == '' &&
-                                            newAnswer2 != '') ||
-                                        newAnswer2.length > 30 ? (
+                                        (newAnswer2.trim() == '' && newAnswer2 != '') || newAnswer2.length > 30 ? (
                                             <div>
                                                 <Input
                                                     invalid
-                                                    type="number"
+                                                    type='number'
                                                     id={'3'}
                                                     name={'newAnswer2'}
                                                     value={newAnswer2}
-                                                    onChange={(e) =>
-                                                        setNewAnswer2(
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Optional"
+                                                    onChange={(e) => setNewAnswer2(e.target.value)}
+                                                    placeholder='Optional'
                                                 />
                                                 <br></br>
                                             </div>
                                         ) : (
                                             <div>
                                                 <Input
-                                                    type="number"
+                                                    type='number'
                                                     id={'3'}
                                                     name={'newAnswer2'}
                                                     value={newAnswer2}
-                                                    onChange={(e) =>
-                                                        setNewAnswer2(
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Optional"
+                                                    onChange={(e) => setNewAnswer2(e.target.value)}
+                                                    placeholder='Optional'
                                                 />
                                                 <br></br>
                                             </div>
@@ -629,38 +493,28 @@ export default function MentorQuestion({
                                         <div></div>
                                     )}
                                     {myAnswers.length <= 4 ? (
-                                        (newAnswer3.trim() == '' &&
-                                            newAnswer3 != '') ||
-                                        newAnswer3.length > 30 ? (
+                                        (newAnswer3.trim() == '' && newAnswer3 != '') || newAnswer3.length > 30 ? (
                                             <div>
                                                 <Input
                                                     invalid
-                                                    type="number"
+                                                    type='number'
                                                     id={'4'}
                                                     name={'newAnswer3'}
                                                     value={newAnswer3}
-                                                    onChange={(e) =>
-                                                        setNewAnswer3(
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Optional"
+                                                    onChange={(e) => setNewAnswer3(e.target.value)}
+                                                    placeholder='Optional'
                                                 />
                                                 <br></br>
                                             </div>
                                         ) : (
                                             <div>
                                                 <Input
-                                                    type="number"
+                                                    type='number'
                                                     id={'4'}
                                                     name={'newAnswer3'}
                                                     value={newAnswer3}
-                                                    onChange={(e) =>
-                                                        setNewAnswer3(
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Optional"
+                                                    onChange={(e) => setNewAnswer3(e.target.value)}
+                                                    placeholder='Optional'
                                                 />
                                                 <br></br>
                                             </div>

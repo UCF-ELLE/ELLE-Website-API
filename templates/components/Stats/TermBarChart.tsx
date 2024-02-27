@@ -1,21 +1,9 @@
 import React from 'react';
 import { Bar } from 'react-chartjs-2';
 import { TermPerformance } from '@/types/api/stats';
-import {
-    Chart,
-    LinearScale,
-    CategoryScale,
-    BarElement,
-    Legend,
-} from 'chart.js';
+import { Chart, LinearScale, CategoryScale, BarElement, Legend } from 'chart.js';
 
-export default function TermBarChart({
-    termStats,
-    threshold,
-}: {
-    termStats: TermPerformance;
-    threshold: number;
-}) {
+export default function TermBarChart({ termStats, threshold }: { termStats: TermPerformance; threshold: number }) {
     Chart.register(LinearScale, CategoryScale, BarElement, Legend);
 
     const renderBarChart = () => {
@@ -24,12 +12,11 @@ export default function TermBarChart({
             .map((term) => {
                 return {
                     front: term[1].front,
-                    percentage: term[1].correctness * 100,
+                    percentage: term[1].correctness * 100
                 };
             });
 
-        let percentage =
-            (filteredTerms.length / Object.keys(termStats).length) * 100;
+        let percentage = (filteredTerms.length / Object.keys(termStats).length) * 100;
 
         let chartColors = getColors(filteredTerms.length);
 
@@ -38,12 +25,10 @@ export default function TermBarChart({
             datasets: [
                 {
                     label: 'Correctness (%)',
-                    data: filteredTerms.map((term) =>
-                        term.percentage.toFixed(2)
-                    ),
-                    backgroundColor: chartColors,
-                },
-            ],
+                    data: filteredTerms.map((term) => term.percentage.toFixed(2)),
+                    backgroundColor: chartColors
+                }
+            ]
         };
 
         return (
@@ -57,23 +42,21 @@ export default function TermBarChart({
                                 max: 100,
                                 ticks: {
                                     stepSize: 20,
-                                    color: 'black',
-                                },
+                                    color: 'black'
+                                }
                             },
                             xAxis: {
                                 ticks: {
-                                    color: 'black',
-                                },
-                            },
+                                    color: 'black'
+                                }
+                            }
                         },
                         plugins: {
-                            legend: { labels: { color: 'black' } },
-                        },
+                            legend: { labels: { color: 'black' } }
+                        }
                     }}
                 />
-                <p style={{ textAlign: 'center', fontSize: '14px' }}>
-                    {percentage}% of the terms meet the threshold
-                </p>
+                <p style={{ textAlign: 'center', fontSize: '14px' }}>{percentage}% of the terms meet the threshold</p>
             </>
         );
     };
@@ -91,7 +74,7 @@ export default function TermBarChart({
             '#1e91c0',
             '#225ea8',
             '#263494',
-            '#091d58',
+            '#091d58'
         ];
 
         let index = 0;

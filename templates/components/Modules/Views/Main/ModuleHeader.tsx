@@ -1,14 +1,4 @@
-import {
-    Row,
-    Input,
-    InputGroup,
-    InputGroupText,
-    ButtonDropdown,
-    DropdownToggle,
-    DropdownMenu,
-    DropdownItem,
-    Button,
-} from 'reactstrap';
+import { Row, Input, InputGroup, InputGroupText, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
 import Image from 'next/image';
 import searchImage from '@/public/static/images/search.png';
 import { useUser } from '@/hooks/useUser';
@@ -20,7 +10,7 @@ export default function ModuleHeader({
     updateSearchCard,
     addTermButtonOpen,
     toggleAddTermButton,
-    changeOpenForm,
+    changeOpenForm
 }: {
     curModule: Module | undefined;
     searchCard: string;
@@ -33,69 +23,43 @@ export default function ModuleHeader({
     const permissionLevel = user?.permissionGroup;
 
     return (
-        <Row className="Header" style={{ marginBottom: '15px' }}>
+        <Row className='Header' style={{ marginBottom: '15px' }}>
             {/*Search Bar for all cards in a deck, with the buttons for adding new items as appendages*/}
-            <InputGroup
-                style={{ borderRadius: '12px', padding: 0 }}
-                className="shadow"
-            >
+            <InputGroup style={{ borderRadius: '12px', padding: 0 }} className='shadow'>
                 <div style={{ display: 'flex' }}>
                     <InputGroupText
-                        id="module-name"
+                        id='module-name'
                         style={{
                             border: 'none',
                             borderRadius: '12px 0px 0px 12px',
-                            color: curModule?.isPastaModule ? 'red' : undefined,
+                            color: curModule?.isPastaModule ? 'red' : undefined
                         }}
                     >
                         {curModule?.name}
                     </InputGroupText>
                 </div>
                 <div style={{ margin: '10px' }}>
-                    <Image
-                        src={searchImage}
-                        alt="Icon made by Freepik from www.flaticon.com"
-                        style={{ width: '15px', height: '15px' }}
-                    />
+                    <Image src={searchImage} alt='Icon made by Freepik from www.flaticon.com' style={{ width: '15px', height: '15px' }} />
                 </div>
-                <Input
-                    style={{ border: 'none' }}
-                    type="text"
-                    placeholder="Search"
-                    value={searchCard}
-                    onChange={(e) => updateSearchCard(e)}
-                />
+                <Input style={{ border: 'none' }} type='text' placeholder='Search' value={searchCard} onChange={(e) => updateSearchCard(e)} />
 
                 {permissionLevel !== 'st' && !curModule?.isPastaModule ? (
                     <>
                         {/* The button for the Add Term forms */}
                         <div style={{ display: 'flex' }}>
-                            <ButtonDropdown
-                                isOpen={addTermButtonOpen}
-                                toggle={toggleAddTermButton}
-                            >
+                            <ButtonDropdown isOpen={addTermButtonOpen} toggle={toggleAddTermButton}>
                                 <DropdownToggle
                                     style={{
                                         backgroundColor: '#3e6184',
-                                        borderRadius: '0px',
+                                        borderRadius: '0px'
                                     }}
                                     caret
                                 >
                                     Add Term
                                 </DropdownToggle>
                                 <DropdownMenu>
-                                    <DropdownItem
-                                        onClick={() => changeOpenForm(1)}
-                                    >
-                                        {' '}
-                                        Add Existing
-                                    </DropdownItem>
-                                    <DropdownItem
-                                        onClick={() => changeOpenForm(2)}
-                                    >
-                                        {' '}
-                                        Add New
-                                    </DropdownItem>
+                                    <DropdownItem onClick={() => changeOpenForm(1)}> Add Existing</DropdownItem>
+                                    <DropdownItem onClick={() => changeOpenForm(2)}> Add New</DropdownItem>
                                 </DropdownMenu>
                             </ButtonDropdown>
                         </div>
@@ -105,7 +69,7 @@ export default function ModuleHeader({
                             <Button
                                 style={{
                                     backgroundColor: '#3e6184',
-                                    borderRadius: '0px',
+                                    borderRadius: '0px'
                                 }}
                                 onClick={() => changeOpenForm(3)}
                             >
@@ -118,7 +82,7 @@ export default function ModuleHeader({
                             <Button
                                 style={{
                                     backgroundColor: '#3e6184',
-                                    borderRadius: '0px',
+                                    borderRadius: '0px'
                                 }}
                                 onClick={() => changeOpenForm(4)}
                             >
@@ -131,7 +95,7 @@ export default function ModuleHeader({
                             <Button
                                 style={{
                                     backgroundColor: '#3e6184',
-                                    borderRadius: '0px 12px 12px 0px',
+                                    borderRadius: '0px 12px 12px 0px'
                                 }}
                                 onClick={() => changeOpenForm(5)}
                             >
@@ -146,7 +110,7 @@ export default function ModuleHeader({
                             <Button
                                 style={{
                                     backgroundColor: '#3e6184',
-                                    borderRadius: '0px',
+                                    borderRadius: '0px'
                                 }}
                                 onClick={() => changeOpenForm(6)}
                             >
@@ -158,7 +122,7 @@ export default function ModuleHeader({
                             <Button
                                 style={{
                                     backgroundColor: '#3e6184',
-                                    borderRadius: '0px 12px 12px 0px',
+                                    borderRadius: '0px 12px 12px 0px'
                                 }}
                                 onClick={() => changeOpenForm(7)}
                             >

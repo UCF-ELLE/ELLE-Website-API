@@ -26,11 +26,11 @@ export default function ClassDetailsComponent(props: ClassDetailsProps) {
                 <Col style={{ paddingLeft: '30px' }}>
                     <Label>Class Name: </Label>{' '}
                     <Input
-                        name="name"
+                        name='name'
                         disabled={props.editClass ? false : true}
                         style={{
                             marginBottom: '10px',
-                            cursor: props.editClass ? 'default' : 'not-allowed',
+                            cursor: props.editClass ? 'default' : 'not-allowed'
                         }}
                         value={name}
                         onChange={handleOnChange}
@@ -48,7 +48,7 @@ export default function ClassDetailsComponent(props: ClassDetailsProps) {
                             style={{
                                 textDecoration: 'underline',
                                 color: 'blue',
-                                cursor: 'default',
+                                cursor: 'default'
                             }}
                             onClick={() => props.generateNewCode()}
                         >
@@ -60,10 +60,7 @@ export default function ClassDetailsComponent(props: ClassDetailsProps) {
             </Row>
             <Row>
                 <Col style={{ paddingLeft: '30px' }}>
-                    <Label>Class Size: </Label>{' '}
-                    {props.item.group_users !== undefined
-                        ? props.item.group_users.length - 1
-                        : null}
+                    <Label>Class Size: </Label> {props.item.group_users !== undefined ? props.item.group_users.length - 1 : null}
                 </Col>
             </Row>
         </>

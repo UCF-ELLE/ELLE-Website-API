@@ -1,17 +1,5 @@
 import React, { useState } from 'react';
-import {
-    Button,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    Table,
-    Card,
-    CardBody,
-    Row,
-    Col,
-    Input,
-    Alert,
-} from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, Table, Card, CardBody, Row, Col, Input, Alert } from 'reactstrap';
 import axios from 'axios';
 import { User } from '@/types/api/user';
 import { PermissionGroup } from '@/types/misc';
@@ -25,7 +13,7 @@ export default function UserComponent({
     user,
     type,
     group,
-    getUsers,
+    getUsers
 }: {
     user: User | GroupUser;
     type: string;
@@ -54,23 +42,13 @@ export default function UserComponent({
             <Card style={{ margin: '0 20px 0 20px', border: 'none' }}>
                 <Row>ID: {user.userID}</Row>
                 <Row>Name: {user.username}</Row>
-                <Row>
-                    Permission Level:{' '}
-                    {'permissionGroup' in user
-                        ? user.permissionGroup
-                        : user.accessLevel}
-                </Row>
+                <Row>Permission Level: {'permissionGroup' in user ? user.permissionGroup : user.accessLevel}</Row>
                 <Row style={{ paddingTop: '10px' }}>
                     Reset Password:
-                    <Col xs="7" style={{ paddingRight: '0px' }}>
-                        <Input
-                            placeholder="Create a temporary password"
-                            name="tempPW"
-                            value={tempPW}
-                            onChange={(e) => setTempPW(e.target.value)}
-                        />
+                    <Col xs='7' style={{ paddingRight: '0px' }}>
+                        <Input placeholder='Create a temporary password' name='tempPW' value={tempPW} onChange={(e) => setTempPW(e.target.value)} />
                     </Col>
-                    <Col xs="1" style={{ padding: '0 0 0 10px' }}>
+                    <Col xs='1' style={{ padding: '0 0 0 10px' }}>
                         <Button onClick={() => resetPassword()}>Reset</Button>
                     </Col>
                 </Row>
@@ -81,7 +59,7 @@ export default function UserComponent({
     const generateNewCode = (id: number) => {
         let header = {
             headers: { Authorization: 'Bearer ' + currentUser?.jwt },
-            params: { groupID: id },
+            params: { groupID: id }
         };
 
         axios
@@ -96,12 +74,12 @@ export default function UserComponent({
 
     const resetPassword = () => {
         let header = {
-            headers: { Authorization: 'Bearer ' + currentUser?.jwt },
+            headers: { Authorization: 'Bearer ' + currentUser?.jwt }
         };
 
         let data = {
             userID: user.userID,
-            password: tempPW,
+            password: tempPW
         };
 
         axios
@@ -127,15 +105,11 @@ export default function UserComponent({
                             style={{
                                 backgroundColor: 'transparent',
                                 border: 'none',
-                                padding: '0px',
+                                padding: '0px'
                             }}
                             onClick={() => toggleDetailModal()}
                         >
-                            <Image
-                                src={moreImage}
-                                alt="Icon made by xnimrodx from www.flaticon.com"
-                                style={{ width: '20px', height: '20px' }}
-                            />
+                            <Image src={moreImage} alt='Icon made by xnimrodx from www.flaticon.com' style={{ width: '20px', height: '20px' }} />
                         </Button>
                     </td>
                 ) : null}
@@ -146,24 +120,18 @@ export default function UserComponent({
                             style={{
                                 backgroundColor: 'transparent',
                                 border: 'none',
-                                padding: '0px',
+                                padding: '0px'
                             }}
                             onClick={() => toggleProfessorDetailModal()}
                         >
-                            <Image
-                                src={moreImage}
-                                alt="Icon made by xnimrodx from www.flaticon.com"
-                                style={{ width: '20px', height: '20px' }}
-                            />
+                            <Image src={moreImage} alt='Icon made by xnimrodx from www.flaticon.com' style={{ width: '20px', height: '20px' }} />
                         </Button>
                     </td>
                 ) : null}
             </tr>
 
             <Modal isOpen={detailModalOpen}>
-                <ModalHeader toggle={() => toggleDetailModal()}>
-                    Details
-                </ModalHeader>
+                <ModalHeader toggle={() => toggleDetailModal()}>Details</ModalHeader>
                 <ModalBody>
                     {alertOpen ? <Alert>{alertMsg}</Alert> : null}
                     {renderUserInfo()}
@@ -171,9 +139,7 @@ export default function UserComponent({
             </Modal>
 
             <Modal isOpen={pfDetailModalOpen}>
-                <ModalHeader toggle={() => toggleProfessorDetailModal()}>
-                    Professor Details
-                </ModalHeader>
+                <ModalHeader toggle={() => toggleProfessorDetailModal()}>Professor Details</ModalHeader>
                 <ModalBody style={{ paddingBottom: '10px' }}>
                     {renderUserInfo()}
                     <br />
@@ -181,17 +147,15 @@ export default function UserComponent({
                         (user as User).groups?.length !== 0 ? (
                             <>
                                 <Row>
-                                    <Col style={{ paddingLeft: '20px' }}>
-                                        Class Info:{' '}
-                                    </Col>
+                                    <Col style={{ paddingLeft: '20px' }}>Class Info: </Col>
                                 </Row>
                                 <Card
                                     style={{
                                         height: '40vh',
-                                        overflow: 'scroll',
+                                        overflow: 'scroll'
                                     }}
                                 >
-                                    <Table className="professorDetailsTable">
+                                    <Table className='professorDetailsTable'>
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
@@ -201,45 +165,27 @@ export default function UserComponent({
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {(user as User).groups?.map(
-                                                (group, i) => {
-                                                    return (
-                                                        <tr key={i}>
-                                                            <td>
-                                                                {group.groupID}
-                                                            </td>
-                                                            <td>
-                                                                {
-                                                                    group.groupName
-                                                                }
-                                                            </td>
-                                                            <td>
-                                                                {
-                                                                    group.groupCode
-                                                                }
-                                                            </td>
-                                                            <td>
-                                                                <Image
-                                                                    src={
-                                                                        shuffleImage
-                                                                    }
-                                                                    alt="Icon made by Freepik from www.flaticon.com"
-                                                                    style={{
-                                                                        width: '15px',
-                                                                        height: '15px',
-                                                                        cursor: 'pointer',
-                                                                    }}
-                                                                    onClick={() =>
-                                                                        generateNewCode(
-                                                                            group.groupID
-                                                                        )
-                                                                    }
-                                                                />
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                }
-                                            )}
+                                            {(user as User).groups?.map((group, i) => {
+                                                return (
+                                                    <tr key={i}>
+                                                        <td>{group.groupID}</td>
+                                                        <td>{group.groupName}</td>
+                                                        <td>{group.groupCode}</td>
+                                                        <td>
+                                                            <Image
+                                                                src={shuffleImage}
+                                                                alt='Icon made by Freepik from www.flaticon.com'
+                                                                style={{
+                                                                    width: '15px',
+                                                                    height: '15px',
+                                                                    cursor: 'pointer'
+                                                                }}
+                                                                onClick={() => generateNewCode(group.groupID)}
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </Table>
                                 </Card>
@@ -247,26 +193,23 @@ export default function UserComponent({
                                     style={{
                                         margin: '10px 0 0 0',
                                         float: 'right',
-                                        fontSize: '12px',
+                                        fontSize: '12px'
                                     }}
                                 >
                                     Use{' '}
                                     <Image
                                         src={shuffleImage}
-                                        alt="Icon made by Freepik from www.flaticon.com"
+                                        alt='Icon made by Freepik from www.flaticon.com'
                                         style={{
                                             width: '10px',
-                                            height: '10px',
+                                            height: '10px'
                                         }}
                                     />{' '}
                                     to generate a new class code.
                                 </p>
                             </>
                         ) : (
-                            <Card style={{ alignItems: 'center' }}>
-                                {user.username} currently does not have any
-                                classes.
-                            </Card>
+                            <Card style={{ alignItems: 'center' }}>{user.username} currently does not have any classes.</Card>
                         )
                     ) : null}
                 </ModalBody>

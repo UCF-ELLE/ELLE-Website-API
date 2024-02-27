@@ -16,7 +16,7 @@ import {
     TabContent,
     TabPane,
     NavItem,
-    NavLink,
+    NavLink
 } from 'reactstrap';
 import axios from 'axios';
 import '@/public/static/css/style.css';
@@ -56,8 +56,8 @@ export default function UserList({}: {}) {
             url: '/elleapi/users',
             method: 'GET',
             headers: {
-                Authorization: 'Bearer ' + user?.jwt,
-            },
+                Authorization: 'Bearer ' + user?.jwt
+            }
         },
         { manual: true }
     );
@@ -101,11 +101,11 @@ export default function UserList({}: {}) {
     const elevateUser = (group: PermissionGroup) => {
         const data = {
             userID: selectedUser?.value,
-            accessLevel: group,
+            accessLevel: group
         };
 
         const headers = {
-            Authorization: 'Bearer ' + user?.jwt,
+            Authorization: 'Bearer ' + user?.jwt
         };
 
         axios
@@ -132,15 +132,11 @@ export default function UserList({}: {}) {
                     width: 44.5,
                     justifyContent: 'center',
                     alignItems: 'center',
-                    alignSelf: 'center',
+                    alignSelf: 'center'
                 }}
                 onClick={() => toggleElevateModal()}
             >
-                <Image
-                    src={plusImage}
-                    alt="Icon made by srip from www.flaticon.com"
-                    style={{ width: '15px', height: '15px' }}
-                />
+                <Image src={plusImage} alt='Icon made by srip from www.flaticon.com' style={{ width: '15px', height: '15px' }} />
             </Button>
         );
         if (group === 'su') {
@@ -166,12 +162,7 @@ export default function UserList({}: {}) {
 
         if (userList) {
             filteredUsers = userList.filter((user) => {
-                if (user)
-                    return (
-                        user.username
-                            .toLowerCase()
-                            .indexOf(search.toLowerCase()) !== -1
-                    );
+                if (user) return user.username.toLowerCase().indexOf(search.toLowerCase()) !== -1;
                 else return null;
             });
         }
@@ -182,19 +173,9 @@ export default function UserList({}: {}) {
                     <Col sm={searchLength}>
                         <InputGroup style={{ borderRadius: '8px' }}>
                             <div style={{ margin: '10px' }}>
-                                <Image
-                                    src={searchImage}
-                                    alt="Icon made by Freepik from www.flaticon.com"
-                                    style={{ width: '20px', height: '20px' }}
-                                />
+                                <Image src={searchImage} alt='Icon made by Freepik from www.flaticon.com' style={{ width: '20px', height: '20px' }} />
                             </div>
-                            <Input
-                                style={{ border: 'none' }}
-                                type="text"
-                                placeholder="Search"
-                                value={search}
-                                onChange={updateSearch}
-                            />
+                            <Input style={{ border: 'none' }} type='text' placeholder='Search' value={search} onChange={updateSearch} />
                         </InputGroup>
                     </Col>
                     {addButton}
@@ -203,36 +184,22 @@ export default function UserList({}: {}) {
 
                 {students && professors && superAdmins ? (
                     userList.length !== 0 ? (
-                        <Table hover className="userListTable">
+                        <Table hover className='userListTable'>
                             <thead>
                                 <tr>
-                                    <th style={{ borderTopLeftRadius: '8px' }}>
-                                        ID
-                                    </th>
+                                    <th style={{ borderTopLeftRadius: '8px' }}>ID</th>
                                     <th>Username</th>
-                                    <th
-                                        style={{ borderTopRightRadius: '8px' }}
-                                    ></th>
+                                    <th style={{ borderTopRightRadius: '8px' }}></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredUsers ? (
                                     filteredUsers.map((user) => {
-                                        return (
-                                            <UserComponent
-                                                key={user.userID}
-                                                user={user}
-                                                type="su"
-                                                group={group}
-                                                getUsers={getUsers}
-                                            />
-                                        );
+                                        return <UserComponent key={user.userID} user={user} type='su' group={group} getUsers={getUsers} />;
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan={3}>
-                                            {search} cannot be found.
-                                        </td>
+                                        <td colSpan={3}>{search} cannot be found.</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -241,17 +208,17 @@ export default function UserList({}: {}) {
                         <Card>
                             <CardBody>
                                 <Row>
-                                    <Col xs="1">
+                                    <Col xs='1'>
                                         <Image
                                             style={{
                                                 width: '25px',
-                                                height: '25px',
+                                                height: '25px'
                                             }}
                                             alt={'exclamation'}
                                             src={exclamationImage}
                                         />
                                     </Col>
-                                    <Col xs="10" style={{ padding: '0px' }}>
+                                    <Col xs='10' style={{ padding: '0px' }}>
                                         {group === 'su'
                                             ? 'There are no other super admins.'
                                             : group === 'pf'
@@ -265,39 +232,26 @@ export default function UserList({}: {}) {
                 ) : (
                     <Spinner chart={'userList'} />
                 )}
-                <Modal
-                    isOpen={elevateModalOpen}
-                    toggle={() => toggleElevateModal()}
-                    backdrop={true}
-                >
-                    <ModalHeader toggle={() => toggleElevateModal()}>
-                        Modify Permission
-                    </ModalHeader>
+                <Modal isOpen={elevateModalOpen} toggle={() => toggleElevateModal()} backdrop={true}>
+                    <ModalHeader toggle={() => toggleElevateModal()}>Modify Permission</ModalHeader>
                     <ModalBody>
-                        Select a user to promote them to{' '}
-                        {currentGroup === 'su' ? 'super admin' : 'professor'}{' '}
-                        privileges:
+                        Select a user to promote them to {currentGroup === 'su' ? 'super admin' : 'professor'} privileges:
                         <Select
-                            name="nonAdminList"
+                            name='nonAdminList'
                             options={nonAdminList}
-                            className="basic-single"
-                            classNamePrefix="select"
+                            className='basic-single'
+                            classNamePrefix='select'
                             isClearable={true}
                             value={selectedUser}
                             onChange={(e) => {
                                 setSelectedUser({
                                     label: e?.label as string,
-                                    value: e?.value as string,
+                                    value: e?.value as string
                                 });
                             }}
                         />
                         <br />
-                        <Button
-                            block
-                            onClick={() =>
-                                elevateUser(currentGroup as PermissionGroup)
-                            }
-                        >
+                        <Button block onClick={() => elevateUser(currentGroup as PermissionGroup)}>
                             Elevate
                         </Button>
                     </ModalBody>
@@ -328,23 +282,19 @@ export default function UserList({}: {}) {
     return (
         <Layout requireUser>
             <div>
-                <Container className="user-list mainContainer">
+                <Container className='user-list mainContainer'>
                     <br></br>
                     <br></br>
                     <div>
                         <h3>List of Users</h3>
-                        <Nav justified pills id="userList">
+                        <Nav justified pills id='userList'>
                             <Row style={{ width: '100%' }}>
                                 <Col sm={4}>
-                                    <Container className="userListTabs">
+                                    <Container className='userListTabs'>
                                         <NavItem>
                                             <NavLink
-                                                active={
-                                                    activeTab === 'superAdmins'
-                                                }
-                                                onClick={() =>
-                                                    resetVal('superAdmins')
-                                                }
+                                                active={activeTab === 'superAdmins'}
+                                                onClick={() => resetVal('superAdmins')}
                                                 style={{ cursor: 'pointer' }}
                                             >
                                                 Super Admins
@@ -352,12 +302,8 @@ export default function UserList({}: {}) {
                                         </NavItem>
                                         <NavItem>
                                             <NavLink
-                                                active={
-                                                    activeTab === 'professors'
-                                                }
-                                                onClick={() =>
-                                                    resetVal('professors')
-                                                }
+                                                active={activeTab === 'professors'}
+                                                onClick={() => resetVal('professors')}
                                                 style={{ cursor: 'pointer' }}
                                             >
                                                 Professors
@@ -365,12 +311,8 @@ export default function UserList({}: {}) {
                                         </NavItem>
                                         <NavItem>
                                             <NavLink
-                                                active={
-                                                    activeTab === 'students'
-                                                }
-                                                onClick={() =>
-                                                    resetVal('students')
-                                                }
+                                                active={activeTab === 'students'}
+                                                onClick={() => resetVal('students')}
                                                 style={{ cursor: 'pointer' }}
                                             >
                                                 Students
@@ -380,15 +322,9 @@ export default function UserList({}: {}) {
                                 </Col>
                                 <Col sm={8}>
                                     <TabContent activeTab={activeTab}>
-                                        <TabPane tabId={'superAdmins'}>
-                                            {renderUserTable('su')}
-                                        </TabPane>
-                                        <TabPane tabId={'professors'}>
-                                            {renderUserTable('pf')}
-                                        </TabPane>
-                                        <TabPane tabId={'students'}>
-                                            {renderUserTable('st')}
-                                        </TabPane>
+                                        <TabPane tabId={'superAdmins'}>{renderUserTable('su')}</TabPane>
+                                        <TabPane tabId={'professors'}>{renderUserTable('pf')}</TabPane>
+                                        <TabPane tabId={'students'}>{renderUserTable('st')}</TabPane>
                                     </TabContent>
                                 </Col>
                             </Row>

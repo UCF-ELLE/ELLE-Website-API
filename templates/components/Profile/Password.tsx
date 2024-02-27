@@ -1,20 +1,5 @@
 import React, { ChangeEvent, useState } from 'react';
-import {
-    Button,
-    Tooltip,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    Row,
-    Col,
-    Card,
-    Form,
-    FormGroup,
-    Label,
-    InputGroup,
-    Input,
-    FormFeedback,
-} from 'reactstrap';
+import { Button, Tooltip, Modal, ModalHeader, ModalBody, Row, Col, Card, Form, FormGroup, Label, InputGroup, Input, FormFeedback } from 'reactstrap';
 import axios from 'axios';
 import passwordImage from '@/public/static/images/password.png';
 import hidePasswordImage from '@/public/static/images/hide.png';
@@ -26,7 +11,7 @@ import { useUser } from '@/hooks/useUser';
 export default function Password({
     userType,
     email,
-    editEmail,
+    editEmail
 }: {
     userType: string;
     email?: string;
@@ -46,10 +31,7 @@ export default function Password({
     const validatePassword = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.name === 'newPassword') {
             setNewPassword(e.target.value);
-            if (
-                (e.target.value.length === 0 && confirmPassword.length === 0) ||
-                (e.target.value.length > 0 && confirmPassword.length === 0)
-            ) {
+            if ((e.target.value.length === 0 && confirmPassword.length === 0) || (e.target.value.length > 0 && confirmPassword.length === 0)) {
                 setValidConfirm(false);
                 setInvalidConfirm(false);
             } else if (e.target.value.localeCompare(confirmPassword) === 0) {
@@ -90,11 +72,11 @@ export default function Password({
         // });
 
         const data = {
-            password: newPassword,
+            password: newPassword
         };
 
         const header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -107,9 +89,7 @@ export default function Password({
             });
     };
 
-    const togglePWPrivacy = (
-        e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-    ) => {
+    const togglePWPrivacy = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         if (e.currentTarget.name === 'hiddenPassword') {
             setHiddenPassword(!hiddenPassword);
         } else {
@@ -136,11 +116,11 @@ export default function Password({
 
     const saveEmail = () => {
         const data = {
-            newEmail: email,
+            newEmail: email
         };
 
         const header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -163,27 +143,18 @@ export default function Password({
             ) : (
                 <>
                     <Button
-                        id="changeSettings"
+                        id='changeSettings'
                         style={{
                             backgroundColor: 'aliceblue',
                             float: 'right',
                             border: 'none',
-                            borderRadius: '0 3px 3px 0',
+                            borderRadius: '0 3px 3px 0'
                         }}
                         onClick={() => toggleModal()}
                     >
-                        <Image
-                            src={passwordImage}
-                            alt="Password"
-                            style={{ width: '15px', height: '15px' }}
-                        />
+                        <Image src={passwordImage} alt='Password' style={{ width: '15px', height: '15px' }} />
                     </Button>
-                    <Tooltip
-                        placement="top"
-                        isOpen={tooltipOpen}
-                        target="changeSettings"
-                        toggle={() => setTooltipOpen(!tooltipOpen)}
-                    >
+                    <Tooltip placement='top' isOpen={tooltipOpen} target='changeSettings' toggle={() => setTooltipOpen(!tooltipOpen)}>
                         Click to Configure Settings
                     </Tooltip>
                 </>
@@ -196,24 +167,20 @@ export default function Password({
                     <Card style={{ padding: '10px' }}>
                         <Label style={{ fontSize: '12px' }}>Email:</Label>
                         <Row>
-                            <Col xs="10" style={{ paddingRight: '0px' }}>
+                            <Col xs='10' style={{ paddingRight: '0px' }}>
                                 <Input
                                     disabled={isEditingEmail ? false : true}
-                                    placeholder="No email is associated with this account"
-                                    name="email"
+                                    placeholder='No email is associated with this account'
+                                    name='email'
                                     value={email}
                                     onChange={(e) => onChangeEmail(e)}
                                 />
                             </Col>
-                            <Col xs="2" style={{ paddingLeft: '10px' }}>
+                            <Col xs='2' style={{ paddingLeft: '10px' }}>
                                 {isEditingEmail ? (
-                                    <Button onClick={() => saveEmail()}>
-                                        Save
-                                    </Button>
+                                    <Button onClick={() => saveEmail()}>Save</Button>
                                 ) : (
-                                    <Button onClick={() => toggleEditBtn()}>
-                                        Edit
-                                    </Button>
+                                    <Button onClick={() => toggleEditBtn()}>Edit</Button>
                                 )}
                             </Col>
                         </Row>
@@ -223,18 +190,14 @@ export default function Password({
                     <Card style={{ padding: '10px' }}>
                         <Form>
                             <FormGroup>
-                                <Label style={{ fontSize: '12px' }}>
-                                    New Password:
-                                </Label>
+                                <Label style={{ fontSize: '12px' }}>New Password:</Label>
                                 <InputGroup>
                                     <Input
-                                        type={
-                                            hiddenPassword ? 'password' : 'text'
-                                        }
-                                        name="newPassword"
-                                        id="newPassword"
-                                        placeholder="Enter your new password here."
-                                        autoComplete="new-password"
+                                        type={hiddenPassword ? 'password' : 'text'}
+                                        name='newPassword'
+                                        id='newPassword'
+                                        placeholder='Enter your new password here.'
+                                        autoComplete='new-password'
                                         onChange={(e) => validatePassword(e)}
                                         value={newPassword}
                                     />
@@ -242,27 +205,27 @@ export default function Password({
                                         <Button
                                             style={{
                                                 backgroundColor: 'white',
-                                                border: 'none',
+                                                border: 'none'
                                             }}
-                                            name="hiddenPassword"
+                                            name='hiddenPassword'
                                             onClick={(e) => togglePWPrivacy(e)}
                                         >
                                             {hiddenPassword ? (
                                                 <Image
                                                     src={hidePasswordImage}
-                                                    alt="Icon made by Pixel perfect from www.flaticon.com"
+                                                    alt='Icon made by Pixel perfect from www.flaticon.com'
                                                     style={{
                                                         width: '24px',
-                                                        height: '24px',
+                                                        height: '24px'
                                                     }}
                                                 />
                                             ) : (
                                                 <Image
                                                     src={showPasswordImage}
-                                                    alt="Icon made by Kiranshastry from www.flaticon.com"
+                                                    alt='Icon made by Kiranshastry from www.flaticon.com'
                                                     style={{
                                                         width: '24px',
-                                                        height: '24px',
+                                                        height: '24px'
                                                     }}
                                                 />
                                             )}
@@ -271,20 +234,16 @@ export default function Password({
                                 </InputGroup>
                             </FormGroup>
                             <FormGroup>
-                                <Label style={{ fontSize: '12px' }}>
-                                    Confirm Password:
-                                </Label>
+                                <Label style={{ fontSize: '12px' }}>Confirm Password:</Label>
                                 <InputGroup>
                                     <Input
                                         valid={validConfirm}
                                         invalid={invalidConfirm}
-                                        type={
-                                            hiddenConfirm ? 'password' : 'text'
-                                        }
-                                        name="confirmPassword"
-                                        id="confirmPassword"
-                                        placeholder="Confirm your new password here."
-                                        autoComplete="off"
+                                        type={hiddenConfirm ? 'password' : 'text'}
+                                        name='confirmPassword'
+                                        id='confirmPassword'
+                                        placeholder='Confirm your new password here.'
+                                        autoComplete='off'
                                         onChange={(e) => validatePassword(e)}
                                         value={confirmPassword}
                                     />
@@ -292,50 +251,42 @@ export default function Password({
                                         <Button
                                             style={{
                                                 backgroundColor: 'white',
-                                                border: 'none',
+                                                border: 'none'
                                             }}
-                                            name="hiddenConfirm"
+                                            name='hiddenConfirm'
                                             onClick={(e) => togglePWPrivacy(e)}
                                         >
                                             {hiddenConfirm ? (
                                                 <Image
                                                     src={hidePasswordImage}
-                                                    alt="Icon made by Pixel perfect from www.flaticon.com"
+                                                    alt='Icon made by Pixel perfect from www.flaticon.com'
                                                     style={{
                                                         width: '24px',
-                                                        height: '24px',
+                                                        height: '24px'
                                                     }}
                                                 />
                                             ) : (
                                                 <Image
                                                     src={showPasswordImage}
-                                                    alt="Icon made by Kiranshastry from www.flaticon.com"
+                                                    alt='Icon made by Kiranshastry from www.flaticon.com'
                                                     style={{
                                                         width: '24px',
-                                                        height: '24px',
+                                                        height: '24px'
                                                     }}
                                                 />
                                             )}
                                         </Button>
                                     </div>
-                                    <FormFeedback valid className="feedback">
+                                    <FormFeedback valid className='feedback'>
                                         The passwords match!
                                     </FormFeedback>
-                                    <FormFeedback
-                                        invalid={invalidConfirm.toString()}
-                                        className="feedback"
-                                    >
-                                        The passwords do not match, please try
-                                        again.
+                                    <FormFeedback invalid={invalidConfirm.toString()} className='feedback'>
+                                        The passwords do not match, please try again.
                                     </FormFeedback>
                                 </InputGroup>
                             </FormGroup>
                         </Form>
-                        <Button
-                            disabled={validConfirm ? false : true}
-                            block
-                            onClick={() => submitPassword()}
-                        >
+                        <Button disabled={validConfirm ? false : true} block onClick={() => submitPassword()}>
                             Submit New Password
                         </Button>
                     </Card>

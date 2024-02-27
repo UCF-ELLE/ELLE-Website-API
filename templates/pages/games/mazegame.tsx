@@ -15,18 +15,12 @@ import { useUser } from '@/hooks/useUser';
 function MazeGame() {
     const { user } = useUser();
 
-    const {
-        unityProvider,
-        requestFullscreen,
-        isLoaded,
-        sendMessage,
-        loadingProgression,
-    } = useUnityContext({
+    const { unityProvider, requestFullscreen, isLoaded, sendMessage, loadingProgression } = useUnityContext({
         // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
         loaderUrl: '/games/Maze-Game/Build.loader.js',
         dataUrl: '/games/Maze-Game/Build.data',
         frameworkUrl: '/games/Maze-Game/Build.framework.js',
-        codeUrl: '/games/Maze-Game/Build.wasm',
+        codeUrl: '/games/Maze-Game/Build.wasm'
     });
 
     // Automatically log the user into the Unity Maze Game
@@ -41,15 +35,10 @@ function MazeGame() {
 
     return (
         <Layout requireUser>
-            <div className="downloadsBg mainDiv">
-                <div className="center-contents">
-                    <div
-                        className="webglLoadingStatusBox"
-                        style={{ visibility: isLoaded ? 'hidden' : 'visible' }}
-                    >
-                        <p className="webglLoadingStatusText">
-                            Loading {Math.round(loadingProgression * 100)}%
-                        </p>
+            <div className='downloadsBg mainDiv'>
+                <div className='center-contents'>
+                    <div className='webglLoadingStatusBox' style={{ visibility: isLoaded ? 'hidden' : 'visible' }}>
+                        <p className='webglLoadingStatusText'>Loading {Math.round(loadingProgression * 100)}%</p>
                     </div>
 
                     <Unity
@@ -57,21 +46,17 @@ function MazeGame() {
                         style={{
                             width: '1152px',
                             height: '648px',
-                            visibility: isLoaded ? 'visible' : 'hidden',
+                            visibility: isLoaded ? 'visible' : 'hidden'
                         }}
                     />
                     <br />
                     <br />
-                    <Button
-                        onClick={handleOnClickFullscreen}
-                        style={{ visibility: isLoaded ? 'visible' : 'hidden' }}
-                    >
+                    <Button onClick={handleOnClickFullscreen} style={{ visibility: isLoaded ? 'visible' : 'hidden' }}>
                         Fullscreen
                     </Button>
                 </div>
-                <p className="mazeGame" style={{ color: 'black' }}>
-                    If there are no available modules for you to select, try
-                    logging out and logging back in.
+                <p className='mazeGame' style={{ color: 'black' }}>
+                    If there are no available modules for you to select, try logging out and logging back in.
                 </p>
                 <br />
             </div>

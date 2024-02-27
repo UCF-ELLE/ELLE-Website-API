@@ -18,7 +18,7 @@ export default function Autocomplete({
     createAnswer,
     renderButton,
     suggestions,
-    autoCompleteStyle,
+    autoCompleteStyle
 }: {
     name: string;
     id: string;
@@ -74,9 +74,7 @@ export default function Autocomplete({
 
         // Filter our suggestions that don't contain the user's input
         const filteredSuggestions = suggestions.filter((suggestion) => {
-            suggestion
-                ? suggestion.toLowerCase().indexOf(userInput.toLowerCase()) > -1
-                : null;
+            suggestion ? suggestion.toLowerCase().indexOf(userInput.toLowerCase()) > -1 : null;
         });
         // Update the user input and filtered suggestions, reset the active
         // suggestion and make sure the suggestions are shown
@@ -100,12 +98,10 @@ export default function Autocomplete({
             if (needID === 0) {
                 handleAddAnswer({ answer: e.currentTarget.innerText });
             } else {
-                let index = suggestions.findIndex(
-                    (entry) => entry === e.currentTarget.innerText
-                );
+                let index = suggestions.findIndex((entry) => entry === e.currentTarget.innerText);
                 handleAddAnswer({
                     answer: e.currentTarget.innerText,
-                    answerID: termIDs ? termIDs[index] : 0,
+                    answerID: termIDs ? termIDs[index] : 0
                 });
             }
         }
@@ -128,31 +124,19 @@ export default function Autocomplete({
                     if (needID === 0) {
                         handleAddAnswer({ answer: filteredSuggestions[0] });
                     } else {
-                        let index = suggestions.findIndex(
-                            (entry) => entry === filteredSuggestions[0]
-                        );
+                        let index = suggestions.findIndex((entry) => entry === filteredSuggestions[0]);
                         handleAddAnswer({
                             answer: filteredSuggestions[0],
-                            answerID: termIDs ? termIDs[index] : 0,
+                            answerID: termIDs ? termIDs[index] : 0
                         });
                     }
                 }
             } else if (filteredSuggestions.length > 1) {
                 let tempUserInput = filteredSuggestions[activeSuggestion];
 
-                let tempFilteredSuggestions = suggestions.filter(
-                    (suggestion) => {
-                        return suggestion
-                            ? suggestion
-                                  ?.toLowerCase()
-                                  .indexOf(
-                                      tempUserInput
-                                          ? tempUserInput.toLowerCase()
-                                          : 'undefined'
-                                  ) > -1
-                            : null;
-                    }
-                );
+                let tempFilteredSuggestions = suggestions.filter((suggestion) => {
+                    return suggestion ? suggestion?.toLowerCase().indexOf(tempUserInput ? tempUserInput.toLowerCase() : 'undefined') > -1 : null;
+                });
 
                 setActiveSuggestion(0);
                 setShowSuggestions(true);
@@ -182,7 +166,7 @@ export default function Autocomplete({
     if (showSuggestions && userInput) {
         if (filteredSuggestions.length) {
             suggestionsListComponent = (
-                <ul className="suggestions">
+                <ul className='suggestions'>
                     {filteredSuggestions.map((suggestion, index) => {
                         let className;
 
@@ -192,11 +176,7 @@ export default function Autocomplete({
                         }
 
                         return (
-                            <li
-                                className={className}
-                                key={suggestion}
-                                onClick={onClick}
-                            >
+                            <li className={className} key={suggestion} onClick={onClick}>
                                 {suggestion}
                             </li>
                         );
@@ -205,11 +185,8 @@ export default function Autocomplete({
             );
         } else if (renderButton === true) {
             suggestionsListComponent = (
-                <div className="no-suggestions">
-                    <Button
-                        style={{ backgroundColor: '#004085' }}
-                        onClick={() => handleCreate()}
-                    >
+                <div className='no-suggestions'>
+                    <Button style={{ backgroundColor: '#004085' }} onClick={() => handleCreate()}>
                         Add new {placeholder}
                     </Button>
                 </div>
@@ -220,7 +197,7 @@ export default function Autocomplete({
     return (
         <Fragment>
             <Input
-                type="text"
+                type='text'
                 onChange={onChange}
                 onKeyDown={onKeyDown}
                 value={userInput}
@@ -228,7 +205,7 @@ export default function Autocomplete({
                 name={name}
                 id={id}
                 placeholder={placeholder}
-                autoComplete="off"
+                autoComplete='off'
             />
             {suggestionsListComponent}
         </Fragment>

@@ -22,7 +22,7 @@ export default function GameCode() {
 
     const generateOTC = () => {
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -37,7 +37,7 @@ export default function GameCode() {
 
     return (
         <Layout requireUser>
-            <div className="mainDiv">
+            <div className='mainDiv'>
                 <Row>
                     <Col
                         style={{
@@ -45,43 +45,27 @@ export default function GameCode() {
                             justifyContent: 'center',
                             zIndex: '1',
                             position: 'relative',
-                            top: '300px',
+                            top: '300px'
                         }}
                     >
-                        <Button
-                            className="gameCodeBtn"
-                            id="gameCodeBtn"
-                            onClick={() => toggleModal()}
-                        >
+                        <Button className='gameCodeBtn' id='gameCodeBtn' onClick={() => toggleModal()}>
                             Generate Code
                         </Button>
                     </Col>
-                    <video
-                        width="100%"
-                        height="100%"
-                        style={{ marginTop: '-40px' }}
-                        autoPlay
-                        loop
-                        muted
-                    >
-                        <source
-                            src={'/static/videos/ELLE_blocks.mp4'}
-                            type="video/mp4"
-                        />
+                    <video width='100%' height='100%' style={{ marginTop: '-40px' }} autoPlay loop muted>
+                        <source src={'/static/videos/ELLE_blocks.mp4'} type='video/mp4' />
                     </video>
                 </Row>
 
                 <Modal isOpen={modalOpen} toggle={() => toggleModal()}>
-                    <ModalHeader toggle={() => toggleModal()}>
-                        Your OTC
-                    </ModalHeader>
+                    <ModalHeader toggle={() => toggleModal()}>Your OTC</ModalHeader>
                     <ModalBody>
                         <p
                             style={{
                                 display: 'flex',
                                 justifyContent: 'center',
                                 fontSize: 'xx-large',
-                                fontWeight: '600',
+                                fontWeight: '600'
                             }}
                         >
                             {OTC}

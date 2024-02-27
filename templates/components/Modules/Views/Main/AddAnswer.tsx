@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import {
-    Button,
-    Form,
-    FormGroup,
-    Label,
-    Input,
-    Row,
-    Col,
-    Alert,
-} from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Row, Col, Alert } from 'reactstrap';
 
 import TagList from './TagList';
 import Autocomplete from './Autocomplete';
@@ -21,7 +12,7 @@ export default function AddAnswer({
     allTags,
     addTag,
     deleteTag,
-    initialFront,
+    initialFront
 }: {
     addNewAnswerToList: (event: ModuleQuestionAnswer) => void;
     cancelCreateAnswer: () => void;
@@ -58,7 +49,7 @@ export default function AddAnswer({
                 tags: tags.map((tag) => tag),
                 type: '',
                 gender: 'N',
-                language: 'la',
+                language: 'la'
             });
         } else {
             e.preventDefault();
@@ -89,29 +80,29 @@ export default function AddAnswer({
     return (
         <div>
             <Form onSubmit={(e) => submitTerm(e)}>
-                <input type="hidden" value="prayer" />
+                <input type='hidden' value='prayer' />
 
                 <Alert
                     style={{
                         color: '#004085',
                         backgroundColor: 'lightskyblue',
                         border: 'none',
-                        borderRadius: '0px',
+                        borderRadius: '0px'
                     }}
                 >
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for="back">English Word:</Label>
+                                <Label for='back'>English Word:</Label>
 
                                 <Input
-                                    type="text"
-                                    name="back"
+                                    type='text'
+                                    name='back'
                                     onChange={(e) => setBack(e.target.value)}
                                     value={back}
-                                    id="back"
+                                    id='back'
                                     placeholder={back}
-                                    autoComplete="off"
+                                    autoComplete='off'
                                 />
                             </FormGroup>
                         </Col>
@@ -120,16 +111,16 @@ export default function AddAnswer({
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for="front">Translated Word:</Label>
+                                <Label for='front'>Translated Word:</Label>
 
                                 <Input
-                                    type="text"
-                                    name="front"
+                                    type='text'
+                                    name='front'
                                     onChange={(e) => setFront(e.target.value)}
                                     value={front}
-                                    id="front"
-                                    placeholder="Translated Word"
-                                    autoComplete="off"
+                                    id='front'
+                                    placeholder='Translated Word'
+                                    autoComplete='off'
                                 />
                             </FormGroup>
                         </Col>
@@ -137,11 +128,11 @@ export default function AddAnswer({
 
                     <Row>
                         <Col>
-                            <Label for="tags">Tags:</Label>
+                            <Label for='tags'>Tags:</Label>
 
                             <br />
 
-                            <FormGroup width="50%">
+                            <FormGroup width='50%'>
                                 <Autocomplete
                                     name={'tags'}
                                     id={'tags'}
@@ -154,12 +145,8 @@ export default function AddAnswer({
                             </FormGroup>
 
                             {/*Lists all of the tags on this term, displayed as buttons*/}
-                            <Alert color="warning">
-                                <TagList
-                                    tags={tags}
-                                    handleDeleteTag={handleDeleteTag}
-                                    deletable={true}
-                                />
+                            <Alert color='warning'>
+                                <TagList tags={tags} handleDeleteTag={handleDeleteTag} deletable={true} />
                             </Alert>
                         </Col>
                     </Row>
@@ -169,9 +156,9 @@ export default function AddAnswer({
                             <Button
                                 style={{
                                     backgroundColor: '#004085',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
-                                type="submit"
+                                type='submit'
                                 block
                             >
                                 Create
@@ -179,7 +166,7 @@ export default function AddAnswer({
                             <Button
                                 style={{
                                     backgroundColor: 'steelblue',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
                                 onClick={cancelCreateAnswer}
                                 block

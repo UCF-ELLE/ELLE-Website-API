@@ -5,31 +5,16 @@ import { Question } from '@/types/api/question';
 import { Session } from '@/types/api/sessions';
 import axios from 'axios';
 import React, { useState } from 'react';
-import {
-    Badge,
-    Card,
-    Col,
-    Modal,
-    ModalBody,
-    ModalHeader,
-    Row,
-    Table,
-} from 'reactstrap';
+import { Badge, Card, Col, Modal, ModalBody, ModalHeader, Row, Table } from 'reactstrap';
 
-export default function SessionComponent({
-    sessions,
-}: {
-    sessions: Session[];
-}) {
+export default function SessionComponent({ sessions }: { sessions: Session[] }) {
     const [currentSession, setCurrentSession] = useState<Session>();
     const [loggedAnswers, setLoggedAnswers] = useState<LoggedAnswer[]>([]);
     const [noAnsMsg, setNoAnsMsg] = useState('');
     const [noRespMsg, setNoRespMsg] = useState('');
     const [noQuesMsg, setNoQuesMsg] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
-    const [mentorResponses, setMentorResponses] = useState<StudentResponse[]>(
-        []
-    );
+    const [mentorResponses, setMentorResponses] = useState<StudentResponse[]>([]);
     const [mentorQuestions, setMentorQuestions] = useState<Question[]>([]);
     const [questionID, setQuestionID] = useState('');
     const { user } = useUser();
@@ -65,14 +50,11 @@ export default function SessionComponent({
 
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
-            params: { sessionID: sessionID },
+            params: { sessionID: sessionID }
         };
 
         axios
-            .get<LoggedAnswer[] | { Message: string }>(
-                '/elleapi/loggedanswer',
-                header
-            )
+            .get<LoggedAnswer[] | { Message: string }>('/elleapi/loggedanswer', header)
             .then((res) => {
                 console.log('logged answer: ', res.data);
 
@@ -91,16 +73,13 @@ export default function SessionComponent({
         let header = {
             headers: {
                 Authorization: 'Bearer ' + user?.jwt,
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            params: { session_id: session_id },
+            params: { session_id: session_id }
         };
 
         await axios
-            .get<StudentResponse[] | { Message: string }>(
-                '/elleapi/studentresponses',
-                header
-            )
+            .get<StudentResponse[] | { Message: string }>('/elleapi/studentresponses', header)
             .then((res) => {
                 console.log('mentor responses: ', res.data);
 
@@ -124,14 +103,11 @@ export default function SessionComponent({
 
             let header = {
                 headers: { Authorization: 'Bearer ' + user?.jwt },
-                params: { questionID: questionID },
+                params: { questionID: questionID }
             };
 
             await axios
-                .get<Question | { Message: string }>(
-                    '/elleapi/question',
-                    header
-                )
+                .get<Question | { Message: string }>('/elleapi/question', header)
                 .then((res) => {
                     console.log('mentor response question: ', res.data);
 
@@ -166,10 +142,8 @@ export default function SessionComponent({
     console.log('length: ', loggedAnswers);
     return (
         <div>
-            <Card
-                style={{ border: 'none', height: '56vh', overflow: 'scroll' }}
-            >
-                <Table hover className="minimalisticTable">
+            <Card style={{ border: 'none', height: '56vh', overflow: 'scroll' }}>
+                <Table hover className='minimalisticTable'>
                     <thead>
                         <tr>
                             <th>Session ID</th>
@@ -185,25 +159,16 @@ export default function SessionComponent({
                     <tbody>
                         {sessions.map((session, i) => {
                             return (
-                                <tr
-                                    key={i}
-                                    onClick={() => showLoggedAnswers(session)}
-                                >
+                                <tr key={i} onClick={() => showLoggedAnswers(session)}>
                                     <td>{session.sessionID}</td>
                                     <td>{session.sessionDate}</td>
                                     <td>{session.userID}</td>
                                     <td>{session.playerScore}</td>
                                     <td>
-                                        {session.endTime !== null &&
-                                        session.startTime !== null
+                                        {session.endTime !== null && session.startTime !== null
                                             ? calculateTimeDiff(
-                                                  convertTimetoDecimal(
-                                                      session.startTime ||
-                                                          '0:00'
-                                                  ),
-                                                  convertTimetoDecimal(
-                                                      session.endTime || '0:00'
-                                                  )
+                                                  convertTimetoDecimal(session.startTime || '0:00'),
+                                                  convertTimetoDecimal(session.endTime || '0:00')
                                               ) + ' hrs'
                                             : 'invalid values'}
                                     </td>
@@ -217,26 +182,18 @@ export default function SessionComponent({
                 </Table>
             </Card>
 
-            <Modal size="lg" isOpen={modalOpen} toggle={() => toggleModal()}>
-                <ModalHeader
-                    toggle={() => toggleModal()}
-                    style={{ paddingBottom: '0px' }}
-                >
+            <Modal size='lg' isOpen={modalOpen} toggle={() => toggleModal()}>
+                <ModalHeader toggle={() => toggleModal()} style={{ paddingBottom: '0px' }}>
                     Logged Answers
                     <Row style={{ paddingTop: '10px' }}>
                         <Col>
                             <h6>
-                                <Badge>
-                                    {' '}
-                                    Module ID: {currentSession?.moduleID}
-                                </Badge>
+                                <Badge> Module ID: {currentSession?.moduleID}</Badge>
                             </h6>
                         </Col>
                         <Col>
                             <h6>
-                                <Badge>
-                                    Module Name: {currentSession?.moduleName}
-                                </Badge>
+                                <Badge>Module Name: {currentSession?.moduleName}</Badge>
                             </h6>
                         </Col>
                         <Col>
@@ -250,21 +207,15 @@ export default function SessionComponent({
                     {loggedAnswers.length !== 0 ? (
                         <div>
                             <Row>
-                                <Col style={{ textDecoration: 'underline' }}>
-                                    Term ID
-                                </Col>
-                                <Col style={{ textDecoration: 'underline' }}>
-                                    Term
-                                </Col>
-                                <Col style={{ textDecoration: 'underline' }}>
-                                    Answer
-                                </Col>
+                                <Col style={{ textDecoration: 'underline' }}>Term ID</Col>
+                                <Col style={{ textDecoration: 'underline' }}>Term</Col>
+                                <Col style={{ textDecoration: 'underline' }}>Answer</Col>
                             </Row>
                             <Card
                                 style={{
                                     overflow: 'scroll',
                                     height: '35vh',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
                             >
                                 {loggedAnswers.map((ans, i) => {
@@ -276,15 +227,13 @@ export default function SessionComponent({
                                                 {ans.correct ? (
                                                     <a
                                                         style={{
-                                                            color: 'green',
+                                                            color: 'green'
                                                         }}
                                                     >
                                                         correct
                                                     </a>
                                                 ) : (
-                                                    <a style={{ color: 'red' }}>
-                                                        incorrect
-                                                    </a>
+                                                    <a style={{ color: 'red' }}>incorrect</a>
                                                 )}
                                             </Col>
                                         </Row>
@@ -300,16 +249,8 @@ export default function SessionComponent({
                                     <br />
                                 </Row>
                                 <Row>
-                                    <Col
-                                        style={{ textDecoration: 'underline' }}
-                                    >
-                                        Question
-                                    </Col>
-                                    <Col
-                                        style={{ textDecoration: 'underline' }}
-                                    >
-                                        Response
-                                    </Col>
+                                    <Col style={{ textDecoration: 'underline' }}>Question</Col>
+                                    <Col style={{ textDecoration: 'underline' }}>Response</Col>
                                 </Row>
 
                                 {mentorResponses.length !== 0 ? (
@@ -318,16 +259,12 @@ export default function SessionComponent({
                                         return (
                                             <React.Fragment key={i}>
                                                 <Row>
-                                                    <Col>
-                                                        {question
-                                                            ? question.questionText
-                                                            : ''}
-                                                    </Col>
+                                                    <Col>{question ? question.questionText : ''}</Col>
                                                     <Col>{ans.response}</Col>
                                                 </Row>
                                                 <Row>
                                                     <Col>
-                                                        <div className="my-3 border-bottom"></div>
+                                                        <div className='my-3 border-bottom'></div>
                                                     </Col>
                                                 </Row>
                                             </React.Fragment>

@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-    if (request.nextUrl.pathname.startsWith('/elleapi') || request.nextUrl.pathname.startsWith("/_next")) {
+    if (request.nextUrl.pathname.startsWith('/elleapi') || request.nextUrl.pathname.startsWith('/_next')) {
         return NextResponse.next();
     }
-    const currentUser = request.cookies.get("currentUser")?.value;
+    const currentUser = request.cookies.get('currentUser')?.value;
 
     if (['/login', '/signup'].includes(request.nextUrl.pathname)) {
         if (currentUser) {
@@ -14,9 +14,9 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
     if (!currentUser || Date.now() > JSON.parse(currentUser).expiredAt) {
-        request.cookies.delete("currentUser");
+        request.cookies.delete('currentUser');
         const response = NextResponse.redirect(new URL('/login', request.url));
-        response.cookies.delete("currentUser");
+        response.cookies.delete('currentUser');
 
         return response;
     }
@@ -26,4 +26,4 @@ export function middleware(request: NextRequest) {
 
 export const config = {
     matcher: ['/games/:path+', '/login', '/signup', '/profile']
-}
+};

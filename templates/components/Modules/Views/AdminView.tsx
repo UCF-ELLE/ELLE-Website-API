@@ -11,7 +11,7 @@ export default function AdminView({
     updateCurrentModule,
     deleteModule,
     editModule,
-    unlinkModule,
+    unlinkModule
 }: {
     currentClassView: number;
     modules: Module[];
@@ -27,20 +27,12 @@ export default function AdminView({
         <>
             <Nav>
                 <NavItem>
-                    <NavLink
-                        href="#"
-                        active={activeTab === 0}
-                        onClick={() => setActiveTab(0)}
-                    >
+                    <NavLink href='#' active={activeTab === 0} onClick={() => setActiveTab(0)}>
                         Own
                     </NavLink>
                 </NavItem>
                 <NavItem>
-                    <NavLink
-                        href="#"
-                        active={activeTab === 1}
-                        onClick={() => setActiveTab(1)}
-                    >
+                    <NavLink href='#' active={activeTab === 1} onClick={() => setActiveTab(1)}>
                         Linked
                     </NavLink>
                 </NavItem>
@@ -48,11 +40,11 @@ export default function AdminView({
             <TabContent activeTab={activeTab}>
                 <TabPane tabId={0}>
                     <Card
-                        color="info"
+                        color='info'
                         style={{
                             overflow: 'scroll',
                             height: '60vh',
-                            borderTopLeftRadius: '0px',
+                            borderTopLeftRadius: '0px'
                         }}
                     >
                         {modules
@@ -70,11 +62,11 @@ export default function AdminView({
                 </TabPane>
                 <TabPane tabId={1}>
                     <Card
-                        color="info"
+                        color='info'
                         style={{
                             overflow: 'scroll',
                             height: '60vh',
-                            borderTopLeftRadius: '0px',
+                            borderTopLeftRadius: '0px'
                         }}
                     >
                         {modules

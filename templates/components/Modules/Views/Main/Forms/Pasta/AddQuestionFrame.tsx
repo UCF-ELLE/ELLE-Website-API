@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-    Alert,
-    Badge,
-    Button,
-    Col,
-    Form,
-    FormGroup,
-    Input,
-    Label,
-    Row,
-} from 'reactstrap';
+import { Alert, Badge, Button, Col, Form, FormGroup, Input, Label, Row } from 'reactstrap';
 
 import { useUser } from '@/hooks/useUser';
 import { Module } from '@/types/api/modules';
@@ -22,7 +12,7 @@ export default function AddQuestionFrame({
     curModule,
     questionFrames,
     updateCurrentModule,
-    setOpenForm,
+    setOpenForm
 }: {
     curModule: Module;
     questionFrames: QuestionFrame[];
@@ -35,8 +25,7 @@ export default function AddQuestionFrame({
     const [displayName, setDisplayName] = useState<string>('');
     const [category, setCategory] = useState<string>('');
     const [splitQuestionVar, setSplitQuestionVar] = useState<string>('');
-    const [identityQuestionOut, setIdentityQuestionOut] =
-        useState<boolean>(false);
+    const [identityQuestionOut, setIdentityQuestionOut] = useState<boolean>(false);
     const [identifyQuestionVar, setIdentifyQuestionVar] = useState<string>('');
     const [questionOneOut, setQuestionOneOut] = useState<boolean>(false);
     const [mc1QuestionText, setMc1QuestionText] = useState<string>('');
@@ -61,19 +50,12 @@ export default function AddQuestionFrame({
         let noError = false;
         if (requiredFieldsButtonValidate()) {
             setError(true);
-            setErrMsg(
-                'Please fill out the display name, category, and split question variable.'
-            );
+            setErrMsg('Please fill out the display name, category, and split question variable.');
             noError = true;
         }
-        if (
-            questionFrames.filter((frame) => frame.category === category)
-                .length > 0
-        ) {
+        if (questionFrames.filter((frame) => frame.category === category).length > 0) {
             setError(true);
-            setErrMsg(
-                'A question frame with the same category already exists.'
-            );
+            setErrMsg('A question frame with the same category already exists.');
             noError = true;
         }
         if (identityQuestionOut && identifyQuestionVar === '') {
@@ -81,24 +63,14 @@ export default function AddQuestionFrame({
             setErrMsg('Please fill out the identity question or delete it.');
             noError = true;
         }
-        if (
-            questionOneOut &&
-            (mc1QuestionText === '' || mc1Options.includes(''))
-        ) {
+        if (questionOneOut && (mc1QuestionText === '' || mc1Options.includes(''))) {
             setError(true);
-            setErrMsg(
-                'Please fill out all fields for the multiple choice questions or delete them.'
-            );
+            setErrMsg('Please fill out all fields for the multiple choice questions or delete them.');
             noError = true;
         }
-        if (
-            questionTwoOut &&
-            (mc2QuestionText === '' || mc2Options.includes(''))
-        ) {
+        if (questionTwoOut && (mc2QuestionText === '' || mc2Options.includes(''))) {
             setError(true);
-            setErrMsg(
-                'Please fill out all fields for the multiple choice questions or delete them.'
-            );
+            setErrMsg('Please fill out all fields for the multiple choice questions or delete them.');
             noError = true;
         }
         return noError;
@@ -111,7 +83,7 @@ export default function AddQuestionFrame({
 
         const data = new FormData();
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         data.append('displayName', displayName);
@@ -191,30 +163,28 @@ export default function AddQuestionFrame({
     return (
         <div>
             <Form onSubmit={(e) => submitQuestionFrame(e)}>
-                <input type="hidden" value="prayer" />
-                {error ? <Alert color="danger">{errMsg}</Alert> : null}
+                <input type='hidden' value='prayer' />
+                {error ? <Alert color='danger'>{errMsg}</Alert> : null}
                 <Alert
                     style={{
                         color: '#004085',
                         backgroundColor: 'lightskyblue',
-                        border: 'none',
+                        border: 'none'
                     }}
                 >
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for="displayName">Display Name:</Label>
+                                <Label for='displayName'>Display Name:</Label>
 
                                 <Input
-                                    type="text"
-                                    name="displayName"
-                                    onChange={(e) =>
-                                        setDisplayName(e.target.value)
-                                    }
+                                    type='text'
+                                    name='displayName'
+                                    onChange={(e) => setDisplayName(e.target.value)}
                                     value={displayName}
-                                    id="displayName"
-                                    placeholder="Question Set"
-                                    autoComplete="off"
+                                    id='displayName'
+                                    placeholder='Question Set'
+                                    autoComplete='off'
                                 />
                             </FormGroup>
                         </Col>
@@ -223,54 +193,43 @@ export default function AddQuestionFrame({
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for="selectCategory">Category:</Label>
+                                <Label for='selectCategory'>Category:</Label>
 
                                 <Input
-                                    type="text"
-                                    name="category"
-                                    onChange={(e) =>
-                                        setCategory(e.target.value)
-                                    }
+                                    type='text'
+                                    name='category'
+                                    onChange={(e) => setCategory(e.target.value)}
                                     value={category}
-                                    id="category"
-                                    placeholder="word"
-                                    autoComplete="off"
+                                    id='category'
+                                    placeholder='word'
+                                    autoComplete='off'
                                 />
                             </FormGroup>
                         </Col>
 
                         <Col>
                             <FormGroup>
-                                <Label for="splitLeadup">Split Leadup:</Label>
+                                <Label for='splitLeadup'>Split Leadup:</Label>
 
                                 <Input
-                                    type="text"
-                                    name="splitLeadup"
-                                    onChange={(e) =>
-                                        setSplitQuestionVar(e.target.value)
-                                    }
+                                    type='text'
+                                    name='splitLeadup'
+                                    onChange={(e) => setSplitQuestionVar(e.target.value)}
                                     value={splitQuestionVar}
-                                    id="splitLeadup"
-                                    placeholder="morphemes"
-                                    autoComplete="off"
+                                    id='splitLeadup'
+                                    placeholder='morphemes'
+                                    autoComplete='off'
                                 />
                             </FormGroup>
                         </Col>
                     </Row>
                     <Row>
                         <Col>
-                            <p className="mb-3">Example Split Question Text:</p>
+                            <p className='mb-3'>Example Split Question Text:</p>
                         </Col>
                         <Col>
-                            Split the{' '}
-                            <Badge>{category !== '' ? category : 'word'}</Badge>{' '}
-                            by its{' '}
-                            <Badge>
-                                {splitQuestionVar !== ''
-                                    ? splitQuestionVar
-                                    : 'morphemes'}
-                            </Badge>
-                            .
+                            Split the <Badge>{category !== '' ? category : 'word'}</Badge> by its{' '}
+                            <Badge>{splitQuestionVar !== '' ? splitQuestionVar : 'morphemes'}</Badge>.
                         </Col>
                     </Row>
                     <IdentityQuestionForm
@@ -286,9 +245,7 @@ export default function AddQuestionFrame({
                         setQuestionText={setMc1QuestionText}
                         answers={mc1Options}
                         setAnswers={setMc1Options}
-                        deleteMultipleChoiceQuestion={() =>
-                            toggleMultipleChoiceQuestion(1)
-                        }
+                        deleteMultipleChoiceQuestion={() => toggleMultipleChoiceQuestion(1)}
                     />
                     <MultipleChoiceQuestionForm
                         isOpen={questionTwoOut}
@@ -296,23 +253,21 @@ export default function AddQuestionFrame({
                         setQuestionText={setMc2QuestionText}
                         answers={mc2Options}
                         setAnswers={setMc2Options}
-                        deleteMultipleChoiceQuestion={() =>
-                            toggleMultipleChoiceQuestion(2)
-                        }
+                        deleteMultipleChoiceQuestion={() => toggleMultipleChoiceQuestion(2)}
                     />
-                    <Row className="mb-3">
+                    <Row className='mb-3'>
                         <Col
                             style={{
                                 display: 'flex',
                                 justifyContent: 'center',
-                                gap: 12,
+                                gap: 12
                             }}
                         >
                             {!identityQuestionOut ? (
                                 <Button
                                     style={{
                                         backgroundColor: 'steelblue',
-                                        border: 'none',
+                                        border: 'none'
                                     }}
                                     onClick={() => toggleIdentityQuestion()}
                                 >
@@ -323,11 +278,9 @@ export default function AddQuestionFrame({
                                 <Button
                                     style={{
                                         backgroundColor: 'steelblue',
-                                        border: 'none',
+                                        border: 'none'
                                     }}
-                                    onClick={() =>
-                                        createMultipleChoiceQuestion()
-                                    }
+                                    onClick={() => createMultipleChoiceQuestion()}
                                 >
                                     Create Multiple Choice Question
                                 </Button>
@@ -339,9 +292,9 @@ export default function AddQuestionFrame({
                             <Button
                                 style={{
                                     backgroundColor: 'rgb(0, 64, 133)',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
-                                type="submit"
+                                type='submit'
                                 block
                                 disabled={requiredFieldsButtonValidate()}
                             >
@@ -350,7 +303,7 @@ export default function AddQuestionFrame({
                             <Button
                                 style={{
                                     backgroundColor: 'steelblue',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
                                 onClick={() => setOpenForm(0)}
                                 block

@@ -1,17 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-    Button,
-    Form,
-    FormGroup,
-    Label,
-    Input,
-    Row,
-    Col,
-    Alert,
-    Modal,
-    ModalHeader,
-    ModalBody,
-} from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Row, Col, Alert, Modal, ModalHeader, ModalBody } from 'reactstrap';
 import axios from 'axios';
 
 import Autocomplete from '../Autocomplete';
@@ -35,7 +23,7 @@ export default function AddQuestion({
     allAnswers,
     currentClass,
     setOpenForm,
-    allAnswersNotInThisModule,
+    allAnswersNotInThisModule
 }: {
     curModule: Module;
     updateCurrentModule: (module: Module, task?: string) => void;
@@ -51,28 +39,17 @@ export default function AddQuestion({
     const [questionText, setQuestionText] = useState('');
     const [front, setFront] = useState('');
     const [answers, setAnswers] = useState<ModuleQuestionAnswer[]>([]);
-    const [newlyCreatedAnswers, setNewlyCreatedAnswers] = useState<
-        ModuleQuestionAnswer[]
-    >([]);
-    const [newlyCreatedAnswersIDArray, setNewlyCreatedAnswersIDArray] =
-        useState([]);
-    const [selectedImgFile, setSelectedImgFile] = useState<File>(
-        new File([], '')
-    );
-    const [selectedAudioFile, setSelectedAudioFile] = useState<File>(
-        new File([], '')
-    );
+    const [newlyCreatedAnswers, setNewlyCreatedAnswers] = useState<ModuleQuestionAnswer[]>([]);
+    const [newlyCreatedAnswersIDArray, setNewlyCreatedAnswersIDArray] = useState([]);
+    const [selectedImgFile, setSelectedImgFile] = useState<File>(new File([], ''));
+    const [selectedAudioFile, setSelectedAudioFile] = useState<File>(new File([], ''));
     const [type, setType] = useState([]);
 
-    const [validAnswersState, setValidAnswersState] = useState<
-        ModuleQuestionAnswer[]
-    >([]);
+    const [validAnswersState, setValidAnswersState] = useState<ModuleQuestionAnswer[]>([]);
     const [prevValidAnswers, setPrevValidAnswers] = useState([]);
 
     const [imgLabel, setImgLabel] = useState('Pick an image for the question');
-    const [audioLabel, setAudioLabel] = useState(
-        'Pick an audio for the question'
-    );
+    const [audioLabel, setAudioLabel] = useState('Pick an audio for the question');
 
     const [submittingAnswer, setSubmittingAnswer] = useState(false);
     const [userCreatedAnswer, setUserCreatedAnswer] = useState('');
@@ -107,10 +84,7 @@ export default function AddQuestion({
         });
 
         tempValidAnswers = tempValidAnswers.filter((answer) => {
-            if (
-                frontArray.indexOf(answer.front) === -1 &&
-                backArray.indexOf(answer.back) === -1
-            ) {
+            if (frontArray.indexOf(answer.front) === -1 && backArray.indexOf(answer.back) === -1) {
                 return true;
             } else {
                 return false;
@@ -196,36 +170,23 @@ export default function AddQuestion({
         setSelectedAudioFile(file);
         setDidUpload(true);
 
-        (document.getElementById('qstAudioFile') as HTMLInputElement).disabled =
-            true;
+        (document.getElementById('qstAudioFile') as HTMLInputElement).disabled = true;
 
         console.log(selectedAudioFile);
     };
 
     //function that sets the image file to the one selected
-    const imgFileChangedHandler = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
+    const imgFileChangedHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
             setSelectedImgFile(event.target.files[0]);
-            setImgLabel(
-                event.target.files[0] === undefined
-                    ? 'Pick an image for the question'
-                    : event.target.files[0].name
-            );
+            setImgLabel(event.target.files[0] === undefined ? 'Pick an image for the question' : event.target.files[0].name);
         }
     };
 
-    const audioFileChangedHandler = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
+    const audioFileChangedHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
             setSelectedAudioFile(event.target.files[0]);
-            setAudioLabel(
-                event.target.files[0] === undefined
-                    ? 'Pick an audio for the question'
-                    : event.target.files[0].name
-            );
+            setAudioLabel(event.target.files[0] === undefined ? 'Pick an audio for the question' : event.target.files[0].name);
         }
     };
 
@@ -234,22 +195,18 @@ export default function AddQuestion({
         if (questionText.length !== 0) {
             let data = new FormData();
             let header = {
-                headers: { Authorization: 'Bearer ' + user?.jwt },
+                headers: { Authorization: 'Bearer ' + user?.jwt }
             };
 
             data.append('questionText', questionText);
             data.append('type', 'LONGFORM');
             data.append('moduleID', curModule.moduleID.toString());
 
-            permissionLevel === 'ta'
-                ? data.append('groupID', currentClass.value.toString())
-                : null;
+            permissionLevel === 'ta' ? data.append('groupID', currentClass.value.toString()) : null;
 
-            if (selectedImgFile.size !== 0)
-                data.append('image', selectedImgFile);
+            if (selectedImgFile.size !== 0) data.append('image', selectedImgFile);
 
-            if (selectedAudioFile.size !== 0)
-                data.append('audio', selectedAudioFile);
+            if (selectedAudioFile.size !== 0) data.append('audio', selectedAudioFile);
 
             data.append(
                 'answers',
@@ -260,16 +217,14 @@ export default function AddQuestion({
                 )
             );
 
-            let NewlyCreatedAnswerJSONList = newlyCreatedAnswers.map(
-                (answer) => {
-                    return {
-                        front: answer.front,
-                        back: answer.back,
-                        language: curModule.language,
-                        tags: answer.tags,
-                    };
-                }
-            );
+            let NewlyCreatedAnswerJSONList = newlyCreatedAnswers.map((answer) => {
+                return {
+                    front: answer.front,
+                    back: answer.back,
+                    language: curModule.language,
+                    tags: answer.tags
+                };
+            });
 
             let stringyAnswerList = JSON.stringify(
                 NewlyCreatedAnswerJSONList.map((entry) => {
@@ -368,37 +323,33 @@ export default function AddQuestion({
         setValidAnswers();
     };
 
-    const filteredAnswers = allAnswersNotInThisModule.filter(
-        (answer) => answer.language === curModule.language
-    );
+    const filteredAnswers = allAnswersNotInThisModule.filter((answer) => answer.language === curModule.language);
 
     return (
         <div>
             <Form onSubmit={(e) => submitQuestion(e)}>
-                <input type="hidden" value="prayer" />
+                <input type='hidden' value='prayer' />
 
                 <Alert
                     style={{
                         color: '#004085',
                         backgroundColor: 'lightskyblue',
-                        border: 'none',
+                        border: 'none'
                     }}
                 >
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for="questionText">Question:</Label>
+                                <Label for='questionText'>Question:</Label>
 
                                 <Input
-                                    type="text"
-                                    name="questionText"
-                                    onChange={(e) =>
-                                        setQuestionText(e.target.value)
-                                    }
+                                    type='text'
+                                    name='questionText'
+                                    onChange={(e) => setQuestionText(e.target.value)}
                                     value={questionText}
-                                    id="questionText"
-                                    placeholder="Question"
-                                    autoComplete="off"
+                                    id='questionText'
+                                    placeholder='Question'
+                                    autoComplete='off'
                                 />
                             </FormGroup>
                         </Col>
@@ -406,20 +357,18 @@ export default function AddQuestion({
 
                     <Row>
                         <Col>
-                            <Label for="answers">Answers:</Label>
+                            <Label for='answers'>Answers:</Label>
 
                             <br />
 
-                            <FormGroup width="200%">
+                            <FormGroup width='200%'>
                                 <Typeahead
-                                    id="answers"
-                                    labelKey="front"
+                                    id='answers'
+                                    labelKey='front'
                                     multiple
-                                    onChange={(e) =>
-                                        setAnswers(e as ModuleQuestionAnswer[])
-                                    }
+                                    onChange={(e) => setAnswers(e as ModuleQuestionAnswer[])}
                                     options={filteredAnswers}
-                                    placeholder="Choose answers..."
+                                    placeholder='Choose answers...'
                                     selected={answers}
                                 />
                             </FormGroup>
@@ -427,30 +376,22 @@ export default function AddQuestion({
 
                         <Col>
                             <br />
-                            <Button onClick={toggleSearchByTagForm}>
-                                Search By Tag
-                            </Button>
+                            <Button onClick={toggleSearchByTagForm}>Search By Tag</Button>
                         </Col>
                     </Row>
 
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for="qstImgFile">Image:</Label>
+                                <Label for='qstImgFile'>Image:</Label>
 
-                                <Input
-                                    type="file"
-                                    accept=".png, .jpg, .jpeg"
-                                    id="qstImgFile"
-                                    label={imgLabel}
-                                    onChange={imgFileChangedHandler}
-                                />
+                                <Input type='file' accept='.png, .jpg, .jpeg' id='qstImgFile' label={imgLabel} onChange={imgFileChangedHandler} />
                             </FormGroup>
                         </Col>
 
                         <Col>
                             <FormGroup>
-                                <Label for="qstAudioFile">Audio:</Label>
+                                <Label for='qstAudioFile'>Audio:</Label>
 
                                 <br></br>
                                 <div
@@ -458,39 +399,39 @@ export default function AddQuestion({
                                         paddingBottom: '5px',
                                         display: 'flex',
                                         justifyContent: 'center',
-                                        alignItems: 'center',
+                                        alignItems: 'center'
                                     }}
                                 >
                                     <button
-                                        type="button"
+                                        type='button'
                                         onClick={start}
                                         disabled={isRecording}
                                         style={{
                                             border: 'none',
-                                            margin: '5px',
+                                            margin: '5px'
                                         }}
                                     >
                                         Record
                                     </button>
                                     <button
-                                        type="button"
+                                        type='button'
                                         onClick={stop}
                                         disabled={!isRecording}
                                         style={{
                                             border: 'none',
-                                            margin: '5px',
+                                            margin: '5px'
                                         }}
                                     >
                                         Stop
                                     </button>
 
                                     <button
-                                        type="button"
+                                        type='button'
                                         onClick={upload}
                                         disabled={disable}
                                         style={{
                                             border: 'none',
-                                            margin: '5px',
+                                            margin: '5px'
                                         }}
                                     >
                                         Upload
@@ -505,11 +446,10 @@ export default function AddQuestion({
                                             display: 'flex',
                                             justifyContent: 'center',
                                             alignItems: 'center',
-                                            fontSize: '12px',
+                                            fontSize: '12px'
                                         }}
                                     >
-                                        Successfully uploaded recorded audio
-                                        file!
+                                        Successfully uploaded recorded audio file!
                                     </div>
                                 ) : (
                                     ''
@@ -520,16 +460,16 @@ export default function AddQuestion({
                                         paddingBottom: '5px',
                                         display: 'flex',
                                         justifyContent: 'center',
-                                        alignItems: 'center',
+                                        alignItems: 'center'
                                     }}
                                 >
                                     <audio src={blobURL} controls={true} />
                                 </div>
 
                                 <Input
-                                    type="file"
-                                    accept=".ogg, .wav, .mp3"
-                                    id="qstAudioFile"
+                                    type='file'
+                                    accept='.ogg, .wav, .mp3'
+                                    id='qstAudioFile'
                                     label={audioLabel}
                                     onChange={audioFileChangedHandler}
                                 />
@@ -542,9 +482,9 @@ export default function AddQuestion({
                             <Button
                                 style={{
                                     backgroundColor: '#004085',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
-                                type="submit"
+                                type='submit'
                                 block
                             >
                                 Create
@@ -552,7 +492,7 @@ export default function AddQuestion({
                             <Button
                                 style={{
                                     backgroundColor: 'steelblue',
-                                    border: 'none',
+                                    border: 'none'
                                 }}
                                 onClick={() => setOpenForm(0)}
                                 block
@@ -580,9 +520,7 @@ export default function AddQuestion({
             </Modal>
 
             <Modal isOpen={searchingByTag}>
-                <ModalHeader toggle={toggleSearchByTagForm}>
-                    Search By Tag
-                </ModalHeader>
+                <ModalHeader toggle={toggleSearchByTagForm}>Search By Tag</ModalHeader>
                 <ModalBody style={{ padding: '0px' }}>
                     <SearchAnswersByTag
                         curModule={curModule}

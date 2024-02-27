@@ -6,7 +6,7 @@ import AnswerButton from './AnswerButton';
 export default function AnswerButtonList({
     answers,
     handleDeleteAnswer,
-    deletable,
+    deletable
 }: {
     answers: string[];
     handleDeleteAnswer: (event: { answer: string }) => void;
@@ -17,14 +17,7 @@ export default function AnswerButtonList({
         let list = [];
 
         for (let i = 0; i < answers.length; i++) {
-            list.push(
-                <AnswerButton
-                    answer={answers[i]}
-                    key={i}
-                    handleDeleteAnswer={handleDeleteAnswer}
-                    deletable={deletable}
-                />
-            );
+            list.push(<AnswerButton answer={answers[i]} key={i} handleDeleteAnswer={handleDeleteAnswer} deletable={deletable} />);
         }
 
         return list;

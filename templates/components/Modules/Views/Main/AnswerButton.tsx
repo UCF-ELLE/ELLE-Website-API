@@ -4,7 +4,7 @@ import { Button } from 'reactstrap';
 export default function AnswerButton({
     answer,
     handleDeleteAnswer,
-    deletable,
+    deletable
 }: {
     answer: string;
     handleDeleteAnswer: (event: { answer: string }) => void;
@@ -20,7 +20,7 @@ export default function AnswerButton({
             return {
                 margin: '3px',
                 border: '1px solid black',
-                backgroundColor: 'red',
+                backgroundColor: 'red'
             };
         }
     };
@@ -28,7 +28,7 @@ export default function AnswerButton({
         <div>
             <Button
                 style={setStyle()}
-                color="secondary"
+                color='secondary'
                 onClick={() => {
                     handleDeleteAnswer({ answer: answer });
                 }}
@@ -40,7 +40,7 @@ export default function AnswerButton({
         </div>
     ) : (
         <div>
-            <Button style={setStyle()} color="secondary">
+            <Button style={setStyle()} color='secondary'>
                 {answer}
             </Button>{' '}
         </div>

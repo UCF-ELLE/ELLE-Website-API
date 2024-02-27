@@ -1,25 +1,10 @@
 import { useUser } from '@/hooks/useUser';
-import {
-    MentorQuestionFrequency,
-    MentorQuestion as MentorQuestionType,
-} from '@/types/api/mentors';
-import {
-    Module,
-    ModuleQuestion,
-    ModuleQuestionAnswer,
-} from '@/types/api/modules';
+import { MentorQuestionFrequency, MentorQuestion as MentorQuestionType } from '@/types/api/mentors';
+import { Module, ModuleQuestion, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';
 import axios from 'axios';
 import { useMemo, useState } from 'react';
-import {
-    Alert,
-    Button,
-    Form,
-    FormGroup,
-    Input,
-    Label,
-    Table,
-} from 'reactstrap';
+import { Alert, Button, Form, FormGroup, Input, Label, Table } from 'reactstrap';
 import MentorQuestion from './MentorQuestion';
 import Phrase from './Phrase';
 import Question from './Question';
@@ -36,7 +21,7 @@ export default function CardList({
     allTags,
     allAnswers,
     frequency,
-    mentorQuestions,
+    mentorQuestions
 }: {
     type: string;
     cards: ModuleQuestion[] | ModuleQuestionAnswer[];
@@ -52,15 +37,9 @@ export default function CardList({
 }) {
     const { user } = useUser();
     const permissionLevel = user?.permissionGroup;
-    const [freq, setFreq] = useState(
-        frequency[0]?.incorrectCardsFreq ? frequency[0].incorrectCardsFreq : -1
-    );
-    const [cfreq, setcFreq] = useState(
-        frequency[0]?.correctCardsFreq ? frequency[0].correctCardsFreq : -1
-    );
-    const [tfreq, settFreq] = useState(
-        frequency[0]?.time ? frequency[0].time : -1
-    );
+    const [freq, setFreq] = useState(frequency[0]?.incorrectCardsFreq ? frequency[0].incorrectCardsFreq : -1);
+    const [cfreq, setcFreq] = useState(frequency[0]?.correctCardsFreq ? frequency[0].correctCardsFreq : -1);
+    const [tfreq, settFreq] = useState(frequency[0]?.time ? frequency[0].time : -1);
     const [moduleid, setModuleid] = useState(curModule.moduleID);
 
     const removeDuplicates = () => {
@@ -92,11 +71,11 @@ export default function CardList({
             numIncorrectCards: parseInt(e.currentTarget.frequency.value),
             numCorrectCards: parseInt(e.currentTarget.cfrequency.value),
             time: parseInt(e.currentTarget.tfrequency.value),
-            module_id: curModule.moduleID,
+            module_id: curModule.moduleID
         };
 
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -111,11 +90,11 @@ export default function CardList({
 
     const updateModuleFrequency = (moduleid: number) => {
         let data = {
-            module_id: moduleid,
+            module_id: moduleid
         };
 
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -126,10 +105,7 @@ export default function CardList({
                 settFreq(res.data[0].time);
             })
             .catch((error) => {
-                console.log(
-                    'getmentorquestionfrequency error: ',
-                    error.response
-                );
+                console.log('getmentorquestionfrequency error: ', error.response);
             });
     };
 
@@ -145,9 +121,7 @@ export default function CardList({
                             <th style={{ width: '12%' }}>Gender</th>
                             <th style={{ width: '12%' }}>Picture</th>
                             <th style={{ width: '12%' }}>Audio</th>
-                            {permissionLevel !== 'st' ? (
-                                <th style={{ width: '32%' }}> </th>
-                            ) : null}
+                            {permissionLevel !== 'st' ? <th style={{ width: '32%' }}> </th> : null}
                         </tr>
                     </thead>
                 );
@@ -156,14 +130,10 @@ export default function CardList({
                     <thead>
                         <tr>
                             <th style={{ width: '32%' }}>Phrase (English)</th>
-                            <th style={{ width: '32%' }}>
-                                Phrase (Translated)
-                            </th>
+                            <th style={{ width: '32%' }}>Phrase (Translated)</th>
                             <th style={{ width: '12%' }}>Picture</th>
                             <th style={{ width: '12%' }}>Audio</th>
-                            {permissionLevel !== 'st' ? (
-                                <th style={{ width: '32%' }}> </th>
-                            ) : null}
+                            {permissionLevel !== 'st' ? <th style={{ width: '32%' }}> </th> : null}
                         </tr>
                     </thead>
                 );
@@ -173,9 +143,7 @@ export default function CardList({
                         <th style={{ width: '64%' }}>Question</th>
                         <th style={{ width: '9%' }}>Picture</th>
                         <th style={{ width: '9%' }}>Audio</th>
-                        {permissionLevel !== 'st' ? (
-                            <th style={{ width: '9%' }}> </th>
-                        ) : null}
+                        {permissionLevel !== 'st' ? <th style={{ width: '9%' }}> </th> : null}
                     </tr>
                 </thead>;
             default:
@@ -258,7 +226,7 @@ function TermCardList({
     deleteTag,
     addTag,
     allTags,
-    HeadRow,
+    HeadRow
 }: {
     list: ModuleQuestionAnswer[];
     len: number;
@@ -275,7 +243,7 @@ function TermCardList({
             {len === 0 ? (
                 <Alert> There are currently no terms in this module. </Alert>
             ) : (
-                <Table hover className="tableList">
+                <Table hover className='tableList'>
                     {HeadRow}
                     <tbody>
                         {(list as ModuleQuestionAnswer[]).map((card) => {
@@ -305,7 +273,7 @@ function PhraseCardList({
     currentClass,
     curModule,
     updateCurrentModule,
-    HeadRow,
+    HeadRow
 }: {
     list: ModuleQuestionAnswer[];
     len: number;
@@ -319,7 +287,7 @@ function PhraseCardList({
             {len === 0 ? (
                 <Alert> There are currently no phrases in this module. </Alert>
             ) : (
-                <Table hover className="tableList">
+                <Table hover className='tableList'>
                     {HeadRow}
                     <tbody>
                         {(list as ModuleQuestionAnswer[]).map((card) => {
@@ -350,7 +318,7 @@ function QuestionCardList({
     addTag,
     allTags,
     allAnswers,
-    HeadRow,
+    HeadRow
 }: {
     cards: ModuleQuestion[];
     list: ModuleQuestion[];
@@ -366,12 +334,9 @@ function QuestionCardList({
     return (
         <div>
             {cards.length === 0 ? (
-                <Alert>
-                    {' '}
-                    There are currently no questions in this module.{' '}
-                </Alert>
+                <Alert> There are currently no questions in this module. </Alert>
             ) : (
-                <Table hover className="tableList">
+                <Table hover className='tableList'>
                     {HeadRow}
                     <tbody>
                         {list.map((card) => {
@@ -384,9 +349,7 @@ function QuestionCardList({
                                     updateCurrentModule={updateCurrentModule}
                                     deleteTag={deleteTag}
                                     addTag={addTag}
-                                    allAnswers={
-                                        allAnswers as ModuleQuestionAnswer[]
-                                    }
+                                    allAnswers={allAnswers as ModuleQuestionAnswer[]}
                                     allTags={allTags}
                                 />
                             );
@@ -409,7 +372,7 @@ function MentorQuestionCardList({
     tfreq,
     settFreq,
     updateMentorFrequency,
-    permissionLevel,
+    permissionLevel
 }: {
     mentorQuestions: MentorQuestionType[];
     curModule: Module;
@@ -426,125 +389,106 @@ function MentorQuestionCardList({
     return (
         <div>
             {mentorQuestions?.length === 0 ? (
-                <Alert>
-                    {' '}
-                    There are currently no mentor questions in this module.{' '}
-                </Alert>
+                <Alert> There are currently no mentor questions in this module. </Alert>
             ) : (
                 <div>
                     <br />
                     <h3>Mentor Question Frequency</h3>
                     <br />
                     <Form onSubmit={(e) => updateMentorFrequency(e)}>
-                        <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-                            <Label for="cfrequency" className="mr-sm-2">
+                        <FormGroup className='mb-2 mr-sm-2 mb-sm-0'>
+                            <Label for='cfrequency' className='mr-sm-2'>
                                 <b>Every X cards correctly matched:</b>
                             </Label>
                             {cfreq <= 0 ? (
                                 <Input
                                     invalid
-                                    placeholder="Enter a number"
-                                    type="number"
-                                    min="1"
-                                    name="cfrequency"
-                                    id="cfrequency"
+                                    placeholder='Enter a number'
+                                    type='number'
+                                    min='1'
+                                    name='cfrequency'
+                                    id='cfrequency'
                                     value={cfreq || 1}
-                                    onChange={(e) =>
-                                        setcFreq(parseInt(e.target.value))
-                                    }
+                                    onChange={(e) => setcFreq(parseInt(e.target.value))}
                                 />
                             ) : (
                                 <Input
-                                    type="number"
-                                    min="1"
-                                    name="cfrequency"
-                                    id="cfrequency"
+                                    type='number'
+                                    min='1'
+                                    name='cfrequency'
+                                    id='cfrequency'
                                     value={cfreq || 1}
-                                    onChange={(e) =>
-                                        setcFreq(parseInt(e.target.value))
-                                    }
+                                    onChange={(e) => setcFreq(parseInt(e.target.value))}
                                 />
                             )}
                         </FormGroup>
                         <br />
-                        <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-                            <Label for="frequency" className="mr-sm-2">
+                        <FormGroup className='mb-2 mr-sm-2 mb-sm-0'>
+                            <Label for='frequency' className='mr-sm-2'>
                                 <b>Every X cards incorrectly matched:</b>
                             </Label>
                             {freq <= 0 ? (
                                 <Input
                                     invalid
-                                    placeholder="Enter a number"
-                                    type="number"
-                                    min="1"
-                                    name="frequency"
-                                    id="frequency"
+                                    placeholder='Enter a number'
+                                    type='number'
+                                    min='1'
+                                    name='frequency'
+                                    id='frequency'
                                     value={freq || 1}
-                                    onChange={(e) =>
-                                        setFreq(parseInt(e.target.value))
-                                    }
+                                    onChange={(e) => setFreq(parseInt(e.target.value))}
                                 />
                             ) : (
                                 <Input
-                                    type="number"
-                                    min="1"
-                                    name="frequency"
-                                    id="frequency"
+                                    type='number'
+                                    min='1'
+                                    name='frequency'
+                                    id='frequency'
                                     value={freq || 1}
-                                    onChange={(e) =>
-                                        setFreq(parseInt(e.target.value))
-                                    }
+                                    onChange={(e) => setFreq(parseInt(e.target.value))}
                                 />
                             )}
                         </FormGroup>
                         <br />
-                        <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-                            <Label for="tfrequency" className="mr-sm-2">
+                        <FormGroup className='mb-2 mr-sm-2 mb-sm-0'>
+                            <Label for='tfrequency' className='mr-sm-2'>
                                 <b>Every X seconds:</b>
                             </Label>
                             {tfreq <= 0 ? (
                                 <Input
                                     invalid
-                                    placeholder="Enter a number"
-                                    type="number"
-                                    min="1"
-                                    name="tfrequency"
-                                    id="tfrequency"
+                                    placeholder='Enter a number'
+                                    type='number'
+                                    min='1'
+                                    name='tfrequency'
+                                    id='tfrequency'
                                     value={tfreq || 1}
-                                    onChange={(e) =>
-                                        settFreq(parseInt(e.target.value))
-                                    }
+                                    onChange={(e) => settFreq(parseInt(e.target.value))}
                                 />
                             ) : (
                                 <Input
-                                    type="number"
-                                    min="1"
-                                    name="tfrequency"
-                                    id="tfrequency"
+                                    type='number'
+                                    min='1'
+                                    name='tfrequency'
+                                    id='tfrequency'
                                     value={tfreq || 1}
-                                    onChange={(e) =>
-                                        settFreq(parseInt(e.target.value))
-                                    }
+                                    onChange={(e) => settFreq(parseInt(e.target.value))}
                                 />
                             )}
                         </FormGroup>
                         <br />
                         {cfreq <= 0 || freq <= 0 || tfreq <= 0 ? (
-                            <Button disabled>
-                                Submit (fields must be greater than 0){' '}
-                            </Button>
+                            <Button disabled>Submit (fields must be greater than 0) </Button>
                         ) : (
                             <Button>Submit</Button>
                         )}
                     </Form>
                     <br />
-                    <Table hover className="tableList">
+                    <Table hover className='tableList'>
                         <thead>
                             <tr>
                                 <th style={{ width: '64%' }}>Question</th>
-                                {permissionLevel !== 'st' ? (
-                                    <th style={{ width: '9%' }}> </th>
-                                ) : null}
+                                {permissionLevel !== 'st' ? <th style={{ width: '9%' }}> </th> : null}
                             </tr>
                         </thead>
                         <tbody>
@@ -554,9 +498,7 @@ function MentorQuestionCardList({
                                         key={question.questionID}
                                         question={question}
                                         curModule={curModule}
-                                        updateCurrentModule={
-                                            updateCurrentModule
-                                        }
+                                        updateCurrentModule={updateCurrentModule}
                                     />
                                 );
                             })}

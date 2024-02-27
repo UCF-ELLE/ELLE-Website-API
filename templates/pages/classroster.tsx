@@ -16,7 +16,7 @@ import {
     NavItem,
     NavLink,
     TabContent,
-    TabPane,
+    TabPane
 } from 'reactstrap';
 import Select from 'react-select';
 import axios from 'axios';
@@ -51,7 +51,7 @@ export default function ClassRoster() {
     const getGroups = useCallback(() => {
         axios
             .get<UserGroup[]>('/elleapi/searchusergroups', {
-                headers: { Authorization: 'Bearer ' + user?.jwt },
+                headers: { Authorization: 'Bearer ' + user?.jwt }
             })
             .then((res) => {
                 setGroups(res.data);
@@ -79,11 +79,11 @@ export default function ClassRoster() {
         const data = {
             userID: selectedUser?.value,
             accessLevel: group,
-            groupID: selectedClass?.value,
+            groupID: selectedClass?.value
         };
 
         const headers = {
-            Authorization: 'Bearer ' + user?.jwt,
+            Authorization: 'Bearer ' + user?.jwt
         };
 
         axios
@@ -116,15 +116,8 @@ export default function ClassRoster() {
         let searchLength = 11;
         let addButton = (
             <Col sm={1} style={{ paddingLeft: '5px' }}>
-                <Button
-                    style={{ borderRadius: '30px' }}
-                    onClick={() => toggleElevateModal()}
-                >
-                    <Image
-                        src={plusImage}
-                        alt="Icon made by srip from www.flaticon.com"
-                        style={{ width: '15px', height: '15px' }}
-                    />
+                <Button style={{ borderRadius: '30px' }} onClick={() => toggleElevateModal()}>
+                    <Image src={plusImage} alt='Icon made by srip from www.flaticon.com' style={{ width: '15px', height: '15px' }} />
                 </Button>
             </Col>
         );
@@ -139,7 +132,7 @@ export default function ClassRoster() {
                     groupColor: classColors[i],
                     group_users: group.group_users.filter((user) => {
                         return user.accessLevel === 'ta';
-                    }),
+                    })
                 });
             });
         } else {
@@ -150,7 +143,7 @@ export default function ClassRoster() {
                     groupColor: classColors[i],
                     group_users: group.group_users.filter((user) => {
                         return user.accessLevel === 'st';
-                    }),
+                    })
                 });
             });
             searchLength = 12;
@@ -165,7 +158,7 @@ export default function ClassRoster() {
                               userID: user.userID,
                               username: user.username,
                               groupID: group.groupID,
-                              groupName: group.groupName,
+                              groupName: group.groupName
                           })
                         : null
                 )
@@ -173,10 +166,7 @@ export default function ClassRoster() {
         }
 
         let filteredClass = classes.filter((group) => {
-            return (
-                group.groupName.toLowerCase().indexOf(search.toLowerCase()) !==
-                -1
-            );
+            return group.groupName.toLowerCase().indexOf(search.toLowerCase()) !== -1;
         });
 
         return (
@@ -185,19 +175,9 @@ export default function ClassRoster() {
                     <Col sm={searchLength}>
                         <InputGroup style={{ borderRadius: '8px' }}>
                             <div style={{ margin: '10px' }}>
-                                <Image
-                                    src={searchImage}
-                                    alt="Icon made by Freepik from www.flaticon.com"
-                                    style={{ width: '20px', height: '20px' }}
-                                />
+                                <Image src={searchImage} alt='Icon made by Freepik from www.flaticon.com' style={{ width: '20px', height: '20px' }} />
                             </div>
-                            <Input
-                                style={{ border: 'none' }}
-                                type="text"
-                                placeholder="Search for a class"
-                                value={search}
-                                onChange={updateSearch}
-                            />
+                            <Input style={{ border: 'none' }} type='text' placeholder='Search for a class' value={search} onChange={updateSearch} />
                         </InputGroup>
                     </Col>
                     {addButton}
@@ -206,74 +186,50 @@ export default function ClassRoster() {
                 {filteredClass.map((group, i) => {
                     return (
                         <Card key={i} style={{ marginBottom: '1rem' }}>
-                            <CardHeader
-                                onClick={(e) => toggleTab(e)}
-                                data-event={i}
-                                style={{ backgroundColor: group.groupColor }}
-                            >
+                            <CardHeader onClick={(e) => toggleTab(e)} data-event={i} style={{ backgroundColor: group.groupColor }}>
                                 {group.groupName}
                             </CardHeader>
 
-                            <Collapse
-                                isOpen={collapseTab === i}
-                                style={{ border: 'none' }}
-                            >
-                                <Class
-                                    group={group}
-                                    currentGroup={currentGroup}
-                                />
+                            <Collapse isOpen={collapseTab === i} style={{ border: 'none' }}>
+                                <Class group={group} currentGroup={currentGroup} />
                             </Collapse>
                         </Card>
                     );
                 })}
-                <Modal
-                    isOpen={elevateModalOpen}
-                    toggle={() => toggleElevateModal()}
-                    backdrop={true}
-                >
-                    <ModalHeader toggle={() => toggleElevateModal()}>
-                        Modify Permission
-                    </ModalHeader>
+                <Modal isOpen={elevateModalOpen} toggle={() => toggleElevateModal()} backdrop={true}>
+                    <ModalHeader toggle={() => toggleElevateModal()}>Modify Permission</ModalHeader>
                     <ModalBody>
                         Class:
                         <Select
-                            name="class"
+                            name='class'
                             options={classOptions}
-                            className="basic-single"
-                            classNamePrefix="select"
+                            className='basic-single'
+                            classNamePrefix='select'
                             isClearable={true}
                             value={selectedClass}
-                            onChange={(change) =>
-                                setSelectedClass(change || undefined)
-                            }
+                            onChange={(change) => setSelectedClass(change || undefined)}
                         />
                         Select a student to promote them to TA privileges:
                         <Select
                             isDisabled={selectedClass === null ? true : false}
-                            name="nonTAList"
+                            name='nonTAList'
                             options={
                                 selectedClass === null
                                     ? []
                                     : students
-                                          .filter(
-                                              (student) =>
-                                                  student.groupID.toString() ===
-                                                  selectedClass?.value
-                                          )
+                                          .filter((student) => student.groupID.toString() === selectedClass?.value)
                                           .map((user) => {
                                               return {
                                                   value: user.userID.toString(),
-                                                  label: user.username,
+                                                  label: user.username
                                               };
                                           })
                             }
-                            className="basic-single"
-                            classNamePrefix="select"
+                            className='basic-single'
+                            classNamePrefix='select'
                             isClearable={true}
                             value={selectedUser}
-                            onChange={(change) =>
-                                setSelectedUser(change || undefined)
-                            }
+                            onChange={(change) => setSelectedUser(change || undefined)}
                         />
                         <br />
                         <Button block onClick={() => elevateUser('ta')}>
@@ -294,12 +250,7 @@ export default function ClassRoster() {
     };
 
     const getColors = () => {
-        let possibleColors = [
-            '#a5d5f6',
-            'cornflowerblue',
-            '#57baca',
-            '#48a5b7',
-        ];
+        let possibleColors = ['#a5d5f6', 'cornflowerblue', '#57baca', '#48a5b7'];
 
         let colorList = [];
         let index = 0;
@@ -332,34 +283,26 @@ export default function ClassRoster() {
     return (
         <Layout requireUser>
             <div>
-                <Container className="user-list mainContainer">
+                <Container className='user-list mainContainer'>
                     <br></br>
                     <br></br>
                     <div>
                         <h3>Class Roster</h3>
-                        <Nav id="userList">
+                        <Nav id='userList'>
                             <Row>
                                 <Col sm={4}>
-                                    <Container className="userListTabs">
+                                    <Container className='userListTabs'>
                                         <NavItem>
                                             <NavLink
-                                                active={
-                                                    activeTab === 'students'
-                                                }
-                                                onClick={() =>
-                                                    resetVal('students')
-                                                }
+                                                active={activeTab === 'students'}
+                                                onClick={() => resetVal('students')}
                                                 style={{ cursor: 'pointer' }}
                                             >
                                                 Students
                                             </NavLink>
                                         </NavItem>
                                         <NavItem>
-                                            <NavLink
-                                                active={activeTab === 'tas'}
-                                                onClick={() => resetVal('tas')}
-                                                style={{ cursor: 'pointer' }}
-                                            >
+                                            <NavLink active={activeTab === 'tas'} onClick={() => resetVal('tas')} style={{ cursor: 'pointer' }}>
                                                 TAs
                                             </NavLink>
                                         </NavItem>
@@ -367,12 +310,8 @@ export default function ClassRoster() {
                                 </Col>
                                 <Col sm={8}>
                                     <TabContent activeTab={activeTab}>
-                                        <TabPane tabId={'students'}>
-                                            {renderUserTable('st')}
-                                        </TabPane>
-                                        <TabPane tabId={'tas'}>
-                                            {renderUserTable('ta')}
-                                        </TabPane>
+                                        <TabPane tabId={'students'}>{renderUserTable('st')}</TabPane>
+                                        <TabPane tabId={'tas'}>{renderUserTable('ta')}</TabPane>
                                     </TabContent>
                                 </Col>
                             </Row>

@@ -8,5 +8,4 @@ export type UserGroup = DBGroup & {
 };
 
 // GET /elleapi/usersingroup
-export type GroupUser = Pick<DBUser, 'userID' | 'username'> &
-    Pick<DBGroupUser, 'accessLevel'>;
+export type GroupUser = Pick<DBUser, 'userID' | 'username'> & Pick<DBGroupUser, 'accessLevel'>;

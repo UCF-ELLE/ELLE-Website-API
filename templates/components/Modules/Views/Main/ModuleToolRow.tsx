@@ -7,7 +7,7 @@ import ImportTerms from '../../ImportTerms';
 export default function ModuleToolRow({
     curModule,
     updateCurrentModule,
-    currentClass,
+    currentClass
 }: {
     curModule: Module | undefined;
     updateCurrentModule: (module?: Module, task?: string) => void;
@@ -19,21 +19,17 @@ export default function ModuleToolRow({
     return (
         <Row style={{ marginBottom: '8px' }}>
             <Col>
-                <Badge pill color="info" style={{ color: '#fff' }}>
+                <Badge pill color='info' style={{ color: '#fff' }}>
                     Module ID: {curModule?.moduleID}
                 </Badge>{' '}
-                <Badge pill color="info" style={{ color: '#fff' }}>
+                <Badge pill color='info' style={{ color: '#fff' }}>
                     Language: {curModule?.language}
                 </Badge>
             </Col>
             {permissionLevel !== 'st' ? (
                 <Col style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Manual />
-                    <ImportTerms
-                        module={curModule}
-                        updateCurrentModule={updateCurrentModule}
-                        currentClass={currentClass}
-                    />
+                    <ImportTerms module={curModule} updateCurrentModule={updateCurrentModule} currentClass={currentClass} />
                 </Col>
             ) : null}
         </Row>

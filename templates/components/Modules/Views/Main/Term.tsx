@@ -1,16 +1,5 @@
 import React, { Fragment, useEffect, useState } from 'react';
-import {
-    Alert,
-    Button,
-    ButtonGroup,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Collapse,
-    Input,
-    Tooltip,
-} from 'reactstrap';
+import { Alert, Button, ButtonGroup, Modal, ModalHeader, ModalBody, ModalFooter, Collapse, Input, Tooltip } from 'reactstrap';
 import axios from 'axios';
 
 import TagList from './TagList';
@@ -36,7 +25,7 @@ export default function Term({
     updateCurrentModule,
     curModule,
     addTag,
-    allTags,
+    allTags
 }: {
     card: ModuleQuestionAnswer;
     currentClass: { value: number; label: string };
@@ -52,17 +41,11 @@ export default function Term({
     const [editMode, setEditMode] = useState(false);
     const [editedFront, setEditedFront] = useState(card.front);
     const [editedBack, setEditedBack] = useState(card.back);
-    const [editedType, setEditedType] = useState(
-        card.type === null ? '' : card.type
-    );
-    const [editedGender, setEditedGender] = useState(
-        card.gender === null ? '' : card.gender
-    );
+    const [editedType, setEditedType] = useState(card.type === null ? '' : card.type);
+    const [editedGender, setEditedGender] = useState(card.gender === null ? '' : card.gender);
     const [collapseTags, setCollapseTags] = useState(false);
     const [selectedImgFile, setSelectedImgFile] = useState(card.imageLocation);
-    const [selectedAudioFile, setSelectedAudioFile] = useState(
-        card.audioLocation
-    );
+    const [selectedAudioFile, setSelectedAudioFile] = useState(card.audioLocation);
     const [changedImage, setChangedImage] = useState(false);
     const [changedAudio, setChangedAudio] = useState(false);
     const [tags, setTags] = useState<Tag[]>([]);
@@ -77,8 +60,8 @@ export default function Term({
             let config = {
                 headers: { Authorization: 'Bearer ' + user?.jwt },
                 params: {
-                    termID: card.termID,
-                },
+                    termID: card.termID
+                }
             };
 
             axios
@@ -117,38 +100,24 @@ export default function Term({
     };
 
     //function that inputs image when user uploads a new image to the card
-    const imgFileSelectedHandler = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        setSelectedImgFile(
-            event.currentTarget.files
-                ? event.currentTarget.files[0].toString()
-                : undefined
-        );
+    const imgFileSelectedHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedImgFile(event.currentTarget.files ? event.currentTarget.files[0].toString() : undefined);
         setChangedImage(true);
     };
 
     //function that inputs audio when user uploads new audio to the card
-    const audioFileSelectedHandler = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        setSelectedAudioFile(
-            event.currentTarget.files
-                ? event.currentTarget.files[0].toString()
-                : undefined
-        );
+    const audioFileSelectedHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedAudioFile(event.currentTarget.files ? event.currentTarget.files[0].toString() : undefined);
         setChangedAudio(true);
     };
 
     //function that submits all of the edited data put on a card
-    const submitEdit = (
-        event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-    ) => {
+    const submitEdit = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         setEditMode(false);
 
         const data = new FormData();
         let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         if (changedImage && selectedImgFile !== undefined) {
@@ -163,8 +132,7 @@ export default function Term({
         editedBack && data.append('back', editedBack);
         card.language && data.append('language', card.language); //not editable
 
-        if (permissionLevel === 'ta')
-            data.append('groupID', currentClass.value.toString());
+        if (permissionLevel === 'ta') data.append('groupID', currentClass.value.toString());
 
         //map through all the tags and make a tag field object for them
         tags.map((label) => {
@@ -184,8 +152,8 @@ export default function Term({
                 let config = {
                     headers: { Authorization: 'Bearer ' + user?.jwt },
                     params: {
-                        termID: card.termID,
-                    },
+                        termID: card.termID
+                    }
                 };
 
                 axios
@@ -216,9 +184,9 @@ export default function Term({
         let header = {
             data: {
                 termID: card.termID,
-                groupID: permissionLevel === 'ta' ? currentClass.value : null,
+                groupID: permissionLevel === 'ta' ? currentClass.value : null
             },
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         };
 
         axios
@@ -277,63 +245,42 @@ export default function Term({
                     <td>{editedGender}</td>
                     <td style={{ textAlign: 'center' }}>
                         {/* Add disabled attribute to disable button if no image file found */}
-                        <Button
-                            className={`image-btn ${imgButtonClass}`}
-                            href={imgLink}
-                            download
-                            disabled={disableImgButton}
-                        >
-                            <Image
-                                src={imageImage}
-                                alt="frame icon"
-                                style={{ width: '25px', height: '25px' }}
-                            />
+                        <Button className={`image-btn ${imgButtonClass}`} href={imgLink} download disabled={disableImgButton}>
+                            <Image src={imageImage} alt='frame icon' style={{ width: '25px', height: '25px' }} />
                         </Button>
                     </td>
                     <td style={{ textAlign: 'center' }}>
                         {/* Add disabled attribute to disable button if no audio file found */}
-                        <Button
-                            className={`audio-btn ${audioButtonClass}`}
-                            href={audioLink}
-                            download
-                            disabled={disableAudioButton}
-                        >
-                            <Image
-                                src={headphonesImage}
-                                alt="headphones icon"
-                                style={{ width: '25px', height: '25px' }}
-                            />
+                        <Button className={`audio-btn ${audioButtonClass}`} href={audioLink} download disabled={disableAudioButton}>
+                            <Image src={headphonesImage} alt='headphones icon' style={{ width: '25px', height: '25px' }} />
                         </Button>
                     </td>
 
                     {permissionLevel !== 'st' ? (
                         <td>
                             <ButtonGroup>
-                                <Button
-                                    style={{ backgroundColor: 'lightcyan' }}
-                                    onClick={() => editCard()}
-                                >
+                                <Button style={{ backgroundColor: 'lightcyan' }} onClick={() => editCard()}>
                                     <Image
                                         src={toolsImage}
-                                        alt="edit icon"
+                                        alt='edit icon'
                                         style={{
                                             width: '25px',
-                                            height: '25px',
+                                            height: '25px'
                                         }}
                                     />
                                 </Button>
                                 <Button
                                     style={{
-                                        backgroundColor: 'lightcoral',
+                                        backgroundColor: 'lightcoral'
                                     }}
                                     onClick={handleDelete}
                                 >
                                     <Image
                                         src={deleteImage}
-                                        alt="trash can icon"
+                                        alt='trash can icon'
                                         style={{
                                             width: '25px',
-                                            height: '25px',
+                                            height: '25px'
                                         }}
                                     />
                                 </Button>
@@ -342,30 +289,18 @@ export default function Term({
                     ) : null}
 
                     <Modal isOpen={modal} toggle={() => setModal(!modal)}>
-                        <ModalHeader toggle={() => setModal(!modal)}>
-                            Delete
-                        </ModalHeader>
+                        <ModalHeader toggle={() => setModal(!modal)}>Delete</ModalHeader>
 
                         <ModalBody>
-                            <Alert color="primary">
-                                Deleting this term will remove it from all the
-                                users who are currently using this module as
-                                well.
+                            <Alert color='primary'>
+                                Deleting this term will remove it from all the users who are currently using this module as well.
                             </Alert>
-                            <p style={{ paddingLeft: '20px' }}>
-                                Are you sure you want to delete the term:{' '}
-                                {editedFront}?
-                            </p>
+                            <p style={{ paddingLeft: '20px' }}>Are you sure you want to delete the term: {editedFront}?</p>
                         </ModalBody>
 
                         <ModalFooter>
-                            <Button onClick={() => setModal(!modal)}>
-                                Cancel
-                            </Button>
-                            <Button
-                                color="danger"
-                                onClick={(e) => deleteCard(e)}
-                            >
+                            <Button onClick={() => setModal(!modal)}>Cancel</Button>
+                            <Button color='danger' onClick={(e) => deleteCard(e)}>
                                 Delete
                             </Button>
                         </ModalFooter>
@@ -376,16 +311,12 @@ export default function Term({
                     <td
                         style={{
                             border: 'none',
-                            padding: 0,
+                            padding: 0
                         }}
                         colSpan={8}
                     >
                         <Collapse isOpen={collapseTags}>
-                            <TagList
-                                tags={tags}
-                                handleDeleteTag={handleDeleteTag}
-                                deletable={false}
-                            />
+                            <TagList tags={tags} handleDeleteTag={handleDeleteTag} deletable={false} />
                         </Collapse>
                     </td>
                 </tr>
@@ -396,82 +327,61 @@ export default function Term({
             <Fragment>
                 <tr>
                     <td>
-                        <Input
-                            type="text"
-                            name="editedBack"
-                            onChange={(e) => setEditedBack(e.target.value)}
-                            value={editedBack}
-                        />
+                        <Input type='text' name='editedBack' onChange={(e) => setEditedBack(e.target.value)} value={editedBack} />
                     </td>
 
                     <td>
-                        <Input
-                            type="text"
-                            name="editedFront"
-                            onChange={(e) => setEditedFront(e.target.value)}
-                            value={editedFront}
-                        />
+                        <Input type='text' name='editedFront' onChange={(e) => setEditedFront(e.target.value)} value={editedFront} />
                     </td>
 
                     <td>
-                        <Input
-                            type="select"
-                            name="select"
-                            id="selectType"
-                            value={editedType}
-                            onChange={(e) => setEditedType(e.target.value)}
-                        >
-                            <option value="">Select</option>
-                            <option value="NN">NN (Noun)</option>
-                            <option value="VR">VR (Verb)</option>
-                            <option value="AJ">AJ (Adjective)+</option>
-                            <option value="AV">AV (Adverb)</option>
+                        <Input type='select' name='select' id='selectType' value={editedType} onChange={(e) => setEditedType(e.target.value)}>
+                            <option value=''>Select</option>
+                            <option value='NN'>NN (Noun)</option>
+                            <option value='VR'>VR (Verb)</option>
+                            <option value='AJ'>AJ (Adjective)+</option>
+                            <option value='AV'>AV (Adverb)</option>
                         </Input>
                     </td>
 
                     <td>
                         <Input
-                            type="select"
-                            name="editedGender"
-                            id="selectGender"
+                            type='select'
+                            name='editedGender'
+                            id='selectGender'
                             value={editedGender}
                             onChange={(e) => setEditedGender(e.target.value)}
                         >
-                            <option value="">Select</option>
-                            <option value="M">MA (Male)</option>
-                            <option value="F">FE (Female)</option>
-                            <option value="N">NA (Nongendered)</option>
+                            <option value=''>Select</option>
+                            <option value='M'>MA (Male)</option>
+                            <option value='F'>FE (Female)</option>
+                            <option value='N'>NA (Nongendered)</option>
                         </Input>
                     </td>
 
                     <td>
                         <input
                             style={{ display: 'none' }}
-                            type="file"
+                            type='file'
                             onChange={(e) => imgFileSelectedHandler(e)}
-                            accept=".png, .jpg, .jpeg"
+                            accept='.png, .jpg, .jpeg'
                             ref={(ref) => (imgInput = ref)}
                         />
                         <Button
                             style={{
                                 backgroundColor: 'lightseagreen',
-                                width: '100%',
+                                width: '100%'
                             }}
-                            id="uploadImage"
+                            id='uploadImage'
                             onClick={() => imgInput?.click()}
                         >
                             <Image
                                 src={uploadImage}
-                                alt="Icon made by Pixel perfect from www.flaticon.com"
+                                alt='Icon made by Pixel perfect from www.flaticon.com'
                                 style={{ width: '25px', height: '25px' }}
                             />
                         </Button>
-                        <Tooltip
-                            placement="top"
-                            isOpen={imgTooltipOpen}
-                            target="uploadImage"
-                            toggle={() => setImgTooltipOpen(!imgTooltipOpen)}
-                        >
+                        <Tooltip placement='top' isOpen={imgTooltipOpen} target='uploadImage' toggle={() => setImgTooltipOpen(!imgTooltipOpen)}>
                             Upload Image
                         </Tooltip>
                     </td>
@@ -479,62 +389,45 @@ export default function Term({
                     <td>
                         <input
                             style={{ display: 'none' }}
-                            type="file"
+                            type='file'
                             onChange={(e) => audioFileSelectedHandler(e)}
-                            accept=".ogg, .wav, .mp3"
+                            accept='.ogg, .wav, .mp3'
                             ref={(ref) => (audioInput = ref)}
                         />
                         <Button
                             style={{
                                 backgroundColor: 'lightseagreen',
-                                width: '100%',
+                                width: '100%'
                             }}
-                            id="uploadAudio"
+                            id='uploadAudio'
                             onClick={() => audioInput?.click()}
                         >
-                            <Image
-                                src={uploadAudioImage}
-                                alt="Icon made by Srip from www.flaticon.com"
-                                style={{ width: '25px', height: '25px' }}
-                            />
+                            <Image src={uploadAudioImage} alt='Icon made by Srip from www.flaticon.com' style={{ width: '25px', height: '25px' }} />
                         </Button>
-                        <Tooltip
-                            placement="top"
-                            isOpen={audioTooltipOpen}
-                            target="uploadAudio"
-                            toggle={() =>
-                                setAudioTooltipOpen(!audioTooltipOpen)
-                            }
-                        >
+                        <Tooltip placement='top' isOpen={audioTooltipOpen} target='uploadAudio' toggle={() => setAudioTooltipOpen(!audioTooltipOpen)}>
                             Upload Audio
                         </Tooltip>
                     </td>
 
                     <td>
                         <ButtonGroup>
-                            <Button
-                                style={{ backgroundColor: 'lightcyan' }}
-                                onClick={(e) => submitEdit(e)}
-                            >
+                            <Button style={{ backgroundColor: 'lightcyan' }} onClick={(e) => submitEdit(e)}>
                                 <Image
                                     src={submitImage}
-                                    alt="Icon made by Becris from www.flaticon.com"
+                                    alt='Icon made by Becris from www.flaticon.com'
                                     style={{
                                         width: '25px',
-                                        height: '25px',
+                                        height: '25px'
                                     }}
                                 />
                             </Button>
-                            <Button
-                                style={{ backgroundColor: 'lightcyan' }}
-                                onClick={() => handleCancelEdit()}
-                            >
+                            <Button style={{ backgroundColor: 'lightcyan' }} onClick={() => handleCancelEdit()}>
                                 <Image
                                     src={cancelImage}
-                                    alt="Icon made by Freepik from www.flaticon.com"
+                                    alt='Icon made by Freepik from www.flaticon.com'
                                     style={{
                                         width: '25px',
-                                        height: '25px',
+                                        height: '25px'
                                     }}
                                 />
                             </Button>
@@ -545,11 +438,7 @@ export default function Term({
                 {tags && (
                     <tr>
                         <td style={{ border: 'none' }} colSpan={8}>
-                            <TagList
-                                tags={tags}
-                                handleDeleteTag={handleDeleteTag}
-                                deletable={true}
-                            />
+                            <TagList tags={tags} handleDeleteTag={handleDeleteTag} deletable={true} />
                             Add Tag:
                             <Autocomplete
                                 name={'tags'}

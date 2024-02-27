@@ -9,7 +9,7 @@ export default function SuperAdminView({
     modules,
     updateCurrentModule,
     deleteModule,
-    editModule,
+    editModule
 }: {
     modules: Module[];
     updateCurrentModule: (module?: Module, task?: string) => void;
@@ -23,20 +23,12 @@ export default function SuperAdminView({
         <>
             <Nav tabs>
                 <NavItem>
-                    <NavLink
-                        active={activeTab === 0}
-                        onClick={() => setActiveTab(0)}
-                        style={{ cursor: 'pointer' }}
-                    >
+                    <NavLink active={activeTab === 0} onClick={() => setActiveTab(0)} style={{ cursor: 'pointer' }}>
                         Own
                     </NavLink>
                 </NavItem>
                 <NavItem>
-                    <NavLink
-                        active={activeTab === 1}
-                        onClick={() => setActiveTab(1)}
-                        style={{ cursor: 'pointer' }}
-                    >
+                    <NavLink active={activeTab === 1} onClick={() => setActiveTab(1)} style={{ cursor: 'pointer' }}>
                         Linked
                     </NavLink>
                 </NavItem>
@@ -44,11 +36,11 @@ export default function SuperAdminView({
             <TabContent activeTab={activeTab}>
                 <TabPane tabId={0}>
                     <Card
-                        color="info"
+                        color='info'
                         style={{
                             overflow: 'scroll',
                             height: '60vh',
-                            borderTopLeftRadius: '0px',
+                            borderTopLeftRadius: '0px'
                         }}
                     >
                         {modules
@@ -66,11 +58,11 @@ export default function SuperAdminView({
                 </TabPane>
                 <TabPane tabId={1}>
                     <Card
-                        color="info"
+                        color='info'
                         style={{
                             overflow: 'scroll',
                             height: '60vh',
-                            borderTopLeftRadius: '0px',
+                            borderTopLeftRadius: '0px'
                         }}
                     >
                         {modules

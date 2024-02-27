@@ -1,14 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-    Row,
-    Col,
-    Table,
-    Card,
-    Button,
-    Modal,
-    ModalHeader,
-    ModalBody,
-} from 'reactstrap';
+import { Row, Col, Table, Card, Button, Modal, ModalHeader, ModalBody } from 'reactstrap';
 import useAxios from 'axios-hooks';
 import Spinner from '../Loading/Spinner';
 import ThreeDots from '../Loading/ThreeDots';
@@ -35,29 +26,23 @@ export default function ModulePerformance() {
     Chart.register(Tooltip);
     const { user } = useUser();
 
-    const [
-        { data: moduleResponse, loading: moduleLoading, error: moduleError },
-        refetchModuleStats,
-    ] = useAxios<ModulePerformanceType[]>(
+    const [{ data: moduleResponse, loading: moduleLoading, error: moduleError }, refetchModuleStats] = useAxios<ModulePerformanceType[]>(
         {
             method: 'get',
             url: '/elleapi/allmodulestats',
-            headers: { Authorization: 'Bearer ' + user?.jwt },
+            headers: { Authorization: 'Bearer ' + user?.jwt }
         },
         { manual: true }
     );
 
     const [moduleID, setModuleID] = useState<string>('0');
 
-    const [
-        { data: termResponse, loading: termLoading, error: termError },
-        refetchTermStats,
-    ] = useAxios<TermStats[]>(
+    const [{ data: termResponse, loading: termLoading, error: termError }, refetchTermStats] = useAxios<TermStats[]>(
         {
             method: 'get',
             url: '/elleapi/termsperformance',
             headers: { Authorization: 'Bearer ' + user?.jwt },
-            params: { moduleID: moduleID },
+            params: { moduleID: moduleID }
         },
         { manual: true }
     );
@@ -78,14 +63,14 @@ export default function ModulePerformance() {
         // check if response exists and or if loading
         console.log('moduleError', moduleError);
         if (moduleError || moduleLoading || moduleResponse === undefined) {
-            return <Spinner chart="performance" />;
+            return <Spinner chart='performance' />;
         }
 
         const moduleData = moduleResponse;
         console.log('moduleData', moduleData);
 
         return moduleData.length !== 0 ? (
-            <Table className="statsTable">
+            <Table className='statsTable'>
                 <thead>
                     <tr>
                         <th>Module ID</th>
@@ -99,10 +84,7 @@ export default function ModulePerformance() {
                     {moduleData.map((module, i) => {
                         let avgScore = module.averageScore * 100;
                         return (
-                            <tr
-                                key={i}
-                                style={{ color: getRangeColor(avgScore) }}
-                            >
+                            <tr key={i} style={{ color: getRangeColor(avgScore) }}>
                                 <td>{module.moduleID}</td>
                                 <td>{module.name}</td>
                                 <td>{avgScore.toFixed(2)}%</td>
@@ -112,18 +94,16 @@ export default function ModulePerformance() {
                                         style={{
                                             backgroundColor: 'transparent',
                                             border: 'none',
-                                            padding: '0px',
+                                            padding: '0px'
                                         }}
-                                        onClick={() =>
-                                            toggleModal(module.moduleID)
-                                        }
+                                        onClick={() => toggleModal(module.moduleID)}
                                     >
                                         <Image
                                             src={moreRegImage}
-                                            alt="Icon made by xnimrodx from www.flaticon.com"
+                                            alt='Icon made by xnimrodx from www.flaticon.com'
                                             style={{
                                                 width: '20px',
-                                                height: '20px',
+                                                height: '20px'
                                             }}
                                         />
                                     </Button>
@@ -134,9 +114,7 @@ export default function ModulePerformance() {
                 </tbody>
             </Table>
         ) : (
-            <p style={{ margin: '10px 15px' }}>
-                There are currently no records.
-            </p>
+            <p style={{ margin: '10px 15px' }}>There are currently no records.</p>
         );
     };
 
@@ -171,7 +149,7 @@ export default function ModulePerformance() {
     const renderChart = useCallback(() => {
         // check if response exists and or if loading
         if (termError || termLoading || termResponse === undefined) {
-            return <Spinner chart="performance" />;
+            return <Spinner chart='performance' />;
         }
 
         const termData = termResponse;
@@ -188,9 +166,9 @@ export default function ModulePerformance() {
                 {
                     label: 'Correctness (%)',
                     data: terms.map((term) => term.percentage),
-                    backgroundColor: chartColors,
-                },
-            ],
+                    backgroundColor: chartColors
+                }
+            ]
         };
 
         console.log('performanceData', performanceData);
@@ -204,17 +182,17 @@ export default function ModulePerformance() {
                     responsive: true,
                     plugins: {
                         legend: { position: 'top' },
-                        tooltip: { mode: 'index', intersect: false },
+                        tooltip: { mode: 'index', intersect: false }
                     },
                     scales: {
                         y: {
                             min: 0,
                             max: 100,
                             ticks: {
-                                stepSize: 5,
-                            },
-                        },
-                    },
+                                stepSize: 5
+                            }
+                        }
+                    }
                 }}
             />
         ) : (
@@ -235,7 +213,7 @@ export default function ModulePerformance() {
             '#1e91c0',
             '#225ea8',
             '#263494',
-            '#091d58',
+            '#091d58'
         ];
 
         let index = 0;
@@ -258,27 +236,15 @@ export default function ModulePerformance() {
                         color: 'aqua',
                         overflow: 'scroll',
                         height: '45vh',
-                        borderTopLeftRadius: '0px',
+                        borderTopLeftRadius: '0px'
                     }}
                 >
-                    {moduleResponse ? (
-                        renderModulesTable()
-                    ) : (
-                        <Spinner chart="performance" />
-                    )}
+                    {moduleResponse ? renderModulesTable() : <Spinner chart='performance' />}
                 </Card>
 
-                <Modal
-                    isOpen={modalOpen}
-                    toggle={() => setModalOpen(!modalOpen)}
-                    style={{ maxWidth: '40%' }}
-                >
-                    <ModalHeader toggle={() => setModalOpen(!modalOpen)}>
-                        Terms Performance
-                    </ModalHeader>
-                    <ModalBody>
-                        {showTermStats ? renderChart() : <ThreeDots />}
-                    </ModalBody>
+                <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)} style={{ maxWidth: '40%' }}>
+                    <ModalHeader toggle={() => setModalOpen(!modalOpen)}>Terms Performance</ModalHeader>
+                    <ModalBody>{showTermStats ? renderChart() : <ThreeDots />}</ModalBody>
                 </Modal>
             </Col>
         </Row>
