@@ -41,7 +41,6 @@ export default function Pasta({
 
     const [rowCollapse, setRowCollapse] = useState(false);
     const questionFrame = questionFrames.find((qf) => qf.category === editedCategory);
-    if (!questionFrame) return;
 
     const { user, loading } = useUser();
     const permissionLevel = user?.permissionGroup;
@@ -135,6 +134,8 @@ export default function Pasta({
         });
         return result.sort((a, b) => a.value - b.value);
     }, [editedSplitAnswer, pasta.utterance]);
+
+    if (!questionFrame) return;
 
     if (editMode === false) {
         return (
