@@ -17,8 +17,8 @@ export default class AuthService {
     public constructor() {
         this.instance = axios.create({
             headers: {
-                'Content-Type': 'application/json',
-            },
+                'Content-Type': 'application/json'
+            }
         });
     }
 
@@ -26,7 +26,7 @@ export default class AuthService {
         try {
             const res = await this.instance.post('/elleapi/login', {
                 username,
-                password,
+                password
             });
 
             console.log('login response', res.data);
@@ -38,7 +38,7 @@ export default class AuthService {
                 jwt: res.data.access_token,
                 username,
                 userID,
-                permissionGroup: permission,
+                permissionGroup: permission
             } as AuthUser;
         } catch (err: any) {
             if (err.response !== undefined) {
@@ -50,10 +50,7 @@ export default class AuthService {
 
     signup = async (data: UserRegisterInfo): Promise<ApiMessage | ApiError> => {
         try {
-            const res = await this.instance.post<ApiMessage>(
-                '/elleapi/register',
-                data
-            );
+            const res = await this.instance.post<ApiMessage>('/elleapi/register', data);
             return res.data;
         } catch (err) {
             console.log('signup error', err);
@@ -70,23 +67,16 @@ export default class AuthService {
         try {
             const res = await this.instance.get('/elleapi/user', {
                 headers: {
-                    Authorization: 'Bearer ' + jwt,
-                },
+                    Authorization: 'Bearer ' + jwt
+                }
             });
 
             const values: User = {
                 userID: res.data.id,
                 username: res.data.username,
                 email: res.data.email === null ? '' : res.data.email,
-                permissionGroup: res.data.permissionGroup,
+                permissionGroup: res.data.permissionGroup
             };
-
-            // const res2 = await this.instance.get('/elleapi/searchsessions', {
-            //     params: { userID: values.userID },
-            //     headers: { Authorization: 'Bearer ' + jwt },
-            // });
-
-            // values.sessions = res2.data;
 
             return values;
         } catch (err: any) {

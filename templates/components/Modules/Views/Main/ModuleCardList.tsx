@@ -41,10 +41,19 @@ export default function ModuleCardList({
     frequency: Omit<MentorQuestionFrequency, 'moduleID'>[];
 }) {
     const [activeTab, setActiveTab] = useState('terms');
+    const [activePastaTabs, setActivePastaTabs] = useState(['questionFrames']);
 
     const toggleTab = (tab: string) => {
         if (activeTab !== tab) setActiveTab(tab);
         else setActiveTab('');
+    };
+
+    const togglePastaTab = (tab: string) => {
+        if (activePastaTabs.includes(tab)) {
+            setActivePastaTabs(activePastaTabs.filter((t) => t !== tab));
+        } else {
+            setActivePastaTabs([...activePastaTabs, tab]);
+        }
     };
 
     if (curModule?.isPastaModule) {
@@ -52,13 +61,15 @@ export default function ModuleCardList({
             <>
                 <Card style={{ marginBottom: '1rem' }}>
                     <CardHeader
-                        onClick={() => toggleTab('questionFrames')}
+                        onClick={() => togglePastaTab('questionFrames')}
                         data-event={4}
                     >
                         Question Frames
                     </CardHeader>
 
-                    <Collapse isOpen={activeTab === 'questionFrames'}>
+                    <Collapse
+                        isOpen={activePastaTabs.includes('questionFrames')}
+                    >
                         <PastaModuleCardList
                             type={'questionFrames'}
                             questionFrames={questionFrames || []}
@@ -70,13 +81,13 @@ export default function ModuleCardList({
                 </Card>
                 <Card style={{ marginBottom: '1rem' }}>
                     <CardHeader
-                        onClick={() => toggleTab('pastas')}
+                        onClick={() => togglePastaTab('pastas')}
                         data-event={5}
                     >
                         Pastas
                     </CardHeader>
 
-                    <Collapse isOpen={activeTab === 'pastas'}>
+                    <Collapse isOpen={activePastaTabs.includes('pastas')}>
                         <PastaModuleCardList
                             type={'pastas'}
                             questionFrames={questionFrames || []}

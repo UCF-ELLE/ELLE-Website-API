@@ -20,22 +20,24 @@ export default function TermStats({
                 </tr>
             </thead>
             <tbody>
-                {Object.entries(termStats).map(([i, term]) => {
-                    return (
-                        <tr key={i}>
-                            <td>{i}</td>
-                            <td>{term.front}</td>
-                            <td>{term.back}</td>
-                            <td>{(term.correctness * 100).toFixed(2)}%</td>
-                            <td>{term.count}</td>
-                            <td>
-                                {Object.values(term.modules).map(
-                                    (module) => module
-                                )}
-                            </td>
-                        </tr>
-                    );
-                })}
+                {termStats &&
+                    Object.entries(termStats).map(([i, term]) => {
+                        return (
+                            <tr key={i}>
+                                <td>{i}</td>
+                                <td>{term.front}</td>
+                                <td>{term.back}</td>
+                                <td>{(term.correctness * 100).toFixed(2)}%</td>
+                                <td>{term.count}</td>
+                                <td>
+                                    {term.modules &&
+                                        Object.values(term.modules).map(
+                                            (module) => module
+                                        )}
+                                </td>
+                            </tr>
+                        );
+                    })}
             </tbody>
         </Table>
     );

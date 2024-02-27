@@ -1,4 +1,3 @@
-import json
 from flask import request
 from flask_restful import Resource
 from flask_jwt_extended import (
@@ -34,10 +33,26 @@ class Pasta(Resource):
                 new_pasta_object["category"] = row[2]
                 new_pasta_object["utterance"] = row[3]
                 new_pasta_object["mc1Answer"] = row[4]
-                new_pasta_object["splitAnswer"] = row[5]
-                new_pasta_object["identifyAnswer"] = row[6]
+                # new_pasta_object["splitAnswer"] = row[5]
+                # new_pasta_object["identifyAnswer"] = row[6]
                 new_pasta_object["mc2Answer"] = row[7]
                 pasta.append(new_pasta_object)
+
+            query = "SELECT * FROM `pasta_answer` WHERE `pastaID` = %s"
+            result = getFromDB(query, data["pastaID"], conn, cursor)
+
+            splitAnswer = []
+            identifyAnswer = []
+            for row in result:
+                if row[3] == "split":
+                    splitAnswer.append(row[2])
+                elif row[3] == "identify":
+                    identifyAnswer.append(row[2])
+
+            if splitAnswer:
+                pasta[0]["splitAnswer"] = splitAnswer
+            if identifyAnswer:
+                pasta[0]["identifyAnswer"] = identifyAnswer
 
             raise ReturnSuccess(pasta, 200)
         except CustomException as error:
@@ -61,10 +76,8 @@ class Pasta(Resource):
         data["category"] = getParameter("category", str, True, "")
         data["utterance"] = getParameter("utterance", str, True, "")
         data["mc1Answer"] = getParameter("mc1Answer", int, False, "")
-        data["splitAnswer"] = json.loads(
-            json.dumps(request.form.getlist("splitAnswer"))
-        )
-        data["identifyAnswer"] = getParameter("identifyAnswer", str, False, "")
+        data["splitAnswer"] = request.form.getlist("splitAnswer")
+        data["identifyAnswer"] = request.form.getlist("identifyAnswer")
         data["mc2Answer"] = getParameter("mc2Answer", int, False, "")
 
         permission, user_id = validate_permissions()
@@ -78,7 +91,7 @@ class Pasta(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            query = "INSERT INTO `pasta` (`moduleID`, `category`, `utterance`, `mc1Answer`, `splitAnswer`, `identifyAnswer`, `mc2Answer`) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            query = "INSERT INTO `pasta` (`moduleID`, `category`, `utterance`, `mc1Answer`, `mc2Answer`) VALUES (%s, %s, %s, %s, %s)"
             postToDB(
                 query,
                 (
@@ -86,13 +99,24 @@ class Pasta(Resource):
                     data["category"],
                     data["utterance"],
                     data["mc1Answer"],
-                    data["splitAnswer"],
-                    data["identifyAnswer"],
+                    # data["splitAnswer"],
+                    # data["identifyAnswer"],
                     data["mc2Answer"],
                 ),
                 conn,
                 cursor,
             )
+
+            query = "INSERT INTO `pasta_answer` (`pastaID`, `value`, `answerType`) VALUES (%s, %s, %s)"
+            if data["splitAnswer"]:
+                for answer in data["splitAnswer"]:
+                    postToDB(query, (cursor.lastrowid, answer, "split"), conn, cursor)
+
+            if data["identifyAnswer"]:
+                for answer in data["identifyAnswer"]:
+                    postToDB(
+                        query, (cursor.lastrowid, answer, "identify"), conn, cursor
+                    )
 
             query = "SELECT MAX(`pastaID`) FROM `pasta`"
             result = getFromDB(query, None, conn, cursor)
@@ -127,8 +151,8 @@ class Pasta(Resource):
         data["category"] = getParameter("category", str, False, "")
         data["utterance"] = getParameter("utterance", str, False, "")
         data["mc1Answer"] = getParameter("mc1Answer", int, False, "")
-        data["splitAnswer"] = json.loads(request.form.getlist("splitAnswer"))
-        data["identifyAnswer"] = getParameter("identifyAnswer", str, False, "")
+        data["splitAnswer"] = request.form.getlist("splitAnswer")
+        data["identifyAnswer"] = request.form.getlist("identifyAnswer")
         data["mc2Answer"] = getParameter("mc2Answer", int, False, "")
 
         permission, user_id = validate_permissions()
@@ -146,6 +170,8 @@ class Pasta(Resource):
             query_parameters = []
 
             for key, value in data.items():
+                if key == "splitAnswer" or key == "identifyAnswer":
+                    continue
                 if value:
                     update_fields.append("`{}` = %s".format(key))
                     query_parameters.append(value)
@@ -157,6 +183,19 @@ class Pasta(Resource):
                 ", ".join(update_fields)
             )
             query_parameters.append(data["pastaID"])
+
+            # Update the splitAnswer and identifyAnswer
+            query = "DELETE FROM `pasta_answer` WHERE `pastaID` = %s"
+            postToDB(query, (data["pastaID"],), conn, cursor)
+
+            query = "INSERT INTO `pasta_answer` (`pastaID`, `value`, `answerType`) VALUES (%s, %s, %s)"
+            if data["splitAnswer"]:
+                for answer in data["splitAnswer"]:
+                    postToDB(query, (data["pastaID"], answer, "split"), conn, cursor)
+
+            if data["identifyAnswer"]:
+                for answer in data["identifyAnswer"]:
+                    postToDB(query, (data["pastaID"], answer, "identify"), conn, cursor)
 
             postToDB(query, tuple(query_parameters), conn, cursor)
 
@@ -192,6 +231,9 @@ class Pasta(Resource):
             cursor = conn.cursor()
 
             query = "DELETE FROM `pasta` WHERE `pastaID` = %s"
+            postToDB(query, (data["pastaID"],), conn, cursor)
+
+            query = "DELETE FROM `pasta_answer` WHERE `pastaID` = %s"
             postToDB(query, (data["pastaID"],), conn, cursor)
 
             raise ReturnSuccess({"Message": "Successfully deleted the pasta"}, 200)
@@ -237,12 +279,24 @@ class AllPastaInModule(Resource):
                 new_pasta_object["category"] = row[2]
                 new_pasta_object["utterance"] = row[3]
                 new_pasta_object["mc1Answer"] = row[4]
-                if row[5]:
-                    new_pasta_object["splitAnswer"] = json.loads(row[5])
-                if row[6]:
-                    new_pasta_object["identifyAnswer"] = json.loads(row[6])
-                new_pasta_object["mc2Answer"] = row[7]
+                new_pasta_object["mc2Answer"] = row[5]
                 pasta.append(new_pasta_object)
+
+            query = "SELECT * FROM `pasta_answer` WHERE `pastaID` = %s"
+            for pasta_object in pasta:
+                result = getFromDB(query, pasta_object["pastaID"], conn, cursor)
+                splitAnswer = []
+                identifyAnswer = []
+                for row in result:
+                    if row[3] == "split":
+                        splitAnswer.append(row[2])
+                    elif row[3] == "identify":
+                        identifyAnswer.append(row[2])
+
+                if splitAnswer:
+                    pasta_object["splitAnswer"] = splitAnswer
+                if identifyAnswer:
+                    pasta_object["identifyAnswer"] = identifyAnswer
 
             raise ReturnSuccess(pasta, 200)
         except CustomException as error:
@@ -296,29 +350,34 @@ class PastaFrame(Resource):
             if len(result) == 0:
                 raise CustomException("Module does not exist!", 404)
 
-            query = "INSERT INTO `question_frame` (`moduleID`, `category`, `mc1QuestionText`, `mc1Options`, `splitQuestionVar`, `identifyQuestionVar`, `mc2QuestionText`, `mc2Options`, `displayName`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            query = "INSERT INTO `question_frame` (`moduleID`, `category`, `mc1QuestionText`, `splitQuestionVar`, `identifyQuestionVar`, `mc2QuestionText`, `displayName`) VALUES (%s, %s, %s, %s, %s, %s, %s)"
             postToDB(
                 query,
                 (
                     data["moduleID"],
                     data["category"],
                     data["mc1QuestionText"],
-                    json.dumps(data["mc1Options"]) if data["mc1Options"] else None,
                     data["splitQuestionVar"],
                     data["identifyQuestionVar"],
                     data["mc2QuestionText"],
-                    json.dumps(data["mc2Options"]) if data["mc2Options"] else None,
                     data["displayName"],
                 ),
                 conn,
                 cursor,
             )
 
-            print("eh")
-
             query = "SELECT MAX(`qframeID`) FROM `question_frame`"
             result = getFromDB(query, None, conn, cursor)
             question_frame_id = check_max_id(result) - 1
+
+            query = "INSERT INTO `question_option` (`qframeID`, `optionText`, `mcQuestionNumber`) VALUES (%s, %s, %s)"
+            if data["mc1Options"]:
+                for option in data["mc1Options"]:
+                    postToDB(query, (question_frame_id, option, 1), conn, cursor)
+
+            if data["mc2Options"]:
+                for option in data["mc2Options"]:
+                    postToDB(query, (question_frame_id, option, 2), conn, cursor)
 
             raise ReturnSuccess(
                 {
@@ -368,14 +427,25 @@ class PastaFrame(Resource):
                 new_question_frame_object["moduleID"] = row[1]
                 new_question_frame_object["category"] = row[2]
                 new_question_frame_object["mc1QuestionText"] = row[3]
-                if row[4]:
-                    new_question_frame_object["mc1Options"] = json.loads(row[4])
-                new_question_frame_object["splitQuestionVar"] = row[5]
-                new_question_frame_object["identifyQuestionVar"] = row[6]
-                new_question_frame_object["mc2QuestionText"] = row[7]
-                if row[8]:
-                    new_question_frame_object["mc2Options"] = json.loads(row[8])
-                new_question_frame_object["displayName"] = row[9]
+                new_question_frame_object["splitQuestionVar"] = row[4]
+                new_question_frame_object["identifyQuestionVar"] = row[5]
+                new_question_frame_object["mc2QuestionText"] = row[6]
+                new_question_frame_object["displayName"] = row[7]
+
+            query = "SELECT * FROM `question_option` WHERE `qframeID` = %s"
+            result = getFromDB(query, data["qframeID"], conn, cursor)
+            mc1Options = []
+            mc2Options = []
+            for row in result:
+                if row[3] == 1:
+                    mc1Options.append(row[2])
+                elif row[3] == 2:
+                    mc2Options.append(row[2])
+
+            if mc1Options:
+                new_question_frame_object["mc1Options"] = mc1Options
+            if mc2Options:
+                new_question_frame_object["mc2Options"] = mc2Options
 
             raise ReturnSuccess(new_question_frame_object, 200)
         except CustomException as error:
@@ -400,21 +470,13 @@ class PastaFrame(Resource):
         data["moduleID"] = getParameter("moduleID", int, False, "")
         data["category"] = getParameter("category", str, False, "")
         data["mc1QuestionText"] = getParameter("mc1QuestionText", str, False, "")
-        data["mc1Options"] = (
-            json.dumps(request.form.getlist("mc1Options"))
-            if request.form.getlist("mc1Options")
-            else None
-        )
+        data["mc1Options"] = request.form.getlist("mc1Options")
         data["splitQuestionVar"] = getParameter("splitQuestionVar", str, False, "")
         data["identifyQuestionVar"] = getParameter(
             "identifyQuestionVar", str, False, ""
         )
         data["mc2QuestionText"] = getParameter("mc2QuestionText", str, False, "")
-        data["mc2Options"] = (
-            json.dumps(request.form.getlist("mc2Options"))
-            if request.form.getlist("mc2Options")
-            else None
-        )
+        data["mc2Options"] = request.form.getlist("mc2Options")
         data["displayName"] = getParameter("displayName", str, False, "")
 
         permission, user_id = validate_permissions()
@@ -432,6 +494,8 @@ class PastaFrame(Resource):
             query_parameters = []
 
             for key, value in data.items():
+                if key == "mc1Options" or key == "mc2Options":
+                    continue
                 if value:
                     update_fields.append("`{}` = %s".format(key))
                     query_parameters.append(value)
@@ -445,6 +509,18 @@ class PastaFrame(Resource):
             query_parameters.append(data["qframeID"])
 
             postToDB(query, tuple(query_parameters), conn, cursor)
+
+            query = "DELETE FROM `question_option` WHERE `qframeID` = %s"
+            postToDB(query, (data["qframeID"],), conn, cursor)
+
+            query = "INSERT INTO `question_option` (`qframeID`, `optionText`, `mcQuestionNumber`) VALUES (%s, %s, %s)"
+            if data["mc1Options"]:
+                for option in data["mc1Options"]:
+                    postToDB(query, (data["qframeID"], option, 1), conn, cursor)
+
+            if data["mc2Options"]:
+                for option in data["mc2Options"]:
+                    postToDB(query, (data["qframeID"], option, 2), conn, cursor)
 
             raise ReturnSuccess(
                 {"Message": "Successfully updated the question frame"}, 200
@@ -484,6 +560,9 @@ class PastaFrame(Resource):
             cursor = conn.cursor()
 
             query = "DELETE FROM `question_frame` WHERE `qframeID` = %s"
+            postToDB(query, (data["qframeID"],), conn, cursor)
+
+            query = "DELETE FROM `question_option` WHERE `qframeID` = %s"
             postToDB(query, (data["qframeID"],), conn, cursor)
 
             raise ReturnSuccess(
@@ -534,15 +613,27 @@ class PastaFrameModule(Resource):
                 new_question_frame_object["moduleID"] = row[1]
                 new_question_frame_object["category"] = row[2]
                 new_question_frame_object["mc1QuestionText"] = row[3]
-                if row[4]:
-                    new_question_frame_object["mc1Options"] = json.loads(row[4])
-                new_question_frame_object["splitQuestionVar"] = row[5]
-                new_question_frame_object["identifyQuestionVar"] = row[6]
-                new_question_frame_object["mc2QuestionText"] = row[7]
-                if row[8]:
-                    new_question_frame_object["mc2Options"] = json.loads(row[8])
-                new_question_frame_object["displayName"] = row[9]
+                new_question_frame_object["splitQuestionVar"] = row[4]
+                new_question_frame_object["identifyQuestionVar"] = row[5]
+                new_question_frame_object["mc2QuestionText"] = row[6]
+                new_question_frame_object["displayName"] = row[7]
                 question_frames.append(new_question_frame_object)
+
+            query = "SELECT * FROM `question_option` WHERE `qframeID` = %s"
+            for question_frame in question_frames:
+                result = getFromDB(query, question_frame["qframeID"], conn, cursor)
+                mc1Options = []
+                mc2Options = []
+                for row in result:
+                    if row[3] == 1:
+                        mc1Options.append(row[2])
+                    elif row[3] == 2:
+                        mc2Options.append(row[2])
+
+                if mc1Options:
+                    question_frame["mc1Options"] = mc1Options
+                if mc2Options:
+                    question_frame["mc2Options"] = mc2Options
 
             raise ReturnSuccess(question_frames, 200)
         except CustomException as error:

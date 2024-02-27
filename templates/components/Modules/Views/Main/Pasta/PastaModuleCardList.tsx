@@ -1,6 +1,6 @@
 import { useUser } from '@/hooks/useUser';
 import { Module } from '@/types/api/modules';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Table } from 'reactstrap';
 import {
     Pasta as PastaType,
@@ -27,7 +27,7 @@ export default function PastaModuleCardList({
     const permissionLevel = user?.permissionGroup;
     const [pastas, setPastas] = useState<PastaType[]>([]);
 
-    useEffect(() => {
+    const getAllPastas = useCallback(() => {
         if (type === 'pastas' && user && curModule.moduleID) {
             const config = {
                 headers: {
@@ -50,15 +50,19 @@ export default function PastaModuleCardList({
         }
     }, [curModule.moduleID, type, user]);
 
+    useEffect(() => {
+        getAllPastas();
+    }, [getAllPastas]);
+
     const HeadRow = useMemo(() => {
         switch (type) {
             case 'questionFrames':
                 return (
                     <thead>
                         <tr>
-                            <th style={{ width: '30%' }}>Display</th>
-                            <th style={{ width: '30%' }}>Category</th>
-                            <th style={{ width: '30%' }}>Split Question</th>
+                            <th style={{ width: '30%' }}>Display In Game</th>
+                            <th style={{ width: '20%' }}>Category</th>
+                            <th style={{ width: '40%' }}>Split Question</th>
                             {permissionLevel !== 'st' ? (
                                 <th style={{ width: '10%' }}> </th>
                             ) : null}
@@ -102,7 +106,7 @@ export default function PastaModuleCardList({
                     questionFrames={questionFrames}
                     currentClass={currentClass}
                     curModule={curModule}
-                    updateCurrentModule={updateCurrentModule}
+                    reloadPastas={getAllPastas}
                     HeadRow={HeadRow}
                 />
             )}
@@ -157,14 +161,14 @@ function PastaCardList({
     questionFrames,
     currentClass,
     curModule,
-    updateCurrentModule,
+    reloadPastas,
     HeadRow,
 }: {
     pastas: PastaType[];
     questionFrames: QuestionFrameType[];
     currentClass: { value: number; label: string };
     curModule: Module;
-    updateCurrentModule: (module?: Module, task?: string) => void;
+    reloadPastas: () => void;
     HeadRow: JSX.Element;
 }) {
     return (
@@ -176,17 +180,13 @@ function PastaCardList({
                     {HeadRow}
                     <tbody>
                         {pastas.map((pasta) => {
-                            const questionFrame = questionFrames.find(
-                                (qf) => qf.category === pasta.category
-                            );
-                            if (!questionFrame) return;
                             return (
                                 <Pasta
                                     key={pasta.pastaID}
                                     pasta={pasta}
-                                    questionFrame={questionFrame}
+                                    questionFrames={questionFrames}
                                     currentClass={currentClass}
-                                    updateCurrentModule={updateCurrentModule}
+                                    reloadPastas={reloadPastas}
                                     curModule={curModule}
                                 />
                             );

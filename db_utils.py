@@ -46,7 +46,6 @@ def postToDB(query, vals=None, providedConn=None, providedCursor=None):
     elif providedCursor:
         cursor = providedCursor
 
-    print(query, vals)
     cursor.execute(query, vals) if vals else cursor.execute(query)
     if providedConn is None:
         conn.commit()
