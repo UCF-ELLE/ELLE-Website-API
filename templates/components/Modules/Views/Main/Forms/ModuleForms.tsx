@@ -22,7 +22,8 @@ export default function ModuleForms({
     setOpenForm,
     getAllTags,
     allAnswersNotInThisModule,
-    questionFrames
+    questionFrames,
+    getAllQuestionFrames
 }: {
     currentClass: { value: number; label: string };
     curModule: Module;
@@ -36,6 +37,7 @@ export default function ModuleForms({
     getAllTags: () => void;
     allAnswersNotInThisModule: ModuleQuestionAnswer[];
     questionFrames: QuestionFrame[];
+    getAllQuestionFrames: () => void;
 }) {
     return (
         <Row>
@@ -115,6 +117,7 @@ export default function ModuleForms({
                         curModule={curModule}
                         updateCurrentModule={updateCurrentModule}
                         setOpenForm={setOpenForm}
+                        getAllQuestionFrames={getAllQuestionFrames}
                     />
                 </Collapse>
                 <Collapse isOpen={openForm === 7 && curModule.isPastaModule}>

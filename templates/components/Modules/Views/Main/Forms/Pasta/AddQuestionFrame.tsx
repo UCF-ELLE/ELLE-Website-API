@@ -12,12 +12,14 @@ export default function AddQuestionFrame({
     curModule,
     questionFrames,
     updateCurrentModule,
-    setOpenForm
+    setOpenForm,
+    getAllQuestionFrames
 }: {
     curModule: Module;
     questionFrames: QuestionFrame[];
     updateCurrentModule: (module: Module, task?: string) => void;
     setOpenForm: (form: number) => void;
+    getAllQuestionFrames: () => void;
 }) {
     const { user } = useUser();
     const permissionLevel = user?.permissionGroup;
@@ -106,9 +108,10 @@ export default function AddQuestionFrame({
         }
 
         axios
-            .post('/elleapi/pastagame/frame', data, header)
+            .post('/elleapi/pastagame/qframe', data, header)
             .then((res) => {
                 updateCurrentModule(curModule);
+                getAllQuestionFrames();
                 resetFields();
             })
             .catch((error) => {

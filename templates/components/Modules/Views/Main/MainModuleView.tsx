@@ -136,7 +136,7 @@ export default function MainModuleView({
                 }
             })
             .catch((err) => {
-                console.log('error in pastagame/frame/all: ', err.response);
+                console.log('error in pastagame/qframe/all: ', err.response);
             });
     }, [curModule?.moduleID, user?.jwt]);
 
@@ -206,6 +206,7 @@ export default function MainModuleView({
                         setOpenForm={(num: number) => setOpenForm(num)}
                         getAllTags={getAllTags}
                         allAnswersNotInThisModule={allAnswersNotInThisModule}
+                        getAllQuestionFrames={getAllQuestionFrames}
                         questionFrames={questionFrames}
                     />
                     <ModuleCardList
