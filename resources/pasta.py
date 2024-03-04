@@ -33,9 +33,7 @@ class Pasta(Resource):
                 new_pasta_object["category"] = row[2]
                 new_pasta_object["utterance"] = row[3]
                 new_pasta_object["mc1Answer"] = row[4]
-                # new_pasta_object["splitAnswer"] = row[5]
-                # new_pasta_object["identifyAnswer"] = row[6]
-                new_pasta_object["mc2Answer"] = row[7]
+                new_pasta_object["mc2Answer"] = row[5]
                 pasta.append(new_pasta_object)
 
             query = "SELECT * FROM `pasta_answer` WHERE `pastaID` = %s"
@@ -99,33 +97,39 @@ class Pasta(Resource):
                     data["category"],
                     data["utterance"],
                     data["mc1Answer"],
-                    # data["splitAnswer"],
-                    # data["identifyAnswer"],
                     data["mc2Answer"],
                 ),
                 conn,
                 cursor,
             )
 
-            query = "INSERT INTO `pasta_answer` (`pastaID`, `value`, `answerType`) VALUES (%s, %s, %s)"
-            if data["splitAnswer"]:
-                for answer in data["splitAnswer"]:
-                    postToDB(query, (cursor.lastrowid, answer, "split"), conn, cursor)
-
-            if data["identifyAnswer"]:
-                for answer in data["identifyAnswer"]:
-                    postToDB(
-                        query, (cursor.lastrowid, answer, "identify"), conn, cursor
-                    )
-
             query = "SELECT MAX(`pastaID`) FROM `pasta`"
             result = getFromDB(query, None, conn, cursor)
             pasta_id = check_max_id(result) - 1
 
+            query = "INSERT INTO `pasta_answer` (`pastaID`, `value`, `answerType`) VALUES (%s, %s, %s)"
+            if data["splitAnswer"]:
+                print("splitAnswer", data["splitAnswer"])
+                for answer in data["splitAnswer"]:
+                    postToDB(query, (pasta_id, answer, "split"), conn, cursor)
+
+            if data["identifyAnswer"]:
+                for answer in data["identifyAnswer"]:
+                    postToDB(query, (pasta_id, answer, "identify"), conn, cursor)
+
             raise ReturnSuccess(
                 {
                     "Message": "Successfully created a pasta",
-                    "pastaID": int(pasta_id),
+                    "pasta": {
+                        "pastaID": int(pasta_id),
+                        "moduleID": data["moduleID"],
+                        "category": data["category"],
+                        "utterance": data["utterance"],
+                        "mc1Answer": data["mc1Answer"],
+                        "mc2Answer": data["mc2Answer"],
+                        "splitAnswer": data["splitAnswer"],
+                        "identifyAnswer": data["identifyAnswer"],
+                    },
                 },
                 201,
             )
@@ -151,9 +155,15 @@ class Pasta(Resource):
         data["category"] = getParameter("category", str, False, "")
         data["utterance"] = getParameter("utterance", str, False, "")
         data["mc1Answer"] = getParameter("mc1Answer", int, False, "")
-        data["splitAnswer"] = request.form.getlist("splitAnswer")
-        data["identifyAnswer"] = request.form.getlist("identifyAnswer")
+        data["splitAnswer"] = request.form.getlist("splitAnswer") or request.json.get(
+            "splitAnswer", []
+        )
+        data["identifyAnswer"] = request.form.getlist(
+            "identifyAnswer"
+        ) or request.json.get("identifyAnswer", [])
         data["mc2Answer"] = getParameter("mc2Answer", int, False, "")
+
+        print(data)
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -170,7 +180,7 @@ class Pasta(Resource):
             query_parameters = []
 
             for key, value in data.items():
-                if key == "splitAnswer" or key == "identifyAnswer":
+                if key == "pastaID" or key == "splitAnswer" or key == "identifyAnswer":
                     continue
                 if value:
                     update_fields.append("`{}` = %s".format(key))
@@ -183,6 +193,7 @@ class Pasta(Resource):
                 ", ".join(update_fields)
             )
             query_parameters.append(data["pastaID"])
+            postToDB(query, tuple(query_parameters), conn, cursor)
 
             # Update the splitAnswer and identifyAnswer
             query = "DELETE FROM `pasta_answer` WHERE `pastaID` = %s"
@@ -197,9 +208,22 @@ class Pasta(Resource):
                 for answer in data["identifyAnswer"]:
                     postToDB(query, (data["pastaID"], answer, "identify"), conn, cursor)
 
-            postToDB(query, tuple(query_parameters), conn, cursor)
-
-            raise ReturnSuccess({"Message": "Successfully updated the pasta"}, 200)
+            raise ReturnSuccess(
+                {
+                    "Message": "Successfully updated the pasta",
+                    "pasta": {
+                        "pastaID": data["pastaID"],
+                        "moduleID": data["moduleID"],
+                        "category": data["category"],
+                        "utterance": data["utterance"],
+                        "mc1Answer": data["mc1Answer"],
+                        "mc2Answer": data["mc2Answer"],
+                        "splitAnswer": data["splitAnswer"],
+                        "identifyAnswer": data["identifyAnswer"],
+                    },
+                },
+                200,
+            )
         except CustomException as error:
             conn.rollback()
             return error.msg, error.returnCode
@@ -208,6 +232,7 @@ class Pasta(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
+            print(error)
             return errorMessage("An error occurred while updating the pasta."), 500
         finally:
             if conn.open:
@@ -382,7 +407,18 @@ class PastaFrame(Resource):
             raise ReturnSuccess(
                 {
                     "Message": "Successfully created a question frame",
-                    "qframeID": int(question_frame_id),
+                    "question_frame": {
+                        "qframeID": question_frame_id,
+                        "moduleID": data["moduleID"],
+                        "category": data["category"],
+                        "mc1QuestionText": data["mc1QuestionText"],
+                        "splitQuestionVar": data["splitQuestionVar"],
+                        "identifyQuestionVar": data["identifyQuestionVar"],
+                        "mc2QuestionText": data["mc2QuestionText"],
+                        "mc1Options": data["mc1Options"],
+                        "mc2Options": data["mc2Options"],
+                        "displayName": data["displayName"],
+                    },
                 },
                 201,
             )
@@ -470,13 +506,17 @@ class PastaFrame(Resource):
         data["moduleID"] = getParameter("moduleID", int, False, "")
         data["category"] = getParameter("category", str, False, "")
         data["mc1QuestionText"] = getParameter("mc1QuestionText", str, False, "")
-        data["mc1Options"] = request.form.getlist("mc1Options")
+        data["mc1Options"] = request.form.getlist("mc1Options") or request.json.get(
+            "mc1Options", []
+        )
         data["splitQuestionVar"] = getParameter("splitQuestionVar", str, False, "")
         data["identifyQuestionVar"] = getParameter(
             "identifyQuestionVar", str, False, ""
         )
         data["mc2QuestionText"] = getParameter("mc2QuestionText", str, False, "")
-        data["mc2Options"] = request.form.getlist("mc2Options")
+        data["mc2Options"] = request.form.getlist("mc2Options") or request.json.get(
+            "mc2Options", []
+        )
         data["displayName"] = getParameter("displayName", str, False, "")
 
         permission, user_id = validate_permissions()
@@ -523,7 +563,22 @@ class PastaFrame(Resource):
                     postToDB(query, (data["qframeID"], option, 2), conn, cursor)
 
             raise ReturnSuccess(
-                {"Message": "Successfully updated the question frame"}, 200
+                {
+                    "Message": "Successfully updated the question frame",
+                    "question_frame": {
+                        "qframeID": data["qframeID"],
+                        "moduleID": data["moduleID"],
+                        "category": data["category"],
+                        "mc1QuestionText": data["mc1QuestionText"],
+                        "splitQuestionVar": data["splitQuestionVar"],
+                        "identifyQuestionVar": data["identifyQuestionVar"],
+                        "mc2QuestionText": data["mc2QuestionText"],
+                        "mc1Options": data["mc1Options"],
+                        "mc2Options": data["mc2Options"],
+                        "displayName": data["displayName"],
+                    },
+                },
+                200,
             )
         except CustomException as error:
             conn.rollback()

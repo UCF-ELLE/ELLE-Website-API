@@ -1,16 +1,15 @@
-import React, { useState, FormEvent } from 'react';
-import { Button, Form, FormGroup, Input, Label, Card } from 'reactstrap';
-import { useLogin } from '@/hooks/useLogin';
-import Link from 'next/link';
 import Layout from '@/app/layout';
+import Link from 'next/link';
+import { FormEvent, useState } from 'react';
+import { Button, Card, Form, FormGroup, Input, Label } from 'reactstrap';
 
+import { useAuth } from '@/hooks/useAuth';
+import '@/lib/ionicons/css/ionicons.min.css';
 import '@/public/static/css/loginstyle.css';
 import '@/public/static/css/style.css';
-import '@/lib/ionicons/css/ionicons.min.css';
-import { useRouter } from 'next/router';
 
 export default function Login() {
-    const { login } = useLogin();
+    const { login } = useAuth();
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [loginErr, setLoginErr] = useState<boolean>(false);

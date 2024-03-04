@@ -1,7 +1,7 @@
 import { Module, ModuleQuestion, ModuleQuestionAnswer } from '@/types/api/modules';
 import ModuleHeader from './ModuleHeader';
 import { MentorQuestion, MentorQuestionFrequency } from '@/types/api/mentors';
-import { useCallback, useEffect, useState } from 'react';
+import { createContext, useCallback, useEffect, useState } from 'react';
 import { Row, Col, Container } from 'reactstrap';
 import ModuleToolRow from './ModuleToolRow';
 import { useUser } from '@/hooks/useUser';
@@ -10,6 +10,7 @@ import { Tag } from '@/types/api/terms';
 import ModuleCardList from './ModuleCardList';
 import ModuleForms from './Forms/ModuleForms';
 import { QuestionFrame } from '@/types/api/pastagame';
+import { PastaContext, usePasta } from '@/hooks/usePasta';
 
 export default function MainModuleView({
     currentClass,
@@ -36,7 +37,7 @@ export default function MainModuleView({
     const [openForm, setOpenForm] = useState(0);
     const [allTags, setAllTags] = useState<Tag[]>([]);
     const [freq, setFreq] = useState<Omit<MentorQuestionFrequency, 'moduleID'>[]>([]);
-    const [questionFrames, setQuestionFrames] = useState<QuestionFrame[]>([]);
+    const pastaHook = usePasta(curModule?.moduleID);
 
     const changeOpenForm = (form: number) => {
         if (form === openForm) {
@@ -116,37 +117,6 @@ export default function MainModuleView({
             });
     }, [curModule.moduleID, getAllTags, loading, user]);
 
-    const getAllQuestionFrames = useCallback(() => {
-        const config = {
-            headers: {
-                Authorization: `Bearer ${user?.jwt}`
-            },
-            params: {
-                moduleID: curModule?.moduleID
-            }
-        };
-
-        axios
-            .get<QuestionFrame[]>('/elleapi/pastagame/qframe/all', config)
-            .then((res) => {
-                if (res.data.length > 0) {
-                    setQuestionFrames(res.data);
-                } else {
-                    setQuestionFrames([]);
-                }
-            })
-            .catch((err) => {
-                console.log('error in pastagame/qframe/all: ', err.response);
-            });
-    }, [curModule?.moduleID, user?.jwt]);
-
-    // TODO: Service this, as with all other axios calls.
-    // Grab all question frames for the current module if it is a pasta module
-    useEffect(() => {
-        if (loading || !user || !curModule?.isPastaModule) return;
-        getAllQuestionFrames();
-    }, [curModule?.isPastaModule, getAllQuestionFrames, loading, user]);
-
     const terms: ModuleQuestionAnswer[] = [];
     const phrases: ModuleQuestionAnswer[] = [];
     const longformQuestions: ModuleQuestion[] = [];
@@ -182,50 +152,49 @@ export default function MainModuleView({
     const filteredQuestions = longformQuestions.filter((question) => question.questionText?.toLowerCase().includes(searchCard.toLowerCase()));
 
     return (
-        <Row>
-            <Col>
-                <Container className='Deck'>
-                    <ModuleHeader
-                        curModule={curModule}
-                        searchCard={searchCard}
-                        updateSearchCard={(e) => setSearchCard(e.target.value.substring(0, 20))}
-                        addTermButtonOpen={addTermButtonOpen}
-                        toggleAddTermButton={() => setAddTermButtonOpen(!addTermButtonOpen)}
-                        changeOpenForm={changeOpenForm}
-                    />
-                    <ModuleToolRow curModule={curModule} updateCurrentModule={updateCurrentModule} currentClass={currentClass} />
-                    <ModuleForms
-                        currentClass={currentClass}
-                        curModule={curModule}
-                        updateCurrentModule={updateCurrentModule}
-                        deleteTag={deleteTag}
-                        addTag={addTag}
-                        allTags={allTags}
-                        allAnswers={allAnswers}
-                        openForm={openForm}
-                        setOpenForm={(num: number) => setOpenForm(num)}
-                        getAllTags={getAllTags}
-                        allAnswersNotInThisModule={allAnswersNotInThisModule}
-                        getAllQuestionFrames={getAllQuestionFrames}
-                        questionFrames={questionFrames}
-                    />
-                    <ModuleCardList
-                        currentClass={currentClass}
-                        curModule={curModule}
-                        terms={filteredTerms}
-                        phrases={filteredPhrases}
-                        questions={filteredQuestions}
-                        questionFrames={questionFrames}
-                        mentorQuestions={mentorQuestions}
-                        updateCurrentModule={updateCurrentModule}
-                        allAnswers={allAnswers}
-                        deleteTag={deleteTag}
-                        addTag={addTag}
-                        allTags={allTags}
-                        frequency={freq}
-                    />
-                </Container>
-            </Col>
-        </Row>
+        <PastaContext.Provider value={pastaHook}>
+            <Row>
+                <Col>
+                    <Container className='Deck'>
+                        <ModuleHeader
+                            curModule={curModule}
+                            searchCard={searchCard}
+                            updateSearchCard={(e) => setSearchCard(e.target.value.substring(0, 20))}
+                            addTermButtonOpen={addTermButtonOpen}
+                            toggleAddTermButton={() => setAddTermButtonOpen(!addTermButtonOpen)}
+                            changeOpenForm={changeOpenForm}
+                        />
+                        <ModuleToolRow curModule={curModule} updateCurrentModule={updateCurrentModule} currentClass={currentClass} />
+                        <ModuleForms
+                            currentClass={currentClass}
+                            curModule={curModule}
+                            updateCurrentModule={updateCurrentModule}
+                            deleteTag={deleteTag}
+                            addTag={addTag}
+                            allTags={allTags}
+                            allAnswers={allAnswers}
+                            openForm={openForm}
+                            setOpenForm={(num: number) => setOpenForm(num)}
+                            getAllTags={getAllTags}
+                            allAnswersNotInThisModule={allAnswersNotInThisModule}
+                        />
+                        <ModuleCardList
+                            currentClass={currentClass}
+                            curModule={curModule}
+                            terms={filteredTerms}
+                            phrases={filteredPhrases}
+                            questions={filteredQuestions}
+                            mentorQuestions={mentorQuestions}
+                            updateCurrentModule={updateCurrentModule}
+                            allAnswers={allAnswers}
+                            deleteTag={deleteTag}
+                            addTag={addTag}
+                            allTags={allTags}
+                            frequency={freq}
+                        />
+                    </Container>
+                </Col>
+            </Row>
+        </PastaContext.Provider>
     );
 }

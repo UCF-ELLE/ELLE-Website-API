@@ -1,35 +1,21 @@
-import React, { Fragment, useCallback, useMemo, useState } from 'react';
-import { Alert, Button, ButtonGroup, Modal, ModalHeader, ModalBody, ModalFooter, Collapse, Input, Badge, Row, Col } from 'reactstrap';
-import axios from 'axios';
+import React, { Fragment, useContext, useMemo, useState } from 'react';
+import { Alert, Badge, Button, ButtonGroup, Col, Collapse, Input, Modal, ModalBody, ModalFooter, ModalHeader, Row } from 'reactstrap';
 
-import { Module } from '@/types/api/modules';
-import { Tag } from '@/types/api/terms';
 import { useUser } from '@/hooks/useUser';
+import { Module } from '@/types/api/modules';
 import Image from 'next/image';
 
 // This is awful
-import toolsImage from '@/public/static/images/tools.png';
+import { PastaContext, usePasta } from '@/hooks/usePasta';
+import cancelImage from '@/public/static/images/cancel.png';
 import deleteImage from '@/public/static/images/delete.png';
 import submitImage from '@/public/static/images/submit.png';
-import cancelImage from '@/public/static/images/cancel.png';
+import toolsImage from '@/public/static/images/tools.png';
 import { Pasta, QuestionFrame } from '@/types/api/pastagame';
-import { SplitComponent } from '../Forms/Pasta/SplitComponent';
 import { Typeahead } from 'react-bootstrap-typeahead';
-import { split } from 'postcss/lib/list';
+import { SplitComponent } from '../Forms/Pasta/SplitComponent';
 
-export default function Pasta({
-    pasta,
-    currentClass,
-    questionFrames,
-    reloadPastas,
-    curModule
-}: {
-    pasta: Pasta;
-    questionFrames: QuestionFrame[];
-    currentClass: { value: number; label: string };
-    reloadPastas: () => void;
-    curModule: Module;
-}) {
+export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pasta; questionFrames: QuestionFrame[]; curModule: Module }) {
     const [modal, setModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [editedCategory, setEditedCategory] = useState(pasta.category);
@@ -38,6 +24,7 @@ export default function Pasta({
     const [editedIdentifyAnswer, setEditedIdentifyAnswer] = useState(pasta.identifyAnswer);
     const [editedMC1Answer, setEditedMC1Answer] = useState(pasta.mc1Answer);
     const [editedMC2Answer, setEditedMC2Answer] = useState(pasta.mc2Answer);
+    const { editPasta, deletePasta } = useContext(PastaContext);
 
     const [rowCollapse, setRowCollapse] = useState(false);
     const questionFrame = questionFrames.find((qf) => qf.category === editedCategory);
@@ -54,60 +41,23 @@ export default function Pasta({
     const submitEdit = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         setEditMode(false);
 
-        const data = new FormData();
-        let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt }
+        const editedPasta: Pasta = {
+            pastaID: pasta.pastaID,
+            moduleID: curModule.moduleID,
+            category: editedCategory,
+            utterance: editedUtterance,
+            splitAnswer: editedSplitAnswer,
+            identifyAnswer: editedIdentifyAnswer,
+            mc1Answer: editedMC1Answer,
+            mc2Answer: editedMC2Answer
         };
 
-        data.append('pastaID', pasta.pastaID.toString());
-        editedUtterance && data.append('utterance', editedUtterance);
-        editedCategory && data.append('category', editedCategory);
-        editedSplitAnswer && data.append('splitAnswer', JSON.stringify(editedSplitAnswer)); //not editable
-
-        if (permissionLevel === 'ta') {
-            data.append('groupID', currentClass.value.toString());
-        }
-
-        editedIdentifyAnswer && data.append('identifyAnswer', JSON.stringify(editedIdentifyAnswer));
-
-        editedMC1Answer && data.append('mc1Answer', editedMC1Answer.toString());
-        editedMC2Answer && data.append('mc2Answer', editedMC2Answer.toString());
-
-        axios
-            .put('/elleapi/pastagame/pasta', data, header)
-            .then((res) => {
-                reloadPastas();
-            })
-            .catch((error) => {
-                console.log('submitEdit in Card.js error: ', error.response);
-            });
+        editPasta(editedPasta);
     };
 
     //toggling delete modal, is not related to delete card API
     const handleDelete = () => {
         setModal(!modal);
-    };
-
-    //function for deleting a card from the database
-    const deletePasta = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        setModal(!modal);
-
-        let header = {
-            data: {
-                pastaID: pasta.pastaID,
-                groupID: permissionLevel === 'ta' ? currentClass.value : null
-            },
-            headers: { Authorization: 'Bearer ' + user?.jwt }
-        };
-
-        axios
-            .delete('/elleapi/pastagame/pasta', header)
-            .then((res) => {
-                reloadPastas();
-            })
-            .catch((error) => {
-                console.log('deleteTerm in Card.js error: ', error.response);
-            });
     };
 
     //function that cancels the edit and sets everything back to what it was initially
@@ -193,7 +143,7 @@ export default function Pasta({
 
                         <ModalFooter>
                             <Button onClick={() => setModal(!modal)}>Cancel</Button>
-                            <Button color='danger' onClick={(e) => deletePasta(e)}>
+                            <Button color='danger' onClick={(e) => deletePasta(pasta.pastaID)}>
                                 Delete
                             </Button>
                         </ModalFooter>

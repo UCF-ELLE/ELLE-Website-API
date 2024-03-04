@@ -1,23 +1,22 @@
-import React from 'react';
-import { Form, FormGroup, Label, Input, FormFeedback, Button, InputGroup, Card } from 'reactstrap';
-import Link from 'next/link';
 import axios from 'axios';
+import Link from 'next/link';
+import React from 'react';
+import { Button, Card, Form, FormFeedback, FormGroup, Input, InputGroup, Label } from 'reactstrap';
 
+import '@/lib/ionicons/css/ionicons.min.css';
 import '@/public/static/css/loginstyle.css';
 import '@/public/static/css/style.css';
-import '@/lib/ionicons/css/ionicons.min.css';
 import diceImage from '@/public/static/images/dice.png';
 import hideImage from '@/public/static/images/hide.png';
 import showImage from '@/public/static/images/show.png';
 
-import MainTemplate from '@/components/MainTemplate';
-import Image from 'next/image';
-import { useSignUp } from '@/hooks/useSignUp';
-import { useUser } from '@/hooks/useUser';
 import RootLayout from '@/app/layout';
+import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
+import Image from 'next/image';
 
 export default function Signup() {
-    const { signUp } = useSignUp();
+    const { signup } = useAuth();
 
     const [email, setEmail] = React.useState<string>('');
     const [location, setLocation] = React.useState<string>('');
@@ -30,7 +29,6 @@ export default function Signup() {
     const [hiddenPassword, setHiddenPassword] = React.useState<boolean>(true);
     const [hiddenConfirm, setHiddenConfirm] = React.useState<boolean>(true);
     const [classCode, setClassCode] = React.useState<string>('');
-    const [permission, setPermission] = React.useState<string>('User');
     const [registerErr, setRegisterErr] = React.useState<boolean>(false);
     const [errorMsg, setErrorMsg] = React.useState<string | void>('');
 
@@ -91,7 +89,7 @@ export default function Signup() {
 
     const submit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const response = await signUp(username, email, password, confirmation, classCode);
+        const response = await signup(username, email, password, confirmation, classCode);
 
         if ('error' in response) {
             setRegisterErr(true);

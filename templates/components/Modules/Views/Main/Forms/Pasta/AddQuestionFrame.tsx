@@ -1,28 +1,15 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Alert, Badge, Button, Col, Form, FormGroup, Input, Label, Row } from 'reactstrap';
 
 import { useUser } from '@/hooks/useUser';
 import { Module } from '@/types/api/modules';
-import { QuestionFrame } from '@/types/api/pastagame';
-import { Tag } from '@/types/api/terms';
 import { IdentityQuestionForm, MultipleChoiceQuestionForm } from './MiniForms';
 import axios from 'axios';
+import { PastaContext } from '@/hooks/usePasta';
 
-export default function AddQuestionFrame({
-    curModule,
-    questionFrames,
-    updateCurrentModule,
-    setOpenForm,
-    getAllQuestionFrames
-}: {
-    curModule: Module;
-    questionFrames: QuestionFrame[];
-    updateCurrentModule: (module: Module, task?: string) => void;
-    setOpenForm: (form: number) => void;
-    getAllQuestionFrames: () => void;
-}) {
+export default function AddQuestionFrame({ curModule, setOpenForm }: { curModule: Module; setOpenForm: (form: number) => void }) {
+    const { questionFrames, createQuestionFrame } = useContext(PastaContext);
     const { user } = useUser();
-    const permissionLevel = user?.permissionGroup;
 
     const [displayName, setDisplayName] = useState<string>('');
     const [category, setCategory] = useState<string>('');
@@ -99,19 +86,21 @@ export default function AddQuestionFrame({
 
         if (questionOneOut) {
             data.append('mc1QuestionText', mc1QuestionText);
-            data.append('mc1Options', JSON.stringify(mc1Options));
+            for (const option of mc1Options) {
+                data.append('mc1Options', option);
+            }
         }
 
         if (questionTwoOut) {
             data.append('mc2QuestionText', mc2QuestionText);
-            data.append('mc2Options', JSON.stringify(mc2Options));
+            for (const option of mc2Options) {
+                data.append('mc2Options', option);
+            }
         }
 
         axios
             .post('/elleapi/pastagame/qframe', data, header)
             .then((res) => {
-                updateCurrentModule(curModule);
-                getAllQuestionFrames();
                 resetFields();
             })
             .catch((error) => {

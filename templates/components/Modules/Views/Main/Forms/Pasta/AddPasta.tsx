@@ -1,4 +1,4 @@
-import React, { createRef, useState } from 'react';
+import React, { createRef, useContext, useState } from 'react';
 import { Alert, Badge, Button, Col, Form, FormGroup, Input, Label, Row } from 'reactstrap';
 
 import { useUser } from '@/hooks/useUser';
@@ -7,20 +7,11 @@ import { QuestionFrame } from '@/types/api/pastagame';
 import { Typeahead, TypeaheadRef } from 'react-bootstrap-typeahead';
 import { SplitComponent } from './SplitComponent';
 import axios from 'axios';
+import { PastaContext } from '@/hooks/usePasta';
 
-export default function AddPasta({
-    curModule,
-    questionFrames,
-    updateCurrentModule,
-    setOpenForm
-}: {
-    curModule: Module;
-    questionFrames: QuestionFrame[];
-    updateCurrentModule: (module: Module, task?: string) => void;
-    setOpenForm: (form: number) => void;
-}) {
+export default function AddPasta({ curModule, setOpenForm }: { curModule: Module; setOpenForm: (form: number) => void }) {
+    const { questionFrames, createPasta } = useContext(PastaContext);
     const { user } = useUser();
-    const permissionLevel = user?.permissionGroup;
 
     const [utterance, setUtterance] = useState<string>('');
     const [category, setCategory] = useState<string>('');
@@ -70,9 +61,13 @@ export default function AddPasta({
         data.append('moduleID', curModule.moduleID.toString());
         data.append('utterance', utterance);
         data.append('category', category);
-        data.append('splitAnswer', JSON.stringify(splitQuestionAnswer));
+        for (const split of splitQuestionAnswer) {
+            data.append('splitAnswer', split.toString());
+        }
         if (selectedQuestionFrame?.identifyQuestionVar) {
-            data.append('identifyAnswer', JSON.stringify(identifyQuestionAnswer));
+            for (const identifyAnswer of identifyQuestionAnswer) {
+                data.append('identifyAnswer', identifyAnswer.toString());
+            }
         }
         if (selectedQuestionFrame?.mc1Options) {
             data.append('mc1Answer', mc1Answer.toString());
@@ -84,7 +79,6 @@ export default function AddPasta({
         axios
             .post('/elleapi/pastagame/pasta', data, header)
             .then((res) => {
-                updateCurrentModule(curModule);
                 resetFields();
             })
             .catch((error) => {

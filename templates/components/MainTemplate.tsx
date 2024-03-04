@@ -1,22 +1,22 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import backgroundFullImage from '../public/static/images/ELLE/ELLE-Background-Full.png';
-import { useLogout } from '@/hooks/useLogout';
 
+import { useAuth } from '@/hooks/useAuth';
 import styles from './Layout.module.css';
 
 export default function Template(props: { permission?: string }) {
-    const { logout } = useLogout();
+    const { logout } = useAuth();
 
     return (
         <header id={styles.header}>
             <div className={styles.container}>
                 <div id='logo' className={styles.logo}>
                     <Link href='/home'>
+                        /
                         <Image src={backgroundFullImage} alt='ELLE Ultimate' title='Home' className='mainLogoStyle' height={42} width={150} />
                     </Link>
                 </div>

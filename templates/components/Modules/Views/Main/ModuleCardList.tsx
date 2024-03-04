@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardHeader, Collapse } from 'reactstrap';
 import CardList from './CardList';
 import { Tag } from '@/types/api/terms';
-import { QuestionFrame } from '@/types/api/pastagame';
+import { Pasta, QuestionFrame } from '@/types/api/pastagame';
 import PastaModuleCardList from './Pasta/PastaModuleCardList';
 
 export default function ModuleCardList({
@@ -14,7 +14,6 @@ export default function ModuleCardList({
     phrases,
     questions,
     mentorQuestions,
-    questionFrames,
     updateCurrentModule,
     allAnswers,
     addTag,
@@ -28,7 +27,6 @@ export default function ModuleCardList({
     phrases: ModuleQuestionAnswer[];
     questions: ModuleQuestion[];
     mentorQuestions: MentorQuestion[];
-    questionFrames?: QuestionFrame[];
     updateCurrentModule: (module?: Module, task?: string) => void;
     allAnswers: ModuleQuestionAnswer[];
     addTag: (tagList: Tag[], tag: Tag) => Tag[];
@@ -61,13 +59,7 @@ export default function ModuleCardList({
                     </CardHeader>
 
                     <Collapse isOpen={activePastaTabs.includes('questionFrames')}>
-                        <PastaModuleCardList
-                            type={'questionFrames'}
-                            questionFrames={questionFrames || []}
-                            currentClass={currentClass}
-                            curModule={curModule}
-                            updateCurrentModule={updateCurrentModule}
-                        />
+                        <PastaModuleCardList type={'questionFrames'} curModule={curModule} />
                     </Collapse>
                 </Card>
                 <Card style={{ marginBottom: '1rem' }}>
@@ -76,13 +68,7 @@ export default function ModuleCardList({
                     </CardHeader>
 
                     <Collapse isOpen={activePastaTabs.includes('pastas')}>
-                        <PastaModuleCardList
-                            type={'pastas'}
-                            questionFrames={questionFrames || []}
-                            currentClass={currentClass}
-                            curModule={curModule}
-                            updateCurrentModule={updateCurrentModule}
-                        />
+                        <PastaModuleCardList type={'pastas'} curModule={curModule} />
                     </Collapse>
                 </Card>
             </>

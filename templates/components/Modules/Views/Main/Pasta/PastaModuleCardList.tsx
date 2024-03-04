@@ -1,55 +1,16 @@
 import { useUser } from '@/hooks/useUser';
 import { Module } from '@/types/api/modules';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Table } from 'reactstrap';
 import { Pasta as PastaType, QuestionFrame as QuestionFrameType } from '@/types/api/pastagame';
-import QuestionFrame from './QuestionFrame';
-import axios from 'axios';
+import { useContext, useMemo } from 'react';
+import { Alert, Table } from 'reactstrap';
 import Pasta from './Pasta';
+import QuestionFrame from './QuestionFrame';
+import { PastaContext } from '@/hooks/usePasta';
 
-export default function PastaModuleCardList({
-    type,
-    questionFrames,
-    currentClass,
-    curModule,
-    updateCurrentModule
-}: {
-    type: string;
-    questionFrames: QuestionFrameType[];
-    currentClass: { value: number; label: string };
-    curModule: Module;
-    updateCurrentModule: (module?: Module, task?: string) => void;
-}) {
+export default function PastaModuleCardList({ type, curModule }: { type: string; curModule: Module }) {
     const { user } = useUser();
     const permissionLevel = user?.permissionGroup;
-    const [pastas, setPastas] = useState<PastaType[]>([]);
-
-    const getAllPastas = useCallback(() => {
-        if (type === 'pastas' && user && curModule.moduleID) {
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${user?.jwt}`
-                },
-                params: {
-                    moduleID: curModule.moduleID
-                }
-            };
-
-            axios
-                .get(`/elleapi/pastagame/pasta/all`, config)
-                .then((response) => {
-                    console.log(response.data);
-                    setPastas(response.data);
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        }
-    }, [curModule.moduleID, type, user]);
-
-    useEffect(() => {
-        getAllPastas();
-    }, [getAllPastas]);
+    const { questionFrames, pastas } = useContext(PastaContext);
 
     const HeadRow = useMemo(() => {
         switch (type) {
@@ -82,40 +43,19 @@ export default function PastaModuleCardList({
 
     return (
         <>
-            {type === 'questionFrames' && (
-                <QuestionFrameCardList
-                    questionFrames={questionFrames}
-                    currentClass={currentClass}
-                    curModule={curModule}
-                    updateCurrentModule={updateCurrentModule}
-                    HeadRow={HeadRow}
-                />
-            )}
-            {type === 'pastas' && (
-                <PastaCardList
-                    pastas={pastas}
-                    questionFrames={questionFrames}
-                    currentClass={currentClass}
-                    curModule={curModule}
-                    reloadPastas={getAllPastas}
-                    HeadRow={HeadRow}
-                />
-            )}
+            {type === 'questionFrames' && <QuestionFrameCardList questionFrames={questionFrames} curModule={curModule} HeadRow={HeadRow} />}
+            {type === 'pastas' && <PastaCardList pastas={pastas || []} questionFrames={questionFrames} curModule={curModule} HeadRow={HeadRow} />}
         </>
     );
 }
 
 function QuestionFrameCardList({
     questionFrames,
-    currentClass,
     curModule,
-    updateCurrentModule,
     HeadRow
 }: {
     questionFrames: QuestionFrameType[];
-    currentClass: { value: number; label: string };
     curModule: Module;
-    updateCurrentModule: (module?: Module, task?: string) => void;
     HeadRow: JSX.Element;
 }) {
     return (
@@ -127,15 +67,7 @@ function QuestionFrameCardList({
                     {HeadRow}
                     <tbody>
                         {questionFrames.map((questionFrame) => {
-                            return (
-                                <QuestionFrame
-                                    key={questionFrame.qframeID}
-                                    questionFrame={questionFrame}
-                                    currentClass={currentClass}
-                                    updateCurrentModule={updateCurrentModule}
-                                    curModule={curModule}
-                                />
-                            );
+                            return <QuestionFrame key={questionFrame.qframeID} questionFrame={questionFrame} curModule={curModule} />;
                         })}
                     </tbody>
                 </Table>
@@ -147,16 +79,12 @@ function QuestionFrameCardList({
 function PastaCardList({
     pastas,
     questionFrames,
-    currentClass,
     curModule,
-    reloadPastas,
     HeadRow
 }: {
     pastas: PastaType[];
     questionFrames: QuestionFrameType[];
-    currentClass: { value: number; label: string };
     curModule: Module;
-    reloadPastas: () => void;
     HeadRow: JSX.Element;
 }) {
     return (
@@ -168,16 +96,7 @@ function PastaCardList({
                     {HeadRow}
                     <tbody>
                         {pastas.map((pasta) => {
-                            return (
-                                <Pasta
-                                    key={pasta.pastaID}
-                                    pasta={pasta}
-                                    questionFrames={questionFrames}
-                                    currentClass={currentClass}
-                                    reloadPastas={reloadPastas}
-                                    curModule={curModule}
-                                />
-                            );
+                            return <Pasta key={pasta.pastaID} pasta={pasta} questionFrames={questionFrames} curModule={curModule} />;
                         })}
                     </tbody>
                 </Table>

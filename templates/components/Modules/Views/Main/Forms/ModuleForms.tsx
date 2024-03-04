@@ -9,6 +9,8 @@ import AddMentorQuestion from './AddMentorQuestion';
 import AddQuestionFrame from './Pasta/AddQuestionFrame';
 import { QuestionFrame } from '@/types/api/pastagame';
 import AddPasta from './Pasta/AddPasta';
+import { useContext } from 'react';
+import { PastaContext } from '@/hooks/usePasta';
 
 export default function ModuleForms({
     currentClass,
@@ -21,9 +23,7 @@ export default function ModuleForms({
     openForm,
     setOpenForm,
     getAllTags,
-    allAnswersNotInThisModule,
-    questionFrames,
-    getAllQuestionFrames
+    allAnswersNotInThisModule
 }: {
     currentClass: { value: number; label: string };
     curModule: Module;
@@ -36,8 +36,6 @@ export default function ModuleForms({
     setOpenForm: (num: number) => void;
     getAllTags: () => void;
     allAnswersNotInThisModule: ModuleQuestionAnswer[];
-    questionFrames: QuestionFrame[];
-    getAllQuestionFrames: () => void;
 }) {
     return (
         <Row>
@@ -112,21 +110,10 @@ export default function ModuleForms({
                 </Collapse>
                 {/*Form for adding a Pasta Question Frame*/}
                 <Collapse isOpen={openForm === 6 && curModule.isPastaModule}>
-                    <AddQuestionFrame
-                        questionFrames={questionFrames}
-                        curModule={curModule}
-                        updateCurrentModule={updateCurrentModule}
-                        setOpenForm={setOpenForm}
-                        getAllQuestionFrames={getAllQuestionFrames}
-                    />
+                    <AddQuestionFrame curModule={curModule} setOpenForm={setOpenForm} />
                 </Collapse>
                 <Collapse isOpen={openForm === 7 && curModule.isPastaModule}>
-                    <AddPasta
-                        questionFrames={questionFrames}
-                        curModule={curModule}
-                        updateCurrentModule={updateCurrentModule}
-                        setOpenForm={setOpenForm}
-                    />
+                    <AddPasta curModule={curModule} setOpenForm={setOpenForm} />
                 </Collapse>
             </Col>
         </Row>

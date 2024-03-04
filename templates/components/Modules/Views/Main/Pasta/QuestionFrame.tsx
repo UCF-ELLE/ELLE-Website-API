@@ -1,30 +1,21 @@
-import React, { Fragment, useMemo, useState } from 'react';
-import { Alert, Button, ButtonGroup, Modal, ModalHeader, ModalBody, ModalFooter, Collapse, Input, Badge, Row, Col } from 'reactstrap';
-import axios from 'axios';
+import React, { Fragment, useContext, useState } from 'react';
+import { Alert, Badge, Button, ButtonGroup, Col, Collapse, Input, Modal, ModalBody, ModalFooter, ModalHeader, Row } from 'reactstrap';
 
-import { Module } from '@/types/api/modules';
 import { useUser } from '@/hooks/useUser';
+import { Module } from '@/types/api/modules';
 import Image from 'next/image';
 
 // This is awful
-import toolsImage from '@/public/static/images/tools.png';
+import { PastaContext, usePasta } from '@/hooks/usePasta';
+import cancelImage from '@/public/static/images/cancel.png';
 import deleteImage from '@/public/static/images/delete.png';
 import submitImage from '@/public/static/images/submit.png';
-import cancelImage from '@/public/static/images/cancel.png';
+import toolsImage from '@/public/static/images/tools.png';
 import { QuestionFrame } from '@/types/api/pastagame';
 import { Typeahead } from 'react-bootstrap-typeahead';
+import { Option } from 'react-bootstrap-typeahead/types/types';
 
-export default function QuestionFrame({
-    questionFrame,
-    currentClass,
-    updateCurrentModule,
-    curModule
-}: {
-    questionFrame: QuestionFrame;
-    currentClass: { value: number; label: string };
-    updateCurrentModule: (module?: Module, task?: string) => void;
-    curModule: Module;
-}) {
+export default function QuestionFrame({ questionFrame, curModule }: { questionFrame: QuestionFrame; curModule: Module }) {
     const [modal, setModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [editedDisplayName, setEditedDisplayName] = useState(questionFrame.displayName);
@@ -35,6 +26,7 @@ export default function QuestionFrame({
     const [editedMC1Options, setEditedMC1Options] = useState(questionFrame.mc1Options);
     const [editedMC2QuestionText, setEditedMC2QuestionText] = useState(questionFrame.mc2QuestionText);
     const [editedMC2Options, setEditedMC2Options] = useState(questionFrame.mc2Options);
+    const { editQuestionFrame, deleteQuestionFrame } = useContext(PastaContext);
 
     const [rowCollapse, setRowCollapse] = useState(false);
 
@@ -51,63 +43,26 @@ export default function QuestionFrame({
     const submitEdit = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         setEditMode(false);
 
-        const data = new FormData();
-        let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt }
+        const editedQuestionFrame: QuestionFrame = {
+            qframeID: questionFrame.qframeID,
+            moduleID: questionFrame.moduleID,
+            displayName: editedDisplayName,
+            category: editedCategory,
+            splitQuestionVar: editedSplitQuestionVar,
+            identifyQuestionVar: editedIdentifyQuestionVar,
+            mc1QuestionText: editedMC1QuestionText,
+            mc1Options: editedMC1Options,
+            mc2QuestionText: editedMC2QuestionText,
+            mc2Options: editedMC2Options
         };
+        console.log(editedQuestionFrame);
 
-        data.append('qframeID', questionFrame.qframeID.toString());
-        editedDisplayName && data.append('displayName', editedDisplayName);
-        editedCategory && data.append('category', editedCategory);
-        editedSplitQuestionVar && data.append('splitQuestionVar', editedSplitQuestionVar); //not editable
-
-        if (permissionLevel === 'ta') {
-            data.append('groupID', currentClass.value.toString());
-        }
-
-        editedIdentifyQuestionVar && data.append('identityLeadup', editedIdentifyQuestionVar);
-
-        editedMC1QuestionText && data.append('mc1QuestionText', editedMC1QuestionText);
-        editedMC1Options && data.append('mc1Options', JSON.stringify(editedMC1Options));
-
-        editedMC2QuestionText && data.append('mc2QuestionText', editedMC2QuestionText);
-        editedMC2Options && data.append('mc2Options', JSON.stringify(editedMC2Options));
-
-        axios
-            .put('/elleapi/pastagame/qframe', data, header)
-            .then((res) => {
-                updateCurrentModule(curModule);
-            })
-            .catch((error) => {
-                console.log('submitEdit in Card.js error: ', error.response);
-            });
+        editQuestionFrame(editedQuestionFrame);
     };
 
     //toggling delete modal, is not related to delete card API
     const handleDelete = () => {
         setModal(!modal);
-    };
-
-    //function for deleting a card from the database
-    const deleteQuestionFrame = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        setModal(!modal);
-
-        let header = {
-            data: {
-                qframeID: questionFrame.qframeID,
-                groupID: permissionLevel === 'ta' ? currentClass.value : null
-            },
-            headers: { Authorization: 'Bearer ' + user?.jwt }
-        };
-
-        axios
-            .delete('/elleapi/pastagame/qframe', header)
-            .then((res) => {
-                updateCurrentModule(curModule);
-            })
-            .catch((error) => {
-                console.log('deleteTerm in Card.js error: ', error.response);
-            });
     };
 
     //function that cancels the edit and sets everything back to what it was initially
@@ -180,7 +135,7 @@ export default function QuestionFrame({
 
                         <ModalFooter>
                             <Button onClick={() => setModal(!modal)}>Cancel</Button>
-                            <Button color='danger' onClick={(e) => deleteQuestionFrame(e)}>
+                            <Button color='danger' onClick={(e) => deleteQuestionFrame(questionFrame.qframeID)}>
                                 Delete
                             </Button>
                         </ModalFooter>
@@ -400,6 +355,9 @@ const CollapseEditRow = ({
     editedMC2Options?: string[];
     setEditedMC2Options: (value: string[]) => void;
 }) => {
+    const [editedMC1Typeahead, setEditedMC1Typeahead] = useState<Option[]>(editedMC1Options || []);
+    const [editedMC2Typeahead, setEditedMC2Typeahead] = useState<Option[]>(editedMC2Options || []);
+
     return (
         <tr>
             <td
@@ -445,7 +403,7 @@ const CollapseEditRow = ({
                                     type='text'
                                     name='editedMC1QuestionText'
                                     onChange={(e) => setEditedMC1QuestionText(e.target.value)}
-                                    value={editedMC1QuestionText}
+                                    value={editedMC1QuestionText || ''}
                                 />
                             </Col>
                             <Col>
@@ -463,11 +421,14 @@ const CollapseEditRow = ({
                                         }
                                         return true;
                                     }}
-                                    onChange={(selected) => setEditedMC1Options(selected as string[])}
+                                    onChange={(selected) => {
+                                        setEditedMC1Typeahead(selected);
+                                        setEditedMC1Options(selected.map((option) => (typeof option === 'string' ? option : option.label)));
+                                    }}
                                     options={editedMC1Options || []}
                                     placeholder='Enter options...'
                                     emptyLabel='Enter option...'
-                                    selected={editedMC1Options}
+                                    selected={editedMC1Typeahead}
                                 />
                             </Col>
                         </Row>
@@ -478,7 +439,7 @@ const CollapseEditRow = ({
                                     type='text'
                                     name='editedMC2QuestionText'
                                     onChange={(e) => setEditedMC2QuestionText(e.target.value)}
-                                    value={editedMC2QuestionText}
+                                    value={editedMC2QuestionText || ''}
                                 />
                             </Col>
                             <Col>
@@ -492,11 +453,14 @@ const CollapseEditRow = ({
                                         }
                                         return true;
                                     }}
-                                    onChange={(selected) => setEditedMC2Options(selected as string[])}
+                                    onChange={(selected) => {
+                                        setEditedMC2Typeahead(selected);
+                                        setEditedMC2Options(selected.map((option) => (typeof option === 'string' ? option : option.label)));
+                                    }}
                                     options={editedMC2Options || []}
                                     placeholder='Enter options...'
                                     emptyLabel='Enter option...'
-                                    selected={editedMC2Options}
+                                    selected={editedMC2Typeahead}
                                 />
                             </Col>
                         </Row>
