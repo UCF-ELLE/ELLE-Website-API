@@ -23,3 +23,7 @@ code {
     min-height: 100%;
     position: relative;
 }
+
+table.table-hover tr.no-hover *:hover {
+    background-color: #ffffff;
+}

@@ -1,4 +1,4 @@
-import React, { Fragment, useContext, useState } from 'react';
+import React, { Fragment, useContext, useEffect, useState } from 'react';
 import { Alert, Badge, Button, ButtonGroup, Col, Collapse, Input, Modal, ModalBody, ModalFooter, ModalHeader, Row } from 'reactstrap';
 
 import { useUser } from '@/hooks/useUser';
@@ -12,7 +12,7 @@ import deleteImage from '@/public/static/images/delete.png';
 import submitImage from '@/public/static/images/submit.png';
 import toolsImage from '@/public/static/images/tools.png';
 import { QuestionFrame } from '@/types/api/pastagame';
-import { Typeahead } from 'react-bootstrap-typeahead';
+import { Typeahead, TypeaheadRef } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 
 export default function QuestionFrame({ questionFrame, curModule }: { questionFrame: QuestionFrame; curModule: Module }) {
@@ -243,7 +243,7 @@ const CollapseRow = ({
     rowCollapse: boolean;
 }) => {
     return (
-        <tr>
+        <tr className='no-hover'>
             <td
                 style={{
                     border: 'none',
@@ -355,11 +355,32 @@ const CollapseEditRow = ({
     editedMC2Options?: string[];
     setEditedMC2Options: (value: string[]) => void;
 }) => {
+    // Likely a better way to implement this, React Bootstrap Typeahead is a bit of a pain to work with for custom inputs
+    // Sets the visual state of the selected typeahead options
     const [editedMC1Typeahead, setEditedMC1Typeahead] = useState<Option[]>(editedMC1Options || []);
     const [editedMC2Typeahead, setEditedMC2Typeahead] = useState<Option[]>(editedMC2Options || []);
 
+    // Sets the input value of the typeahead, used for hiding the menu when the input is an already selected option
+    const [editedMC1Input, setEditedMC1Input] = useState<string>('');
+    const [editedMC2Input, setEditedMC2Input] = useState<string>('');
+
+    const ref1 = React.createRef<TypeaheadRef>();
+    const ref2 = React.createRef<TypeaheadRef>();
+
+    useEffect(() => {
+        if (editedMC1Options?.includes(editedMC1Input)) {
+            ref1.current?.hideMenu();
+        }
+    }, [editedMC1Input, editedMC1Options, ref1]);
+
+    useEffect(() => {
+        if (editedMC2Options?.includes(editedMC2Input)) {
+            ref2.current?.hideMenu();
+        }
+    }, [editedMC2Input, editedMC2Options, ref2]);
+
     return (
-        <tr>
+        <tr className='no-hover'>
             <td
                 style={{
                     border: 'none',
@@ -375,12 +396,12 @@ const CollapseEditRow = ({
                             }}
                         >
                             <Col>
-                                <label>What to Identify:</label>
+                                <label>Identity Question:</label>
                                 <Input
                                     type='text'
                                     name='editedIdentifyQuestionVar'
                                     onChange={(e) => setEditedIdentifyQuestionVar(e.target.value)}
-                                    placeholder='the root'
+                                    placeholder='the root(s)'
                                     value={editedIdentifyQuestionVar}
                                 />
                             </Col>
@@ -391,9 +412,13 @@ const CollapseEditRow = ({
                                     justifyContent: 'center'
                                 }}
                             >
-                                <div>
-                                    Identify <Badge>{editedIdentifyQuestionVar}</Badge> of this <Badge>{displayName || category}</Badge>.
-                                </div>
+                                {editedIdentifyQuestionVar ? (
+                                    <div>
+                                        Identify <Badge>{editedIdentifyQuestionVar}</Badge> of this <Badge>{displayName || category}</Badge>.
+                                    </div>
+                                ) : (
+                                    <div className='text-secondary'>No identity question entered yet!</div>
+                                )}
                             </Col>
                         </Row>
                         <Row style={{ padding: '12px 0px' }}>
@@ -408,24 +433,26 @@ const CollapseEditRow = ({
                             </Col>
                             <Col>
                                 <label>First Multiple Choice Answers:</label>
-                                {/* Typeahead component, limit to 5 options */}
                                 <Typeahead
                                     id='editedMC1Options'
                                     multiple
-                                    inputProps={{
-                                        readOnly: editedMC1Options && editedMC1Options?.length >= 4
-                                    }}
+                                    minLength={1}
+                                    ref={ref1}
+                                    inputProps={{ readOnly: editedMC1Options && editedMC1Options?.length >= 4 }}
+                                    open={editedMC1Options && editedMC1Options?.length >= 4 ? false : undefined}
                                     allowNew={(res, props) => {
-                                        if (props.selected.length >= 4) {
+                                        if (props.selected.length >= 4) return false;
+                                        if (editedMC1Options?.includes(props.text)) {
                                             return false;
                                         }
                                         return true;
                                     }}
+                                    onInputChange={(input) => setEditedMC1Input(input)}
                                     onChange={(selected) => {
                                         setEditedMC1Typeahead(selected);
                                         setEditedMC1Options(selected.map((option) => (typeof option === 'string' ? option : option.label)));
                                     }}
-                                    options={editedMC1Options || []}
+                                    options={[]}
                                     placeholder='Enter options...'
                                     emptyLabel='Enter option...'
                                     selected={editedMC1Typeahead}
@@ -447,19 +474,25 @@ const CollapseEditRow = ({
                                 <Typeahead
                                     id='editedMC2Options'
                                     multiple
+                                    ref={ref2}
+                                    minLength={1}
+                                    inputProps={{ readOnly: editedMC2Options && editedMC2Options?.length >= 4 }}
+                                    open={editedMC2Options && editedMC2Options?.length >= 4 ? false : undefined}
                                     allowNew={(res, props) => {
-                                        if (props.selected.length >= 4) {
+                                        if (props.selected.length >= 4) return false;
+                                        if (editedMC2Options?.includes(props.text)) {
                                             return false;
                                         }
                                         return true;
                                     }}
+                                    onInputChange={(input) => setEditedMC2Input(input)}
                                     onChange={(selected) => {
                                         setEditedMC2Typeahead(selected);
                                         setEditedMC2Options(selected.map((option) => (typeof option === 'string' ? option : option.label)));
                                     }}
-                                    options={editedMC2Options || []}
-                                    placeholder='Enter options...'
-                                    emptyLabel='Enter option...'
+                                    options={[]}
+                                    placeholder='Enter answers...'
+                                    emptyLabel='Enter answer...'
                                     selected={editedMC2Typeahead}
                                 />
                             </Col>
