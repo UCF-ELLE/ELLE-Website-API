@@ -58,7 +58,7 @@ export default class PastaService {
         }
     };
 
-    createQuestionFrame = async (questionFrame: QuestionFrame) => {
+    createQuestionFrame = async (questionFrame: Omit<QuestionFrame, 'qframeID'>) => {
         try {
             const res = await this.instance.post<QuestionFrameResponse>('/elleapi/pastagame/qframe', questionFrame);
             return res.data.question_frame;
@@ -79,8 +79,13 @@ export default class PastaService {
     };
 
     deleteQuestionFrame = async (qframeID: number) => {
+        const config = {
+            data: {
+                qframeID
+            }
+        };
         try {
-            const res = await this.instance.delete<QuestionFrameResponse>(`/elleapi/pastagame/qframe/${qframeID}`);
+            const res = await this.instance.delete<QuestionFrameResponse>(`/elleapi/pastagame/qframe`, config);
             return res.data.Message;
         } catch (err: any) {
             console.log('delete question frame error: ', err.response);
@@ -116,7 +121,7 @@ export default class PastaService {
         }
     };
 
-    createPasta = async (pasta: Pasta) => {
+    createPasta = async (pasta: Omit<Pasta, 'pastaID'>) => {
         try {
             const res = await this.instance.post<PastaResponse>('/elleapi/pastagame/pasta', pasta);
             return res.data.pasta;

@@ -6,6 +6,7 @@ import { Module } from '@/types/api/modules';
 import { IdentityQuestionForm, MultipleChoiceQuestionForm } from './MiniForms';
 import axios from 'axios';
 import { PastaContext } from '@/hooks/usePasta';
+import { QuestionFrame } from '@/types/api/pastagame';
 
 export default function AddQuestionFrame({ curModule, setOpenForm }: { curModule: Module; setOpenForm: (form: number) => void }) {
     const { questionFrames, createQuestionFrame } = useContext(PastaContext);
@@ -70,46 +71,18 @@ export default function AddQuestionFrame({ curModule, setOpenForm }: { curModule
         const invalid = validateForm();
         if (invalid) return;
 
-        const data = new FormData();
-        let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt }
+        const newQuestionFrame: Omit<QuestionFrame, 'qframeID'> = {
+            moduleID: curModule.moduleID,
+            displayName: displayName,
+            category: category,
+            splitQuestionVar: splitQuestionVar,
+            identifyQuestionVar: identityQuestionOut ? identifyQuestionVar : undefined,
+            mc1QuestionText: questionOneOut ? mc1QuestionText : undefined,
+            mc1Options: questionOneOut ? mc1Options : undefined,
+            mc2QuestionText: questionTwoOut ? mc2QuestionText : undefined,
+            mc2Options: questionTwoOut ? mc2Options : undefined
         };
-
-        data.append('displayName', displayName);
-        data.append('moduleID', curModule.moduleID.toString());
-        data.append('category', category);
-        data.append('splitQuestionVar', splitQuestionVar);
-
-        if (identityQuestionOut) {
-            data.append('identityLeadup', identifyQuestionVar);
-        }
-
-        if (questionOneOut) {
-            data.append('mc1QuestionText', mc1QuestionText);
-            for (const option of mc1Options) {
-                data.append('mc1Options', option);
-            }
-        }
-
-        if (questionTwoOut) {
-            data.append('mc2QuestionText', mc2QuestionText);
-            for (const option of mc2Options) {
-                data.append('mc2Options', option);
-            }
-        }
-
-        axios
-            .post('/elleapi/pastagame/qframe', data, header)
-            .then((res) => {
-                resetFields();
-            })
-            .catch((error) => {
-                console.log('create question frame error: ', error.response);
-                if (error.response) {
-                    setError(true);
-                    setErrMsg(error.response.data);
-                }
-            });
+        createQuestionFrame(newQuestionFrame);
     };
 
     const resetFields = () => {

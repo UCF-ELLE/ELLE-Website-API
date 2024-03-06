@@ -6,7 +6,7 @@ import { createContext, useEffect, useMemo, useState } from 'react';
 export const PastaContext = createContext<{
     pastas: Pasta[];
     questionFrames: QuestionFrame[];
-    createQuestionFrame: (questionFrame: QuestionFrame) => void;
+    createQuestionFrame: (questionFrame: Omit<QuestionFrame, 'qframeID'>) => void;
     createPasta: (pasta: Pasta) => void;
     editQuestionFrame: (questionFrame: QuestionFrame) => void;
     editPasta: (pasta: Pasta) => void;
@@ -39,12 +39,12 @@ export const usePasta = (moduleID: number) => {
         fetchData();
     }, [_ps, moduleID]);
 
-    const createQuestionFrame = async (questionFrame: QuestionFrame) => {
+    const createQuestionFrame = async (questionFrame: Omit<QuestionFrame, 'qframeID'>) => {
         const newQuestionFrame = await _ps.createQuestionFrame(questionFrame);
         if (newQuestionFrame) setQuestionFrames([...questionFrames, newQuestionFrame]);
     };
 
-    const createPasta = async (pasta: Pasta) => {
+    const createPasta = async (pasta: Omit<Pasta, 'pastaID'>) => {
         const newPasta = await _ps.createPasta(pasta);
         if (newPasta) setPastas([...pastas, newPasta]);
     };

@@ -172,6 +172,9 @@ export default function AddPasta({ curModule, setOpenForm }: { curModule: Module
                             value={mc1Answer.toString()}
                             onChange={(e) => setMC1Answer(Number(e.target.value))}
                         >
+                            <option disabled selected value={-1}>
+                                Select an answer
+                            </option>
                             {selectedQuestionFrame.mc1Options.map((leadup, index) => (
                                 <option key={index} value={index}>
                                     {leadup}
@@ -190,6 +193,9 @@ export default function AddPasta({ curModule, setOpenForm }: { curModule: Module
                             value={mc2Answer.toString()}
                             onChange={(e) => setMC2Answer(Number(e.target.value))}
                         >
+                            <option disabled selected value={-1}>
+                                Select an answer
+                            </option>
                             {selectedQuestionFrame.mc2Options.map((leadup, index) => (
                                 <option key={index} value={index}>
                                     {leadup}
