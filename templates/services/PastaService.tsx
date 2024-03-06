@@ -1,6 +1,7 @@
 import { Pasta, QuestionFrame } from '@/types/api/pastagame';
 import axios, { AxiosInstance } from 'axios';
 import Cookies from 'js-cookie';
+import { config } from 'process';
 
 type PastaResponse = {
     Message?: string;
@@ -142,8 +143,14 @@ export default class PastaService {
     };
 
     deletePasta = async (pastaID: number) => {
+        const config = {
+            data: {
+                pastaID
+            }
+        };
+
         try {
-            const res = await this.instance.delete<PastaResponse>(`/elleapi/pastagame/pasta/${pastaID}`);
+            const res = await this.instance.delete<PastaResponse>(`/elleapi/pastagame/pasta/`, config);
             return res.data.Message;
         } catch (err: any) {
             console.log('delete pasta error: ', err.response);

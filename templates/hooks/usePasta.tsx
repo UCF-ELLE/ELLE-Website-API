@@ -7,7 +7,7 @@ export const PastaContext = createContext<{
     pastas: Pasta[];
     questionFrames: QuestionFrame[];
     createQuestionFrame: (questionFrame: Omit<QuestionFrame, 'qframeID'>) => void;
-    createPasta: (pasta: Pasta) => void;
+    createPasta: (pasta: Omit<Pasta, 'pastaID'>) => void;
     editQuestionFrame: (questionFrame: QuestionFrame) => void;
     editPasta: (pasta: Pasta) => void;
     deleteQuestionFrame: (qframeID: number) => void;

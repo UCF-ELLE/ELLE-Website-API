@@ -3,7 +3,7 @@ import { Alert, Badge, Button, Col, Form, FormGroup, Input, Label, Row } from 'r
 
 import { useUser } from '@/hooks/useUser';
 import { Module } from '@/types/api/modules';
-import { QuestionFrame } from '@/types/api/pastagame';
+import { Pasta, QuestionFrame } from '@/types/api/pastagame';
 import { Typeahead, TypeaheadRef } from 'react-bootstrap-typeahead';
 import { SplitComponent } from './SplitComponent';
 import axios from 'axios';
@@ -17,9 +17,9 @@ export default function AddPasta({ curModule, setOpenForm }: { curModule: Module
     const [category, setCategory] = useState<string>('');
     const [selectedQuestionFrame, setSelectedQuestionFrame] = useState<QuestionFrame>();
     const [splitQuestionAnswer, setSplitQuestionAnswer] = useState<number[]>([]);
-    const [identifyQuestionAnswer, setIdentityQuestionAnswer] = useState<Number[]>([]);
-    const [mc1Answer, setMC1Answer] = useState<Number>(-1);
-    const [mc2Answer, setMC2Answer] = useState<Number>(-1);
+    const [identifyQuestionAnswer, setIdentityQuestionAnswer] = useState<number[]>([]);
+    const [mc1Answer, setMC1Answer] = useState<number>(-1);
+    const [mc2Answer, setMC2Answer] = useState<number>(-1);
     const [error, setError] = useState<boolean>(false);
     const [errMsg, setErrMsg] = useState<string>('');
 
@@ -53,41 +53,17 @@ export default function AddPasta({ curModule, setOpenForm }: { curModule: Module
         const invalid = validateForm();
         if (invalid) return;
 
-        const data = new FormData();
-        let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt }
+        const newPasta: Omit<Pasta, 'pastaID'> = {
+            moduleID: curModule.moduleID,
+            utterance: utterance,
+            category: category,
+            splitAnswer: splitQuestionAnswer,
+            identifyAnswer: identifyQuestionAnswer.length > 0 ? identifyQuestionAnswer : undefined,
+            mc1Answer: mc1Answer !== -1 ? mc1Answer : undefined,
+            mc2Answer: mc2Answer !== -1 ? mc2Answer : undefined
         };
 
-        data.append('moduleID', curModule.moduleID.toString());
-        data.append('utterance', utterance);
-        data.append('category', category);
-        for (const split of splitQuestionAnswer) {
-            data.append('splitAnswer', split.toString());
-        }
-        if (selectedQuestionFrame?.identifyQuestionVar) {
-            for (const identifyAnswer of identifyQuestionAnswer) {
-                data.append('identifyAnswer', identifyAnswer.toString());
-            }
-        }
-        if (selectedQuestionFrame?.mc1Options) {
-            data.append('mc1Answer', mc1Answer.toString());
-        }
-        if (selectedQuestionFrame?.mc2Options) {
-            data.append('mc2Answer', mc2Answer.toString());
-        }
-
-        axios
-            .post('/elleapi/pastagame/pasta', data, header)
-            .then((res) => {
-                resetFields();
-            })
-            .catch((error) => {
-                console.log('create pasta error: ', error.response);
-                if (error.response.data?.message) {
-                    setError(true);
-                    setErrMsg(error.response.data.message);
-                }
-            });
+        createPasta(newPasta);
     };
 
     const resetFields = () => {
