@@ -276,7 +276,6 @@ class PurchaseUserItem(Resource):
     @jwt_required
     def post(self):
         data = {}
-        data["userItemID"] = getParameter("userItemID", int, True, "")
         data["userID"] = getParameter("userID", int, True, "")
         data["itemID"] = getParameter("itemID", int, True, "")
         data["timeOfPurchase"] = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -291,11 +290,10 @@ class PurchaseUserItem(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            query = "INSERT INTO `user_item` (`userItemID`, `userID`, `itemID`, `timeOfPurchase`, `game`, `isWearing`) VALUES (%s, %s, %s, %s, %s, %s)"
+            query = "INSERT INTO `user_item` (`userID`, `itemID`, `timeOfPurchase`, `game`, `isWearing`) VALUES (%s, %s, %s, %s, %s)"
             postToDB(
                 query,
                 (
-                    data["userItemID"],
                     data["userID"],
                     data["itemID"],
                     data["timeOfPurchase"],

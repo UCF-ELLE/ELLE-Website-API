@@ -16,7 +16,6 @@ export default function Template(props: { permission?: string }) {
             <div className={styles.container}>
                 <div id='logo' className={styles.logo}>
                     <Link href='/home'>
-                        /
                         <Image src={backgroundFullImage} alt='ELLE Ultimate' title='Home' className='mainLogoStyle' height={42} width={150} />
                     </Link>
                 </div>
