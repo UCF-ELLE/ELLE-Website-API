@@ -48,10 +48,13 @@ export default function AddPasta({ curModule, setOpenForm }: { curModule: Module
         return noError;
     };
 
-    const submitPasta = (e: React.FormEvent<HTMLFormElement>) => {
+    const submitPasta = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const invalid = validateForm();
         if (invalid) return;
+
+        setError(false);
+        setErrMsg('');
 
         const newPasta: Omit<Pasta, 'pastaID'> = {
             moduleID: curModule.moduleID,
@@ -63,7 +66,13 @@ export default function AddPasta({ curModule, setOpenForm }: { curModule: Module
             mc2Answer: mc2Answer !== -1 ? mc2Answer : undefined
         };
 
-        createPasta(newPasta);
+        const response = await createPasta(newPasta);
+        if (response.error) {
+            setError(true);
+            setErrMsg(response.error);
+            return;
+        }
+        resetFields();
     };
 
     const resetFields = () => {

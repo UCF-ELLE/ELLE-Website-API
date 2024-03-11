@@ -32,22 +32,7 @@ export default function Signup() {
     const [registerErr, setRegisterErr] = React.useState<boolean>(false);
     const [errorMsg, setErrorMsg] = React.useState<string | void>('');
 
-    const { user } = useUser();
-
-    const generateUsername = () => {
-        let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt }
-        };
-
-        axios
-            .get('/elleapi/generateusername', header)
-            .then((res) => {
-                setUsername(res.data.username);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    };
+    const { user, generateUsername } = useUser();
 
     const validatePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.name === 'password') {
@@ -89,7 +74,7 @@ export default function Signup() {
 
     const submit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const response = await signup(username, email, password, confirmation, classCode);
+        const response = await signup(username, email, password, confirmation, reason, location, classCode);
 
         if ('error' in response) {
             setRegisterErr(true);

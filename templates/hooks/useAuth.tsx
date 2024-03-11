@@ -20,17 +20,26 @@ export const useAuth = () => {
         router.push('/home');
     };
 
-    const signup = async (username: string, email: string, password: string, confirmation: string, groupCode: string) => {
+    const signup = async (
+        username: string,
+        email: string,
+        password: string,
+        confirmation: string,
+        reason: string,
+        location: string,
+        groupCode: string
+    ) => {
         const _as = new AuthService();
         const data = {
             username,
             email,
             password,
             password_confirm: confirmation,
+            reason,
+            location,
             groupCode
         } as UserRegisterInfo;
         const response = await _as.signup(data);
-        console.log(response);
         if ('Message' in response && response.Message.toLowerCase().includes('success')) {
             router.push('/login');
         }

@@ -1,7 +1,20 @@
 import { Pasta, QuestionFrame } from '@/types/api/pastagame';
 import axios, { AxiosInstance } from 'axios';
 import Cookies from 'js-cookie';
-import { config } from 'process';
+
+type DataType = undefined | Pasta | Pasta[] | QuestionFrame | QuestionFrame[];
+
+interface PastaServiceResponse<T extends DataType> {
+    Message?: string;
+    Error?: string;
+    data: T;
+}
+
+type QuestionFrameResponse = {
+    Message?: string;
+    Error?: string;
+    question_frame?: QuestionFrame;
+};
 
 type PastaResponse = {
     Message?: string;
@@ -9,11 +22,18 @@ type PastaResponse = {
     pasta?: Pasta;
 };
 
-type QuestionFrameResponse = {
-    Message?: string;
-    Error?: string;
-    question_frame?: QuestionFrame;
-};
+function ensureError(error: unknown): Error {
+    if (error instanceof Error) {
+        return error;
+    }
+    let stringified = '[Unable to stringify the error]';
+    try {
+        stringified = JSON.stringify(error);
+    } catch {}
+
+    const newError = new Error(`Unknown error: ${stringified}`);
+    return newError;
+}
 
 export default class PastaService {
     protected readonly instance: AxiosInstance;
@@ -38,10 +58,11 @@ export default class PastaService {
                     moduleID
                 }
             });
-            return res.data;
-        } catch (err: any) {
-            console.log('error in pastagame/qframe/all: ', err.response);
-            return [];
+            return { Message: 'Success', data: res.data } as PastaServiceResponse<QuestionFrame[]>;
+        } catch (err) {
+            const error = ensureError(err);
+            console.log('error in pastagame/qframe/all: ', error.message);
+            return { Error: error.message, data: undefined } as PastaServiceResponse<undefined>;
         }
     };
 
@@ -52,30 +73,33 @@ export default class PastaService {
                     qframeID
                 }
             });
-            return res.data;
-        } catch (err: any) {
-            console.log('error in pastagame/qframe: ', err.response);
-            return undefined;
+            return { Message: 'Success', data: res.data } as PastaServiceResponse<QuestionFrame>;
+        } catch (err) {
+            const error = ensureError(err);
+            console.log('error in pastagame/qframe: ', error.message);
+            return { Error: error.message, data: undefined } as PastaServiceResponse<undefined>;
         }
     };
 
     createQuestionFrame = async (questionFrame: Omit<QuestionFrame, 'qframeID'>) => {
         try {
             const res = await this.instance.post<QuestionFrameResponse>('/elleapi/pastagame/qframe', questionFrame);
-            return res.data.question_frame;
-        } catch (err: any) {
-            console.log('create question frame error: ', err.response);
-            return undefined;
+            return { Message: 'Success', data: res.data.question_frame } as PastaServiceResponse<QuestionFrame>;
+        } catch (err) {
+            const error = ensureError(err);
+            console.log('create question frame error: ', error.message);
+            return { Error: error.message, data: undefined } as PastaServiceResponse<undefined>;
         }
     };
 
     editQuestionFrame = async (questionFrame: QuestionFrame) => {
         try {
             const res = await this.instance.put<QuestionFrameResponse>(`/elleapi/pastagame/qframe`, questionFrame);
-            return res.data.question_frame;
-        } catch (err: any) {
-            console.log('edit question frame error: ', err.response);
-            return undefined;
+            return { Message: 'Success', data: res.data.question_frame } as PastaServiceResponse<QuestionFrame>;
+        } catch (err) {
+            const error = ensureError(err);
+            console.log('edit question frame error: ', error.message);
+            return { Error: error.message, data: undefined } as PastaServiceResponse<undefined>;
         }
     };
 
@@ -87,10 +111,11 @@ export default class PastaService {
         };
         try {
             const res = await this.instance.delete<QuestionFrameResponse>(`/elleapi/pastagame/qframe`, config);
-            return res.data.Message;
-        } catch (err: any) {
-            console.log('delete question frame error: ', err.response);
-            return undefined;
+            return { Message: res.data.Message } as PastaServiceResponse<QuestionFrame>;
+        } catch (err) {
+            const error = ensureError(err);
+            console.log('delete question frame error: ', error.message);
+            return { Error: error.message } as PastaServiceResponse<undefined>;
         }
     };
 
@@ -101,10 +126,11 @@ export default class PastaService {
                     moduleID
                 }
             });
-            return res.data;
-        } catch (err: any) {
-            console.log('error in pastagame/pasta/all: ', err.response);
-            return [];
+            return { Message: 'Success', data: res.data } as PastaServiceResponse<Pasta[]>;
+        } catch (err) {
+            const error = ensureError(err);
+            console.log('error in pastagame/pasta/all: ', error.message);
+            return { Error: error.message, data: undefined } as PastaServiceResponse<undefined>;
         }
     };
 
@@ -115,30 +141,33 @@ export default class PastaService {
                     pastaID
                 }
             });
-            return res.data;
-        } catch (err: any) {
-            console.log('error in pastagame/pasta: ', err.response);
-            return undefined;
+            return { Message: 'Success', data: res.data } as PastaServiceResponse<Pasta>;
+        } catch (err) {
+            const error = ensureError(err);
+            console.log('error in pastagame/pasta: ', error.message);
+            return { Error: error.message, data: undefined } as PastaServiceResponse<undefined>;
         }
     };
 
     createPasta = async (pasta: Omit<Pasta, 'pastaID'>) => {
         try {
             const res = await this.instance.post<PastaResponse>('/elleapi/pastagame/pasta', pasta);
-            return res.data.pasta;
-        } catch (err: any) {
-            console.log('create pasta error: ', err.response);
-            return undefined;
+            return { Message: 'Success', data: res.data.pasta } as PastaServiceResponse<undefined>;
+        } catch (err) {
+            const error = ensureError(err);
+            console.log('create pasta error: ', error.message);
+            return { Error: error.message, data: undefined } as PastaServiceResponse<undefined>;
         }
     };
 
     editPasta = async (pasta: Pasta) => {
         try {
             const res = await this.instance.put<PastaResponse>(`/elleapi/pastagame/pasta`, pasta);
-            return res.data.pasta;
-        } catch (err: any) {
-            console.log('edit pasta error: ', err.response);
-            return undefined;
+            return { Message: 'Success', data: res.data.pasta } as PastaServiceResponse<Pasta>;
+        } catch (err) {
+            const error = ensureError(err);
+            console.log('edit pasta error: ', error.message);
+            return { Error: error.message, data: undefined } as PastaServiceResponse<undefined>;
         }
     };
 
@@ -151,10 +180,11 @@ export default class PastaService {
 
         try {
             const res = await this.instance.delete<PastaResponse>(`/elleapi/pastagame/pasta/`, config);
-            return res.data.Message;
-        } catch (err: any) {
-            console.log('delete pasta error: ', err.response);
-            return undefined;
+            return { Message: 'Success', data: res.data.pasta } as PastaServiceResponse<Pasta>;
+        } catch (err) {
+            const error = ensureError(err);
+            console.log('delete pasta error: ', error.message);
+            return { Error: error.message, data: undefined } as PastaServiceResponse<undefined>;
         }
     };
 }

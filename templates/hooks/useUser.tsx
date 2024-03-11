@@ -21,5 +21,11 @@ export const useUser = () => {
         return userInfo;
     };
 
-    return { user, loading, getUserInfo };
+    const generateUsername = () => {
+        const _as = new AuthService();
+        const username = _as.generateUsername();
+        return username;
+    };
+
+    return { user, loading, getUserInfo, generateUsername };
 };

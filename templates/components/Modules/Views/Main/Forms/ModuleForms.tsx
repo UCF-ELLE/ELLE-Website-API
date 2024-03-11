@@ -109,10 +109,10 @@ export default function ModuleForms({
                     />
                 </Collapse>
                 {/*Form for adding a Pasta Question Frame*/}
-                <Collapse isOpen={openForm === 6 && curModule.isPastaModule}>
+                <Collapse isOpen={openForm === 6}>
                     <AddQuestionFrame curModule={curModule} setOpenForm={setOpenForm} />
                 </Collapse>
-                <Collapse isOpen={openForm === 7 && curModule.isPastaModule}>
+                <Collapse isOpen={openForm === 7}>
                     <AddPasta curModule={curModule} setOpenForm={setOpenForm} />
                 </Collapse>
             </Col>

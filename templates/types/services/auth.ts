@@ -5,6 +5,8 @@ export type UserRegisterInfo = {
     email?: string;
     password: string;
     password_confirm: string;
+    reason?: string;
+    location?: string;
     groupCode?: string;
 };
 

@@ -28,9 +28,6 @@ export default class AuthService {
                 username,
                 password
             });
-
-            console.log('login response', res.data);
-
             const decoded = jwtDecode(res.data.access_token) as decodedJWT;
             const permission = decoded.user_claims.permission;
             const userID = Number(decoded.identity);
@@ -60,6 +57,16 @@ export default class AuthService {
                 errorMessage = err.message;
             }
             return { error: errorMessage } as ApiError;
+        }
+    };
+
+    generateUsername = async () => {
+        try {
+            const res = await this.instance.get('/elleapi/generateusername');
+            return res.data;
+        } catch (err: any) {
+            console.log('generateUsername error', err.response.data);
+            return { error: err.response.data.Error } as ApiError;
         }
     };
 

@@ -32,44 +32,56 @@ export default function AddQuestionFrame({ curModule, setOpenForm }: { curModule
         if (displayName === '' || category === '' || splitQuestionVar === '') {
             return true;
         }
+        if (questionFrames.filter((frame) => frame.category === category).length > 0) {
+            return true;
+        }
+        if (identityQuestionOut && identifyQuestionVar === '') {
+            return true;
+        }
+        if (questionOneOut && (mc1QuestionText === '' || mc1Options.includes(''))) {
+            return true;
+        }
+        if (questionTwoOut && (mc2QuestionText === '' || mc2Options.includes(''))) {
+            return true;
+        }
         return false;
     };
 
     const validateForm = () => {
         // Make sure that the display name, category, and split leadup are filled out
-        let noError = false;
-        if (requiredFieldsButtonValidate()) {
+        let valid = true;
+        if (displayName === '' || category === '' || splitQuestionVar === '') {
             setError(true);
             setErrMsg('Please fill out the display name, category, and split question variable.');
-            noError = true;
+            valid = false;
         }
         if (questionFrames.filter((frame) => frame.category === category).length > 0) {
             setError(true);
             setErrMsg('A question frame with the same category already exists.');
-            noError = true;
+            valid = false;
         }
         if (identityQuestionOut && identifyQuestionVar === '') {
             setError(true);
             setErrMsg('Please fill out the identity question or delete it.');
-            noError = true;
+            valid = false;
         }
         if (questionOneOut && (mc1QuestionText === '' || mc1Options.includes(''))) {
             setError(true);
             setErrMsg('Please fill out all fields for the multiple choice questions or delete them.');
-            noError = true;
+            valid = false;
         }
         if (questionTwoOut && (mc2QuestionText === '' || mc2Options.includes(''))) {
             setError(true);
             setErrMsg('Please fill out all fields for the multiple choice questions or delete them.');
-            noError = true;
+            valid = false;
         }
-        return noError;
+        return valid;
     };
 
-    const submitQuestionFrame = (e: React.FormEvent<HTMLFormElement>) => {
+    const submitQuestionFrame = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const invalid = validateForm();
-        if (invalid) return;
+        const valid = validateForm();
+        if (!valid) return;
 
         const newQuestionFrame: Omit<QuestionFrame, 'qframeID'> = {
             moduleID: curModule.moduleID,
@@ -82,7 +94,13 @@ export default function AddQuestionFrame({ curModule, setOpenForm }: { curModule
             mc2QuestionText: questionTwoOut ? mc2QuestionText : undefined,
             mc2Options: questionTwoOut ? mc2Options : undefined
         };
-        createQuestionFrame(newQuestionFrame);
+        const response = await createQuestionFrame(newQuestionFrame);
+        if (response.error) {
+            setError(true);
+            setErrMsg(response.error);
+            return;
+        }
+        resetFields();
     };
 
     const resetFields = () => {
@@ -91,6 +109,14 @@ export default function AddQuestionFrame({ curModule, setOpenForm }: { curModule
         setSplitQuestionVar('');
         setError(false);
         setErrMsg('');
+        setIdentityQuestionOut(false);
+        setIdentifyQuestionVar('');
+        setQuestionOneOut(false);
+        setMc1QuestionText('');
+        setMc1Options(['', '']);
+        setQuestionTwoOut(false);
+        setMc2QuestionText('');
+        setMc2Options(['', '']);
     };
 
     const toggleIdentityQuestion = () => {
@@ -193,7 +219,7 @@ export default function AddQuestionFrame({ curModule, setOpenForm }: { curModule
                             <p className='mb-3'>Example Split Question Text:</p>
                         </Col>
                         <Col>
-                            Split the <Badge>{category !== '' ? category : 'word'}</Badge> by its{' '}
+                            Split the <Badge>{displayName !== '' ? displayName : category !== '' ? category : 'word'}</Badge> by its{' '}
                             <Badge>{splitQuestionVar !== '' ? splitQuestionVar : 'morphemes'}</Badge>.
                         </Col>
                     </Row>

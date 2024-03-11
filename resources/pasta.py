@@ -74,8 +74,12 @@ class Pasta(Resource):
         data["category"] = getParameter("category", str, True, "")
         data["utterance"] = getParameter("utterance", str, True, "")
         data["mc1Answer"] = getParameter("mc1Answer", int, False, "")
-        data["splitAnswer"] = request.form.getlist("splitAnswer")
-        data["identifyAnswer"] = request.form.getlist("identifyAnswer")
+        data["splitAnswer"] = request.form.getlist("splitAnswer") or request.json.get(
+            "splitAnswer", []
+        )
+        data["identifyAnswer"] = request.form.getlist(
+            "identifyAnswer"
+        ) or request.json.get("identifyAnswer", [])
         data["mc2Answer"] = getParameter("mc2Answer", int, False, "")
 
         permission, user_id = validate_permissions()
@@ -160,10 +164,8 @@ class Pasta(Resource):
         )
         data["identifyAnswer"] = request.form.getlist(
             "identifyAnswer"
-        ) or request.json.get("identifyAnswer", [])
+        ) or request.json.get("identifyAnswer", None)
         data["mc2Answer"] = getParameter("mc2Answer", int, False, "")
-
-        print(data)
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -255,10 +257,10 @@ class Pasta(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            query = "DELETE FROM `pasta` WHERE `pastaID` = %s"
+            query = "DELETE FROM `pasta_answer` WHERE `pastaID` = %s"
             postToDB(query, (data["pastaID"],), conn, cursor)
 
-            query = "DELETE FROM `pasta_answer` WHERE `pastaID` = %s"
+            query = "DELETE FROM `pasta` WHERE `pastaID` = %s"
             postToDB(query, (data["pastaID"],), conn, cursor)
 
             raise ReturnSuccess({"Message": "Successfully deleted the pasta"}, 200)
@@ -347,13 +349,17 @@ class PastaFrame(Resource):
         data["moduleID"] = getParameter("moduleID", int, True, "")
         data["category"] = getParameter("category", str, True, "")
         data["mc1QuestionText"] = getParameter("mc1QuestionText", str, False, "")
-        data["mc1Options"] = request.form.getlist("mc1Options")
+        data["mc1Options"] = request.form.getlist("mc1Options") or request.json.get(
+            "mc1Options", None
+        )
         data["splitQuestionVar"] = getParameter("splitQuestionVar", str, True, "")
         data["identifyQuestionVar"] = getParameter(
             "identifyQuestionVar", str, False, ""
         )
         data["mc2QuestionText"] = getParameter("mc2QuestionText", str, False, "")
-        data["mc2Options"] = request.form.getlist("mc2Options")
+        data["mc2Options"] = request.form.getlist("mc2Options") or request.json.get(
+            "mc2Options", None
+        )
         data["displayName"] = getParameter("displayName", str, False, "")
 
         maxID = -1
@@ -614,10 +620,10 @@ class PastaFrame(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            query = "DELETE FROM `question_frame` WHERE `qframeID` = %s"
+            query = "DELETE FROM `question_option` WHERE `qframeID` = %s"
             postToDB(query, (data["qframeID"],), conn, cursor)
 
-            query = "DELETE FROM `question_option` WHERE `qframeID` = %s"
+            query = "DELETE FROM `question_frame` WHERE `qframeID` = %s"
             postToDB(query, (data["qframeID"],), conn, cursor)
 
             raise ReturnSuccess(
