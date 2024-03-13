@@ -34,6 +34,7 @@ jobs:
                   host: ${{ secrets.DEV_SSH_HOST }}
                   username: ${{ secrets.DEV_SSH_USER }}
                   key: ${{ secrets.DEV_SSH_KEY }}
+                  script_stop: true
                   script: |
                       cd /var/www/ELLE-Website-API
                       pm2 stop all
