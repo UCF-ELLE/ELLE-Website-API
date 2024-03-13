@@ -18,6 +18,7 @@ from db_utils import *
 from pathlib import Path
 from resources.pasta import (
     AllPastaInModule,
+    AllPastaModuleResources,
     Pasta,
     PastaFrame,
     PastaFrameModule,
@@ -294,6 +295,7 @@ api.add_resource(Pasta, API_ENDPOINT_PREFIX + "pastagame/pasta")
 api.add_resource(AllPastaInModule, API_ENDPOINT_PREFIX + "pastagame/pasta/all")
 api.add_resource(PastaFrame, API_ENDPOINT_PREFIX + "pastagame/qframe")
 api.add_resource(PastaFrameModule, API_ENDPOINT_PREFIX + "pastagame/qframe/all")
+api.add_resource(AllPastaModuleResources, API_ENDPOINT_PREFIX + "pastagame/module/all")
 # Store Specific Endpoints
 api.add_resource(StoreItem, API_ENDPOINT_PREFIX + "store/item")
 api.add_resource(AllStoreItems, API_ENDPOINT_PREFIX + "store/items")

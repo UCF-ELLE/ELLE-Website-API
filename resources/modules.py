@@ -131,6 +131,15 @@ class RetrieveUserModules(Resource):
             return errorMessage("Invalid user"), 401
 
         group_id = getParameter("groupID", int, False, "Please pass in the groupID")
+        is_pasta = getParameter("isPasta", str, False, "")
+
+        if is_pasta:
+            if is_pasta.lower() == "true" or is_pasta == "1":
+                is_pasta = "1"
+            elif is_pasta.lower() == "false" or is_pasta == "0":
+                is_pasta = "0"
+            else:
+                return errorMessage("Invalid isPasta value"), 400
 
         # if a regular student user, return modules associated with their groups (similar to /modules)
         if permission == "st" and not is_ta(user_id, group_id):
@@ -139,10 +148,12 @@ class RetrieveUserModules(Resource):
                     INNER JOIN `group_module` ON `module`.`moduleID` = `group_module`.`moduleID` 
                     INNER JOIN `group_user` ON `group_module`.`groupID` = `group_user`.`groupID` 
                     WHERE `group_user`.`userID`=%s
-                    GROUP BY `module`.`moduleID`
                     """
-            result = getFromDB(query, user_id)
+            if is_pasta:
+                query += f" AND `module`.`isPastaModule` = {is_pasta}"
+            query += " GROUP BY `module`.`moduleID`"
 
+            result = getFromDB(query, user_id)
             modules = []
             for row in result:
                 modules.append(convertModuleToJSON(row, "groupID"))
@@ -155,8 +166,10 @@ class RetrieveUserModules(Resource):
                     SELECT DISTINCT `module`.*, GROUP_CONCAT(DISTINCT `group_module`.`groupID`) FROM `module` 
                     LEFT JOIN `group_module` ON `module`.`moduleID` = `group_module`.`moduleID` 
                     LEFT JOIN `group_user` ON `group_module`.`groupID` = `group_user`.`groupID`
-                    GROUP BY `module`.`moduleID`
                     """
+            if is_pasta:
+                query += f" WHERE `module`.`isPastaModule` = {is_pasta}"
+            query += " GROUP BY `module`.`moduleID`"
             result = getFromDB(query)
         else:
             query = """
@@ -164,8 +177,10 @@ class RetrieveUserModules(Resource):
                     LEFT JOIN `group_module` ON `module`.`moduleID` = `group_module`.`moduleID` 
                     LEFT JOIN `group_user` ON `group_module`.`groupID` = `group_user`.`groupID` 
                     WHERE `group_user`.`userID`=%s OR `module`.`userID`=%s
-                    GROUP BY `module`.`moduleID`
                     """
+            if is_pasta and is_pasta == True:
+                query += f" AND `module`.`isPastaModule` = {is_pasta}"
+            query += " GROUP BY `module`.`moduleID`"
             result = getFromDB(query, (user_id, user_id))
 
         modules = []

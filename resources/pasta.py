@@ -710,3 +710,239 @@ class PastaFrameModule(Resource):
             if conn.open:
                 cursor.close()
                 conn.close()
+
+# Retrieve all question frames and pastas associated with a module
+class AllPastaModuleResources(Resource):
+    @jwt_required
+    def get(self):
+        data = {}
+        data["moduleID"] = request.args.get("moduleID")
+
+        if not data["moduleID"]:
+            return errorMessage("No moduleID provided"), 400
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            # Get all question frames
+            query = "SELECT * FROM `question_frame` WHERE `moduleID` = %s"
+            result = getFromDB(query, data["moduleID"], conn, cursor)
+            question_frames = []
+            for row in result:
+                new_question_frame_object = {}
+                new_question_frame_object["qframeID"] = row[0]
+                new_question_frame_object["moduleID"] = row[1]
+                new_question_frame_object["category"] = row[2]
+                new_question_frame_object["mc1QuestionText"] = row[3]
+                new_question_frame_object["splitQuestionVar"] = row[4]
+                new_question_frame_object["identifyQuestionVar"] = row[5]
+                new_question_frame_object["mc2QuestionText"] = row[6]
+                new_question_frame_object["displayName"] = row[7]
+                question_frames.append(new_question_frame_object)
+
+            query = "SELECT * FROM `question_option` WHERE `qframeID` = %s"
+            for question_frame in question_frames:
+                result = getFromDB(query, question_frame["qframeID"], conn, cursor)
+                mc1Options = []
+                mc2Options = []
+                for row in result:
+                    if row[3] == 1:
+                        mc1Options.append(row[2])
+                    elif row[3] == 2:
+                        mc2Options.append(row[2])
+
+                if mc1Options:
+                    question_frame["mc1Options"] = mc1Options
+                if mc2Options:
+                    question_frame["mc2Options"] = mc2Options
+
+            # Get all pastas
+            query = "SELECT * FROM `pasta` WHERE `moduleID` = %s"
+            result = getFromDB(query, data["moduleID"], conn, cursor)
+            pasta = []
+            for row in result:
+                new_pasta_object = {}
+                new_pasta_object["pastaID"] = row[0]
+                new_pasta_object["moduleID"] = row[1]
+                new_pasta_object["category"] = row[2]
+                new_pasta_object["utterance"] = row[3]
+                new_pasta_object["mc1Answer"] = row[4]
+                new_pasta_object["mc2Answer"] = row[5]
+                pasta.append(new_pasta_object)
+
+            query = "SELECT * FROM `pasta_answer` WHERE `pastaID` = %s"
+            for pasta_object in pasta:
+                result = getFromDB(query, pasta_object["pastaID"], conn, cursor)
+                splitAnswer = []
+                identifyAnswer = []
+                for row in result:
+                    if row[3] == "split":
+                        splitAnswer.append(row[2])
+                    elif row[3] == "identify":
+                        identifyAnswer.append(row[2])
+
+                if splitAnswer:
+                    pasta_object["splitAnswer"] = splitAnswer
+                if identifyAnswer:
+                    pasta_object["identifyAnswer"] = identifyAnswer
+
+            raise ReturnSuccess(
+                {"question_frames": question_frames, "pasta": pasta}, 200
+            )
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+
+class LoggedPasta(Resource):
+    @jwt_required
+    def post(self):
+        data = {}
+        data["pastaID"] = getParameter("pastaID", int, True, "")
+        data["attempts"] = getParameter("attempts", int, False, "")
+        data["attemptsCorrect"] = getParameter("attemptsCorrect", int, False, "")
+        data["sessionID"] = getParameter("sessionID", int, True, "")
+        data["log_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = "INSERT INTO `logged_pasta` (`pastaID`, `attempts`, `attemptsCorrect`, `sessionID`, `log_time`) VALUES (%s, %s, %s, %s, %s)"
+            postToDB(
+                query,
+                (
+                    data["pastaID"],
+                    data["attempts"],
+                    data["attemptsCorrect"],
+                    data["sessionID"],
+                    data["log_time"],
+                ),
+                conn,
+                cursor,
+            )
+
+            raise ReturnSuccess(
+                {
+                    "Message": "Successfully logged the pasta response",
+                    "logged_pasta": {
+                        "pastaID": data["pastaID"],
+                        "attempts": data["attempts"],
+                        "attemptsCorrect": data["attemptsCorrect"],
+                        "sessionID": data["sessionID"],
+                        "log_time": data["log_time"],
+                    },
+                },
+                201,
+            )
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+    @jwt_required
+    def get(self):
+        data = {}
+        data["logID"] = getParameter("logID", int, False, "")
+        data["pastaID"] = getParameter("pastaID", int, False, "")
+        data["sessionID"] = getParameter("sessionID", int, False, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            query = "SELECT * FROM `logged_pasta` WHERE `logID` = %s OR `pastaID` = %s OR `sessionID` = %s"
+            result = getFromDB(
+                query, (data["logID"], data["pastaID"], data["sessionID"]), conn, cursor
+            )
+            logged_pasta = []
+            for row in result:
+                new_logged_pasta_object = {}
+                new_logged_pasta_object["logID"] = row[0]
+                new_logged_pasta_object["pastaID"] = row[1]
+                new_logged_pasta_object["attempts"] = row[2]
+                new_logged_pasta_object["attemptsCorrect"] = row[3]
+                new_logged_pasta_object["sessionID"] = row[4]
+                new_logged_pasta_object["log_time"] = row[5]
+                logged_pasta.append(new_logged_pasta_object)
+
+            raise ReturnSuccess(logged_pasta, 200)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+    @jwt_required
+    def delete(self):
+        data = {}
+        data["logID"] = getParameter("logID", int, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            query = "DELETE FROM `logged_pasta` WHERE `logID` = %s"
+            postToDB(query, (data["logID"],), conn, cursor)
+
+            raise ReturnSuccess(
+                {"Message": "Successfully deleted the logged pasta"}, 200
+            )
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return (
+                errorMessage("An error occurred while deleting the logged pasta."),
+                500,
+            )
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
