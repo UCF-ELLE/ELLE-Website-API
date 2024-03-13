@@ -143,8 +143,8 @@ export default function Phrase({
         setModal(!modal);
     };
 
-    let imgLink = '/elleapi/' + selectedImgFile;
-    let audioLink = 'elleapi/' + selectedAudioFile;
+    let imgLink = '/elleapi' + selectedImgFile;
+    let audioLink = 'elleapi' + selectedAudioFile;
 
     let disableImgButton = !selectedImgFile;
     let disableAudioButton = !selectedAudioFile;

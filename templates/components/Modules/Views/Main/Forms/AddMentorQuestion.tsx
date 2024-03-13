@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Form, FormGroup, Label, Input, Row, Col, Alert, Nav, NavItem, NavLink, TabContent, TabPane } from 'reactstrap';
 import axios from 'axios';
 import classnames from 'classnames';
@@ -40,9 +40,18 @@ export default function AddMentorQuestion({
     const [type, setType] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState('1');
 
+    const toggle = useCallback(
+        (tab: string) => {
+            if (activeTab !== tab) {
+                setActiveTab(tab);
+            }
+        },
+        [activeTab]
+    );
+
     useEffect(() => {
         toggle('1');
-    }, []);
+    }, [toggle]);
 
     const submitMCQuestion = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -127,12 +136,6 @@ export default function AddMentorQuestion({
         setAnswer4Text('');
         setAnswer5Text('');
         setType([]);
-    };
-
-    const toggle = (tab: string) => {
-        if (activeTab !== tab) {
-            setActiveTab(tab);
-        }
     };
 
     return (

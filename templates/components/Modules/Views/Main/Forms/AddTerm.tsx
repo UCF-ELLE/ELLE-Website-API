@@ -11,6 +11,7 @@ import InfoImage from '@/public/static/images/info.png';
 import { Module } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';
 import { Typeahead } from 'react-bootstrap-typeahead';
+import { useAudioRecorder } from 'react-audio-voice-recorder';
 // import MicRecorder from 'mic-recorder';
 
 export default function AddTerm({
@@ -31,6 +32,7 @@ export default function AddTerm({
     setOpenForm: (form: number) => void;
 }) {
     const { user } = useUser();
+    const { startRecording, stopRecording, recordingBlob, isRecording: isAudioRecording } = useAudioRecorder();
     const permissionLevel = user?.permissionGroup;
 
     const [front, setFront] = useState<string>('');
@@ -85,54 +87,30 @@ export default function AddTerm({
         if (isBlocked) {
             console.log('Permission Denied');
         } else {
-            // Mp3Recorder.start()
-            //     .then(() => {
-            //         setIsRecording(true);
-            //     })
-            //     .catch((e: string) => console.error(e));
-
-            // this.state.disable = true
+            startRecording();
+            setIsRecording(true);
             setDisable(true);
         }
     };
 
+    useEffect(() => {
+        if (!isAudioRecording) {
+            const audio = recordingBlob;
+            console.log(audio);
+            if (audio === undefined) {
+                return;
+            }
+            const blob = new Blob([audio], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            setBlobURL(url);
+            setFile(new File([blob], 'audio.wav', { type: 'audio/wav' }));
+            setIsRecording(false);
+            setDisable(false);
+        }
+    }, [isAudioRecording, recordingBlob]);
+
     const stop = () => {
-        // Mp3Recorder.stop()
-        //     .getAudio()
-        //     .then(([buffer, blob]) => {
-        //         const blobURL = URL.createObjectURL(blob);
-        //         setBlobURL(blobURL);
-        //         setIsRecording(false);
-
-        //         const moduleIdentifier = document
-        //             .getElementById('module-name')
-        //             ?.textContent?.replace(/\s+/g, '-')
-        //             .toLowerCase();
-        //         const termName = (
-        //             document.getElementById('back') as HTMLInputElement
-        //         ).value
-        //             ?.replace(/\s+/g, '-')
-        //             .toLowerCase();
-
-        //         // this.state.file = new File(buffer, `term_${moduleIdentifier}_${termName}.mp3`, {
-        //         // 		type: blob.type,
-        //         // 		lastModified: Date.now()
-        //         // });
-        //         setFile(
-        //             new File(
-        //                 buffer,
-        //                 `term_${moduleIdentifier}_${termName}.mp3`,
-        //                 { type: blob.type, lastModified: Date.now() }
-        //             )
-        //         );
-
-        //         console.log(file);
-        //     })
-        //     .catch((e) => console.log(e));
-
-        // this.state.disable = false
-        // this.setState({ disable: false });
-        setDisable(false);
+        stopRecording();
     };
 
     const upload = () => {

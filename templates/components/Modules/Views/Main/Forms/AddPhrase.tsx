@@ -4,6 +4,7 @@ import axios from 'axios';
 // import MicRecorder from 'mic-recorder';
 import { Module } from '@/types/api/modules';
 import { useUser } from '@/hooks/useUser';
+import { useAudioRecorder } from 'react-audio-voice-recorder';
 
 export default function AddPhrase({
     currentClass,
@@ -30,16 +31,10 @@ export default function AddPhrase({
     const [disable, setDisable] = useState<boolean>(true);
     const [file, setFile] = useState<File>(new File([], ''));
     const [didUpload, setDidUpload] = useState<boolean>(false);
-    // const [Mp3Recorder, setMp3Recorder] = useState(
-    //     new MicRecorder({ bitRate: 128 })
-    // );
+    const { startRecording, stopRecording, recordingBlob, isRecording: isAudioRecording } = useAudioRecorder();
 
     useEffect(() => {
-        // navigator.getUserMedia({ audio: true },
-
         try {
-            console.log('currently not working in production because getUserMedia CANNOT be run over unsecure netowrk...we need SSL.');
-
             navigator.mediaDevices.getUserMedia({ audio: true }).then(
                 () => {
                     console.log('Permission Granted');
@@ -55,65 +50,37 @@ export default function AddPhrase({
             console.log('currently not working in production because getUserMedia CANNOT be run over unsecure netowrk...we need SSL.');
             console.log(err);
         }
-
-        // navigator.mediaDevices.getUserMedia({ audio: true },
-        //     () => {
-        //         console.log('Permission Granted');
-        //         this.setState({ isBlocked: false });
-        //     },
-        //     () => {
-        //         console.log('Permission Denied');
-        //         this.setState({ isBlocked: true })
-        //     },
-        // );
     }, []);
+
+    // Check if audio is recording, if not then set the blob to the state
+    useEffect(() => {
+        if (!isAudioRecording) {
+            const audio = recordingBlob;
+            console.log(audio);
+            if (audio === undefined) {
+                return;
+            }
+            const blob = new Blob([audio], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            setBlobURL(url);
+            setFile(new File([blob], 'audio.wav', { type: 'audio/wav' }));
+            setIsRecording(false);
+            setDisable(false);
+        }
+    }, [isAudioRecording, recordingBlob]);
 
     const start = () => {
         if (isBlocked) {
             console.log('Permission Denied');
         } else {
-            // Mp3Recorder.start()
-            //     .then(() => {
-            //         setIsRecording(true);
-            //     })
-            //     .catch((e: Error) => console.error(e));
-            // // this.state.disable = true
-            // setDisable(true);
+            startRecording();
+            setIsRecording(true);
+            setDisable(true);
         }
     };
 
     const stop = () => {
-        // Mp3Recorder.stop()
-        //     .getAudio()
-        //     .then(([buffer, blob]) => {
-        //         const blobURL = URL.createObjectURL(blob);
-        //         setBlobURL(blobURL);
-        //         setIsRecording(false);
-
-        //         const moduleIdentifier = document
-        //             .getElementById('module-name')
-        //             ?.textContent?.replace(/\s+/g, '-')
-        //             .toLowerCase();
-        //         const phraseName = (
-        //             document.getElementById('phFront') as HTMLInputElement
-        //         ).value
-        //             .replace(/\s+/g, '-')
-        //             .toLowerCase();
-
-        //         setFile(
-        //             new File(
-        //                 buffer,
-        //                 `phrase_${moduleIdentifier}_${phraseName}.mp3`,
-        //                 { type: blob.type, lastModified: Date.now() }
-        //             )
-        //         );
-
-        //         console.log(file);
-        //     })
-        //     .catch((e: Error) => console.log(e));
-
-        // this.state.disable = false
-        setDisable(false);
+        stopRecording();
     };
 
     const upload = () => {

@@ -1,9 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Form, FormGroup, Label, Input, Row, Col, Alert, Modal, ModalHeader, ModalBody } from 'reactstrap';
 import axios from 'axios';
-
-import Autocomplete from '../Autocomplete';
-import AnswerButtonList from '../AnswerButtonList';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, Button, Col, Form, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, Row } from 'reactstrap';
 import AddAnswer from '../AddAnswer';
 import SearchAnswersByTag from '../SearchAnswerByTag';
 
@@ -11,6 +8,7 @@ import SearchAnswersByTag from '../SearchAnswerByTag';
 import { useUser } from '@/hooks/useUser';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';
+import { useAudioRecorder } from 'react-audio-voice-recorder';
 import { Typeahead } from 'react-bootstrap-typeahead';
 
 export default function AddQuestion({
@@ -58,10 +56,6 @@ export default function AddQuestion({
 
     const [questionID, setQuestionID] = useState('');
 
-    // const [Mp3Recorder, setMp3Recorder] = useState(
-    //     new MicRecorder({ bitRate: 128 })
-    // );
-
     const [isRecording, setIsRecording] = useState(false);
     const [blobURL, setBlobURL] = useState('');
     const [isBlocked, setIsBlocked] = useState(false);
@@ -69,6 +63,7 @@ export default function AddQuestion({
     const [file, setFile] = useState<File>(new File([], ''));
 
     const [didUpload, setDidUpload] = useState(false);
+    const { startRecording, stopRecording, recordingBlob, isRecording: isAudioRecording } = useAudioRecorder();
     const { user } = useUser();
     const permissionLevel = user?.permissionGroup;
 
@@ -122,48 +117,30 @@ export default function AddQuestion({
         if (isBlocked) {
             console.log('Permission Denied');
         } else {
-            // Mp3Recorder.start()
-            //     .then(() => {
-            //         setIsRecording(true);
-            //     })
-            //     .catch((e) => console.error(e));
-            // // this.state.disable = true
-            // setDisable(true);
+            startRecording();
+            setIsRecording(true);
+            setDisable(true);
         }
     };
 
+    useEffect(() => {
+        if (!isAudioRecording) {
+            const audio = recordingBlob;
+            console.log(audio);
+            if (audio === undefined) {
+                return;
+            }
+            const blob = new Blob([audio], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            setBlobURL(url);
+            setFile(new File([blob], 'audio.wav', { type: 'audio/wav' }));
+            setIsRecording(false);
+            setDisable(false);
+        }
+    }, [isAudioRecording, recordingBlob]);
+
     const stop = () => {
-        // Mp3Recorder.stop()
-        //     .getAudio()
-        //     .then(([buffer, blob]) => {
-        //         const blobURL = URL.createObjectURL(blob);
-        //         setBlobURL(blobURL);
-        //         setIsRecording(false);
-
-        //         const moduleIdentifier = document
-        //             .getElementById('module-name')
-        //             ?.textContent?.replace(/\s+/g, '-')
-        //             .toLowerCase();
-        //         const phraseName = (
-        //             document.getElementById('questionText') as HTMLInputElement
-        //         ).value
-        //             .replace(/\s+/g, '-')
-        //             .toLowerCase();
-
-        //         setFile(
-        //             new File(
-        //                 buffer,
-        //                 `question_${moduleIdentifier}_${phraseName}.mp3`,
-        //                 { type: blob.type, lastModified: Date.now() }
-        //             )
-        //         );
-
-        //         console.log(file);
-        //     })
-        //     .catch((e) => console.log(e));
-
-        // this.state.disable = false
-        setDisable(false);
+        stopRecording();
     };
 
     const upload = () => {

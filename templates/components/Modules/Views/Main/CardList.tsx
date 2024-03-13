@@ -138,14 +138,16 @@ export default function CardList({
                     </thead>
                 );
             case 'questions':
-                <thead>
-                    <tr>
-                        <th style={{ width: '64%' }}>Question</th>
-                        <th style={{ width: '9%' }}>Picture</th>
-                        <th style={{ width: '9%' }}>Audio</th>
-                        {permissionLevel !== 'st' ? <th style={{ width: '9%' }}> </th> : null}
-                    </tr>
-                </thead>;
+                return (
+                    <thead>
+                        <tr>
+                            <th style={{ width: '64%' }}>Question</th>
+                            <th style={{ width: '9%' }}>Picture</th>
+                            <th style={{ width: '9%' }}>Audio</th>
+                            {permissionLevel !== 'st' ? <th style={{ width: '9%' }}> </th> : null}
+                        </tr>
+                    </thead>
+                );
             default:
                 return <></>;
         }
