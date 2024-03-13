@@ -166,7 +166,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                                             paddingBottom: 24
                                         }}
                                     >
-                                        <Col>Identify Question Answer:</Col>
+                                        <Col>Identity Question Answer:</Col>
                                         <Col>
                                             {editedIdentifyAnswer?.map((option, index) => {
                                                 const answer = splitArrayToOptionList[option].label;
@@ -175,7 +175,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                                         </Col>
                                     </Row>
                                 )}
-                                {editedMC1Answer && (
+                                {editedMC1Answer != undefined && (
                                     <Row
                                         style={{
                                             paddingBottom: 24
@@ -185,7 +185,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                                         <Col>{questionFrame?.mc1Options && questionFrame?.mc1Options[editedMC1Answer]}</Col>
                                     </Row>
                                 )}
-                                {editedMC2Answer && (
+                                {editedMC2Answer != undefined && (
                                     <Row
                                         style={{
                                             paddingBottom: 24
@@ -305,7 +305,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                                                     type='select'
                                                     name='editedMC1Answer'
                                                     onChange={(e) => setEditedMC1Answer(parseInt(e.target.value))}
-                                                    value={editedMC1Answer || -1}
+                                                    value={editedMC1Answer}
                                                 >
                                                     <option disabled value={-1}>
                                                         Select an answer
@@ -331,7 +331,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                                                     type='select'
                                                     name='editedMC2Answer'
                                                     onChange={(e) => setEditedMC2Answer(parseInt(e.target.value))}
-                                                    value={editedMC2Answer || -1}
+                                                    value={editedMC2Answer}
                                                 >
                                                     <option disabled value={-1}>
                                                         Select an answer
