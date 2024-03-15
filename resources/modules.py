@@ -57,6 +57,15 @@ class RetrieveGroupModules(Resource):
     @jwt_required
     def get(self):
         """Get all modules associated with the given groupID"""
+        is_pasta = getParameter("isPasta", str, False, "")
+
+        if is_pasta:
+            if is_pasta.lower() == "true" or is_pasta == "1":
+                is_pasta = "1"
+            elif is_pasta.lower() == "false" or is_pasta == "0":
+                is_pasta = "0"
+            else:
+                return errorMessage("Invalid isPasta value"), 400
 
         # Get the user's ID and check permissions
         permission, user_id = validate_permissions()
@@ -70,8 +79,14 @@ class RetrieveGroupModules(Resource):
         query = """
                 SELECT `module`.* FROM `module` INNER JOIN `group_module` 
                 ON `group_module`.`moduleID` = `module`.`moduleID` 
-                WHERE `group_module`.`groupID`=%s
                 """
+
+        if is_pasta:
+            query += f" WHERE `group_module`.`groupID` = {group_id} AND `module`.`isPastaModule` = {is_pasta}"
+
+        else:
+            query += f" WHERE `group_module`.`groupID` = {group_id}"
+
         records = getFromDB(query, group_id)
         modules = []
         for row in records:
