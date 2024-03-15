@@ -54,6 +54,36 @@ export default function Manual() {
                         <Badge color='primary'>Add Term</Badge> recommended field(s): image <br />
                         <Badge color='warning'>Add Question</Badge> recommended field(s): image
                     </p>
+                    <text style={{ fontWeight: 'bold' }}>AnimELLE Crossing: WiELLED Words (PC): </text>
+                    <p>
+                        If you would like to set the dialogue for an NPCs, please use these tags:
+                        <p></p>
+                        <p>&apos;NPC_1&apos; and &apos;NPC_2&apos;: Dialogue for Village NPCs</p>
+                        <p>&apos;NPC_Bingo&apos;: Dialogue asking if the player would like to play Bingo</p>
+                        <p>&apos;NPC_Treasure&apos;: Dialogue explaining the treasure chest activity</p>
+                        <p>&apos;Ticket_Ask&apos;: Dialogue asking the player to buy a ticket</p>
+                        <p>&apos;Ticket_Success&apos;: Dialogue for successfully purchasing a ticket</p>
+                        <p>
+                            If you would only like certain terms to be used in the Jungle area, please add the &apos;jungle&apos; tag to all terms.
+                            Otherwise, the game will randomly pull from all terms in the module
+                        </p>
+                        <p>
+                            If you would like the Treasure activity, include at least three terms with numerals as the English term (&apos;1, 2, 3,
+                            etc.&apos;). The game will use at most 10 terms at a time, and require words to be selected from least to greatest.
+                        </p>
+                        <p>
+                            If you would like the Rock, Paper, Scissors activity, include terms translating &apos;Rock&apos;, &apos;Paper&apos;, and
+                            &apos;Scissors&apos;.
+                        </p>
+                        While audio in general is optional, it is highly recommended to use whenever possible and is required for the Bingo Minigame.
+                        The Bingo minigame needs at least 9 terms and audio.
+                        <p>For all of the aforementioned things, Terms must be used. For Fill in the blank, Questions must be used.</p>
+                    </p>
+                    <text>Forms to fill out: </text>
+                    <p>
+                        <Badge color='primary'>Add Term</Badge> recommended field(s): image <br />
+                        <Badge color='warning'>Add Question</Badge> recommended field(s): image
+                    </p>
                     <text style={{ fontWeight: 'bold' }}>ELLE (VR): </text>
                     <p>
                         <text style={{ textDecoration: 'underline' }}>Spin N&apos; SpELLE</text>

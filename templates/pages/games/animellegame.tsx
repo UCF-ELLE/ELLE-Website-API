@@ -191,6 +191,19 @@ function AnimELLEGame() {
     if (isLoaded === true) {
         const jwt = user?.jwt;
         if (jwt) sendMessage('GameManager', 'loginAttempt', jwt);
+        //mobile check
+        const isChrome = /Chrome/i.test(navigator.userAgent);
+        console.log('chrome?' + isChrome);
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        console.log('android?' + isAndroid);
+        //alert("dis android: " + isAndroid);
+        const isIOS = /iPhone/i.test(navigator.userAgent);
+        console.log('iOS?' + isIOS);
+        //alert("dis IOS: " + isIOS);
+
+        if (isAndroid || isIOS) {
+            sendMessage('GameManager', 'MobileCheck', 1);
+        }
     }
 
     // Fullscreen button
@@ -222,6 +235,7 @@ function AnimELLEGame() {
     return (
         <Layout requireUser>
             <div className='animelle-game-container'>
+                <meta name='apple-mobile-web-app-capable' content='yes' />
                 <div className='center-contents'>
                     <div className='webglLoadingStatusBox' style={{ visibility: isLoaded ? 'hidden' : 'visible' }}>
                         <p className='webglLoadingStatusText'>Loading {Math.round(loadingProgression * 100)}%</p>
@@ -262,8 +276,19 @@ function AnimELLEGame() {
                                 <p className='names'>Natali Siam-Pollo</p>
                             </div>
                             <div className='column'>
+                                <p className='names'>Michael Alfieri</p>
+                                <p className='names'>Connor Price</p>
+                            </div>
+                        </div>{' '}
+                        {/*<!--row--> */}
+                        <div className='row'>
+                            <div className='column'>
                                 <p className='names'>Derek Dyer</p>
                                 <p className='names'>Trevor Larson</p>
+                            </div>
+                            <div className='column'>
+                                <p className='names'>Robert Bereiter</p>
+                                <p className='names'>Arwin Nimityongskul</p>
                             </div>
                         </div>{' '}
                         {/*<!--row--> */}

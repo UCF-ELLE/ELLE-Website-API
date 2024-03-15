@@ -142,7 +142,7 @@ export default function Games() {
                             <Row>
                                 <Col>
                                     <h3 className='cta-title'>AnimELLE Crossing</h3>
-                                    <p className='cta-text'>Senior Design Team:</p>
+                                    <p className='cta-text'>Original Senior Design Team:</p>
                                     <ul style={{ color: '#ffffff' }}>
                                         <Row>
                                             <Col>
@@ -153,6 +153,17 @@ export default function Games() {
                                             <Col>
                                                 <li>Derek Dyer</li>
                                                 <li>Tam Nguyen</li>
+                                            </Col>
+                                        </Row>
+                                    </ul>
+                                    <p className='cta-text'>WiELLED Words Senior Design Team:</p>
+                                    <ul style={{ color: '#ffffff' }}>
+                                        <Row>
+                                            <Col>
+                                                <li>Michael Alfieri</li>
+                                                <li>Connor Price</li>
+                                                <li>Arwin Nimityongskul</li>
+                                                <li>Robert Bereiter</li>
                                             </Col>
                                         </Row>
                                     </ul>
