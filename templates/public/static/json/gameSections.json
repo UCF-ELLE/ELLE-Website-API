@@ -1,0 +1,112 @@
+[
+    {
+        "anchor": "VirtuELLEMentor",
+        "link": "/games/virtuellementor",
+        "external": false,
+        "title": "VirtuELLE Mentor",
+        "description": "Come learn a language, select your own mentor, and play to unlock unique prizes and customization!",
+        "altImage": "Card Game Image",
+        "teams": [
+            {
+                "name": "Original Senior Design Team",
+                "members": ["Noah Corlew", "Kalvin Miller", "Michael Santiago"]
+            },
+            {
+                "name": "Version 2 Senior Design Team",
+                "members": ["Annabel Bland", "Tyler Morejon", "Nathan Otis", "Daniel Rodriguez", "Tanner Williams"]
+            },
+            {
+                "name": "Version 3 Senior Design Team",
+                "members": ["Nathan Lim", "Justin Moy", "Connor Lysek", "Skylar Marosi", "Keilvin Tran"]
+            }
+        ]
+    },
+    {
+        "anchor": "AnimELLE",
+        "link": "/games/animellegame",
+        "external": false,
+        "title": "AnimELLE Crossing",
+        "description": "AnimELLE Crossing is an educational game with the intent to help students with their language learning journey. Students will get to play multiple mini games that are encompassed within the AnimELLE Crossing world, interact with non-playable characters, and personalize different aspects of their gameplay.",
+        "altImage": "AnimELLE Crossing Image",
+        "teams": [
+            {
+                "name": "Original Senior Design Team",
+                "members": ["Natali Siam-Pollo", "Trevor Larson", "Justin Reeves", "Derek Dyer", "Tam Nguyen"]
+            },
+            {
+                "name": "WiELLED Words Senior Design Team",
+                "members": ["Michael Alfieri", "Connor Price", "Arwin Nimityongskul", "Robert Bereiter"]
+            }
+        ]
+    },
+    {
+        "anchor": "Maze",
+        "link": "/games/mazegame",
+        "external": false,
+        "title": "ELLE aMAZEing Game",
+        "description": "Follow the instructions to choose the correct path from a few options while learning Spanish in this immersive game!",
+        "altImage": "Maze Game Image",
+        "teams": [
+            {
+                "name": "Senior Design Team",
+                "members": ["Annabel Bland", "Tyler Morejon", "Nathan Otis", "Daniel Rodriguez", "Tanner Williams"]
+            }
+        ]
+    },
+    {
+        "anchor": "HELLEsKitchen",
+        "link": "https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning",
+        "external": true,
+        "title": "HELLE's Kitchen",
+        "description": "Follow recipes in Spanish to search the kitchen for ingredients. Cook them up to discover the dish of the unit!",
+        "altImage": "HELLE's Kitchen Image",
+        "teams": [
+            {
+                "name": "Senior Design Team",
+                "members": ["Allexis Knight", "Arianna Walters", "Dylan Quigley", "Edgard Irineo", "Manatsa Chiomadzi"]
+            }
+        ]
+    },
+    {
+        "anchor": "SpinNSpELLE",
+        "link": "https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning",
+        "external": true,
+        "title": "Spin N SpELLE",
+        "description": "Spell out the translation of terms using alphabet blocks. Play in endless mode or try your luck at quiz mode!",
+        "altImage": "Spin N SpELLE Image",
+        "teams": [
+            {
+                "name": "Senior Design Team",
+                "members": ["Kaarthik Alagappan", "Jonathan Jules", "Tiffany Lin", "Catalina Morales", "Samuel Tungol"]
+            }
+        ]
+    },
+    {
+        "anchor": "HighriseHELLEp",
+        "link": "https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning",
+        "external": true,
+        "title": "Highrise HELLEp",
+        "description": "Play as a firefighter in this action packed game. Connect terms to their correct categories to put out fires and save the day!",
+        "altImage": "Highrise HELLEp Image",
+        "teams": [
+            {
+                "name": "Senior Design Team",
+                "members": ["Kaarthik Alagappan", "Jonathan Jules", "Tiffany Lin", "Catalina Morales", "Samuel Tungol"]
+            }
+        ]
+    },
+    {
+        "anchor": "Millenielle",
+        "link": "https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning",
+        "title": "MilleniElle",
+        "external": true,
+        "description": "Milleni-ELLE is a Spanish language game emphasizing context and immersion. The player arrives in an airport (tutorial scene) where they learn the basic mechanics of the game and board a virtual bus. The bus will take them to a house to pack for their next trip or to the grocery store to practice food-based vocabulary.",
+        "altImage": "MilleniElle Image",
+        "teams": [
+            {
+                "name": "Senior Design Team",
+                "members": ["Allexis Knight", "Arianna Walters", "Dylan Quigley", "Edgard Irineo", "Manatsa Chiomadzi"]
+            }
+        ]
+    }
+]
