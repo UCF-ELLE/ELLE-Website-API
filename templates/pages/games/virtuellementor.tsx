@@ -206,12 +206,10 @@ function VirtuELLEMentor() {
     }, [UNITY_pausedTime, UNITY_playerScore, UNITY_sessionID, UNITY_userIsPlayingGame, isLoaded, sendMessage, unload, user?.jwt]);
 
     // Automatically log the user into the Unity Card Game
-    useEffect(() => {
-        if (isLoaded === true) {
-            const jwt = user?.jwt;
-            if (jwt) sendMessage('LoadingText', 'WebGLLoginAttempt', jwt);
-        }
-    }, [isLoaded, sendMessage, user?.jwt]);
+    if (isLoaded === true) {
+        const jwt = user?.jwt;
+        if (jwt) sendMessage('LoadingText', 'WebGLLoginAttempt', jwt);
+    }
 
     // Fullscreen button
     const handleOnClickFullscreen = () => {
