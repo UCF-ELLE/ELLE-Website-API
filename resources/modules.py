@@ -27,12 +27,16 @@ class Modules(Resource):
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
 
+        is_pasta = request.args.get("isPasta", None)
+
         if permission == "su":
             query = """
                 SELECT DISTINCT `module`.* FROM `module` 
                 LEFT JOIN `group_module` ON `module`.`moduleID` = `group_module`.`moduleID` 
                 LEFT JOIN `group_user` ON `group_module`.`groupID` = `group_user`.`groupID` 
                 """
+            if is_pasta:
+                query += f" WHERE `module`.`isPastaModule` = {is_pasta}"
             result = getFromDB(query)
         else:
             query = """
@@ -41,6 +45,8 @@ class Modules(Resource):
                     INNER JOIN `group_user` ON `group_module`.`groupID` = `group_user`.`groupID` 
                     WHERE `group_user`.`userID`=%s
                     """
+            if is_pasta:
+                query += f" AND `module`.`isPastaModule` = {is_pasta}"
             result = getFromDB(query, user_id)
 
         modules = []
@@ -61,9 +67,9 @@ class RetrieveGroupModules(Resource):
 
         if is_pasta:
             if is_pasta.lower() == "true" or is_pasta == "1":
-                is_pasta = "1"
+                is_pasta = 1
             elif is_pasta.lower() == "false" or is_pasta == "0":
-                is_pasta = "0"
+                is_pasta = 0
             else:
                 return errorMessage("Invalid isPasta value"), 400
 
