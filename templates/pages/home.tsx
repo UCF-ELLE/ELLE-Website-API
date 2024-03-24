@@ -68,7 +68,7 @@ export default function Home() {
                         <div className='section-header'>
                             <h2>What&apos;s possible with ELLE</h2>
                             <p>
-                                <Link href='/register'>Sign up</Link> for ELLE now and get a unique profile and tools to make the most of your ELLE
+                                <Link href='/signup'>Sign up</Link> for ELLE now and get a unique profile and tools to make the most of your ELLE
                                 experience.
                             </p>
                         </div>

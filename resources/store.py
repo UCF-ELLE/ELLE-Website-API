@@ -2,6 +2,7 @@ from flask_restful import Resource
 from flask_jwt_extended import (
     jwt_required,
 )
+from flask import request
 from db import mysql
 from db_utils import *
 from utils import *
@@ -311,6 +312,85 @@ class PurchaseUserItem(Resource):
                 },
                 201,
             )
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+
+# When the user logs in to a game, the default items for that game are loaded into the user_item table
+class LoadDefaultUserItems(Resource):
+    @jwt_required
+    def post(self):
+        data = {}
+        data["userID"] = getParameter("userID", int, True, "")
+        data["game"] = request.args.get("game", "")
+        # If the user is logging in for the first time, wear the default items
+        data["firstTime"] = getParameter("firstTime", str, False, "")
+
+        if (
+            not data["firstTime"]
+            or data["firstTime"].lower() == "false"
+            or data["firstTime"] == "0"
+        ):
+            data["firstTime"] = False
+        elif data["firstTime"].lower() == "true" or data["firstTime"] == "1":
+            data["firstTime"] = True
+        else:
+            return errorMessage("Invalid firstTime parameter"), 400
+
+        permission, user_id = validate_permissions()
+
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        if not data["game"]:
+            return errorMessage("Game not provided"), 400
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            # Get all default items for the game
+            query = "SELECT `itemID` FROM `item` WHERE `game` = %s AND `isDefault` = 1"
+            result = getFromDB(query, data["game"], conn, cursor)
+            default_items = []
+            for row in result:
+                default_items.append(row[0])
+
+            # If the user is logging in for the first time, wear the default items
+            # Otherwise, just load the default items, but don't wear them
+            # If the user already has the default item, don't add it again
+            for item in default_items:
+                query = (
+                    "SELECT * FROM `user_item` WHERE `userID` = %s AND `itemID` = %s"
+                )
+                result = getFromDB(query, (data["userID"], item), conn, cursor)
+                if len(result) == 0:
+                    query = "INSERT INTO `user_item` (`userID`, `itemID`, `timeOfPurchase`, `game`, `isWearing`) VALUES (%s, %s, %s, %s, %s)"
+                    postToDB(
+                        query,
+                        (
+                            data["userID"],
+                            item,
+                            time.strftime("%Y-%m-%d %H:%M:%S"),
+                            data["game"],
+                            data["firstTime"],
+                        ),
+                        conn,
+                        cursor,
+                    )
+
+            raise ReturnSuccess({"Message": "Successfully loaded default items"}, 201)
         except CustomException as error:
             conn.rollback()
             return error.msg, error.returnCode

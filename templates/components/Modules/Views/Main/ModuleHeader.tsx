@@ -31,11 +31,10 @@ export default function ModuleHeader({
                         id='module-name'
                         style={{
                             border: 'none',
-                            borderRadius: '12px 0px 0px 12px',
-                            color: curModule?.isPastaModule ? 'red' : undefined
+                            borderRadius: '12px 0px 0px 12px'
                         }}
                     >
-                        {curModule?.name}
+                        {`${curModule?.name}${curModule?.isPastaModule ? ' 🍝' : ''}`}
                     </InputGroupText>
                 </div>
                 <div style={{ margin: '10px' }}>

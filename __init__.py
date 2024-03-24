@@ -27,6 +27,7 @@ from resources.store import (
     AllStoreItems,
     AllUserItems,
     AllUserPurchasableItems,
+    LoadDefaultUserItems,
     PurchaseUserItem,
     StoreItem,
     WearUserItem,
@@ -304,6 +305,9 @@ api.add_resource(WearUserItem, API_ENDPOINT_PREFIX + "store/wear")
 api.add_resource(AllUserItems, API_ENDPOINT_PREFIX + "store/user/items")
 api.add_resource(
     AllUserPurchasableItems, API_ENDPOINT_PREFIX + "store/user/purchasable"
+)
+api.add_resource(
+    LoadDefaultUserItems, API_ENDPOINT_PREFIX + "store/user/loaddefaultitems"
 )
 
 if __name__ == "__main__":
