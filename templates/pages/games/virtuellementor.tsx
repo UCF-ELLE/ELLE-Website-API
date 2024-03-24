@@ -61,17 +61,21 @@ function VirtuELLEMentor() {
     }, []);
 
     // Prevent user from accidentally clicking on a link and leaving the page while in the middle of a Card Game session
-    const handleEarlyNavigation = useCallback(() => {
+    const handleEarlyNavigation = useCallback(async () => {
         // Only run it if the user is currently in the middle of a session
         if (isLoaded) {
             try {
                 if (UNITY_userIsPlayingGame) {
                     // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
+                    console.log('User is in the middle of a Card Game session. Extracting game info...');
                     sendMessage('GameManager', 'WEBGL_ExtractGameInfo');
                 }
 
                 if (!window.confirm('Are you sure you want to leave?')) {
                     throw Error('User cancelled the navigation.');
+                } else {
+                    // Unload the Unity game
+                    await unload();
                 }
             } catch (e: any) {
                 // Prevents the navigation from happening
@@ -81,7 +85,7 @@ function VirtuELLEMentor() {
                 }
             }
         }
-    }, [UNITY_userIsPlayingGame, isLoaded, sendMessage]);
+    }, [UNITY_userIsPlayingGame, isLoaded, sendMessage, unload]);
 
     // Taken from https://react-unity-webgl.dev/docs/api/event-system
     useEffect(() => {
@@ -91,6 +95,7 @@ function VirtuELLEMentor() {
         addEventListener('setPausedTime', UNITY_setPausedTime);
         router.events.on('routeChangeStart', handleEarlyNavigation);
         return () => {
+            console.log('Removing event listeners...');
             removeEventListener('setUserIsPlayingGame', UNITY_setUserIsPlayingGame);
             removeEventListener('setSessionID', UNITY_setSessionID);
             removeEventListener('setPlayerScore', UNITY_setPlayerScore);
@@ -120,14 +125,9 @@ function VirtuELLEMentor() {
     // Taken from https://react-unity-webgl.dev/docs/advanced-examples/dynamic-device-pixel-ratio
     const [devicePixelRatio, setDevicePixelRatio] = useState<number>();
 
-    useEffect(() => {
-        // Used to unload the Unity WebGL game (when user leaves the page)
-        async function unloadUnityGame() {
-            await unload();
-        }
-
-        // Warning Dialog box that pops up when user tries to close the browser/tab
-        const openWarningDialog = (e: BeforeUnloadEvent) => {
+    // Warning Dialog box that pops up when user tries to close the browser/tab
+    const openWarningDialog = useCallback(
+        (e: BeforeUnloadEvent) => {
             // Only run if the user is currently in the middle of a session
             if (UNITY_userIsPlayingGame) {
                 // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
@@ -138,24 +138,28 @@ function VirtuELLEMentor() {
             e.preventDefault();
 
             /* Debug statements
-            console.log("userIsPlayingGame: " + UNITY_userIsPlayingGame.current);
-            console.log("sessionID: " + UNITY_sessionID.current);
-            console.log("playerScore: " + UNITY_playerScore.current);
-            console.log("pausedTime: " + UNITY_pausedTime.current);
-            */
+                console.log("userIsPlayingGame: " + UNITY_userIsPlayingGame.current);
+                console.log("sessionID: " + UNITY_sessionID.current);
+                console.log("playerScore: " + UNITY_playerScore.current);
+                console.log("pausedTime: " + UNITY_pausedTime.current);
+                */
 
             e.returnValue = '';
-        };
+        },
+        [UNITY_userIsPlayingGame, sendMessage]
+    );
 
+    useEffect(() => {
         /* Problem: user is in the middle of a Card Game play session and closes the browser. The /session API endpoint was called to start the Session, but
          * the /endsession API endpoint was never called, forever putting that Session in limbo as no end time gets recorded for it.
          *
          * Solution: since the Unity game didn't get to end the session, call the /endsession endpoint using React
          */
-        const endOngoingSession = () => {
+        const endOngoingSession = async () => {
             // Only run it if the user is currently in the middle of a session
             if (UNITY_userIsPlayingGame) {
                 // Get current time
+                console.log('Ending user session...');
                 let date = new Date();
 
                 // Subtract in-game paused time
@@ -167,10 +171,9 @@ function VirtuELLEMentor() {
                 let finalTime = finalDate.getHours() + ':' + finalTimeMinutes;
 
                 /* Debug statements
-                console.log("Unity paused time: " + UNITY_pausedTime.current);
-                console.log("Unity paused time (in milliseconds): " + pausedTimeMilliSeconds);
-
-                console.log(currentTime + " - " + pausedTimeMilliSeconds + " milliseconds = " + finalTime);
+                    console.log("Unity paused time: " + UNITY_pausedTime.current);
+                    console.log("Unity paused time (in milliseconds): " + pausedTimeMilliSeconds);
+                    console.log(currentTime + " - " + pausedTimeMilliSeconds + " milliseconds = " + finalTime);
                 */
 
                 // Have to use xhr because Axios's async property fails to do the API call when the browser closes
@@ -186,35 +189,22 @@ function VirtuELLEMentor() {
                 xhr.send(data);
             }
         };
-
         window.addEventListener('beforeunload', openWarningDialog);
         window.addEventListener('unload', endOngoingSession);
-
         return () => {
-            // Only run it AFTER the Unity game has loaded and WHEN the component is being unloaded
-            if (isLoaded) {
-                // Unload Unity WebGL instance to free memory
-                unloadUnityGame();
-
-                // End user's session
-                endOngoingSession();
-            }
-
             window.removeEventListener('beforeunload', openWarningDialog);
             window.removeEventListener('unload', endOngoingSession);
         };
-    }, [UNITY_pausedTime, UNITY_playerScore, UNITY_sessionID, UNITY_userIsPlayingGame, isLoaded, sendMessage, unload, user?.jwt]);
+    });
 
     // Automatically log the user into the Unity Card Game
     useEffect(() => {
-        if (isLoaded === true) {
+        if (isLoaded && !userLoading) {
             const jwt = user?.jwt;
-            if (jwt) {
-                console.log('Sending JWT to Unity Card Game...');
-                sendMessage('LoadingText', 'WebGLLoginAttempt', jwt);
-            }
+            console.log('Sending JWT to Unity Card Game...');
+            sendMessage('LoadingText', 'WebGLLoginAttempt', jwt);
         }
-    }, [isLoaded, sendMessage, user?.jwt]);
+    }, [isLoaded, sendMessage, user?.jwt, userLoading]);
 
     // Fullscreen button
     const handleOnClickFullscreen = () => {

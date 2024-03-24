@@ -65,7 +65,7 @@ function AnimELLEGame() {
     }, []);
 
     // Prevent user from accidentally clicking on a link and leaving the page while in the middle of a Card Game session
-    const handleEarlyNavigation = useCallback(() => {
+    const handleEarlyNavigation = useCallback(async () => {
         // Only run it if the user is currently in the middle of a session
         if (isLoaded) {
             try {
@@ -76,6 +76,9 @@ function AnimELLEGame() {
 
                 if (!window.confirm('Are you sure you want to leave?')) {
                     throw Error('User cancelled the navigation.');
+                } else {
+                    // Unload the Unity game if the user confirms they want to leave
+                    await unload();
                 }
             } catch (e: any) {
                 // Prevents the navigation from happening
@@ -85,7 +88,7 @@ function AnimELLEGame() {
                 }
             }
         }
-    }, [UNITY_userIsPlayingGame, isLoaded, sendMessage]);
+    }, [UNITY_userIsPlayingGame, isLoaded, sendMessage, unload]);
 
     // Taken from https://react-unity-webgl.dev/docs/api/event-system
     useEffect(() => {
@@ -121,14 +124,9 @@ function AnimELLEGame() {
     // Taken from https://react-unity-webgl.dev/docs/advanced-examples/dynamic-device-pixel-ratio
     const [devicePixelRatio, setDevicePixelRatio] = useState<number>();
 
-    useEffect(() => {
-        // Used to unload the Unity WebGL game (when user leaves the page)
-        async function unloadUnityGame() {
-            await unload();
-        }
-
-        // Warning Dialog box that pops up when user tries to close the browser/tab
-        const openWarningDialog = (e: BeforeUnloadEvent) => {
+    // Warning Dialog box that pops up when user tries to close the browser/tab
+    const openWarningDialog = useCallback(
+        (e: BeforeUnloadEvent) => {
             // Only run if the user is currently in the middle of a session
             if (UNITY_userIsPlayingGame) {
                 // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
@@ -139,15 +137,17 @@ function AnimELLEGame() {
             e.preventDefault();
 
             /* Debug statements
-            console.log("userIsPlayingGame: " + UNITY_userIsPlayingGame.current);
-            console.log("sessionID: " + UNITY_sessionID.current);
-            console.log("playerScore: " + UNITY_playerScore.current);
-            console.log("pausedTime: " + UNITY_pausedTime.current);
+                console.log("userIsPlayingGame: " + UNITY_userIsPlayingGame.current);
+                console.log("sessionID: " + UNITY_sessionID.current);
+                console.log("playerScore: " + UNITY_playerScore.current);
+                console.log("pausedTime: " + UNITY_pausedTime.current);
             */
 
             e.returnValue = '';
-        };
-
+        },
+        [UNITY_userIsPlayingGame, sendMessage]
+    );
+    useEffect(() => {
         /* Problem: user is in the middle of a Card Game play session and closes the browser. The /session API endpoint was called to start the Session, but
          * the /endsession API endpoint was never called, forever putting that Session in limbo as no end time gets recorded for it.
          *
@@ -168,43 +168,34 @@ function AnimELLEGame() {
                 xhr.send(data);
             }
         };
-
         window.addEventListener('beforeunload', openWarningDialog);
         window.addEventListener('unload', endOngoingSession);
-
         return () => {
-            // Only run it AFTER the Unity game has loaded and WHEN the component is being unloaded
-            if (isLoaded) {
-                // Unload Unity WebGL instance to free memory
-                unloadUnityGame();
-
-                // End user's session
-                endOngoingSession();
-            }
-
             window.removeEventListener('beforeunload', openWarningDialog);
             window.removeEventListener('unload', endOngoingSession);
         };
-    }, [UNITY_playerScore, UNITY_sessionID, UNITY_userIsPlayingGame, isLoaded, sendMessage, unload, user?.jwt]);
+    });
 
-    // Automatically log the user into the Unity Card Game
-    if (isLoaded === true) {
-        const jwt = user?.jwt;
-        if (jwt) sendMessage('GameManager', 'loginAttempt', jwt);
-        //mobile check
-        const isChrome = /Chrome/i.test(navigator.userAgent);
-        console.log('chrome?' + isChrome);
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        console.log('android?' + isAndroid);
-        //alert("dis android: " + isAndroid);
-        const isIOS = /iPhone/i.test(navigator.userAgent);
-        console.log('iOS?' + isIOS);
-        //alert("dis IOS: " + isIOS);
+    // Automatically log the user into ACWW
+    useEffect(() => {
+        if (isLoaded && !userLoading) {
+            const jwt = user?.jwt;
+            if (jwt) sendMessage('GameManager', 'loginAttempt', jwt);
 
-        if (isAndroid || isIOS) {
-            sendMessage('GameManager', 'MobileCheck', 1);
+            const isChrome = /Chrome/i.test(navigator.userAgent);
+            console.log('chrome?' + isChrome);
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            console.log('android?' + isAndroid);
+            //alert("dis android: " + isAndroid);
+            const isIOS = /iPhone/i.test(navigator.userAgent);
+            console.log('iOS?' + isIOS);
+            //alert("dis IOS: " + isIOS);
+
+            if (isAndroid || isIOS) {
+                sendMessage('GameManager', 'MobileCheck', 1);
+            }
         }
-    }
+    }, [isLoaded, userLoading, user?.jwt, sendMessage]);
 
     // Fullscreen button
     const handleOnClickFullscreen = () => {

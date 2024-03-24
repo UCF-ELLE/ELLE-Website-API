@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { Row, Col } from 'reactstrap';
+import { Row, Col, Collapse } from 'reactstrap';
 import Image, { StaticImageData } from 'next/image';
 import { useUser } from '@/hooks/useUser';
 import React, { useMemo } from 'react';
+import { CaretDownFill } from 'react-bootstrap-icons';
 
 // Genericize the above code to be a component that can be used for any game
 type GameSectionProps = {
@@ -22,42 +23,58 @@ type GameSectionProps = {
 };
 export default function GameSection({ anchor, link, external, title, description, color, buttonColor, image, altImage, teams }: GameSectionProps) {
     const { user } = useUser();
+    const [teamColumns, setTeamColumns] = React.useState<{ isOpen: boolean; members: string[]; name: string }[]>(
+        teams?.map((team) => ({ ...team, isOpen: false })) || []
+    );
+
+    const rotate = (team: { isOpen: boolean; members: string[]; name: string }) => (team.isOpen ? 'rotate(180deg)' : 'rotate(0deg)');
+    const handleCollapse = (team: { isOpen: boolean; members: string[]; name: string }) => {
+        setTeamColumns((prev) => prev.map((prevTeam) => (prevTeam.name === team.name ? { ...prevTeam, isOpen: !prevTeam.isOpen } : prevTeam)));
+    };
 
     // If team members are more than four, make a new column. The first column will have 3, and the second will have the rest.
     // If team members are four or less, do not make a new column.
     const MemberColumns = useMemo(() => {
         if (teams) {
-            return teams.map((team) => (
+            return teamColumns?.map((team) => (
                 <div key={team.name.replace(' ', '-')}>
-                    <p className='cta-text'>{team.name}</p>
-                    <ul style={{ color: '#ffffff' }}>
-                        <Row>
-                            {team.members.length > 4 ? (
-                                <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <p style={{ marginBottom: 8 }}>{team.name}</p>
+                        <CaretDownFill
+                            style={{ transform: rotate(team), transition: 'all 0.2s linear', marginBottom: 4 }}
+                            onClick={() => handleCollapse(team)}
+                        />
+                    </div>
+                    <Collapse isOpen={team.isOpen}>
+                        <ul style={{ color: '#ffffff' }}>
+                            <Row>
+                                {team.members.length > 4 ? (
+                                    <>
+                                        <Col>
+                                            {team.members.slice(0, 3).map((member) => (
+                                                <li key={member.replace(' ', '-')}>{member}</li>
+                                            ))}
+                                        </Col>
+                                        <Col>
+                                            {team.members.slice(3).map((member) => (
+                                                <li key={member.replace(' ', '-')}>{member}</li>
+                                            ))}
+                                        </Col>
+                                    </>
+                                ) : (
                                     <Col>
-                                        {team.members.slice(0, 3).map((member) => (
+                                        {team.members.map((member) => (
                                             <li key={member.replace(' ', '-')}>{member}</li>
                                         ))}
                                     </Col>
-                                    <Col>
-                                        {team.members.slice(3).map((member) => (
-                                            <li key={member.replace(' ', '-')}>{member}</li>
-                                        ))}
-                                    </Col>
-                                </>
-                            ) : (
-                                <Col>
-                                    {team.members.map((member) => (
-                                        <li key={member.replace(' ', '-')}>{member}</li>
-                                    ))}
-                                </Col>
-                            )}
-                        </Row>
-                    </ul>
+                                )}
+                            </Row>
+                        </ul>
+                    </Collapse>
                 </div>
             ));
         } else return <></>;
-    }, [teams]);
+    }, [teamColumns, teams]);
 
     const buttonColorVar = useMemo(() => {
         if (external) return buttonColor || '#3f6184';
