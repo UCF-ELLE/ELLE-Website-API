@@ -367,9 +367,8 @@ class LoadDefaultUserItems(Resource):
             for row in result:
                 default_items.append(row[0])
 
-            # If the user is logging in for the first time, wear the default items
-            # Otherwise, just load the default items, but don't wear them
             # If the user already has the default item, don't add it again
+            # Otherwise, add (and wear if first time) the default item
             for item in default_items:
                 query = (
                     "SELECT * FROM `user_item` WHERE `userID` = %s AND `itemID` = %s"
