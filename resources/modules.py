@@ -37,6 +37,8 @@ class Modules(Resource):
                 """
             if is_pasta:
                 query += f" WHERE `module`.`isPastaModule` = {is_pasta}"
+            else:
+                query += " WHERE `module`.`isPastaModule` = 0"
             result = getFromDB(query)
         else:
             query = """
@@ -47,6 +49,8 @@ class Modules(Resource):
                     """
             if is_pasta:
                 query += f" AND `module`.`isPastaModule` = {is_pasta}"
+            else:
+                query += " WHERE `module`.`isPastaModule` = 0"
             result = getFromDB(query, user_id)
 
         modules = []
