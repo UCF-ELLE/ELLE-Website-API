@@ -460,18 +460,20 @@ class AllUserItems(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            if data["userID"] and data["game"]:
-                query = "SELECT * FROM `user_item` WHERE `userID` = %s AND `game` = %s"
-                result = getFromDB(query, (data["userID"], data["game"]), conn, cursor)
-            elif data["userID"]:
-                query = "SELECT * FROM `user_item` WHERE `userID` = %s"
-                result = getFromDB(query, data["userID"], conn, cursor)
-            elif data["game"]:
-                query = "SELECT * FROM `user_item` WHERE `game` = %s"
-                result = getFromDB(query, data["game"], conn, cursor)
-            else:
-                query = "SELECT * FROM `user_item`"
-                result = getFromDB(query, None, conn, cursor)
+            query = "SELECT * FROM `user_item`"
+            query_parameters = []
+            if data["userID"] or permission == "st":
+                query_user_id = data["userID"] if data["userID"] else user_id
+                query += " WHERE `userID` = %s"
+                query_parameters.append(query_user_id)
+            if data["game"]:
+                if data["userID"] or permission == "st":
+                    query += " AND `game` = %s"
+                else:
+                    query += " WHERE `game` = %s"
+                query_parameters.append(data["game"])
+
+            result = getFromDB(query, tuple(query_parameters), conn, cursor)
 
             user_items = []
             for row in result:
