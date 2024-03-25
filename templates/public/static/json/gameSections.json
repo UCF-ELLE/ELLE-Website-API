@@ -1,5 +1,19 @@
 [
     {
+        "anchor": "PastaKerfuffELLE",
+        "link": "/games/pastagame",
+        "external": false,
+        "title": "Pasta Kerfuff-ELLE",
+        "description": "Learn about Applied Linguistics through splitting utterances by their morphemes and beyond!",
+        "altImage": "Pasta Kerfuff-ELLE Image",
+        "teams": [
+            {
+                "name": "Original Senior Design Team",
+                "members": ["Jason Co", "Dylan Engle", "Christine Fossenier", "Michael Miller", "Zander Preston"]
+            }
+        ]
+    },
+    {
         "anchor": "VirtuELLEMentor",
         "link": "/games/virtuellementor",
         "external": false,

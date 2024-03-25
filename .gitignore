@@ -32,4 +32,9 @@ temp_uploads/*
 .idea/**/shelf
 
 .venv/
-templates/public/games/*/
+
+# Game related files
+*.data
+*.framework.js
+*.loader.js
+*.wasm

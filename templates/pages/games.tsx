@@ -1,26 +1,23 @@
-import React, { useMemo } from 'react';
-import { Row, Col } from 'reactstrap';
-import Select, { SingleValue } from 'react-select';
-import Link from 'next/link';
-import Image from 'next/image';
 import Layout from '@/app/layout';
+import { useMemo } from 'react';
+import Select, { SingleValue } from 'react-select';
 
-import CardGameImage from '@/public/static/images/cardgame.png';
 import AnimelleGameImage from '@/public/static/images/animellegame.png';
-import MazeGameImage from '@/public/static/images/mazeGameplay.png';
+import CardGameImage from '@/public/static/images/cardgame.png';
 import HellesKitchenImage from '@/public/static/images/helleskitchen.jpg';
-import SpinNSpellImage from '@/public/static/images/spinnspellBlocks.png';
 import HighRiseImage from '@/public/static/images/highrise.jpg';
+import MazeGameImage from '@/public/static/images/mazeGameplay.png';
 import MillenIElleImage from '@/public/static/images/milleniimage.png';
+import PastaGameImage from '@/public/static/images/pastakerfuffle.png';
+import SpinNSpellImage from '@/public/static/images/spinnspellBlocks.png';
 
 import GameSectionJSON from '@/public/static/json/gameSections.json';
 
-import '@/public/static/css/style.css';
-import '@/lib/font-awesome/css/font-awesome.min.css';
-import '@/lib/owlcarousel/assets/owl.carousel.min.css';
-import '@/lib/ionicons/css/ionicons.min.css';
-import { useUser } from '@/hooks/useUser';
 import GameSection from '@/components/Games/GameSection';
+import '@/lib/font-awesome/css/font-awesome.min.css';
+import '@/lib/ionicons/css/ionicons.min.css';
+import '@/lib/owlcarousel/assets/owl.carousel.min.css';
+import '@/public/static/css/style.css';
 
 type GameOption = {
     value: string;
@@ -39,6 +36,8 @@ export default function Games() {
 
     const anchorToImage = (anchor: string) => {
         switch (anchor) {
+            case 'PastaKerfuffELLE':
+                return PastaGameImage;
             case 'VirtuELLEMentor':
                 return CardGameImage;
             case 'AnimELLE':
