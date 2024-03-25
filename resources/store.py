@@ -281,7 +281,7 @@ class PurchaseUserItem(Resource):
         data["itemID"] = getParameter("itemID", int, True, "")
         data["timeOfPurchase"] = time.strftime("%Y-%m-%d %H:%M:%S")
         data["game"] = getParameter("game", str, True, "")
-        data["isUsing"] = getParameter("isUsing", bool, False, False)
+        data["isWearing"] = getParameter("isWearing", bool, False, False)
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
