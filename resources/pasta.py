@@ -7,7 +7,7 @@ from db import mysql
 from db_utils import *
 from utils import *
 from exceptions_util import *
-import datetime
+from datetime import datetime
 
 
 class Pasta(Resource):
