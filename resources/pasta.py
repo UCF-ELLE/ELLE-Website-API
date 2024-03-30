@@ -992,15 +992,17 @@ class PastaHighScore(Resource):
                 query += " GROUP BY s.sessionID, s.userID;"
                 result = getFromDB(query, data["userID"], conn, cursor)
 
+            print(result)
+
             high_scores = []
             for row in result:
                 new_high_score_object = {}
                 new_high_score_object["sessionID"] = row[0]
                 new_high_score_object["userID"] = row[1]
                 new_high_score_object["moduleID"] = row[2]
-                new_high_score_object["highest_sum_attemptsCorrect"] = row[3]
+                new_high_score_object["highest_sum_attemptsCorrect"] = float(row[3])
                 new_high_score_object["highest_ratio_attemptsCorrect_to_attempts"] = (
-                    row[4]
+                    float(row[4])
                 )
                 high_scores.append(new_high_score_object)
 
