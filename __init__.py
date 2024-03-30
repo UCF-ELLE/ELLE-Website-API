@@ -23,6 +23,7 @@ from resources.pasta import (
     Pasta,
     PastaFrame,
     PastaFrameModule,
+    PastaHighScore,
 )
 from resources.store import (
     AllStoreItems,
@@ -299,6 +300,7 @@ api.add_resource(PastaFrame, API_ENDPOINT_PREFIX + "pastagame/qframe")
 api.add_resource(PastaFrameModule, API_ENDPOINT_PREFIX + "pastagame/qframe/all")
 api.add_resource(AllPastaModuleResources, API_ENDPOINT_PREFIX + "pastagame/module/all")
 api.add_resource(LoggedPasta, API_ENDPOINT_PREFIX + "pastagame/loggedpasta")
+api.add_resource(PastaHighScore, API_ENDPOINT_PREFIX + "pastagame/highscores")
 # Store Specific Endpoints
 api.add_resource(StoreItem, API_ENDPOINT_PREFIX + "store/item")
 api.add_resource(AllStoreItems, API_ENDPOINT_PREFIX + "store/items")

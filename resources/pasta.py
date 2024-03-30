@@ -948,3 +948,73 @@ class LoggedPasta(Resource):
             if conn.open:
                 cursor.close()
                 conn.close()
+
+
+class PastaHighScore(Resource):
+    @jwt_required
+    def get(self):
+        data = {}
+        data["userID"] = request.args.get("userID")
+        data["moduleID"] = request.args.get("moduleID")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            query = """
+            SELECT 
+                s.sessionID, 
+                s.userID,
+                s.moduleID,
+                MAX(lp.sum_attemptsCorrect) AS highest_sum_attemptsCorrect,
+                MAX(lp.sum_attemptsCorrect) / MAX(lp.sum_attempts) AS highest_ratio_attemptsCorrect_to_attempts
+            FROM session s
+            INNER JOIN (
+                SELECT 
+                    sessionID, 
+                    SUM(attemptsCorrect) AS sum_attemptsCorrect,
+                    SUM(attempts) AS sum_attempts
+                FROM logged_pasta
+                GROUP BY sessionID
+            ) AS lp ON s.sessionID = lp.sessionID
+            WHERE s.userID = %s
+            """
+
+            if data["moduleID"]:
+                query += " AND s.moduleID = %s GROUP BY s.sessionID, s.userID;"
+                result = getFromDB(
+                    query, (data["userID"], data["moduleID"]), conn, cursor
+                )
+            else:
+                query += " GROUP BY s.sessionID, s.userID;"
+                result = getFromDB(query, data["userID"], conn, cursor)
+
+            high_scores = []
+            for row in result:
+                new_high_score_object = {}
+                new_high_score_object["sessionID"] = row[0]
+                new_high_score_object["userID"] = row[1]
+                new_high_score_object["moduleID"] = row[2]
+                new_high_score_object["highest_sum_attemptsCorrect"] = row[3]
+                new_high_score_object["highest_ratio_attemptsCorrect_to_attempts"] = (
+                    row[4]
+                )
+                high_scores.append(new_high_score_object)
+
+            raise ReturnSuccess(high_scores, 200)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
