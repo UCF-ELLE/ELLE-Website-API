@@ -291,7 +291,7 @@ export default function Signup() {
                         <p style={{ color: 'white' }}>
                             Already have an account? &nbsp;
                             <Link
-                                href='/Login'
+                                href='/login'
                                 style={{
                                     color: '#007bff',
                                     textDecoration: 'underline'
