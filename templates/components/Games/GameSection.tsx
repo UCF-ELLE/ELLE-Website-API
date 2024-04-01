@@ -76,23 +76,20 @@ export default function GameSection({ anchor, link, external, title, description
         } else return <></>;
     }, [teamColumns, teams]);
 
-    const buttonColorVar = useMemo(() => {
-        if (external) return buttonColor || '#3f6184';
-        return user?.jwt ? buttonColor || '#3f6184' : 'gray';
-    }, [buttonColor, external, user?.jwt]);
+    const buttonColorVar = useMemo(() => buttonColor || '#3f6184', [buttonColor]);
 
     const linkStyles = useMemo((): React.CSSProperties => {
         return {
             border: '1px solid #3f6184',
             borderRadius: '12px',
             background: buttonColorVar,
-            pointerEvents: !user?.jwt && !external ? 'none' : 'auto',
+            pointerEvents: 'auto',
             color: '#ffffff',
             display: 'inline-block',
             padding: '15px',
             opacity: '1'
         };
-    }, [buttonColorVar, external, user?.jwt]);
+    }, [buttonColorVar]);
 
     return (
         <>
@@ -106,21 +103,16 @@ export default function GameSection({ anchor, link, external, title, description
                                 {MemberColumns}
                                 <p className='cta-text'>{description}</p>
                                 <p style={{ padding: 0, margin: 'auto 0 15px' }}>
-                                    <Link
-                                        href={!external ? (user?.jwt ? link : '/login') : link}
-                                        style={linkStyles}
-                                        className={`${!user?.jwt ? 'disabled' : ''}`}
-                                    >
+                                    <Link href={!external ? (user?.jwt ? link : '/login') : link} style={linkStyles}>
                                         {!external ? (user?.jwt ? 'Play Here!' : 'Log In to Play') : 'Available Here!'}
                                     </Link>
                                 </p>
                             </Col>
-                            <Col>
+                            <Col style={{ display: 'flex', justifyContent: 'center' }}>
                                 <Image
                                     style={{
-                                        width: 'auto',
-                                        height: '280px',
-                                        marginLeft: '70px'
+                                        width: '500px',
+                                        height: '280px'
                                     }}
                                     alt={altImage || 'Card Game Image'}
                                     src={image}

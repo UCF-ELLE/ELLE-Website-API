@@ -21,7 +21,7 @@ export const useUser = () => {
         return userInfo;
     };
 
-    const generateUsername = () => {
+    const generateUsername = async () => {
         const _as = new AuthService();
         const username = _as.generateUsername();
         return username;

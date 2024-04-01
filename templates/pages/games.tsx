@@ -4,7 +4,7 @@ import Select, { SingleValue } from 'react-select';
 
 import AnimelleGameImage from '@/public/static/images/animellegame.png';
 import CardGameImage from '@/public/static/images/cardgame.png';
-import HellesKitchenImage from '@/public/static/images/helleskitchen.jpg';
+import HellesKitchenImage from '@/public/static/images/helleskitchen.png';
 import HighRiseImage from '@/public/static/images/highrise.jpg';
 import MazeGameImage from '@/public/static/images/mazeGameplay.png';
 import MillenIElleImage from '@/public/static/images/milleniimage.png';

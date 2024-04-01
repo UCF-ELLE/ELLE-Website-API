@@ -82,6 +82,13 @@ export default function Signup() {
         }
     };
 
+    const genUsername = async () => {
+        const response = await generateUsername();
+        if ('username' in response) {
+            setUsername(response.username);
+        }
+    };
+
     const generateErrorMsg = () => {
         return <Card style={{ border: 'none', backgroundColor: 'transparent' }}>{errorMsg || 'An error occurred, please try again.'}</Card>;
     };
@@ -110,10 +117,11 @@ export default function Signup() {
                                             style={{
                                                 backgroundColor: 'white',
                                                 border: 'none',
-                                                borderRadius: '0 5px 5px 0'
+                                                borderRadius: '0 5px 5px 0',
+                                                height: '100%'
                                             }}
                                             name='dice'
-                                            onClick={() => generateUsername()}
+                                            onClick={async () => genUsername()}
                                         >
                                             <Image
                                                 src={diceImage}
@@ -145,7 +153,8 @@ export default function Signup() {
                                             style={{
                                                 backgroundColor: 'white',
                                                 border: 'none',
-                                                borderRadius: '0 5px 5px 0'
+                                                borderRadius: '0 5px 5px 0',
+                                                height: '100%'
                                             }}
                                             name='hiddenPassword'
                                             onClick={(e) => togglePWPrivacy(e)}
@@ -193,7 +202,8 @@ export default function Signup() {
                                             style={{
                                                 backgroundColor: 'white',
                                                 border: 'none',
-                                                borderRadius: '0 5px 5px 0'
+                                                borderRadius: '0 5px 5px 0',
+                                                height: '100%'
                                             }}
                                             name='hiddenConfirm'
                                             onClick={(e) => togglePWPrivacy(e)}

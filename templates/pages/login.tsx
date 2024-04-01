@@ -109,7 +109,7 @@ export default function Login() {
                         <p>
                             Don&apos;t have an account?&nbsp;
                             <Link
-                                href='/register'
+                                href='/signup'
                                 style={{
                                     color: '#007bff',
                                     textDecoration: 'underline'

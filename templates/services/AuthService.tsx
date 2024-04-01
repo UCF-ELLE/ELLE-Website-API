@@ -62,7 +62,7 @@ export default class AuthService {
 
     generateUsername = async () => {
         try {
-            const res = await this.instance.get('/elleapi/generateusername');
+            const res = await this.instance.get<{ username: string }>('/elleapi/generateusername');
             return res.data;
         } catch (err: any) {
             console.log('generateUsername error', err.response.data);
