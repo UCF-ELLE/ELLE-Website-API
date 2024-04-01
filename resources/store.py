@@ -412,7 +412,14 @@ class WearUserItem(Resource):
     def put(self):
         data = {}
         data["userItemID"] = getParameter("userItemID", int, True, "")
-        data["isWearing"] = getParameter("isWearing", bool, True, "")
+        data["isWearing"] = getParameter("isWearing", str, True, "")
+
+        if data["isWearing"].lower() == "true" or data["isWearing"] == "1":
+            data["isWearing"] = 1
+        elif data["isWearing"].lower() == "false" or data["isWearing"] == "0":
+            data["isWearing"] = 0
+        else:
+            return errorMessage("Invalid isWearing parameter"), 400
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -422,10 +429,33 @@ class WearUserItem(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
+            # Check if the user is currently wearing an item of the same type. If so, remove the wear flag from that item
+            if data["isWearing"] == 1:
+                query = f"""
+                    SELECT ui.*, i.name
+                    FROM user_item ui
+                    INNER JOIN item i ON ui.itemID = i.itemID
+                    WHERE i.game = (SELECT game FROM user_item WHERE userItemID = {data["userItemID"]})
+                    AND i.itemType = (SELECT itemType FROM item WHERE itemID = (SELECT itemID FROM user_item WHERE userItemID = {data["userItemID"]}))
+                    AND ui.isWearing = 1
+                    AND ui.userItemID != {data["userItemID"]};
+                """
+                result = getFromDB(query, None, conn, cursor)
+
+            if len(result) > 0:
+                query = "UPDATE `user_item` SET `isWearing` = 0 WHERE `userItemID` = %s"
+                postToDB(query, result[0][0], conn, cursor)
+
             query = "UPDATE `user_item` SET `isWearing` = %s WHERE `userItemID` = %s"
             postToDB(query, (data["isWearing"], data["userItemID"]), conn, cursor)
 
-            raise ReturnSuccess({"Message": "Successfully updated the user item"}, 200)
+            # Success message should mention if an item was replaced by the new item if applicable
+            success = {"Message": "Successfully updated the user item"}
+
+            if len(result) > 0:
+                success["ReplacedItem"] = result[0][6]
+
+            raise ReturnSuccess(success, 200)
         except CustomException as error:
             conn.rollback()
             return error.msg, error.returnCode
