@@ -7,6 +7,7 @@ from db import mysql
 from db_utils import *
 from utils import *
 from exceptions_util import *
+from datetime import datetime
 
 
 class StoreItem(Resource):
@@ -279,7 +280,7 @@ class PurchaseUserItem(Resource):
         data = {}
         data["userID"] = getParameter("userID", int, True, "")
         data["itemID"] = getParameter("itemID", int, True, "")
-        data["timeOfPurchase"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        data["timeOfPurchase"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data["game"] = getParameter("game", str, True, "")
         data["isWearing"] = getParameter("isWearing", bool, False, False)
 
@@ -381,7 +382,7 @@ class LoadDefaultUserItems(Resource):
                         (
                             data["userID"],
                             item,
-                            time.strftime("%Y-%m-%d %H:%M:%S"),
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             data["game"],
                             data["firstTime"],
                         ),
@@ -481,7 +482,9 @@ class AllUserItems(Resource):
                 new_user_item_object["userItemID"] = row[0]
                 new_user_item_object["userID"] = row[1]
                 new_user_item_object["itemID"] = row[2]
-                new_user_item_object["timeOfPurchase"] = row[3]
+                new_user_item_object["timeOfPurchase"] = row[3].strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
                 new_user_item_object["game"] = row[4]
                 new_user_item_object["isWearing"] = row[5]
                 user_items.append(new_user_item_object)
