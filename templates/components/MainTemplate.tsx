@@ -66,7 +66,7 @@ export default function Template(props: { permission?: string }) {
                                     <Link href='/gamecode'>VR Game Code</Link>
                                 </li>
                                 <li>
-                                    <Link href='/' onClick={logout}>
+                                    <Link href='/home' onClick={logout}>
                                         Sign Out
                                     </Link>
                                 </li>
