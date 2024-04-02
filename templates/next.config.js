@@ -9,23 +9,16 @@ const nextConfig = {
         return config;
     },
 
-    async redirects() {
-        return [
-            {
-                source: '/',
-                destination: '/home',
-                permanent: true,
-            },
-        ];
-    },
+    basePath: '/elle',
+
     async rewrites() {
         return [
             {
                 source: '/elleapi/:slug*',
-                destination: 'http://localhost:5050/elleapi/:slug*',
-            },
+                destination: 'http://localhost:5050/elleapi/:slug*'
+            }
         ];
-    },
+    }
 };
 
 module.exports = nextConfig;
