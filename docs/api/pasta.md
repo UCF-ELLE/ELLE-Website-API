@@ -275,7 +275,7 @@
         - pastaID (int, required): ID of the pasta.
         - correct (bool, required): Indicates whether the response is correct.
         - qFrameID (int, required): ID of the question frame associated with the response.
-        - questionType (str, required): Type of the question.
+        - questionType (enum('identify', 'split', 'mc1', 'mc2'), required): Type of the question.
         - sessionID (int, required): ID of the session.
     - **Returns:**
         - If successful:

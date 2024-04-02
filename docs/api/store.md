@@ -14,7 +14,7 @@
         - `itemType` (str, required): Type of the item.
         - `points` (int, optional): Points associated with the item.
         - `isDefault` (bool, optional): Indicates if the item is default.
-        - `gender` (str, optional): Gender associated with the item.
+        - `gender` (enum('M', 'F', 'N'), optional): Gender associated with the item.
     - **Returns:**
         - If successful:
             - Status Code: 201
@@ -57,7 +57,7 @@
         - `itemType` (str, optional): Updated type of the item.
         - `points` (int, optional): Updated points associated with the item.
         - `isDefault` (bool, optional): Updated indication if the item is default.
-        - `gender` (str, optional): Updated gender associated with the item.
+        - `gender` (enum('M', 'F', 'N'), optional): Updated gender associated with the item.
     - **Returns:**
         - If successful:
             - Status Code: 200
