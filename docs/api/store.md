@@ -176,7 +176,8 @@
     - **Authorization:** JWT token required.
     - **Request Body:**
         - `userItemID` (int, required): ID of the user item to update.
-        - `isWearing` (str, required): Indicates whether the item is being worn (`"true"` or `"false"`).
+        - `isWearing` (bool, required): Indicates whether the item is being worn (`"true"` or `"false"`).
+        - `replaceItem` (bool, optional): Indicated whether the item that is being worn should replace items of a similar type that are currently being worn.
     - **Returns:**
         - If successful:
             - Status Code: 200

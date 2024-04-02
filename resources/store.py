@@ -413,6 +413,7 @@ class WearUserItem(Resource):
         data = {}
         data["userItemID"] = getParameter("userItemID", int, True, "")
         data["isWearing"] = getParameter("isWearing", str, True, "")
+        data["replaceItem"] = getParameter("replaceItem", str, False, "")
 
         if data["isWearing"].lower() == "true" or data["isWearing"] == "1":
             data["isWearing"] = 1
@@ -420,6 +421,15 @@ class WearUserItem(Resource):
             data["isWearing"] = 0
         else:
             return errorMessage("Invalid isWearing parameter"), 400
+
+        if (
+            data["replaceItem"].lower() == "true"
+            or data["replaceItem"] == "1"
+            or not data["replaceItem"]
+        ):
+            data["replaceItem"] = 1
+        elif data["replaceItem"].lower() == "false" or data["replaceItem"] == "0":
+            data["replaceItem"] = 0
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -430,7 +440,7 @@ class WearUserItem(Resource):
             cursor = conn.cursor()
 
             # Check if the user is currently wearing an item of the same type. If so, remove the wear flag from that item
-            if data["isWearing"] == 1:
+            if data["isWearing"] == 1 and data["replaceItem"] == 1:
                 query = f"""
                     SELECT ui.*, i.name
                     FROM user_item ui
