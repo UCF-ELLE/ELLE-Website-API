@@ -24,7 +24,8 @@ const nextConfig = {
         return [
             {
                 source: '/elleapi/:slug*',
-                destination: 'http://localhost:5050/elleapi/:slug*'
+                destination: 'http://localhost:5050/elleapi/:slug*',
+                basePath: process.env.NODE_ENV === 'production' ? undefined : false
             }
         ];
     }

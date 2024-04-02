@@ -155,11 +155,11 @@ export function PlatformStats() {
         platformDuration = formatTime();
 
         return (
-            <>
+            <ul style={{ paddingLeft: 16, marginTop: 8 }}>
                 <li style={{ fontSize: '14px' }}>Mobile: {platformDuration[0]}</li>
                 <li style={{ fontSize: '14px' }}>PC: {platformDuration[1]}</li>
                 <li style={{ fontSize: '14px' }}>VR: {platformDuration[2]}</li>
-            </>
+            </ul>
         );
     };
 

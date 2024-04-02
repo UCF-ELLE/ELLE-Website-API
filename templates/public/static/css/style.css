@@ -1406,24 +1406,27 @@ button#gameCodeBtn {
 }
 
 
-table.statsTable.table {
+table.statsTable {
     border-style: hidden;
     margin: 0px;
     color: white;
 }
 
-table.statsTable.table thead th {
+table.statsTable thead th {
     border-right-style: hidden;
     border-bottom: hidden;
     font-size: 12px;
     position: sticky;
     top: 0;
     background-color: #74b7bd;
+    color: white;
 }
 
-table.statsTable.table tbody td {
+table.statsTable tbody td {
     border-right-style: hidden;
     border-bottom: hidden;
+    background-color: #74b7bd;
+    color: white;
 }
 
 .infoCard {

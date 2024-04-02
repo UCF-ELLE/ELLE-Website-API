@@ -816,8 +816,9 @@ class LoggedPasta(Resource):
     def post(self):
         data = {}
         data["pastaID"] = getParameter("pastaID", int, True, "")
-        data["attempts"] = getParameter("attempts", int, False, "")
-        data["attemptsCorrect"] = getParameter("attemptsCorrect", int, False, "")
+        data["correct"] = getParameter("correct", bool, True, "")
+        data["qFrameID"] = getParameter("qFrameID", int, True, "")
+        data["questionType"] = getParameter("questionType", str, True, "")
         data["sessionID"] = getParameter("sessionID", int, True, "")
         data["log_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -829,13 +830,14 @@ class LoggedPasta(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            query = "INSERT INTO `logged_pasta` (`pastaID`, `attempts`, `attemptsCorrect`, `sessionID`, `log_time`) VALUES (%s, %s, %s, %s, %s)"
+            query = "INSERT INTO `logged_pasta` (`pastaID`, `correct`, `qFrameID`, `questionType`, `sessionID`, `log_time`) VALUES (%s, %s, %s, %s, %s, %s)"
             postToDB(
                 query,
                 (
                     data["pastaID"],
-                    data["attempts"],
-                    data["attemptsCorrect"],
+                    data["correct"],
+                    data["qFrameID"],
+                    data["questionType"],
                     data["sessionID"],
                     data["log_time"],
                 ),
@@ -848,8 +850,9 @@ class LoggedPasta(Resource):
                     "Message": "Successfully logged the pasta response",
                     "logged_pasta": {
                         "pastaID": data["pastaID"],
-                        "attempts": data["attempts"],
-                        "attemptsCorrect": data["attemptsCorrect"],
+                        "correct": data["correct"],
+                        "qFrameID": data["qFrameID"],
+                        "questionType": data["questionType"],
                         "sessionID": data["sessionID"],
                         "log_time": data["log_time"],
                     },
@@ -893,10 +896,11 @@ class LoggedPasta(Resource):
                 new_logged_pasta_object = {}
                 new_logged_pasta_object["logID"] = row[0]
                 new_logged_pasta_object["pastaID"] = row[1]
-                new_logged_pasta_object["attempts"] = row[2]
-                new_logged_pasta_object["attemptsCorrect"] = row[3]
-                new_logged_pasta_object["sessionID"] = row[4]
-                new_logged_pasta_object["log_time"] = row[5]
+                new_logged_pasta_object["correct"] = row[2]
+                new_logged_pasta_object["qFrameID"] = row[3]
+                new_logged_pasta_object["questionType"] = row[4]
+                new_logged_pasta_object["sessionID"] = row[5]
+                new_logged_pasta_object["log_time"] = row[6]
                 logged_pasta.append(new_logged_pasta_object)
 
             raise ReturnSuccess(logged_pasta, 200)
@@ -965,22 +969,19 @@ class PastaHighScore(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
             query = """
-            SELECT 
-                s.sessionID, 
-                s.userID,
-                s.moduleID,
-                MAX(lp.sum_attemptsCorrect) AS highest_sum_attemptsCorrect,
-                MAX(lp.sum_attemptsCorrect) / MAX(lp.sum_attempts) AS highest_ratio_attemptsCorrect_to_attempts
-            FROM session s
-            INNER JOIN (
                 SELECT 
-                    sessionID, 
-                    SUM(attemptsCorrect) AS sum_attemptsCorrect,
-                    SUM(attempts) AS sum_attempts
-                FROM logged_pasta
-                GROUP BY sessionID
-            ) AS lp ON s.sessionID = lp.sessionID
-            WHERE s.userID = %s
+                    s.sessionID,
+                    s.userID,
+                    s.moduleID,
+                    SUM(lp.correct) AS total_correct_pasta,
+                    COUNT(lp.logID) AS total_logged_pasta,
+                    SUM(lp.correct) / COUNT(lp.logID) AS correct_to_total_ratio
+                FROM 
+                    session s
+                INNER JOIN 
+                    logged_pasta lp ON s.sessionID = lp.sessionID
+                WHERE 
+                    s.userID = %s
             """
 
             if data["moduleID"]:
@@ -1000,10 +1001,9 @@ class PastaHighScore(Resource):
                 new_high_score_object["sessionID"] = row[0]
                 new_high_score_object["userID"] = row[1]
                 new_high_score_object["moduleID"] = row[2]
-                new_high_score_object["highest_sum_attemptsCorrect"] = float(row[3])
-                new_high_score_object["highest_ratio_attemptsCorrect_to_attempts"] = (
-                    float(row[4])
-                )
+                new_high_score_object["total_correct_pasta"] = float(row[3])
+                new_high_score_object["total_logged_pasta"] = float(row[4])
+                new_high_score_object["correct_to_total_ratio"] = float(row[5])
                 high_scores.append(new_high_score_object)
 
             raise ReturnSuccess(high_scores, 200)

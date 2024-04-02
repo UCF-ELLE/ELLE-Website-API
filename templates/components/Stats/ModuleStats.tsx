@@ -136,7 +136,7 @@ export function ModuleStats() {
         };
 
         axios
-            .get('elleapi/termsperformance', header)
+            .get('/elleapi/termsperformance', header)
             .then((res) => {
                 if (res.data.Message) setTermStats([]);
                 else setTermStats(res.data);
@@ -169,21 +169,10 @@ export function ModuleStats() {
                 data={performanceData}
                 options={{
                     scales: {
-                        yAxis: {
+                        y: {
                             min: 0,
-                            max: 100,
-                            ticks: {
-                                color: 'black'
-                            }
-                        },
-                        xAxis: {
-                            ticks: {
-                                color: 'black'
-                            }
+                            max: 100
                         }
-                    },
-                    plugins: {
-                        legend: { labels: { color: 'black' } }
                     }
                 }}
             />
@@ -302,7 +291,7 @@ export function ModuleStats() {
                     Module Performance
                     {renderModulesChart()}
                 </div>
-                <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)}>
+                <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)} size='lg'>
                     <ModalHeader toggle={() => setModalOpen(!modalOpen)}>Terms Performance</ModalHeader>
                     <ModalBody>{renderBarChart()}</ModalBody>
                 </Modal>
