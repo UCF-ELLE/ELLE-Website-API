@@ -19,7 +19,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <>
             <Head>
                 <title>{`Elle 2.0${env === 'development' ? ' Dev' : ''}`}</title>
-                <link rel='icon' href={env === 'production' ? '/favicon.ico' : '/favicon-dev.ico'} />
+                <link rel='icon' href={env === 'production' ? '/elle/favicon.ico' : '/elle/favicon-dev.ico'} />
             </Head>
             <Component {...pageProps} />
         </>
