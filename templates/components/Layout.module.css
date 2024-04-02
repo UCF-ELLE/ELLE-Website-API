@@ -85,15 +85,15 @@
 
 #footer .copyright {
     text-align: center;
-    padding-top: 30px;
+    color: #555;
 }
 
 #footer .credits {
     text-align: center;
-    font-size: 13px;
-    color: #555;
+    padding-top: 30px;
 }
 
 #footer .credits a {
     color: #0c2e8a;
+    font-size: 13px;
 }

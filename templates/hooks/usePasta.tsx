@@ -29,7 +29,7 @@ export const PastaContext = createContext<{
     deletePasta: async () => ({ error: 'deletePasta not implemented' })
 });
 
-export const usePasta = (moduleID: number) => {
+export function usePasta(moduleID: number) {
     const _ps = useMemo(() => new PastaService(), []);
     const [pastas, setPastas] = useState<Pasta[]>([]);
     const [questionFrames, setQuestionFrames] = useState<QuestionFrame[]>([]);
@@ -119,4 +119,4 @@ export const usePasta = (moduleID: number) => {
         deleteQuestionFrame,
         deletePasta
     };
-};
+}

@@ -128,7 +128,7 @@ input::-webkit-input-placeholder {
 
 .login-form,
 .reset-box {
-    margin: 0px auto;
+    margin: 20px auto;
     max-width: 600px;
     padding: 10px 40px;
     box-shadow: 0 0 1rem 0 rgba(0, 0, 0, .5);

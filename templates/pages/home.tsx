@@ -74,7 +74,7 @@ export default function Home() {
                         </div>
                         <div className='row'>
                             <div className='col-lg-6'>
-                                <div className='box wow fadeInLeft'>
+                                <div className='box wow fadeInLeft galBox'>
                                     <div className='icon'>
                                         <i className='fa fa-list-ol' />
                                     </div>
@@ -86,7 +86,7 @@ export default function Home() {
                                 </div>
                             </div>
                             <div className='col-lg-6'>
-                                <div className='box wow fadeInRight'>
+                                <div className='box wow fadeInRight galBox'>
                                     <div className='icon'>
                                         <i className='fa fa-language' />
                                     </div>
@@ -98,7 +98,7 @@ export default function Home() {
                                 </div>
                             </div>
                             <div className='col-lg-6'>
-                                <div className='box wow fadeInLeft' data-wow-delay='0.2s'>
+                                <div className='box wow fadeInLeft galBox' data-wow-delay='0.2s'>
                                     <div className='icon'>
                                         <i className='fa fa-bar-chart' />
                                     </div>
@@ -110,7 +110,7 @@ export default function Home() {
                                 </div>
                             </div>
                             <div className='col-lg-6'>
-                                <div className='box wow fadeInRight' data-wow-delay='0.2s'>
+                                <div className='box wow fadeInRight galBox' data-wow-delay='0.2s'>
                                     <div className='icon'>
                                         <i className='fa fa-user' />
                                     </div>

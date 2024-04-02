@@ -1659,6 +1659,10 @@ float: left;
     border-color: rgba(255, 255, 255, 1);
 }
 
+.galBox {
+    min-height: 200px;
+}
+
 @media all and (max-width:30em) {
     .animelle-game-container .fsbtn {
         display: block;

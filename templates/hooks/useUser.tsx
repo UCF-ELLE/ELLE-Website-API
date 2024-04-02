@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import AuthService from '@/services/AuthService';
 import { AuthUser } from '@/types/services/auth';
 
-export const useUser = () => {
+export function useUser() {
     const [user, setUser] = useState<AuthUser>();
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -28,4 +28,4 @@ export const useUser = () => {
     };
 
     return { user, loading, getUserInfo, generateUsername };
-};
+}
