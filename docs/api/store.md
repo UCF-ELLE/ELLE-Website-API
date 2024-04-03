@@ -143,7 +143,8 @@
 
 1. `POST`
 
-    - **Description:** Loads default items for a game into the `user_item` table when the user logs in. If the user is logging in for the first time, default items are worn automatically.
+    - **Description:** Loads default items for a game into the `user_item` table when the user logs in. If the user is logging in for the first time, the first default
+      item of each item type is worn automatically.
     - **Authorization:** JWT token required.
     - **Request Body:**
         - `userID` (int, required): ID of the user logging in.
@@ -177,7 +178,7 @@
     - **Request Body:**
         - `userItemID` (int, required): ID of the user item to update.
         - `isWearing` (bool, required): Indicates whether the item is being worn (`"true"` or `"false"`).
-        - `replaceItem` (bool, optional): Indicated whether the item that is being worn should replace items of a similar type that are currently being worn.
+        - `replaceItem` (bool, optional): Indicates whether the item that is being worn should replace items of a similar type that are currently being worn.
     - **Returns:**
         - If successful:
             - Status Code: 200

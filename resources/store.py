@@ -362,33 +362,38 @@ class LoadDefaultUserItems(Resource):
             cursor = conn.cursor()
 
             # Get all default items for the game
-            query = "SELECT `itemID` FROM `item` WHERE `game` = %s AND `isDefault` = 1"
+            query = "SELECT `itemID`, `itemType` FROM `item` WHERE `game` = %s AND `isDefault` = 1"
             result = getFromDB(query, data["game"], conn, cursor)
             default_items = []
             for row in result:
-                default_items.append(row[0])
+                default_items.append({"itemID": row[0], "itemType": row[1]})
 
+            item_types = set()
             # If the user already has the default item, don't add it again
             # Otherwise, add (and wear if first time) the default item
             for item in default_items:
+                itemID = item["itemID"]
+                itemType = item["itemType"]
+
                 query = (
                     "SELECT * FROM `user_item` WHERE `userID` = %s AND `itemID` = %s"
                 )
-                result = getFromDB(query, (data["userID"], item), conn, cursor)
+                result = getFromDB(query, (data["userID"], itemID), conn, cursor)
                 if len(result) == 0:
                     query = "INSERT INTO `user_item` (`userID`, `itemID`, `timeOfPurchase`, `game`, `isWearing`) VALUES (%s, %s, %s, %s, %s)"
                     postToDB(
                         query,
                         (
                             data["userID"],
-                            item,
+                            itemID,
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             data["game"],
-                            data["firstTime"],
+                            data["firstTime"] and not item["itemType"] in item_types,
                         ),
                         conn,
                         cursor,
                     )
+                    item_types.add(itemType)
 
             raise ReturnSuccess({"Message": "Successfully loaded default items"}, 201)
         except CustomException as error:
