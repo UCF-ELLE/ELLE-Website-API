@@ -31,10 +31,10 @@ function VirtuELLEMentor() {
     const { unityProvider, requestFullscreen, isLoaded, sendMessage, loadingProgression, addEventListener, removeEventListener, unload } =
         useUnityContext({
             // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
-            loaderUrl: '/games/Card-Game/Build.loader.js',
-            dataUrl: '/games/Card-Game/Build.data',
-            frameworkUrl: '/games/Card-Game/Build.framework.js',
-            codeUrl: '/games/Card-Game/Build.wasm'
+            loaderUrl: '/elle/games/Card-Game/Build.loader.js',
+            dataUrl: '/elle/games/Card-Game/Build.data',
+            frameworkUrl: '/elle/games/Card-Game/Build.framework.js',
+            codeUrl: '/elle/games/Card-Game/Build.wasm'
         });
 
     // Event handlers for when Unity sends events to Event

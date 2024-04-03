@@ -17,10 +17,10 @@ function MazeGame() {
 
     const { unityProvider, requestFullscreen, isLoaded, sendMessage, loadingProgression } = useUnityContext({
         // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
-        loaderUrl: '/games/Maze-Game/Build.loader.js',
-        dataUrl: '/games/Maze-Game/Build.data',
-        frameworkUrl: '/games/Maze-Game/Build.framework.js',
-        codeUrl: '/games/Maze-Game/Build.wasm'
+        loaderUrl: '/elle/games/Maze-Game/Build.loader.js',
+        dataUrl: '/elle/games/Maze-Game/Build.data',
+        frameworkUrl: '/elle/games/Maze-Game/Build.framework.js',
+        codeUrl: '/elle/games/Maze-Game/Build.wasm'
     });
 
     // Automatically log the user into the Unity Maze Game

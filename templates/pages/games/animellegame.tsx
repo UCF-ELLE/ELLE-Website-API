@@ -38,10 +38,10 @@ function AnimELLEGame() {
     const { unityProvider, requestFullscreen, isLoaded, sendMessage, loadingProgression, addEventListener, removeEventListener, unload } =
         useUnityContext({
             // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
-            loaderUrl: '/games/AnimELLE-Crossing/Build.loader.js',
-            dataUrl: '/games/AnimELLE-Crossing/Build.data',
-            frameworkUrl: '/games/AnimELLE-Crossing/Build.framework.js',
-            codeUrl: '/games/AnimELLE-Crossing/Build.wasm'
+            loaderUrl: '/elle/games/AnimELLE-Crossing/Build.loader.js',
+            dataUrl: '/elle/games/AnimELLE-Crossing/Build.data',
+            frameworkUrl: '/elle/games/AnimELLE-Crossing/Build.framework.js',
+            codeUrl: '/elle/games/AnimELLE-Crossing/Build.wasm'
         });
 
     // Event handlers for when Unity sends events to Event
