@@ -402,7 +402,7 @@ class PastaFrame(Resource):
             result = getFromDB(query, None, conn, cursor)
             question_frame_id = check_max_id(result) - 1
 
-            query = "INSERT INTO `question_option` (`qframeID`, `optionText`, `mcQuestionNumber`) VALUES (%s, %s, %s)"
+            query = "INSERT INTO `question_frame_option` (`qframeID`, `optionText`, `mcQuestionNumber`) VALUES (%s, %s, %s)"
             if data["mc1Options"]:
                 for option in data["mc1Options"]:
                     postToDB(query, (question_frame_id, option, 1), conn, cursor)
@@ -475,7 +475,7 @@ class PastaFrame(Resource):
                 new_question_frame_object["mc2QuestionText"] = row[6]
                 new_question_frame_object["displayName"] = row[7]
 
-            query = "SELECT * FROM `question_option` WHERE `qframeID` = %s"
+            query = "SELECT * FROM `question_frame_option` WHERE `qframeID` = %s"
             result = getFromDB(query, data["qframeID"], conn, cursor)
             mc1Options = []
             mc2Options = []
@@ -557,10 +557,10 @@ class PastaFrame(Resource):
 
             postToDB(query, tuple(query_parameters), conn, cursor)
 
-            query = "DELETE FROM `question_option` WHERE `qframeID` = %s"
+            query = "DELETE FROM `question_frame_option` WHERE `qframeID` = %s"
             postToDB(query, (data["qframeID"],), conn, cursor)
 
-            query = "INSERT INTO `question_option` (`qframeID`, `optionText`, `mcQuestionNumber`) VALUES (%s, %s, %s)"
+            query = "INSERT INTO `question_frame_option` (`qframeID`, `optionText`, `mcQuestionNumber`) VALUES (%s, %s, %s)"
             if data["mc1Options"]:
                 for option in data["mc1Options"]:
                     postToDB(query, (data["qframeID"], option, 1), conn, cursor)
@@ -621,7 +621,7 @@ class PastaFrame(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            query = "DELETE FROM `question_option` WHERE `qframeID` = %s"
+            query = "DELETE FROM `question_frame_option` WHERE `qframeID` = %s"
             postToDB(query, (data["qframeID"],), conn, cursor)
 
             query = "DELETE FROM `question_frame` WHERE `qframeID` = %s"
@@ -681,7 +681,7 @@ class PastaFrameModule(Resource):
                 new_question_frame_object["displayName"] = row[7]
                 question_frames.append(new_question_frame_object)
 
-            query = "SELECT * FROM `question_option` WHERE `qframeID` = %s"
+            query = "SELECT * FROM `question_frame_option` WHERE `qframeID` = %s"
             for question_frame in question_frames:
                 result = getFromDB(query, question_frame["qframeID"], conn, cursor)
                 mc1Options = []
@@ -747,7 +747,7 @@ class AllPastaModuleResources(Resource):
                 new_question_frame_object["displayName"] = row[7]
                 question_frames.append(new_question_frame_object)
 
-            query = "SELECT * FROM `question_option` WHERE `qframeID` = %s"
+            query = "SELECT * FROM `question_frame_option` WHERE `qframeID` = %s"
             for question_frame in question_frames:
                 result = getFromDB(query, question_frame["qframeID"], conn, cursor)
                 mc1Options = []
