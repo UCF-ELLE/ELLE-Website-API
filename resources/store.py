@@ -135,12 +135,17 @@ class StoreItem(Resource):
         data["game"] = getParameter("game", str, False, "")
         data["itemType"] = getParameter("itemType", str, False, "")
         data["points"] = getParameter("points", int, False, "")
-        data["isDefault"] = getParameter("isDefault", bool, False, False)
+        data["isDefault"] = getParameter("isDefault", str, False, False)
         data["gender"] = getParameter("gender", str, False, "")
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
+
+        if data["isDefault"].lower() == "true" or data["isDefault"] == "1":
+            data["isDefault"] = True
+        elif data["isDefault"].lower() == "false" or data["isDefault"] == "0":
+            data["isDefault"] = False
 
         if permission == "st":
             return errorMessage("User not authorized to update items."), 400
