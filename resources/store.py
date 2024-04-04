@@ -142,6 +142,11 @@ class StoreItem(Resource):
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
 
+        query = "SELECT * FROM `item` WHERE `itemID` = %s"
+        result = getFromDB(query, data["itemID"])
+        if len(result) == 0:
+            return errorMessage("Item does not exist."), 404
+
         if data["isDefault"].lower() == "true" or data["isDefault"] == "1":
             data["isDefault"] = True
         elif data["isDefault"].lower() == "false" or data["isDefault"] == "0":
@@ -158,7 +163,7 @@ class StoreItem(Resource):
             query_parameters = []
 
             for key, value in data.items():
-                if value:
+                if key != "itemID" and value != None:
                     update_fields.append("`{}` = %s".format(key))
                     query_parameters.append(value)
 
