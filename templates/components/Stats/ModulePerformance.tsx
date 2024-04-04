@@ -49,7 +49,6 @@ export default function ModulePerformance() {
 
     useEffect(() => {
         if (user?.jwt) {
-            console.log('refetching');
             refetchModuleStats();
             if (moduleID) refetchTermStats();
         }
@@ -67,7 +66,6 @@ export default function ModulePerformance() {
         }
 
         const moduleData = moduleResponse;
-        console.log('moduleData', moduleData);
 
         return moduleData.length !== 0 ? (
             <Table className='statsTable'>
@@ -170,8 +168,6 @@ export default function ModulePerformance() {
                 }
             ]
         };
-
-        console.log('performanceData', performanceData);
 
         return termData.length !== 0 ? (
             <Bar

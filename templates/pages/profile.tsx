@@ -19,7 +19,6 @@ export default function Profile() {
             setPermission(user?.permissionGroup as string);
             getUserInfo().then((userInfoResponse) => {
                 const userInfo = userInfoResponse as User;
-                console.log(userInfo);
                 setUsername(userInfo.username);
                 setEmail(userInfo?.email);
             });

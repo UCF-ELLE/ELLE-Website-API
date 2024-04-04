@@ -31,10 +31,10 @@ function PastaKerfuffELLE() {
     const { unityProvider, requestFullscreen, isLoaded, sendMessage, loadingProgression, addEventListener, removeEventListener, unload } =
         useUnityContext({
             // If you change the file paths, you must also change the README in templates/public/Unity-Game-WebGL-Builds!
-            loaderUrl: '/games/Pasta-Game/Build.loader.js',
-            dataUrl: '/games/Pasta-Game/Build.data',
-            frameworkUrl: '/games/Pasta-Game/Build.framework.js',
-            codeUrl: '/games/Pasta-Game/Build.wasm'
+            loaderUrl: '/elle/games/Pasta-Game/Build.loader.js',
+            dataUrl: '/elle/games/Pasta-Game/Build.data',
+            frameworkUrl: '/elle/games/Pasta-Game/Build.framework.js',
+            codeUrl: '/elle/games/Pasta-Game/Build.wasm'
         });
 
     // Event handlers for when Unity sends events to Event

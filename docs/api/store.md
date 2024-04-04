@@ -148,7 +148,7 @@
     - **Authorization:** JWT token required.
     - **Request Body:**
         - `userID` (int, required): ID of the user logging in.
-        - `firstTime` (bool, optional): Indicates if the user is logging in for the first time (default: False).
+        - `firstTime` (bool, optional): Indicates if the user is logging in for the first time (default: dependent on if user has any items).
     - **Query Parameters:**
         - `game` (str, required): Game for which default items should be loaded.
     - **Returns:**

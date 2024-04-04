@@ -84,7 +84,6 @@ export default function AddMentorQuestion({
             mc_options: answers,
             moduleID: curModule.moduleID
         };
-        //console.log(data);
 
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt }

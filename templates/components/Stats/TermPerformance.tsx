@@ -10,8 +10,6 @@ export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
     const [modalOpen, setModalOpen] = React.useState(false);
     const [currentGroup, setCurrentGroup] = React.useState<string>();
 
-    console.log(classes);
-
     const permission = useUser().user?.permissionGroup;
 
     const toggleTab = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -66,7 +64,6 @@ export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
                                         fontSize: 'small'
                                     }}
                                     onClick={() => {
-                                        console.log("I'm clicked");
                                         setCurrentGroup(group.groupID.toString());
                                         toggleModal();
                                     }}

@@ -1,6 +1,6 @@
 import Layout from '@/app/layout';
 import { useUser } from '@/hooks/useUser';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Col, Container, Label, Row } from 'reactstrap';
 
 import ModuleSearch from '@/components/Modules/ModuleSearch';
@@ -32,18 +32,10 @@ export default function Modules() {
     const [currentPermissionLevel, setCurrentPermissionLevel] = useState<PermissionGroup>(permissionLevel as PermissionGroup);
     const [groupPermissionLevels, setGroupPermissionLevels] = useState<UserLevel[]>([]);
     const [modificationWarning, setModificationWarning] = useState(false);
+    const [initialized, setInitialized] = useState(false);
 
     useEffect(() => {
-        if (!loading) {
-            updateModuleList('initialize');
-            getClasses();
-            getGroupPermissionLevels();
-            if (permissionLevel === 'su') setCurrentPermissionLevel(permissionLevel);
-        }
-    }, [loading]);
-
-    useEffect(() => {
-        if (!currentModule) return;
+        if (!currentModule || loading) return;
 
         const header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
@@ -70,7 +62,7 @@ export default function Modules() {
                 setAllAnswers(allAnswersWithoutDupes);
             })
             .catch((error) => console.log('error in getAllAnswers: ', error));
-    }, [currentModule, user?.jwt]);
+    }, [currentModule, loading, user?.jwt]);
 
     const updateModuleList = (task: string, moduleID?: number) => {
         let header = {
@@ -274,6 +266,14 @@ export default function Modules() {
                 console.log('getGroupPermissionLevels error: ', error);
             });
     };
+
+    if (!initialized && !loading) {
+        setInitialized(true);
+        updateModuleList('initialize');
+        getClasses();
+        getGroupPermissionLevels();
+        if (permissionLevel === 'su') setCurrentPermissionLevel(permissionLevel);
+    }
 
     const classOptions = [
         { value: 0, label: 'All' },

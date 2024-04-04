@@ -46,9 +46,11 @@ export default function AddPhrase({
                 }
             );
         } catch (err) {
-            console.log('couldnt find mic.');
-            console.log('currently not working in production because getUserMedia CANNOT be run over unsecure netowrk...we need SSL.');
-            console.log(err);
+            console.log(
+                'couldnt find mic.',
+                'currently not working in production because getUserMedia CANNOT be run over unsecure netowrk...we need SSL.',
+                err
+            );
         }
     }, []);
 
@@ -56,7 +58,6 @@ export default function AddPhrase({
     useEffect(() => {
         if (!isAudioRecording) {
             const audio = recordingBlob;
-            console.log(audio);
             if (audio === undefined) {
                 return;
             }
@@ -88,8 +89,6 @@ export default function AddPhrase({
         setDidUpload(true);
 
         (document.getElementById('phAudioFile') as HTMLInputElement).disabled = true;
-
-        console.log(selectedAudioFile);
     };
 
     const submitPhrase = (event: React.FormEvent<HTMLFormElement>) => {
@@ -140,7 +139,6 @@ export default function AddPhrase({
 
     const imgFileChangedHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
-            console.log('image', event.target.files[0]);
             setSelectedImgFile(event.target.files[0]);
             setImgLabel(event.target.files[0] === undefined ? 'Pick an image for the term' : event.target.files[0].name);
         }

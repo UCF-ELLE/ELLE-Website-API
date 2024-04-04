@@ -59,9 +59,6 @@ export default function ModuleSearch({
         });
 
         setSearchDeck(e.target.value.substring(0, 20));
-
-        console.log('newModuleList', modules, newModuleList);
-
         setDynamicModules(newModuleList);
     };
 

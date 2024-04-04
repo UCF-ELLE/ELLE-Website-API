@@ -59,10 +59,6 @@ export default function AddTerm({
     const [didUpload, setDidUpload] = useState<boolean>(false);
 
     useEffect(() => {
-        console.log('Tags', tags);
-    }, [tags]);
-
-    useEffect(() => {
         try {
             navigator.mediaDevices.getUserMedia({ audio: true }).then(
                 () => {
@@ -96,7 +92,6 @@ export default function AddTerm({
     useEffect(() => {
         if (!isAudioRecording) {
             const audio = recordingBlob;
-            console.log(audio);
             if (audio === undefined) {
                 return;
             }
@@ -120,8 +115,6 @@ export default function AddTerm({
 
         const audioFile = document.getElementById('audioFile') as HTMLInputElement;
         audioFile.disabled = true;
-
-        console.log(selectedAudioFile);
     };
 
     const imgFileChangedHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -319,7 +312,7 @@ export default function AddTerm({
                                     alt={'Info'}
                                     src={InfoImage}
                                     id='infoLbl'
-                                    onClick={() => console.log('info')}
+                                    onClick={() => setTagInfoModalOpen(true)}
                                 />
                             </Label>
 
@@ -350,10 +343,8 @@ export default function AddTerm({
                                         const tempList = [];
                                         for (let tag of e) {
                                             if (typeof tag === 'object') {
-                                                console.log('bye');
                                                 tempList.push(tag.label);
                                             } else {
-                                                console.log('hi');
                                                 tempList.push(tag);
                                             }
                                         }

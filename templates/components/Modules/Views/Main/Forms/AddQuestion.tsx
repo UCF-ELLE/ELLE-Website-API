@@ -126,7 +126,6 @@ export default function AddQuestion({
     useEffect(() => {
         if (!isAudioRecording) {
             const audio = recordingBlob;
-            console.log(audio);
             if (audio === undefined) {
                 return;
             }
@@ -148,8 +147,6 @@ export default function AddQuestion({
         setDidUpload(true);
 
         (document.getElementById('qstAudioFile') as HTMLInputElement).disabled = true;
-
-        console.log(selectedAudioFile);
     };
 
     //function that sets the image file to the one selected

@@ -21,7 +21,6 @@ export default function RootLayout({ children, noFooter, requireUser }: { childr
         if (requireUser && (!user || !user?.permissionGroup)) {
             router.push('/home');
         }
-        console.log('permission', user?.permissionGroup);
     }, [loading, user, requireUser, router]);
 
     return (

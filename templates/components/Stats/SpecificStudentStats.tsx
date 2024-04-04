@@ -78,7 +78,6 @@ export default function SpecificStudentStats({ groupID }: { groupID?: string }) 
                         isClearable={true}
                         value={selectedStudent}
                         onChange={(e) => {
-                            console.log('selected student', e);
                             setSelectedStudent(e || undefined);
                         }}
                     />

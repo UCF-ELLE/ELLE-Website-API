@@ -66,7 +66,6 @@ export function ModuleStats() {
         }
 
         const moduleData = moduleResponse.data;
-        console.log('moduleData', moduleData);
 
         return (
             <Card

@@ -46,8 +46,6 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
     };
 
     const getLoggedAnswers = async (sessionID: number) => {
-        console.log('sessionId: ', sessionID);
-
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
             params: { sessionID: sessionID }
@@ -56,8 +54,6 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
         axios
             .get<LoggedAnswer[] | { Message: string }>('/elleapi/loggedanswer', header)
             .then((res) => {
-                console.log('logged answer: ', res.data);
-
                 if ('Message' in res.data) {
                     setNoAnsMsg(res.data.Message);
                 } else {
@@ -81,8 +77,6 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
         await axios
             .get<StudentResponse[] | { Message: string }>('/elleapi/studentresponses', header)
             .then((res) => {
-                console.log('mentor responses: ', res.data);
-
                 if ('Message' in res.data) {
                     setNoRespMsg(res.data.Message);
                 } else {
@@ -109,8 +103,6 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
             await axios
                 .get<Question | { Message: string }>('/elleapi/question', header)
                 .then((res) => {
-                    console.log('mentor response question: ', res.data);
-
                     if ('Message' in res.data) {
                         setNoQuesMsg(res.data.Message);
                     } else {
@@ -139,7 +131,6 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
         setModalOpen(!modalOpen);
     };
 
-    console.log('length: ', loggedAnswers);
     return (
         <div>
             <Card style={{ border: 'none', height: '56vh', overflow: 'scroll' }}>

@@ -51,10 +51,6 @@ export default function AddExistingModule({
     const [isSelected, setIsSelected] = useState(false);
 
     useEffect(() => {
-        getAllModulesInDB();
-    }, []);
-
-    const getAllModulesInDB = () => {
         let config = {
             params: { groupID: currentClass.value },
             headers: { Authorization: 'Bearer ' + user?.jwt }
@@ -72,7 +68,7 @@ export default function AddExistingModule({
             .catch((error) => {
                 console.log('getAllModulesInDB error: ', error.message);
             });
-    };
+    });
 
     const updateClass = (value: { label: string; value: number }) => {
         if (value !== null) {
