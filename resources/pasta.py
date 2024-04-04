@@ -816,7 +816,7 @@ class LoggedPasta(Resource):
     def post(self):
         data = {}
         data["pastaID"] = getParameter("pastaID", int, True, "")
-        data["correct"] = getParameter("correct", bool, True, "")
+        data["correct"] = getParameter("correct", str, True, "Correct is required.")
         data["qFrameID"] = getParameter("qFrameID", int, True, "")
         data["questionType"] = getParameter("questionType", str, True, "")
         data["sessionID"] = getParameter("sessionID", int, True, "")
@@ -825,6 +825,17 @@ class LoggedPasta(Resource):
         permission, user_id = validate_permissions()
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
+
+        if (
+            data["correct"]
+            and data["correct"] == "1"
+            or data["correct"].lower() == "true"
+        ):
+            data["correct"] = True
+        elif data["correct"] == "0" or data["correct"].lower() == "false":
+            data["correct"] = False
+        else:
+            return errorMessage('Invalid value for the "correct" parameter'), 400
 
         try:
             conn = mysql.connect()
