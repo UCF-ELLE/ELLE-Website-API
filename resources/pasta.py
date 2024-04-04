@@ -900,7 +900,9 @@ class LoggedPasta(Resource):
                 new_logged_pasta_object["qFrameID"] = row[3]
                 new_logged_pasta_object["questionType"] = row[4]
                 new_logged_pasta_object["sessionID"] = row[5]
-                new_logged_pasta_object["log_time"] = row[6]
+                new_logged_pasta_object["log_time"] = row[6].strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
                 logged_pasta.append(new_logged_pasta_object)
 
             raise ReturnSuccess(logged_pasta, 200)
@@ -992,8 +994,6 @@ class PastaHighScore(Resource):
             else:
                 query += " GROUP BY s.sessionID, s.userID;"
                 result = getFromDB(query, data["userID"], conn, cursor)
-
-            print(result)
 
             high_scores = []
             for row in result:
