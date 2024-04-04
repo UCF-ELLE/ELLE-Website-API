@@ -185,7 +185,7 @@ class Pasta(Resource):
             for key, value in data.items():
                 if key == "pastaID" or key == "splitAnswer" or key == "identifyAnswer":
                     continue
-                if value:
+                if value != None:
                     update_fields.append("`{}` = %s".format(key))
                     query_parameters.append(value)
 
@@ -543,7 +543,7 @@ class PastaFrame(Resource):
             for key, value in data.items():
                 if key == "mc1Options" or key == "mc2Options":
                     continue
-                if value:
+                if value != None:
                     update_fields.append("`{}` = %s".format(key))
                     query_parameters.append(value)
 
