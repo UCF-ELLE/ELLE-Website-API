@@ -391,6 +391,17 @@ class LoadDefaultUserItems(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
+            # If the request does not provide the firstTime parameter, check if the user already has items
+            # If so, we can assume it is not the first time
+            if not data["firstTime"]:
+                query = "SELECT COUNT(userItemID) FROM `user_item` WHERE `userID` = %s"
+                result = getFromDB(query, data["userID"], conn, cursor)
+
+                if result[0][0] > 0:
+                    data["firstTime"] = False
+                else:
+                    data["firstTime"] = True
+
             # Get all default items for the game
             query = "SELECT `itemID`, `itemType` FROM `item` WHERE `game` = %s AND `isDefault` = 1"
             result = getFromDB(query, data["game"], conn, cursor)
