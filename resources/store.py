@@ -292,11 +292,25 @@ class PurchaseUserItem(Resource):
         data["itemID"] = getParameter("itemID", int, True, "")
         data["timeOfPurchase"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data["game"] = getParameter("game", str, True, "")
-        data["isWearing"] = getParameter("isWearing", bool, False, False)
+        data["isWearing"] = getParameter("isWearing", str, False, False)
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
+
+        if (
+            data["isWearing"]
+            and data["isWearing"].lower() == "true"
+            or data["isWearing"] == "1"
+        ):
+            data["isWearing"] = 1
+        else:
+            data["isWearing"] = 0
+
+        query = "SELECT * FROM `user_item` WHERE `userID` = %s AND `itemID` = %s"
+        result = getFromDB(query, (data["userID"], data["itemID"]))
+        if len(result) > 0:
+            return errorMessage("User item already purchased"), 400
 
         try:
             conn = mysql.connect()
@@ -316,10 +330,16 @@ class PurchaseUserItem(Resource):
                 cursor,
             )
 
+            # Get userItemID of the user item that was just added
+            query = "SELECT `userItemID` FROM `user_item` WHERE `userID` = %s AND `itemID` = %s"
+            result = getFromDB(query, (data["userID"], data["itemID"]), conn, cursor)
+            for row in result:
+                userItemID = row[0]
+
             raise ReturnSuccess(
                 {
                     "Message": "Successfully purchased an item",
-                    "userItemID": int(data["userItemID"]),
+                    "userItemID": int(userItemID),
                 },
                 201,
             )
