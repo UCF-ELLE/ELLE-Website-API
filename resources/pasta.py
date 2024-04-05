@@ -267,6 +267,9 @@ class Pasta(Resource):
             query = "DELETE FROM `pasta_answer` WHERE `pastaID` = %s"
             postToDB(query, (data["pastaID"],), conn, cursor)
 
+            query = "DELETE FROM `logged_pasta` WHERE `pastaID` = %s"
+            postToDB(query, (data["pastaID"],), conn, cursor)
+
             query = "DELETE FROM `pasta` WHERE `pastaID` = %s"
             postToDB(query, (data["pastaID"],), conn, cursor)
 
@@ -632,7 +635,7 @@ class PastaFrame(Resource):
             result = getFromDB(query, data["qframeID"], conn, cursor)
             if len(result) == 0:
                 raise CustomException("Question frame does not exist!", 404)
-            
+
             question_frame = {}
             for row in result:
                 question_frame["qframeID"] = row[0]
@@ -660,7 +663,12 @@ class PastaFrame(Resource):
 
             # Delete all pasta entries associated with the question frame
             query = "DELETE FROM `pasta` WHERE `category` = %s AND `moduleID` = %s"
-            postToDB(query, (question_frame["category"], question_frame["moduleID"]), conn, cursor)
+            postToDB(
+                query,
+                (question_frame["category"], question_frame["moduleID"]),
+                conn,
+                cursor,
+            )
 
             # Finally delete the question frame
             query = "DELETE FROM `question_frame` WHERE `qframeID` = %s"

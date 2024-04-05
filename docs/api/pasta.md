@@ -341,7 +341,7 @@
     -   **Returns:**
         -   If successful:
             -   Status Code: 200
-            -   Content: JSON object containing high scores
+            -   Content: JSON object containing high scores and session duration
         -   If invalid user:
             -   Status Code: 401
             -   Content: Error message

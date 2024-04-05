@@ -179,7 +179,7 @@ export default class PastaService {
         };
 
         try {
-            const res = await this.instance.delete<PastaResponse>(`/elleapi/pastagame/pasta/`, config);
+            const res = await this.instance.delete<PastaResponse>(`/elleapi/pastagame/pasta`, config);
             return { Message: 'Success', data: res.data.pasta } as PastaServiceResponse<Pasta>;
         } catch (err) {
             const error = ensureError(err);
