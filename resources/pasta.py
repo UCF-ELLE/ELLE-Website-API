@@ -991,8 +991,6 @@ class PastaHighScore(Resource):
                 SELECT 
                     s.sessionID,
                     s.userID,
-                    s.starttime,
-                    s.endtime,
                     s.moduleID,
                     SUM(lp.correct) AS total_correct_pasta,
                     COUNT(lp.logID) AS total_logged_pasta,
@@ -1020,35 +1018,27 @@ class PastaHighScore(Resource):
                 new_high_score_object["sessionID"] = row[0]
                 new_high_score_object["userID"] = row[1]
 
-                start_time = timedelta_to_time(row[2])
-                end_time = timedelta_to_time(row[3])
+                # Get the start time
+                query = (
+                    "SELECT MIN(`log_time`) FROM `logged_pasta` WHERE `sessionID` = %s"
+                )
+                result = getFromDB(query, row[0], conn, cursor)
+                start_time = result[0][0]
 
-                if not start_time and end_time:
-                    start_time = datetime.now()
-                    end_time = datetime.now()
-                    session_duration = end_time - start_time
-                elif not start_time:
-                    # Get the first logged_pasta associated with the session
-                    query = "SELECT MIN(`log_time`) FROM `logged_pasta` WHERE `sessionID` = %s"
-                    result = getFromDB(query, row[0], conn, cursor)
-                    start_time = result[0][0]
-                    session_duration = datetime.combine(
-                        datetime.now(), end_time
-                    ) - datetime.combine(datetime.now(), start_time.time())
-                elif not end_time:
-                    # Get the last logged_pasta associated with the session
-                    query = "SELECT MAX(`log_time`) FROM `logged_pasta` WHERE `sessionID` = %s"
-                    result = getFromDB(query, row[0], conn, cursor)
-                    end_time = result[0][0]
-                    session_duration = datetime.combine(
-                        datetime.now(), end_time.time()
-                    ) - datetime.combine(datetime.now(), start_time)
+                # Get the end time
+                query = (
+                    "SELECT MAX(`log_time`) FROM `logged_pasta` WHERE `sessionID` = %s"
+                )
+                result = getFromDB(query, row[0], conn, cursor)
+                end_time = result[0][0]
+
+                session_duration = end_time - start_time
 
                 new_high_score_object["session_duration"] = str(session_duration)
-                new_high_score_object["moduleID"] = row[4]
-                new_high_score_object["total_correct_pasta"] = float(row[5])
-                new_high_score_object["total_logged_pasta"] = float(row[6])
-                new_high_score_object["correct_to_total_ratio"] = float(row[7])
+                new_high_score_object["moduleID"] = row[2]
+                new_high_score_object["total_correct_pasta"] = float(row[3])
+                new_high_score_object["total_logged_pasta"] = float(row[4])
+                new_high_score_object["correct_to_total_ratio"] = float(row[5])
                 high_scores.append(new_high_score_object)
 
             raise ReturnSuccess(high_scores, 200)
