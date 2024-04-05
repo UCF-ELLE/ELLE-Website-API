@@ -469,9 +469,9 @@ class WearUserItem(Resource):
             return errorMessage("Invalid isWearing parameter"), 400
 
         if (
-            data["replaceItem"].lower() == "true"
+            not data["replaceItem"]
+            or data["replaceItem"].lower() == "true"
             or data["replaceItem"] == "1"
-            or not data["replaceItem"]
         ):
             data["replaceItem"] = 1
         elif data["replaceItem"].lower() == "false" or data["replaceItem"] == "0":
