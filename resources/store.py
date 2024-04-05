@@ -485,6 +485,7 @@ class WearUserItem(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
+            success = {}
             # Check if the user is currently wearing an item of the same type. If so, remove the wear flag from that item
             if data["isWearing"] == 1 and data["replaceItem"] == 1:
                 query = f"""
@@ -498,18 +499,18 @@ class WearUserItem(Resource):
                 """
                 result = getFromDB(query, None, conn, cursor)
 
-            if len(result) > 0:
-                query = "UPDATE `user_item` SET `isWearing` = 0 WHERE `userItemID` = %s"
-                postToDB(query, result[0][0], conn, cursor)
+                if len(result) > 0:
+                    query = (
+                        "UPDATE `user_item` SET `isWearing` = 0 WHERE `userItemID` = %s"
+                    )
+                    postToDB(query, result[0][0], conn, cursor)
+                    success["ReplacedItem"] = result[0][6]
 
             query = "UPDATE `user_item` SET `isWearing` = %s WHERE `userItemID` = %s"
             postToDB(query, (data["isWearing"], data["userItemID"]), conn, cursor)
 
             # Success message should mention if an item was replaced by the new item if applicable
-            success = {"Message": "Successfully updated the user item"}
-
-            if len(result) > 0:
-                success["ReplacedItem"] = result[0][6]
+            success["Message"] = "Successfully updated the user item"
 
             raise ReturnSuccess(success, 200)
         except CustomException as error:
