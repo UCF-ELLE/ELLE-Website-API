@@ -29,7 +29,8 @@ export const SplitComponent = ({
     );
 
     const SplitText = useMemo(() => {
-        return text.split('').map((char, index) => (
+        const curatedText = text.replace(/[^a-zA-Z0-9]/g, '');
+        return curatedText.split('').map((char, index) => (
             <span
                 key={index}
                 style={{
@@ -69,19 +70,29 @@ const Dot = ({ sendFeedback, selected, size }: { sendFeedback: () => void; selec
         setColor(selected ? 'green' : 'red');
     }, [selected]);
 
+    const styles = useMemo(() => {
+        return {
+            width: size ? `${size}px` : '20px',
+            height: size ? `${size}px` : '20px',
+            backgroundColor: selected ? color : undefined,
+            display: 'inline-block',
+            margin: '0 3px',
+            // If selected, circle. It not, triangle.
+            borderRadius: selected ? '50%' : undefined,
+            borderLeft: !selected ? `${(size ?? 20) / 2}px solid transparent` : undefined,
+            borderRight: !selected ? `${(size ?? 20) / 2}px solid transparent` : undefined,
+            borderTop: !selected ? `${size}px solid ${color}` : undefined
+        };
+    }, [color, selected, size]);
+
     return (
         <div
-            style={{
-                width: size ? `${size}px` : '20px',
-                height: size ? `${size}px` : '20px',
-                borderRadius: '50%',
-                backgroundColor: color,
-                display: 'inline-block',
-                margin: '0 3px'
-            }}
+            style={styles}
             onClick={sendFeedback}
             onMouseEnter={() => setColor('yellow')}
             onMouseLeave={() => setColor(selected ? 'green' : 'red')}
         ></div>
     );
 };
+
+export default Dot;

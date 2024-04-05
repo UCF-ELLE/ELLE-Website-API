@@ -627,9 +627,42 @@ class PastaFrame(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
+            # Select the question frame to delete
+            query = "SELECT * FROM `question_frame` WHERE `qframeID` = %s"
+            result = getFromDB(query, data["qframeID"], conn, cursor)
+            if len(result) == 0:
+                raise CustomException("Question frame does not exist!", 404)
+            
+            question_frame = {}
+            for row in result:
+                question_frame["qframeID"] = row[0]
+                question_frame["moduleID"] = row[1]
+                question_frame["category"] = row[2]
+                question_frame["mc1QuestionText"] = row[3]
+                question_frame["splitQuestionVar"] = row[4]
+                question_frame["identifyQuestionVar"] = row[5]
+                question_frame["mc2QuestionText"] = row[6]
+                question_frame["displayName"] = row[7]
+
             query = "DELETE FROM `question_frame_option` WHERE `qframeID` = %s"
             postToDB(query, (data["qframeID"],), conn, cursor)
 
+            # Delete all pasta_answer entries associated with the question frame
+            query = "SELECT `pastaID` FROM `pasta` WHERE `category` = %s"
+            result = getFromDB(query, question_frame["category"], conn, cursor)
+            for row in result:
+                query = "DELETE FROM `pasta_answer` WHERE `pastaID` = %s"
+                postToDB(query, (row[0],), conn, cursor)
+
+            # Delete all logged_pasta entries associated with the question frame
+            query = "DELETE FROM `logged_pasta` WHERE `qFrameID` = %s"
+            postToDB(query, (data["qframeID"],), conn, cursor)
+
+            # Delete all pasta entries associated with the question frame
+            query = "DELETE FROM `pasta` WHERE `category` = %s AND `moduleID` = %s"
+            postToDB(query, (question_frame["category"], question_frame["moduleID"]), conn, cursor)
+
+            # Finally delete the question frame
             query = "DELETE FROM `question_frame` WHERE `qframeID` = %s"
             postToDB(query, (data["qframeID"],), conn, cursor)
 
