@@ -485,6 +485,14 @@ class WearUserItem(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
+            # Check if the user has the item
+            query = (
+                "SELECT * FROM `user_item` WHERE `userItemID` = %s AND `userID` = %s"
+            )
+            result = getFromDB(query, (data["userItemID"], user_id), conn, cursor)
+            if len(result) == 0 or permission != "su":
+                return errorMessage("You do not have access to this item!"), 404
+
             success = {}
             # Check if the user is currently wearing an item of the same type. If so, remove the wear flag from that item
             if data["isWearing"] == 1 and data["replaceItem"] == 1:
