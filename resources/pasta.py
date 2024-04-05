@@ -1044,7 +1044,7 @@ class PastaHighScore(Resource):
                         datetime.now(), end_time.time()
                     ) - datetime.combine(datetime.now(), start_time)
 
-                new_high_score_object["session_duration"] = session_duration
+                new_high_score_object["session_duration"] = str(session_duration)
                 new_high_score_object["moduleID"] = row[4]
                 new_high_score_object["total_correct_pasta"] = float(row[5])
                 new_high_score_object["total_logged_pasta"] = float(row[6])
