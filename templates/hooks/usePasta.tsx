@@ -70,6 +70,9 @@ export function usePasta(moduleID: number) {
         if (editedQuestionFrame.data) {
             const newQuestionFrames = questionFrames.map((qf) => (qf.qframeID === questionFrame.qframeID ? editedQuestionFrame.data : qf));
             setQuestionFrames(newQuestionFrames);
+            // Updating a question frame will also update the category for the pastas associated with it
+            const updatedPastas = await _ps.getPastas(moduleID);
+            if (updatedPastas.data) setPastas(updatedPastas.data);
             return { message: editedQuestionFrame.Message, data: editedQuestionFrame.data };
         } else {
             return { error: editedQuestionFrame.Error, data: undefined };

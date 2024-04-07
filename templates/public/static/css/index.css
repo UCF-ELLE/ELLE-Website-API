@@ -24,6 +24,6 @@ code {
     position: relative;
 }
 
-table.table-hover tr.no-hover *:hover {
-    background-color: #ffffff;
+table.table-hover tr.no-hover td:hover {
+    --bs-table-bg-state: --bs-table-bg;
 }

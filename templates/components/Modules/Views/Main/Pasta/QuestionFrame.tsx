@@ -1,4 +1,4 @@
-import React, { Fragment, useContext, useEffect, useState } from 'react';
+import React, { Fragment, use, useContext, useEffect, useState } from 'react';
 import { Alert, Badge, Button, ButtonGroup, Col, Collapse, Input, Modal, ModalBody, ModalFooter, ModalHeader, Row } from 'reactstrap';
 
 import { useUser } from '@/hooks/useUser';
@@ -26,6 +26,7 @@ export default function QuestionFrame({ questionFrame, curModule }: { questionFr
     const [editedMC1Options, setEditedMC1Options] = useState(questionFrame.mc1Options);
     const [editedMC2QuestionText, setEditedMC2QuestionText] = useState(questionFrame.mc2QuestionText);
     const [editedMC2Options, setEditedMC2Options] = useState(questionFrame.mc2Options);
+    const [invalidAlertText, setInvalidAlertText] = useState<string[]>([]);
     const { editQuestionFrame, deleteQuestionFrame } = useContext(PastaContext);
 
     const [rowCollapse, setRowCollapse] = useState(false);
@@ -41,6 +42,11 @@ export default function QuestionFrame({ questionFrame, curModule }: { questionFr
 
     //function that submits all of the edited data put on a card
     const submitEdit = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        // If the edited data is invalid, do not submit
+        if (invalidAlertText.length !== 0) {
+            return;
+        }
+
         setEditMode(false);
 
         const editedQuestionFrame: QuestionFrame = {
@@ -78,6 +84,27 @@ export default function QuestionFrame({ questionFrame, curModule }: { questionFr
         setEditedMC2Options(questionFrame.mc2Options);
         setRowCollapse(false);
     };
+
+    // A nasty useEffect that checks if the edited data is valid
+    useEffect(() => {
+        const invalidAlerts: string[] = [];
+        if (!editedDisplayName) {
+            invalidAlerts.push('Display Name cannot be empty');
+        }
+        if (!editedCategory) {
+            invalidAlerts.push('Category cannot be empty');
+        }
+        if (!editedSplitQuestionVar) {
+            invalidAlerts.push('Split Question Type cannot be empty');
+        }
+        if (editedMC1QuestionText && (editedMC1Options == undefined || editedMC1Options.length < 2)) {
+            invalidAlerts.push('If included, First Multiple Choice Question must have at least 2 options');
+        }
+        if (editedMC2QuestionText && (editedMC2Options == undefined || editedMC2Options.length < 2)) {
+            invalidAlerts.push('If included, Second Multiple Choice Question must have at least 2 options');
+        }
+        setInvalidAlertText(invalidAlerts);
+    }, [editedDisplayName, editedCategory, editedSplitQuestionVar, editedMC1Options, editedMC2Options, editedMC1QuestionText, editedMC2QuestionText]);
 
     if (editMode === false) {
         return (
@@ -217,6 +244,7 @@ export default function QuestionFrame({ questionFrame, curModule }: { questionFr
                     setEditedMC2QuestionText={setEditedMC2QuestionText}
                     editedMC2Options={editedMC2Options}
                     setEditedMC2Options={setEditedMC2Options}
+                    invalidAlertText={invalidAlertText}
                 />
             </Fragment>
         );
@@ -340,7 +368,8 @@ const CollapseEditRow = ({
     editedMC2QuestionText,
     setEditedMC2QuestionText,
     editedMC2Options,
-    setEditedMC2Options
+    setEditedMC2Options,
+    invalidAlertText
 }: {
     displayName?: string;
     category: string;
@@ -354,6 +383,7 @@ const CollapseEditRow = ({
     setEditedMC2QuestionText: (value: string) => void;
     editedMC2Options?: string[];
     setEditedMC2Options: (value: string[]) => void;
+    invalidAlertText: string[];
 }) => {
     // Likely a better way to implement this, React Bootstrap Typeahead is a bit of a pain to work with for custom inputs
     // Sets the visual state of the selected typeahead options
@@ -390,6 +420,15 @@ const CollapseEditRow = ({
             >
                 <Collapse isOpen={true}>
                     <div style={{ padding: 12 }}>
+                        {invalidAlertText.length !== 0 && (
+                            <Alert color='danger' style={{ whiteSpace: 'pre-wrap' }}>
+                                <ul style={{ margin: 0 }}>
+                                    {invalidAlertText.map((text, index) => (
+                                        <li key={index}>{text}</li>
+                                    ))}
+                                </ul>
+                            </Alert>
+                        )}
                         <Row
                             style={{
                                 padding: '12px 0px'

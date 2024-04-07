@@ -485,12 +485,22 @@ class WearUserItem(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
+            query = "SELECT * FROM `user_item` WHERE `userItemID` = %s"
+            result = getFromDB(query, data["userItemID"], conn, cursor)
+            if len(result) == 0:
+                return errorMessage("User item does not exist!"), 404
+            user_item = {
+                "userItemID": result[0][0],
+                "userID": result[0][1],
+                "itemID": result[0][2],
+                "timeOfPurchase": result[0][3].strftime("%Y-%m-%d %H:%M:%S"),
+                "game": result[0][4],
+                "isWearing": result[0][5],
+            }
+            print(user_item)
+
             # Check if the user has the item
-            query = (
-                "SELECT * FROM `user_item` WHERE `userItemID` = %s AND `userID` = %s"
-            )
-            result = getFromDB(query, (data["userItemID"], user_id), conn, cursor)
-            if len(result) == 0 or permission != "su":
+            if user_item["userID"] != user_id and permission != "su":
                 return errorMessage("You do not have access to this item!"), 404
 
             success = {}
@@ -512,13 +522,18 @@ class WearUserItem(Resource):
                         "UPDATE `user_item` SET `isWearing` = 0 WHERE `userItemID` = %s"
                     )
                     postToDB(query, result[0][0], conn, cursor)
-                    success["ReplacedItem"] = result[0][6]
+                    success["ReplacedItem"] = {
+                        "itemID": result[0][0],
+                        "name": result[0][6],
+                    }
 
             query = "UPDATE `user_item` SET `isWearing` = %s WHERE `userItemID` = %s"
             postToDB(query, (data["isWearing"], data["userItemID"]), conn, cursor)
 
             # Success message should mention if an item was replaced by the new item if applicable
-            success["Message"] = "Successfully updated the user item"
+            success["Message"] = (
+                f"Successfully wore user item {user_item['userItemID']}"
+            )
 
             raise ReturnSuccess(success, 200)
         except CustomException as error:

@@ -28,8 +28,10 @@ export default function ModuleToolRow({
             </Col>
             {permissionLevel !== 'st' ? (
                 <Col style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Manual />
-                    <ImportTerms module={curModule} updateCurrentModule={updateCurrentModule} currentClass={currentClass} />
+                    <Manual pasta={curModule?.isPastaModule} />
+                    {!curModule?.isPastaModule && (
+                        <ImportTerms module={curModule} updateCurrentModule={updateCurrentModule} currentClass={currentClass} />
+                    )}
                 </Col>
             ) : null}
         </Row>

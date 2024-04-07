@@ -166,7 +166,7 @@ export default function AddQuestionFrame({ curModule, setOpenForm }: { curModule
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for='displayName'>Display Name:</Label>
+                                <Label for='displayName'>Display Name In-Game:</Label>
 
                                 <Input
                                     type='text'
@@ -262,7 +262,7 @@ export default function AddQuestionFrame({ curModule, setOpenForm }: { curModule
                                     }}
                                     onClick={() => toggleIdentityQuestion()}
                                 >
-                                    Create Identity Question
+                                    Create Identify Question
                                 </Button>
                             ) : null}
                             {!questionOneOut || !questionTwoOut ? (

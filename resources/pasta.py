@@ -546,6 +546,12 @@ class PastaFrame(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
+            # Retrieve the question frame to update
+            query = "SELECT * FROM `question_frame` WHERE `qframeID` = %s"
+            question_frame = getFromDB(query, data["qframeID"], conn, cursor)
+            if len(question_frame) == 0:
+                raise CustomException("Question frame does not exist!", 404)
+
             update_fields = []
             query_parameters = []
 
@@ -565,6 +571,16 @@ class PastaFrame(Resource):
             query_parameters.append(data["qframeID"])
 
             postToDB(query, tuple(query_parameters), conn, cursor)
+
+            # If the category was updated, update the categories for the associated pastas in the database
+            if data["category"]:
+                query = "UPDATE `pasta` SET `category` = %s WHERE `category` = %s AND `moduleID` = %s"
+                postToDB(
+                    query,
+                    (data["category"], question_frame[0][2], data["moduleID"]),
+                    conn,
+                    cursor,
+                )
 
             query = "DELETE FROM `question_frame_option` WHERE `qframeID` = %s"
             postToDB(query, (data["qframeID"],), conn, cursor)

@@ -1,7 +1,7 @@
 import { useUser } from '@/hooks/useUser';
 import { Module } from '@/types/api/modules';
 import { Pasta as PastaType, QuestionFrame as QuestionFrameType } from '@/types/api/pastagame';
-import { useContext, useMemo } from 'react';
+import { useContext, useEffect, useMemo } from 'react';
 import { Alert, Table } from 'reactstrap';
 import Pasta from './Pasta';
 import QuestionFrame from './QuestionFrame';
@@ -10,7 +10,6 @@ import { PastaContext } from '@/hooks/usePasta';
 export default function PastaModuleCardList({ type, curModule }: { type: string; curModule: Module }) {
     const { user } = useUser();
     const permissionLevel = user?.permissionGroup;
-    const { questionFrames, pastas } = useContext(PastaContext);
 
     const HeadRow = useMemo(() => {
         switch (type) {
@@ -21,7 +20,7 @@ export default function PastaModuleCardList({ type, curModule }: { type: string;
                             <th style={{ width: '30%' }}>Display In Game</th>
                             <th style={{ width: '20%' }}>Category</th>
                             <th style={{ width: '40%' }}>Split Question</th>
-                            {permissionLevel !== 'st' ? <th style={{ width: '10%' }}> </th> : null}
+                            {permissionLevel !== 'st' ? <th style={{ width: '10%' }}>Actions</th> : null}
                         </tr>
                     </thead>
                 );
@@ -30,9 +29,9 @@ export default function PastaModuleCardList({ type, curModule }: { type: string;
                     <thead>
                         <tr>
                             <th style={{ width: '30%' }}>Utterance</th>
-                            <th style={{ width: '30%' }}>Category</th>
-                            <th style={{ width: '30%' }}>Split Question Answer</th>
-                            {permissionLevel !== 'st' ? <th style={{ width: '10%' }}> </th> : null}
+                            <th style={{ width: '20%' }}>Category</th>
+                            <th style={{ width: '40%' }}>Split Question Answer</th>
+                            {permissionLevel !== 'st' ? <th style={{ width: '10%' }}>Actions</th> : null}
                         </tr>
                     </thead>
                 );
@@ -43,21 +42,15 @@ export default function PastaModuleCardList({ type, curModule }: { type: string;
 
     return (
         <>
-            {type === 'questionFrames' && <QuestionFrameCardList questionFrames={questionFrames} curModule={curModule} HeadRow={HeadRow} />}
-            {type === 'pastas' && <PastaCardList pastas={pastas || []} questionFrames={questionFrames} curModule={curModule} HeadRow={HeadRow} />}
+            {type === 'questionFrames' && <QuestionFrameCardList curModule={curModule} HeadRow={HeadRow} />}
+            {type === 'pastas' && <PastaCardList curModule={curModule} HeadRow={HeadRow} />}
         </>
     );
 }
 
-function QuestionFrameCardList({
-    questionFrames,
-    curModule,
-    HeadRow
-}: {
-    questionFrames: QuestionFrameType[];
-    curModule: Module;
-    HeadRow: JSX.Element;
-}) {
+function QuestionFrameCardList({ curModule, HeadRow }: { curModule: Module; HeadRow: JSX.Element }) {
+    const { questionFrames } = useContext(PastaContext);
+
     return (
         <div>
             {questionFrames.length === 0 ? (
@@ -76,17 +69,16 @@ function QuestionFrameCardList({
     );
 }
 
-function PastaCardList({
-    pastas,
-    questionFrames,
-    curModule,
-    HeadRow
-}: {
-    pastas: PastaType[];
-    questionFrames: QuestionFrameType[];
-    curModule: Module;
-    HeadRow: JSX.Element;
-}) {
+function PastaCardList({ curModule, HeadRow }: { curModule: Module; HeadRow: JSX.Element }) {
+    const { questionFrames, pastas } = useContext(PastaContext);
+
+    const PastaList = useMemo(() => {
+        return pastas.map((pasta) => {
+            console.log(pasta.utterance);
+            return <Pasta pasta={pasta} key={`${pasta.pastaID}-${pasta.category}`} questionFrames={questionFrames} curModule={curModule} />;
+        });
+    }, [pastas, questionFrames, curModule]);
+
     return (
         <div>
             {pastas.length === 0 ? (
@@ -94,11 +86,7 @@ function PastaCardList({
             ) : (
                 <Table hover className='tableList'>
                     {HeadRow}
-                    <tbody>
-                        {pastas.map((pasta) => {
-                            return <Pasta key={pasta.pastaID} pasta={pasta} questionFrames={questionFrames} curModule={curModule} />;
-                        })}
-                    </tbody>
+                    <tbody>{PastaList}</tbody>
                 </Table>
             )}
         </div>

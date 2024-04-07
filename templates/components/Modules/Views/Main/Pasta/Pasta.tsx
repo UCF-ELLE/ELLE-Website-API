@@ -1,4 +1,4 @@
-import React, { Fragment, useContext, useMemo, useState } from 'react';
+import React, { Fragment, useContext, useEffect, useMemo, useState } from 'react';
 import { Alert, Badge, Button, ButtonGroup, Col, Collapse, Input, Modal, ModalBody, ModalFooter, ModalHeader, Row } from 'reactstrap';
 
 import { useUser } from '@/hooks/useUser';
@@ -24,6 +24,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
     const [editedIdentifyAnswer, setEditedIdentifyAnswer] = useState(pasta.identifyAnswer);
     const [editedMC1Answer, setEditedMC1Answer] = useState(pasta.mc1Answer);
     const [editedMC2Answer, setEditedMC2Answer] = useState(pasta.mc2Answer);
+    const [invalidAlertText, setInvalidAlertText] = useState<string[]>([]);
     const { editPasta, deletePasta } = useContext(PastaContext);
 
     const [rowCollapse, setRowCollapse] = useState(false);
@@ -39,6 +40,9 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
 
     //function that submits all of the edited data put on a card
     const submitEdit = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        // If invalidAlertText is not empty, do not submit the edit
+        if (invalidAlertText.length !== 0) return;
+
         setEditMode(false);
 
         const editedPasta: Pasta = {
@@ -71,8 +75,57 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
         setEditedMC2Answer(pasta.mc2Answer);
     };
 
+    // When the category is changed, all answers should be reset
+    const handleChangeCategory = (category: string) => {
+        const qf = questionFrames.find((qf) => qf.category === category);
+        if (!qf) return;
+
+        setEditedCategory(qf.category);
+        setEditedSplitAnswer([]);
+
+        if (qf?.identifyQuestionVar) setEditedIdentifyAnswer([]);
+        else setEditedIdentifyAnswer(undefined);
+
+        if (qf?.mc1QuestionText) setEditedMC1Answer(0);
+        else setEditedMC1Answer(undefined);
+        if (qf?.mc2QuestionText) setEditedMC2Answer(0);
+        else setEditedMC2Answer(undefined);
+    };
+
+    // A nasty useEffect that checks if the edited data is valid
+    useEffect(() => {
+        if (editMode) {
+            const invalidText = [];
+            const category = questionFrame?.displayName ?? questionFrame?.category;
+            if (editedUtterance.length === 0) invalidText.push('The utterance cannot be empty. Please enter a valid utterance.');
+            if (editedCategory.length === 0) invalidText.push('The category cannot be empty. Please select a valid category.');
+            if (editedSplitAnswer.length === 0)
+                invalidText.push(
+                    `The answer(s) for "Split this ${category} by its ${questionFrame?.splitQuestionVar}" cannot be empty. Please select at least one split answer above.`
+                );
+            if (questionFrame?.identifyQuestionVar && editedIdentifyAnswer?.length === 0)
+                invalidText.push(
+                    `The answer(s) for "Identify ${questionFrame?.identifyQuestionVar} of this ${category}" cannot be empty. Please select at least one answer.`
+                );
+            if (questionFrame?.mc1QuestionText && editedMC1Answer == undefined)
+                invalidText.push(`The answer for ${questionFrame?.mc1QuestionText} cannot be empty. Please select a valid answer.`);
+            if (questionFrame?.mc2QuestionText && editedMC2Answer == undefined)
+                invalidText.push(`The answer for ${questionFrame?.mc2QuestionText} cannot be empty. Please select a valid answer.`);
+            if (invalidText.length > 0) setInvalidAlertText(invalidText);
+            else setInvalidAlertText([]);
+        }
+    }, [
+        editMode,
+        editedCategory.length,
+        editedIdentifyAnswer?.length,
+        editedMC1Answer,
+        editedMC2Answer,
+        editedSplitAnswer.length,
+        editedUtterance.length,
+        questionFrame
+    ]);
+
     const splitArrayToOptionList = useMemo(() => {
-        if (pasta.utterance === 'prerequisites') console.log(editedSplitAnswer, pasta.utterance);
         const curatedText = pasta.utterance.replace(/[^a-zA-Z0-9]/g, '');
         const result = editedSplitAnswer.map((split, index) => {
             const curatedLabel =
@@ -98,9 +151,11 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                     <td>{editedUtterance}</td>
                     <td>{editedCategory}</td>
                     <td>
-                        {splitArrayToOptionList.map((split, index) => {
-                            return <Badge key={index}>{split.label}</Badge>;
-                        })}
+                        <div style={{ display: 'flex', gap: 8, height: 20 }}>
+                            {splitArrayToOptionList.map((split, index) => {
+                                return <Badge key={index}>{split.label}</Badge>;
+                            })}
+                        </div>
                     </td>
 
                     {permissionLevel !== 'st' ? (
@@ -154,7 +209,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                     </Modal>
                 </tr>
 
-                <tr>
+                <tr className='no-hover'>
                     <td
                         style={{
                             border: 'none',
@@ -164,23 +219,27 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                     >
                         <Collapse isOpen={rowCollapse}>
                             <div style={{ padding: 12 }}>
-                                {editedIdentifyAnswer && (
+                                {questionFrame.identifyQuestionVar && (
                                     <Row
                                         style={{
                                             paddingBottom: 24
                                         }}
                                     >
-                                        <Col>Identity Question Answer:</Col>
                                         <Col>
-                                            {editedIdentifyAnswer?.map((option, index) => {
-                                                console.log(option, editedIdentifyAnswer);
-                                                const answer = splitArrayToOptionList[option].label;
-                                                return <Badge key={index}>{answer}</Badge>;
-                                            })}
+                                            Identify the {questionFrame.identifyQuestionVar} of this{' '}
+                                            {questionFrame.displayName ?? questionFrame.category}
+                                        </Col>
+                                        <Col>
+                                            <div style={{ display: 'flex', gap: 12, height: 20 }}>
+                                                {editedIdentifyAnswer?.map((option, index) => {
+                                                    const answer = splitArrayToOptionList[option].label;
+                                                    return <Badge key={index}>{answer}</Badge>;
+                                                })}
+                                            </div>
                                         </Col>
                                     </Row>
                                 )}
-                                {editedMC1Answer != undefined && (
+                                {questionFrame.mc1QuestionText && editedMC1Answer !== undefined && (
                                     <Row
                                         style={{
                                             paddingBottom: 24
@@ -190,7 +249,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                                         <Col>{questionFrame?.mc1Options && questionFrame?.mc1Options[editedMC1Answer]}</Col>
                                     </Row>
                                 )}
-                                {editedMC2Answer != undefined && (
+                                {questionFrame.mc2QuestionText && editedMC2Answer !== undefined && (
                                     <Row
                                         style={{
                                             paddingBottom: 24
@@ -211,11 +270,23 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
             <Fragment>
                 <tr>
                     <td>
-                        <Input type='text' name='editedUtterance' onChange={(e) => setEditedUtterance(e.target.value)} value={editedUtterance} />
+                        <Input
+                            type='text'
+                            name='editedUtterance'
+                            onChange={(e) => setEditedUtterance(e.target.value)}
+                            value={editedUtterance}
+                            required
+                        />
                     </td>
 
                     <td>
-                        <Input type='select' name='editedCategory' onChange={(e) => setEditedCategory(e.target.value)} value={editedCategory}>
+                        <Input
+                            type='select'
+                            name='editedCategory'
+                            onChange={(e) => handleChangeCategory(e.target.value)}
+                            value={editedCategory}
+                            required
+                        >
                             <option disabled value=''>
                                 Select a category
                             </option>
@@ -256,7 +327,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                         </ButtonGroup>
                     </td>
                 </tr>
-                <tr>
+                <tr className='no-hover'>
                     <td
                         style={{
                             border: 'none',
@@ -264,9 +335,21 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                         }}
                         colSpan={4}
                     >
-                        {'identifyQuestionVar' in questionFrame || 'mc1QuestionText' in questionFrame || 'mc2QuestionText' in questionFrame ? (
+                        {'identifyQuestionVar' in questionFrame ||
+                        'mc1QuestionText' in questionFrame ||
+                        'mc2QuestionText' in questionFrame ||
+                        invalidAlertText.length !== 0 ? (
                             <Collapse isOpen={true}>
                                 <div style={{ padding: 12 }}>
+                                    {invalidAlertText.length !== 0 && (
+                                        <Alert color='danger' style={{ whiteSpace: 'pre-wrap' }}>
+                                            <ul style={{ margin: 0 }}>
+                                                {invalidAlertText.map((text, index) => (
+                                                    <li key={index}>{text}</li>
+                                                ))}
+                                            </ul>
+                                        </Alert>
+                                    )}
                                     {questionFrame.identifyQuestionVar && (
                                         <Row
                                             style={{
@@ -275,7 +358,8 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                                         >
                                             <Col>
                                                 <label>
-                                                    Identify {questionFrame.identifyQuestionVar} of this {editedCategory}:
+                                                    Identify {questionFrame.identifyQuestionVar} of this{' '}
+                                                    {questionFrame.displayName ?? questionFrame.category}:
                                                 </label>
                                                 <Typeahead
                                                     id='identifyAnswer'
