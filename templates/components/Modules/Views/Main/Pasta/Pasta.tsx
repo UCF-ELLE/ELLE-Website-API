@@ -72,14 +72,18 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
     };
 
     const splitArrayToOptionList = useMemo(() => {
+        if (pasta.utterance === 'prerequisites') console.log(editedSplitAnswer, pasta.utterance);
+        const curatedText = pasta.utterance.replace(/[^a-zA-Z0-9]/g, '');
         const result = editedSplitAnswer.map((split, index) => {
+            const curatedLabel =
+                index === 0 ? curatedText.substring(0, split + 1) : curatedText.substring(editedSplitAnswer[index - 1] + 1, split + 1);
             return {
-                label: index === 0 ? pasta.utterance.substring(0, split) : pasta.utterance.substring(editedSplitAnswer[index - 1], split),
+                label: curatedLabel,
                 value: index
             };
         });
         result.push({
-            label: pasta.utterance.substring(editedSplitAnswer[editedSplitAnswer.length - 1]),
+            label: curatedText.substring(editedSplitAnswer[editedSplitAnswer.length - 1] + 1),
             value: editedSplitAnswer.length
         });
         return result.sort((a, b) => a.value - b.value);
@@ -169,6 +173,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
                                         <Col>Identity Question Answer:</Col>
                                         <Col>
                                             {editedIdentifyAnswer?.map((option, index) => {
+                                                console.log(option, editedIdentifyAnswer);
                                                 const answer = splitArrayToOptionList[option].label;
                                                 return <Badge key={index}>{answer}</Badge>;
                                             })}

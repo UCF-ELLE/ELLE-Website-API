@@ -41,9 +41,7 @@ export const SplitComponent = ({
                 }}
             >
                 {char}
-                {index < text.length - 1 ? (
-                    <Dot sendFeedback={() => onDotClick(index + 1)} size={dotSize} selected={indexes.includes(index + 1)} />
-                ) : null}
+                {index < text.length - 1 ? <Dot sendFeedback={() => onDotClick(index)} size={dotSize} selected={indexes.includes(index)} /> : null}
             </span>
         ));
     }, [text, fontSize, dotSize, indexes, onDotClick]);

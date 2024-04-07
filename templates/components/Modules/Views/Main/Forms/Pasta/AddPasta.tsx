@@ -106,16 +106,18 @@ export default function AddPasta({ curModule, setOpenForm }: { curModule: Module
     };
 
     const createIdentityAnswerList = () => {
+        const curatedUtterance = utterance.replace(/[^a-zA-Z0-9]/g, '');
         const list = splitQuestionAnswer.map((val, index) => {
             return {
-                label: utterance.substring(index === 0 ? 0 : splitQuestionAnswer[index - 1], val),
+                label: curatedUtterance.substring(index === 0 ? 0 : splitQuestionAnswer[index - 1] + 1, val + 1),
                 value: index
             };
         });
         list.push({
-            label: utterance.substring(splitQuestionAnswer[splitQuestionAnswer.length - 1]),
+            label: curatedUtterance.substring(splitQuestionAnswer[splitQuestionAnswer.length - 1] + 1),
             value: splitQuestionAnswer.length
         });
+        console.log(list);
         return list;
     };
 
@@ -125,7 +127,8 @@ export default function AddPasta({ curModule, setOpenForm }: { curModule: Module
                 {selectedQuestionFrame?.identifyQuestionVar && splitQuestionAnswer.length > 0 ? (
                     <FormGroup>
                         <Label for='selectIdentityAnswer'>
-                            Identify <Badge>{selectedQuestionFrame.identifyQuestionVar}</Badge> of this <Badge>{category}</Badge>
+                            Identify <Badge>{selectedQuestionFrame.identifyQuestionVar}</Badge> of this{' '}
+                            <Badge>{selectedQuestionFrame.displayName ?? category}</Badge>
                         </Label>
                         {/* Typeahead to include all of the possible split utterances, multiple selected */}
                         <Typeahead
