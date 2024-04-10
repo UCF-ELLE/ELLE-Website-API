@@ -704,3 +704,60 @@ class AllUserPurchasableItems(Resource):
             if conn.open:
                 cursor.close()
                 conn.close()
+
+
+"""
+New table: logged_user_item
+- logItemID (int, primary key)
+- userItemID (int, foreign key)
+- sessionID (int, foreign key)
+
+I need an endpoint that is a POST request to add a user item to the logged_user_item table
+
+Only a userID and a sessionID will be provided in the request body. SQL will grab all currently worn items for the user and add them to the logged_user_item table with the sessionID provided.
+"""
+
+
+class LoggedUserItem(Resource):
+    @jwt_required
+    def post(self):
+        data = {}
+        data["userID"] = getParameter("userID", int, True, "")
+        data["sessionID"] = getParameter("sessionID", int, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        if permission == "st" and data["userID"] != user_id:
+            return errorMessage("User not authorized to log other user's items."), 400
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = f"""
+                SELECT ui.*
+                FROM user_item ui
+                WHERE ui.userID = {data["userID"]} AND ui.isWearing = 1;
+            """
+            result = getFromDB(query, None, conn, cursor)
+
+            for row in result:
+                query = "INSERT INTO `logged_user_item` (`userItemID`, `sessionID`) VALUES (%s, %s)"
+                postToDB(query, (row[0], data["sessionID"]), conn, cursor)
+
+            raise ReturnSuccess({"Message": "Successfully logged user items"}, 201)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage("An error occurred while logging the user items."), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()

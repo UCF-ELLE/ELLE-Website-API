@@ -140,14 +140,14 @@ function PastaManualBody() {
                 prompted to break down utterances—whether they&apos;re words, sentences, or phrases—into their constituent parts, guided by specific
                 question frames. This game offers extensive customization, with question frames accommodating two multiple choice questions, a
                 &quot;split question&quot; requiring users to divide the utterance, and an &quot;identify question&quot; asking them to recognize
-                parts previously identified. The sequence of questions is as follows:
+                parts previously separated. The sequence of questions is as follows:
             </p>
             <ol>
                 <li>
                     <b>Multiple Choice Question 1</b>
                 </li>
                 <li>
-                    <b>Split Question</b>: Players divide the utterance into its constituent parts, such as morphemes or roots.
+                    <b>Split Question</b>: Players divide the utterance into its constituent parts, such as morphemes or points of conjugation.
                 </li>
                 <li>
                     <b>Identify Question</b>: Players identify the parts of the utterance that were previously split. This question can be used to
@@ -167,13 +167,14 @@ function PastaManualBody() {
                     Required Fields:
                     <ul>
                         <li>
+                            <b>Category</b>: A type of utterance you plan to test on, such as compound sentences, adjectives, etc. A category links
+                            Pastas (utterances) to the question frame. Each Pasta in this category must provide answers (mc, split, identify) for this
+                            question frame.
+                        </li>
+                        <li>
                             <b>Display Name In-Game</b>: This name appears in the Split and Identify questions to clarify the category of the
                             utterance for players. For example, if the Display Name is <b>sentence</b> and the category is
                             &quot;compoundsentences&quot;, the split question could read: &quot;Split the <b>sentence</b> by its morphemes.&quot;
-                        </li>
-                        <li>
-                            <b>Category</b>: Links pastas to the question frame. Each pasta in this category must provide answers (mc, split,
-                            identify) for this question frame.
                         </li>
                         <li>
                             <b>Split Leadup</b>: Alters the phrasing of the split question in-game. If set as <b>morphemes</b> the question becomes
