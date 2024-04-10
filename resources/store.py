@@ -497,7 +497,6 @@ class WearUserItem(Resource):
                 "game": result[0][4],
                 "isWearing": result[0][5],
             }
-            print(user_item)
 
             # Check if the user has the item
             if user_item["userID"] != user_id and permission != "su":
@@ -543,6 +542,7 @@ class WearUserItem(Resource):
             conn.commit()
             return success.msg, success.returnCode
         except Exception as error:
+            print(error)
             conn.rollback()
             return errorMessage("An error occurred while updating the user item."), 500
         finally:

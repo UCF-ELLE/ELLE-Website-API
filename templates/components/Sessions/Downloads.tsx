@@ -10,6 +10,7 @@ export function Downloads() {
         <Col style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <DownloadSessionLogs />
             <DownloadGameLogs />
+            <DownloadLoggedPastas />
         </Col>
     );
 }
@@ -50,7 +51,8 @@ export function DownloadGameLogs() {
                     display: 'grid',
                     fontSize: '10px',
                     fontWeight: '700',
-                    padding: '2px 2px 0 2px'
+                    padding: '2px 2px 0 2px',
+                    minWidth: '50px'
                 }}
                 onClick={() => refetchCSV()}
             >
@@ -100,7 +102,8 @@ export function DownloadSessionLogs() {
                     display: 'grid',
                     fontSize: '10px',
                     fontWeight: '700',
-                    padding: '2px 2px 0 2px'
+                    padding: '2px 2px 0 2px',
+                    minWidth: '50px'
                 }}
                 onClick={() => refetchCSV()}
             >
@@ -109,6 +112,57 @@ export function DownloadSessionLogs() {
 
             <Tooltip placement='top' isOpen={sessionTooltipOpen} target='downloadSessions' toggle={() => toggleSessionTooltip()}>
                 Download Sessions
+            </Tooltip>
+        </>
+    );
+}
+
+export function DownloadLoggedPastas() {
+    const { user } = useUser();
+    const [loggedPastaTooltipOpen, setLoggedAnsTooltipOpen] = useState(false);
+    const toggleLoggedPastaTooltip = () => setLoggedAnsTooltipOpen(!loggedPastaTooltipOpen);
+
+    const [{ data, loading, error }, refetchCSV] = useAxios<string>(
+        {
+            method: 'get',
+            url: '/elleapi/pastagame/loggedpasta/csv',
+            headers: { Authorization: 'Bearer ' + user?.jwt }
+        },
+        { manual: true }
+    );
+
+    useEffect(() => {
+        if (loading || error || !data) return;
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'logged_pastas.csv');
+        document.body.appendChild(link);
+        link.click();
+    }, [data, loading, error]);
+
+    return (
+        <>
+            <Button
+                id='downloadLoggedPastas'
+                style={{
+                    backgroundColor: '#37f0f9',
+                    color: 'black',
+                    border: 'none',
+                    marginRight: '15px',
+                    display: 'grid',
+                    fontSize: '10px',
+                    fontWeight: '700',
+                    padding: '2px 2px 0 2px',
+                    minWidth: '50px'
+                }}
+                onClick={() => refetchCSV()}
+            >
+                <DownloadSpinner loading={loading} type='pastaBtn' />
+            </Button>
+
+            <Tooltip placement='top' isOpen={loggedPastaTooltipOpen} target='downloadLoggedAnswers' toggle={() => toggleLoggedPastaTooltip()}>
+                Download Logged Pastas
             </Tooltip>
         </>
     );

@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, Response
 from flask_restful import Resource
 from flask_jwt_extended import (
     jwt_required,
@@ -1112,3 +1112,112 @@ class PastaHighScore(Resource):
             if conn.open:
                 cursor.close()
                 conn.close()
+
+class GetPastaCSV(Resource):
+    """API to download a CSV of all logged pasta records"""
+
+    @jwt_required
+    def get(self):
+        permission, user_id = validate_permissions()
+        if not permission or not user_id or permission != 'su':
+            return errorMessage("Invalid user"), 401
+        
+        try:
+            redis_conn = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, charset=REDIS_CHARSET, decode_responses=True)
+        except redis.exceptions.ConnectionError:
+            redis_conn = None
+
+        checksum_query = "CHECKSUM TABLE `logged_pasta`"
+        checksum = getFromDB(checksum_query)
+        checksum = str(checksum[0][1])
+
+        if redis_conn is not None:
+            logged_pasta_chks = redis_conn.get('logged_pasta_chks')
+        else:
+            logged_pasta_chks = None
+
+        if checksum == logged_pasta_chks:
+            csv = redis_conn.get('logged_ans_csv')
+        else:
+            last_query = "SELECT MAX(logID) FROM `logged_pasta`"
+            last_db_id = getFromDB(last_query)
+            last_db_id = str(last_db_id[0][0])
+
+            if redis_conn is not None:
+                last_rd_id = redis_conn.get('last_logged_pasta_id')
+            else:
+                last_rd_id = None
+
+            count_query = "SELECT COUNT(*) FROM `logged_pasta`"
+            db_count = getFromDB(count_query)
+            db_count = str(db_count[0][0])
+
+            if redis_conn is not None:
+                rd_log_pasta_count = redis_conn.get('log_pasta_count')
+            else:
+                rd_log_pasta_count = None
+
+            query = """
+                    SELECT
+                        lp.logID,
+                        s.userID,
+                        u.username,
+                        s.moduleID,
+                        m.name,
+                        CASE
+                            WHEN lp.questionType = 'mc1' THEN qf.mc1QuestionText
+                            WHEN lp.questionType = 'split' THEN CONCAT('Split the ', COALESCE(qf.displayName, qf.category), ' by its ', qf.splitQuestionVar)
+                            WHEN lp.questionType = 'identify' THEN CONCAT('Identify the ', qf.identifyQuestionVar, ' of this ', COALESCE(qf.displayName, qf.category))
+                            WHEN lp.questionType = 'mc2' THEN qf.mc2QuestionText
+                            ELSE NULL
+                        END AS question,
+                        p.utterance,
+                        lp.sessionID,
+                        lp.correct,
+                        lp.log_time
+                    FROM
+                        logged_pasta lp
+                    INNER JOIN
+                        question_frame qf ON lp.qFrameID = qf.qframeID
+                    INNER JOIN
+                        session s ON lp.sessionID = s.sessionID
+                    INNER JOIN
+                        user u ON s.userID = u.userID
+                    INNER JOIN
+                        module m ON s.moduleID = m.moduleID
+                    INNER JOIN
+                        pasta p ON lp.pastaID = p.pastaID
+                    """
+
+            if db_count != rd_log_pasta_count or rd_log_pasta_count is None:
+                csv = 'Log ID, User ID, Username, Module ID, Pasta Module Name, Question, Pasta Utterance, Session ID, Correct, Log time\n'
+                results = getFromDB(query)
+
+            else:
+                csv = ""
+                query += f"WHERE lp.logID > {last_db_id}"
+                results = getFromDB(query)
+                if redis_conn.get('logged_pasta_csv') is not None:
+                    csv = redis_conn.get('logged_pasta_csv')
+
+            if results and results[0]:
+                for record in results:
+                    if record[4] is None:
+                        replace_query = "SELECT `name` FROM `deleted_module` WHERE `moduleID` = %s"
+                        replace = getFromDB(replace_query, record[3])
+                        record[4] = replace[0][0]
+                    csv = csv + f"""{record[0]}, {record[1]}, {record[2]}, {record[3]}, {record[4]}, {record[5]}, {record[6]}, {record[7]}, {record[8]}, {record[9]}\n"""
+
+            last_record_id = results[-1][0]
+            
+            if redis_conn is not None:
+                redis_conn.set('logged_pasta_csv', csv)
+                redis_conn.set('logged_pasta_chks', checksum)
+                redis_conn.set('last_logged_pasta_id', last_record_id)
+                redis_conn.set('log_pasta_count', db_count)
+
+        return Response(
+            csv,
+            mimetype="text/csv",
+            headers={"Content-disposition":
+            "attachment; filename=Logged_Pastas.csv"})

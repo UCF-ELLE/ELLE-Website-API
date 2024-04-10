@@ -19,6 +19,7 @@ from pathlib import Path
 from resources.pasta import (
     AllPastaInModule,
     AllPastaModuleResources,
+    GetPastaCSV,
     LoggedPasta,
     Pasta,
     PastaFrame,
@@ -301,6 +302,7 @@ api.add_resource(PastaFrameModule, API_ENDPOINT_PREFIX + "pastagame/qframe/all")
 api.add_resource(AllPastaModuleResources, API_ENDPOINT_PREFIX + "pastagame/module/all")
 api.add_resource(LoggedPasta, API_ENDPOINT_PREFIX + "pastagame/loggedpasta")
 api.add_resource(PastaHighScore, API_ENDPOINT_PREFIX + "pastagame/highscores")
+api.add_resource(GetPastaCSV, API_ENDPOINT_PREFIX + "pastagame/loggedpasta/csv")
 # Store Specific Endpoints
 api.add_resource(StoreItem, API_ENDPOINT_PREFIX + "store/item")
 api.add_resource(AllStoreItems, API_ENDPOINT_PREFIX + "store/items")
