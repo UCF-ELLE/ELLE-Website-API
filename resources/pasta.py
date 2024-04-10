@@ -1229,6 +1229,10 @@ class GetPastaCSV(Resource):
                         )
                         replace = getFromDB(replace_query, record[3])
                         record[4] = replace[0][0]
+
+                    record[4] = decode_if_necessary(record[4])
+                    record[6] = decode_if_necessary(record[6])
+
                     csv = (
                         csv
                         + f"""{record[0]}, {record[1]}, {record[2]}, {record[3]}, {record[4]}, {record[5]}, {record[6]}, {record[7]}, {record[8]}, {record[9]}\n"""
