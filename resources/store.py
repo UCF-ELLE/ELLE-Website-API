@@ -293,6 +293,7 @@ class PurchaseUserItem(Resource):
         data["timeOfPurchase"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data["game"] = getParameter("game", str, True, "")
         data["isWearing"] = getParameter("isWearing", str, False, False)
+        data["color"] = getParameter("color", str, False, "")
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -316,7 +317,7 @@ class PurchaseUserItem(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
-            query = "INSERT INTO `user_item` (`userID`, `itemID`, `timeOfPurchase`, `game`, `isWearing`) VALUES (%s, %s, %s, %s, %s)"
+            query = "INSERT INTO `user_item` (`userID`, `itemID`, `timeOfPurchase`, `game`, `isWearing`, `color`) VALUES (%s, %s, %s, %s, %s, %s)"
             postToDB(
                 query,
                 (
@@ -325,6 +326,7 @@ class PurchaseUserItem(Resource):
                     data["timeOfPurchase"],
                     data["game"],
                     data["isWearing"],
+                    data["color"],
                 ),
                 conn,
                 cursor,
@@ -496,6 +498,7 @@ class WearUserItem(Resource):
                 "timeOfPurchase": result[0][3].strftime("%Y-%m-%d %H:%M:%S"),
                 "game": result[0][4],
                 "isWearing": result[0][5],
+                "color": result[0][6],
             }
 
             # Check if the user has the item
@@ -535,6 +538,64 @@ class WearUserItem(Resource):
             )
 
             raise ReturnSuccess(success, 200)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            print(error)
+            conn.rollback()
+            return errorMessage("An error occurred while updating the user item."), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+
+class ChangeUserItemColor(Resource):
+    # updates a user item in the database table
+    @jwt_required
+    def put(self):
+        data = {}
+        data["userItemID"] = getParameter("userItemID", int, True, "")
+        data["color"] = getParameter("color", str, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = "SELECT * FROM `user_item` WHERE `userItemID` = %s"
+            result = getFromDB(query, data["userItemID"], conn, cursor)
+            if len(result) == 0:
+                return errorMessage("User item does not exist!"), 404
+            user_item = {
+                "userItemID": result[0][0],
+                "userID": result[0][1],
+                "itemID": result[0][2],
+                "timeOfPurchase": result[0][3].strftime("%Y-%m-%d %H:%M:%S"),
+                "game": result[0][4],
+                "isWearing": result[0][5],
+            }
+
+            # Check if the user has the item
+            if user_item["userID"] != user_id and permission != "su":
+                return errorMessage("You do not have access to this item!"), 404
+
+            query = "UPDATE `user_item` SET `color` = %s WHERE `userItemID` = %s"
+            postToDB(query, (data["color"], data["userItemID"]), conn, cursor)
+
+            raise ReturnSuccess(
+                {
+                    "Message": f"Successfully changed color of user item {user_item['userItemID']}"
+                },
+                200,
+            )
         except CustomException as error:
             conn.rollback()
             return error.msg, error.returnCode
@@ -597,6 +658,7 @@ class AllUserItems(Resource):
                 )
                 new_user_item_object["game"] = row[4]
                 new_user_item_object["isWearing"] = row[5]
+                new_user_item_object["color"] = row[6]
                 user_items.append(new_user_item_object)
 
             raise ReturnSuccess(user_items, 200)
@@ -704,18 +766,6 @@ class AllUserPurchasableItems(Resource):
             if conn.open:
                 cursor.close()
                 conn.close()
-
-
-"""
-New table: logged_user_item
-- logItemID (int, primary key)
-- userItemID (int, foreign key)
-- sessionID (int, foreign key)
-
-I need an endpoint that is a POST request to add a user item to the logged_user_item table
-
-Only a userID and a sessionID will be provided in the request body. SQL will grab all currently worn items for the user and add them to the logged_user_item table with the sessionID provided.
-"""
 
 
 class LoggedUserItem(Resource):

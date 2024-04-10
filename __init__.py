@@ -30,7 +30,9 @@ from resources.store import (
     AllStoreItems,
     AllUserItems,
     AllUserPurchasableItems,
+    ChangeUserItemColor,
     LoadDefaultUserItems,
+    LoggedUserItem,
     PurchaseUserItem,
     StoreItem,
     WearUserItem,
@@ -309,12 +311,14 @@ api.add_resource(AllStoreItems, API_ENDPOINT_PREFIX + "store/items")
 api.add_resource(PurchaseUserItem, API_ENDPOINT_PREFIX + "store/purchase")
 api.add_resource(WearUserItem, API_ENDPOINT_PREFIX + "store/wear")
 api.add_resource(AllUserItems, API_ENDPOINT_PREFIX + "store/user/items")
+api.add_resource(ChangeUserItemColor, API_ENDPOINT_PREFIX + "store/user/items/color")
 api.add_resource(
     AllUserPurchasableItems, API_ENDPOINT_PREFIX + "store/user/purchasable"
 )
 api.add_resource(
     LoadDefaultUserItems, API_ENDPOINT_PREFIX + "store/user/loaddefaultitems"
 )
+api.add_resource(LoggedUserItem, API_ENDPOINT_PREFIX + "store/user/items/logged")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
