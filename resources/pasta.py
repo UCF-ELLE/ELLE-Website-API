@@ -8,13 +8,24 @@ from db_utils import *
 from utils import *
 from exceptions_util import *
 from datetime import datetime
-import chardet
+import codecs
 
 
 def timedelta_to_time(delta):
     if delta is None:
         return None
     return (datetime.min + delta).time()
+
+
+def convert_to_utf8(string):
+    if string.startswith("\\x"):
+        # String is in hexadecimal format
+        hex_string = string.replace("\\x", "")
+        return bytes.fromhex(hex_string).decode("utf-8")
+    else:
+        # String is in proper UTF-8
+        return string.encode("utf-8").decode("utf-8")
+
 
 class Pasta(Resource):
     @jwt_required
@@ -1210,12 +1221,10 @@ class GetPastaCSV(Resource):
                 for record in results:
 
                     if record[4]:
-                        encoding = chardet.detect(record[4])['encoding']
-                        record[4] = record[4].decode(encoding)
-                    
+                        record[4] = convert_to_utf8(record[4])
+
                     if record[6]:
-                        encoding = chardet.detect(record[6])['encoding']
-                        record[6] = record[6].decode(encoding)
+                        record[6] = convert_to_utf8(record[6])
 
                     if record[4] is None:
                         replace_query = (
