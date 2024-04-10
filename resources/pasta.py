@@ -16,21 +16,6 @@ def timedelta_to_time(delta):
         return None
     return (datetime.min + delta).time()
 
-
-def decode_if_necessary(text):
-    try:
-        decoded_text = text.decode("utf-8")
-        return decoded_text
-    except UnicodeDecodeError:
-        # If decoding fails, assume it's in a different encoding
-        detected_encoding = chardet.detect(text)["encoding"]
-        if detected_encoding:
-            decoded_text = text.decode(detected_encoding)
-            return decoded_text
-        else:
-            return text.decode("latin1")  # Assuming latin1 if encoding detection fails
-
-
 class Pasta(Resource):
     @jwt_required
     def get(self):
@@ -1223,16 +1208,21 @@ class GetPastaCSV(Resource):
 
             if results and results[0]:
                 for record in results:
+
+                    if record[4]:
+                        encoding = chardet.detect(record[4])['encoding']
+                        record[4] = record[4].decode(encoding)
+                    
+                    if record[6]:
+                        encoding = chardet.detect(record[6])['encoding']
+                        record[6] = record[6].decode(encoding)
+
                     if record[4] is None:
                         replace_query = (
                             "SELECT `name` FROM `deleted_module` WHERE `moduleID` = %s"
                         )
                         replace = getFromDB(replace_query, record[3])
                         record[4] = replace[0][0]
-
-                    record[4] = decode_if_necessary(record[4])
-                    record[6] = decode_if_necessary(record[6])
-
                     csv = (
                         csv
                         + f"""{record[0]}, {record[1]}, {record[2]}, {record[3]}, {record[4]}, {record[5]}, {record[6]}, {record[7]}, {record[8]}, {record[9]}\n"""
