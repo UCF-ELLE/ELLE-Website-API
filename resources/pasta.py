@@ -1158,7 +1158,7 @@ class GetPastaCSV(Resource):
             logged_pasta_chks = None
 
         if checksum == logged_pasta_chks:
-            csv = redis_conn.get("logged_ans_csv")
+            csv = redis_conn.get("logged_pasta_csv")
         else:
             last_query = "SELECT MAX(logID) FROM `logged_pasta`"
             last_db_id = getFromDB(last_query)
