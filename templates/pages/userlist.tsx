@@ -12,11 +12,10 @@ import {
     ModalBody,
     Card,
     CardBody,
-    Nav,
     TabContent,
     TabPane,
-    NavItem,
-    NavLink
+    ListGroup,
+    ListGroupItem
 } from 'reactstrap';
 import axios from 'axios';
 import '@/public/static/css/style.css';
@@ -124,29 +123,12 @@ export default function UserList({}: {}) {
         let filteredUsers;
         let nonAdminList: { label: string; value: string }[] = [];
         let searchLength = 11;
-        let addButton = (
-            <Button
-                style={{
-                    display: 'flex',
-                    borderRadius: '30px',
-                    width: 44.5,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    alignSelf: 'center'
-                }}
-                onClick={() => toggleElevateModal()}
-            >
-                <Image src={plusImage} alt='Icon made by srip from www.flaticon.com' style={{ width: '15px', height: '15px' }} />
-            </Button>
-        );
         if (group === 'su') {
             userList = superAdmins;
         } else if (group === 'pf') {
             userList = professors;
         } else {
             userList = students;
-            searchLength = 12;
-            addButton = <></>;
         }
 
         if (currentGroup === 'su' && students && superAdmins) {
@@ -169,69 +151,60 @@ export default function UserList({}: {}) {
 
         return (
             <>
-                <Row style={{ display: 'flex' }}>
+                <Row>
                     <Col sm={searchLength}>
-                        <InputGroup style={{ borderRadius: '8px' }}>
-                            <div style={{ margin: '10px' }}>
-                                <Image src={searchImage} alt='Icon made by Freepik from www.flaticon.com' style={{ width: '20px', height: '20px' }} />
-                            </div>
-                            <Input style={{ border: 'none' }} type='text' placeholder='Search' value={search} onChange={updateSearch} />
-                        </InputGroup>
+                        {students && professors && superAdmins ? (
+                            userList.length !== 0 ? (
+                                <Table hover className='userListTable'>
+                                    <thead>
+                                        <tr>
+                                            <th style={{ borderTopLeftRadius: '8px' }}>ID</th>
+                                            <th>Username</th>
+                                            <th style={{ borderTopRightRadius: '8px' }}></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredUsers ? (
+                                            filteredUsers.map((user) => {
+                                                return <UserComponent key={user.userID} user={user} type='su' group={group} getUsers={getUsers} />;
+                                            })
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={3}>{search} cannot be found.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </Table>
+                            ) : (
+                                <Card>
+                                    <CardBody>
+                                        <Row>
+                                            <Col xs='1'>
+                                                <Image
+                                                    style={{
+                                                        width: '25px',
+                                                        height: '25px'
+                                                    }}
+                                                    alt={'exclamation'}
+                                                    src={exclamationImage}
+                                                />
+                                            </Col>
+                                            <Col xs='10' style={{ padding: '0px' }}>
+                                                {group === 'su'
+                                                    ? 'There are no other super admins.'
+                                                    : group === 'pf'
+                                                    ? 'There are currently no professors.'
+                                                    : 'There are currently no students.'}
+                                            </Col>
+                                        </Row>
+                                    </CardBody>
+                                </Card>
+                            )
+                        ) : (
+                            <Spinner chart={'userList'} />
+                        )}
                     </Col>
-                    {addButton}
                 </Row>
-                <br />
-
-                {students && professors && superAdmins ? (
-                    userList.length !== 0 ? (
-                        <Table hover className='userListTable'>
-                            <thead>
-                                <tr>
-                                    <th style={{ borderTopLeftRadius: '8px' }}>ID</th>
-                                    <th>Username</th>
-                                    <th style={{ borderTopRightRadius: '8px' }}></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredUsers ? (
-                                    filteredUsers.map((user) => {
-                                        return <UserComponent key={user.userID} user={user} type='su' group={group} getUsers={getUsers} />;
-                                    })
-                                ) : (
-                                    <tr>
-                                        <td colSpan={3}>{search} cannot be found.</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    ) : (
-                        <Card>
-                            <CardBody>
-                                <Row>
-                                    <Col xs='1'>
-                                        <Image
-                                            style={{
-                                                width: '25px',
-                                                height: '25px'
-                                            }}
-                                            alt={'exclamation'}
-                                            src={exclamationImage}
-                                        />
-                                    </Col>
-                                    <Col xs='10' style={{ padding: '0px' }}>
-                                        {group === 'su'
-                                            ? 'There are no other super admins.'
-                                            : group === 'pf'
-                                            ? 'There are currently no professors.'
-                                            : 'There are currently no students.'}
-                                    </Col>
-                                </Row>
-                            </CardBody>
-                        </Card>
-                    )
-                ) : (
-                    <Spinner chart={'userList'} />
-                )}
                 <Modal isOpen={elevateModalOpen} toggle={() => toggleElevateModal()} backdrop={true}>
                     <ModalHeader toggle={() => toggleElevateModal()}>Modify Permission</ModalHeader>
                     <ModalBody>
@@ -287,48 +260,73 @@ export default function UserList({}: {}) {
                     <br></br>
                     <div>
                         <h3>List of Users</h3>
-                        <Nav justified pills id='userList'>
-                            <Row style={{ width: '100%' }}>
-                                <Col sm={4}>
-                                    <Container className='userListTabs'>
-                                        <NavItem>
-                                            <NavLink
-                                                active={activeTab === 'superAdmins'}
-                                                onClick={() => resetVal('superAdmins')}
-                                                style={{ cursor: 'pointer' }}
+                        <Row style={{ width: '100%' }}>
+                            <Col style={{ flex: '0.4 0 0%' }}>
+                                <ListGroup>
+                                    <ListGroupItem
+                                        action
+                                        active={activeTab === 'superAdmins'}
+                                        onClick={() => resetVal('superAdmins')}
+                                        color='userItem'
+                                    >
+                                        Super Admins
+                                    </ListGroupItem>
+                                    <ListGroupItem action active={activeTab === 'professors'} onClick={() => resetVal('professors')} color='userItem'>
+                                        Professors
+                                    </ListGroupItem>
+                                    <ListGroupItem action active={activeTab === 'students'} onClick={() => resetVal('students')} color='userItem'>
+                                        Students
+                                    </ListGroupItem>
+                                </ListGroup>
+                            </Col>
+                            <Col>
+                                <TabContent activeTab={activeTab}>
+                                    <Row style={{ marginBottom: 16 }}>
+                                        <Col sm={11} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <InputGroup style={{ width: '92%', borderRadius: '8px', boxShadow: '0 2px 5px 0 rgba(0,0,0,.21)' }}>
+                                                <div style={{ margin: '10px' }}>
+                                                    <Image
+                                                        src={searchImage}
+                                                        alt='Icon made by Freepik from www.flaticon.com'
+                                                        style={{ width: '20px', height: '20px' }}
+                                                    />
+                                                </div>
+                                                <Input
+                                                    style={{ border: 'none' }}
+                                                    type='text'
+                                                    placeholder='Search'
+                                                    value={search}
+                                                    onChange={updateSearch}
+                                                />
+                                            </InputGroup>
+                                            <Button
+                                                style={{
+                                                    display: 'flex',
+                                                    borderRadius: '30px',
+                                                    width: 44.5,
+                                                    height: 38,
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    padding: 0,
+                                                    backgroundColor: '#5faeb5',
+                                                    borderColor: '#5faeb5'
+                                                }}
+                                                onClick={() => toggleElevateModal()}
                                             >
-                                                Super Admins
-                                            </NavLink>
-                                        </NavItem>
-                                        <NavItem>
-                                            <NavLink
-                                                active={activeTab === 'professors'}
-                                                onClick={() => resetVal('professors')}
-                                                style={{ cursor: 'pointer' }}
-                                            >
-                                                Professors
-                                            </NavLink>
-                                        </NavItem>
-                                        <NavItem>
-                                            <NavLink
-                                                active={activeTab === 'students'}
-                                                onClick={() => resetVal('students')}
-                                                style={{ cursor: 'pointer' }}
-                                            >
-                                                Students
-                                            </NavLink>
-                                        </NavItem>
-                                    </Container>
-                                </Col>
-                                <Col sm={8}>
-                                    <TabContent activeTab={activeTab}>
-                                        <TabPane tabId={'superAdmins'}>{renderUserTable('su')}</TabPane>
-                                        <TabPane tabId={'professors'}>{renderUserTable('pf')}</TabPane>
-                                        <TabPane tabId={'students'}>{renderUserTable('st')}</TabPane>
-                                    </TabContent>
-                                </Col>
-                            </Row>
-                        </Nav>
+                                                <Image
+                                                    src={plusImage}
+                                                    alt='Icon made by srip from www.flaticon.com'
+                                                    style={{ width: '15px', height: '15px' }}
+                                                />
+                                            </Button>
+                                        </Col>
+                                    </Row>
+                                    <TabPane tabId={'superAdmins'}>{renderUserTable('su')}</TabPane>
+                                    <TabPane tabId={'professors'}>{renderUserTable('pf')}</TabPane>
+                                    <TabPane tabId={'students'}>{renderUserTable('st')}</TabPane>
+                                </TabContent>
+                            </Col>
+                        </Row>
                     </div>
                 </Container>
             </div>

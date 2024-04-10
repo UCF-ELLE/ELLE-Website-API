@@ -88,6 +88,17 @@ h6 {
     min-height: 90vh;
 }
 
+.list-group-item.list-group-item-userItem.active {
+    background-color: #5faeb5;
+    border-color: #5faeb5;
+}
+
+.list-group-item.list-group-item-userItem {
+    display: flex;
+    min-height: 50px;
+    align-items: center;
+}
+
 /*--------------------------------------------------------------
 # Top Bar
 --------------------------------------------------------------*/
@@ -1118,31 +1129,6 @@ table.userListTable {
     /* this draws the table border  */
 }
 
-table.classTable {
-    border-collapse: collapse;
-    border-radius: 8px;
-    border-style: hidden;
-    /* hide standard table (collapsed) border */
-    margin: 0px;
-}
-
-table.classTable thead th {
-    vertical-align: bottom;
-    border-bottom: 2px solid #dee2e6;
-    border-right-style: hidden;
-    padding: 10px 12px 2px 12px;
-}
-
-table.userListTable thead th {
-    vertical-align: bottom;
-    border-bottom: 2px solid #dee2e6;
-    border-right-style: hidden;
-}
-
-table.userListTable thead tr {
-    background-color: lightskyblue;
-}
-
 table.userListTable td,
 table.classTable td {
     vertical-align: bottom;
@@ -1150,6 +1136,20 @@ table.classTable td {
     border-right-style: hidden;
     padding: 8px 12px 8px 12px;
     width: 35%
+}
+
+table.userListTable tr:last-child td:first-child,
+table.classTable tr:last-child td:first-child {
+    border-radius: 0 0 0 8px;
+}
+
+table.userListTable tr:last-child td:last-child,
+table.classTable tr:last-child td:last-child {
+    border-radius: 0 0 8px 0;
+}
+
+table.userListTable thead th {
+    background-color: skyblue;
 }
 
 table.userListTable tbody th {
@@ -1327,12 +1327,6 @@ table.classTable tbody th {
     color: white;
 }
 
-.userListTabs a.active {
-    z-index: 2;
-    color: #fff;
-    background-color: lightslategray;
-    border-color: dimgray;
-}
 
 /*--------------------------------------------------------------
 # Module List Tabs
