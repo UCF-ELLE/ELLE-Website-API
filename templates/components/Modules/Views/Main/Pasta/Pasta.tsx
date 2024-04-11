@@ -11,11 +11,11 @@ import cancelImage from '@/public/static/images/cancel.png';
 import deleteImage from '@/public/static/images/delete.png';
 import submitImage from '@/public/static/images/submit.png';
 import toolsImage from '@/public/static/images/tools.png';
-import { Pasta, QuestionFrame } from '@/types/api/pastagame';
+import { Pasta as PastaType, QuestionFrame } from '@/types/api/pastagame';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { SplitComponent } from '../Forms/Pasta/SplitComponent';
 
-export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pasta; questionFrames: QuestionFrame[]; curModule: Module }) {
+export default function Pasta({ pasta, questionFrames, curModule }: { pasta: PastaType; questionFrames: QuestionFrame[]; curModule: Module }) {
     const [modal, setModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [editedCategory, setEditedCategory] = useState(pasta.category);
@@ -45,7 +45,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
 
         setEditMode(false);
 
-        const editedPasta: Pasta = {
+        const editedPasta: PastaType = {
             pastaID: pasta.pastaID,
             moduleID: curModule.moduleID,
             category: editedCategory,
@@ -126,7 +126,7 @@ export default function Pasta({ pasta, questionFrames, curModule }: { pasta: Pas
     ]);
 
     const splitArrayToOptionList = useMemo(() => {
-        const curatedText = pasta.utterance.replace(/[^a-zA-Z0-9]/g, '');
+        const curatedText = pasta.utterance.replace(/[^\p{L}\p{N}]+/gu, '');
         const result = editedSplitAnswer.map((split, index) => {
             const curatedLabel =
                 index === 0 ? curatedText.substring(0, split + 1) : curatedText.substring(editedSplitAnswer[index - 1] + 1, split + 1);

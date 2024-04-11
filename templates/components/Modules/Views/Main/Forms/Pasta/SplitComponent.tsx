@@ -29,7 +29,7 @@ export const SplitComponent = ({
     );
 
     const SplitText = useMemo(() => {
-        const curatedText = text.replace(/[^a-zA-Z0-9]/g, '');
+        const curatedText = text.replace(/[^\p{L}\p{N}]+/gu, '');
         return curatedText.split('').map((char, index) => (
             <span
                 key={index}
