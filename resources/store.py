@@ -151,10 +151,8 @@ class StoreItem(Resource):
             data["isDefault"].lower() == "true" or data["isDefault"] == "1"
         ):
             data["isDefault"] = True
-        elif (
-            data["isDefault"]
-            and data["isDefault"].lower() == "false"
-            or data["isDefault"] == "0"
+        elif data["isDefault"] and (
+            data["isDefault"].lower() == "false" or data["isDefault"] == "0"
         ):
             data["isDefault"] = False
 
