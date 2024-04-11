@@ -53,7 +53,7 @@ export default function GameCode() {
                         </Button>
                     </Col>
                     <video width='100%' height='100%' style={{ marginTop: '-40px' }} autoPlay loop muted>
-                        <source src={'/static/videos/ELLE_blocks.mp4'} type='video/mp4' />
+                        <source src={'/elle/static/videos/ELLE_blocks.mp4'} type='video/mp4' />
                     </video>
                 </Row>
 
