@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import Select from 'react-select';
+import React, { useRef, useState } from 'react';
+import Select, { GroupBase, SelectInstance } from 'react-select';
 import { Alert, Button, Col, Form, FormGroup, Input, Label, Row } from 'reactstrap';
 import languageCodes from '@/public/static/json/languageCodes.json';
 import { Language, LanguageCode } from '@/types/misc';
@@ -42,6 +42,7 @@ export default function AddModuleForm({
     const [isPastaModule, setIsPastaModule] = useState<boolean>(false);
     const [status, setStatus] = useState<boolean>(false);
     const [success, setSuccess] = useState<boolean>(false);
+    const selectInputRef = useRef<SelectInstance<Language>>(null);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -109,6 +110,7 @@ export default function AddModuleForm({
             setStatus(false);
             setName('');
             setLanguage({ label: undefined, value: undefined });
+            if (selectInputRef.current) selectInputRef.current.clearValue();
             setClassState(undefined);
             setSuccess(false);
         }, 2000);
@@ -136,7 +138,7 @@ export default function AddModuleForm({
         <div>
             <Alert color='none' style={{ color: '#004085', backgroundColor: 'aliceblue' }}>
                 <Form onSubmit={handleSubmit}>
-                    {/* show alert if module successfuly added / error here */}
+                    {renderStatus()}
                     <Row>
                         <Col>
                             <FormGroup>
@@ -153,6 +155,7 @@ export default function AddModuleForm({
                                     name='languageCode'
                                     instanceId={'select-language'}
                                     options={languageCodeList}
+                                    ref={selectInputRef}
                                     className='basic-single'
                                     classNamePrefix='select'
                                     isClearable={true}

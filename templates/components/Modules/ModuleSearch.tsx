@@ -100,8 +100,8 @@ export default function ModuleSearch({
                             <DropdownToggle
                                 style={{
                                     backgroundColor: '#3e6184',
-                                    borderTopLeftRadius: '0px',
-                                    borderBottomLeftRadius: '0px'
+                                    borderRadius: '0px 12px 12px 0px',
+                                    height: '100%'
                                 }}
                                 caret
                             >
