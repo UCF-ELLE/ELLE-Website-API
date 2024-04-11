@@ -147,9 +147,15 @@ class StoreItem(Resource):
         if len(result) == 0:
             return errorMessage("Item does not exist."), 404
 
-        if data["isDefault"].lower() == "true" or data["isDefault"] == "1":
+        if data["isDefault"] and (
+            data["isDefault"].lower() == "true" or data["isDefault"] == "1"
+        ):
             data["isDefault"] = True
-        elif data["isDefault"].lower() == "false" or data["isDefault"] == "0":
+        elif (
+            data["isDefault"]
+            and data["isDefault"].lower() == "false"
+            or data["isDefault"] == "0"
+        ):
             data["isDefault"] = False
 
         if permission == "st":
