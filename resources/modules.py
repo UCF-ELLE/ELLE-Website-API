@@ -407,7 +407,7 @@ class Module(Resource):
         parser.add_argument("complexity", type=int, required=False)
         parser.add_argument("isPastaModule", type=str, required=False)
         data = parser.parse_args()
-        print(data)
+
         name = data["name"].encode("utf8")
         if data["language"]:
             language = data["language"]
