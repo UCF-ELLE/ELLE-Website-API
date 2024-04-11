@@ -408,7 +408,7 @@ class Module(Resource):
         parser.add_argument("isPastaModule", type=str, required=False)
         data = parser.parse_args()
         print(data)
-        name = data["name"]
+        name = data["name"].encode("utf8")
         if data["language"]:
             language = data["language"]
         else:
