@@ -106,7 +106,7 @@ export default function AddPasta({ curModule, setOpenForm }: { curModule: Module
     };
 
     const createIdentityAnswerList = () => {
-        const curatedUtterance = utterance.replace(/[^a-zA-Z0-9]/g, '');
+        const curatedUtterance = utterance.replace(/[^\p{L}\p{N}]+/gu, '');
         const list = splitQuestionAnswer.map((val, index) => {
             return {
                 label: curatedUtterance.substring(index === 0 ? 0 : splitQuestionAnswer[index - 1] + 1, val + 1),
