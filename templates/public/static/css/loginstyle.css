@@ -36,6 +36,7 @@ html {
     background-size: cover;
     min-width: 100%;
     min-height: calc(100vh - 84px);
+    position: absolute;
 }
 
 .forgot-bg {

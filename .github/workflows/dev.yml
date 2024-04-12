@@ -1,5 +1,6 @@
 # This YAML file is used to stop the PM2 processes on the dev server, pull the latest changes from the GitHub repository, and restart the PM2 processes. The SSH keys are stored in the GitHub repository secrets and are used to authenticate the GitHub Actions workflow with the dev server.
 name: Update Dev Server
+concurrency: ${{ github.workflow }}
 
 on:
     push:
