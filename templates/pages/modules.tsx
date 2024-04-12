@@ -168,7 +168,7 @@ export default function Modules() {
         };
 
         axios
-            .put<Module>('/elleapi/retrieveusermodules', data, header)
+            .put<Module>('/elleapi/module', data, header)
             .then((res) => {
                 updateModuleList('change');
 
