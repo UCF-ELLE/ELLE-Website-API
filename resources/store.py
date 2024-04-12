@@ -530,7 +530,7 @@ class WearUserItem(Resource):
                     postToDB(query, result[0][0], conn, cursor)
                     success["ReplacedItem"] = {
                         "itemID": result[0][0],
-                        "name": result[0][6],
+                        "name": result[0][7],
                     }
 
             query = "UPDATE `user_item` SET `isWearing` = %s WHERE `userItemID` = %s"
