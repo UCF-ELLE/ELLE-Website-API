@@ -73,7 +73,7 @@ export default function SplitDeckBtn({
                     updateCurrentModule(currentModule);
                 }}
             >
-                {currentModule.name}
+                {`${currentModule.name} ${currentModule.isPastaModule ? '🍝' : ''}`}
             </Button>
             <Popover trigger='legacy' placement='bottom' isOpen={popoverOpen} target={'deckButton' + currentModule.moduleID}>
                 <PopoverHeader>
