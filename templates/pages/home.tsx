@@ -170,8 +170,6 @@ export default function Home() {
                         <br />
                     </div>
                 </div>
-
-                {/* <Footer></Footer> */}
             </div>
         </Layout>
     );

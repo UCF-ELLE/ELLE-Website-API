@@ -40,14 +40,9 @@ html {
 
 .forgot-bg {
     background: url('../images/intro-carousel/5.jpg') repeat;
-    position: fixed;
-    top: 0;
-    background-size: cover;
-    left: 0;
-    right: 0;
-    bottom: 0;
     min-width: 100%;
-    min-height: 100%;
+    min-height: calc(100vh - 100px);
+    height: calc(100vh - 100px);
 }
 
 .reset-bg {
@@ -141,9 +136,9 @@ input::-webkit-input-placeholder {
 }
 
 .forgot-box {
-    margin: 20px auto;
     max-width: 500px;
     padding: 10px 20px;
+    margin-bottom: 200px;
     box-shadow: 0 0 1rem 0 rgba(0, 0, 0, .2);
     border-radius: 5px;
     position: relative;
