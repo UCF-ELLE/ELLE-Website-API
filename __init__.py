@@ -3,14 +3,10 @@ from flask import (
     Flask,
     render_template,
     Response,
-    request,
-    send_file,
     send_from_directory,
-    jsonify,
 )
-from flask_restful import Resource, Api
+from flask_restful import Api
 from flask_jwt_extended import JWTManager
-from flaskext.mysql import MySQL
 from flask_cors import CORS
 from flask_mail import Mail
 from db import mysql
@@ -118,7 +114,6 @@ from resources.mentors import (
     CreateMentorQuestionFrequency,
 )
 from resources.animelle import AnimELLESaveData
-import os.path
 import config
 
 app = Flask(__name__, static_folder="templates/build", static_url_path="/")
@@ -157,8 +152,7 @@ def unauthorized(self):
 
 @app.errorhandler(404)
 def page_not_found(e):
-    resp = Response(render_template("build/index.html"), mimetype="text/html")
-    return resp
+    return send_from_directory("pages", "404.html")
 
 
 # Given a complex object, this returns the permission group
@@ -178,12 +172,6 @@ def user_identity_lookup(user):
 API_ENDPOINT_PREFIX = "/elleapi/"
 
 
-class HomePage(Resource):
-    def get(self):
-        resp = Response(render_template("build/index.html"), mimetype="text/html")
-        return resp
-
-
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     jti = decrypted_token["jti"]
@@ -198,7 +186,17 @@ def check_if_token_in_blacklist(decrypted_token):
 # Redirect to the homepage - might change depending on NGINX config
 @app.route("/")
 def index():
-    return app.send_static_file("index.html")
+    return send_from_directory("pages", "index.html")
+
+
+@app.route("/images/<path:path>")
+def images(path):
+    return send_from_directory("images", path)
+
+
+@app.route("/audios/<path:path>")
+def audios(path):
+    return send_from_directory("audios", path)
 
 
 api.add_resource(UserRegister, API_ENDPOINT_PREFIX + "register")

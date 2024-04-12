@@ -17,6 +17,12 @@ const nextConfig = {
                 source: '/',
                 destination: '/home',
                 permanent: true
+            },
+            {
+                source: '/',
+                destination: '/elle/home',
+                permanent: true,
+                basePath: false
             }
         ];
     },
@@ -26,6 +32,14 @@ const nextConfig = {
                 source: '/elleapi/:slug*',
                 destination: 'http://localhost:5050/elleapi/:slug*',
                 basePath: process.env.NODE_ENV === 'production' ? undefined : false
+            },
+            {
+                source: '/images/:slug*',
+                destination: 'http://localhost:5050/images/:slug*'
+            },
+            {
+                source: '/audios/:slug*',
+                destination: 'http://localhost:5050/audios/:slug*'
             }
         ];
     }
