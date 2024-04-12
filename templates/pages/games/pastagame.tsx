@@ -1,21 +1,18 @@
 'use client';
-/*************************
-Converted from class-based to functional component in Spring 2023.
-**************************/
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { Button } from 'reactstrap';
+import { useCallback, useEffect, useState } from 'react';
 import { Unity, useUnityContext } from 'react-unity-webgl';
+import { Button } from 'reactstrap';
 
-import '@/public/static/css/style.css';
 import '@/lib/font-awesome/css/font-awesome.min.css';
-import '@/lib/owlcarousel/assets/owl.carousel.min.css';
 import '@/lib/ionicons/css/ionicons.min.css';
+import '@/lib/owlcarousel/assets/owl.carousel.min.css';
+import '@/public/static/css/style.css';
 
-import { useRouter } from 'next/router';
-import { ReactUnityEventParameter } from 'react-unity-webgl/distribution/types/react-unity-event-parameters';
 import Layout from '@/app/layout';
 import { useUser } from '@/hooks/useUser';
+import { useRouter } from 'next/router';
+import { ReactUnityEventParameter } from 'react-unity-webgl/distribution/types/react-unity-event-parameters';
 
 function PastaKerfuffELLE() {
     const { user, loading: userLoading } = useUser();
@@ -143,8 +140,6 @@ function PastaKerfuffELLE() {
                 console.log("playerScore: " + UNITY_playerScore.current);
                 console.log("pausedTime: " + UNITY_pausedTime.current);
                 */
-
-            e.returnValue = '';
         },
         [UNITY_userIsPlayingGame, sendMessage]
     );
@@ -197,14 +192,17 @@ function PastaKerfuffELLE() {
         };
     });
 
-    // Automatically log the user into the Unity Card Game
+    // Automatically log the user into the Unity Pasta Game
+    // Given that the Unity Pasta Game requires direct access to the user's userID, we must send it to the game along with the JWT
+    // And Unity only supports sending strings, so we must stringify the object
     useEffect(() => {
         if (isLoaded && !userLoading) {
             const jwt = user?.jwt;
-            console.log('Sending JWT to Unity Card Game...');
-            sendMessage('LoadingText', 'WebGLLoginAttempt', jwt);
+            const userID = user?.userID;
+            console.log('Sending JWT and userID to Unity Pasta Game...');
+            sendMessage('LoadingText', 'WebGLLoginAttempt', JSON.stringify({ jwt, userID }));
         }
-    }, [isLoaded, sendMessage, user?.jwt, userLoading]);
+    }, [isLoaded, sendMessage, user, userLoading]);
 
     // Fullscreen button
     const handleOnClickFullscreen = () => {
