@@ -5,7 +5,7 @@ concurrency: ${{ github.workflow }}
 on:
     push:
         branches:
-            - nextjs-test
+            - dev
     workflow_dispatch:
 
 jobs:
