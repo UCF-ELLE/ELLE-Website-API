@@ -1,0 +1,3 @@
+This website hosts the ELLE Card Game, ELLE Maze Game, and AnimELLE Crossing Game using their Unity WebGL builds. For versioning sake, the games are not included in this repository. You must find them and put them in their respective folders here (put Maze Game build files in folder named "Maze Game").
+
+Also, ignore the `.gitkeep` files present in the folders here. They're there so that I could add empty folders to the repository.

@@ -1,0 +1,99 @@
+#header {
+    padding: 20px 0;
+    height: 84px;
+    transition: all 0.5s;
+    background: #fff;
+    box-shadow: 0px 6px 9px 0px rgba(0, 0, 0, 0.06);
+    display: block;
+}
+
+.container {
+    width: 100%;
+    padding: 0 15px;
+    margin: 0 auto;
+}
+
+@media (min-width: 576px) {
+    .container {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}
+
+.logo {
+    float: left;
+}
+
+#nav_menu_container {
+    float: right;
+    margin: 0;
+    display: block;
+}
+
+.nav_menu,
+.nav_menu * {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nav_menu>li {
+    margin-left: 10px;
+    float: left;
+    position: relative;
+    white-space: nowrap;
+}
+
+.nav_menu a {
+    padding: 10px 8px;
+    text-decoration: none;
+    display: inline-block;
+    color: #555;
+    font-family: "Raleway", sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    outline: none;
+}
+
+#footer {
+    display: block;
+    background: #f2f5f8;
+    height: 100px;
+    font-size: 14px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    padding-bottom: 30px;
+}
+
+#footer .copyright {
+    text-align: center;
+    color: #555;
+}
+
+#footer .credits {
+    text-align: center;
+    padding-top: 30px;
+}
+
+#footer .credits a {
+    color: #0c2e8a;
+    font-size: 13px;
+}
