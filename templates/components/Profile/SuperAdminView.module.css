@@ -1,0 +1,61 @@
+.greetingsTag {
+    border-radius: 5px;
+    color: white;
+    font-family: sans-serif;
+    line-height: 1.5;
+    padding: 1rem 2rem;
+    background-color: rgba(119, 136, 152, 0.88);
+    box-shadow: 0 8px 6px -6px dimgrey;
+}
+
+.suCardGreen {
+    border-radius: 5px;
+    color: white;
+    font-family: sans-serif;
+    line-height: 1.5;
+    padding: 1rem 2rem;
+    background-color: rgba(95, 174, 180, 0.88);
+    box-shadow: 0 8px 6px -6px dimgrey;
+    transition: all .3s ease-in-out;
+    height: 100%;
+    width: 100%;
+}
+
+.suCardGreen:hover {
+    box-shadow: rgba(95, 174, 180, 0.22) 0px 20px 10px;
+    margin-top: -1px;
+}
+
+.suCardBlue {
+    border-radius: 5px;
+    color: white;
+    font-family: sans-serif;
+    line-height: 1.5;
+    padding: 1rem 2rem;
+    background-color: rgba(64, 97, 132, 0.88);
+    box-shadow: 0 8px 6px -6px dimgrey;
+    transition: all .3s ease-in-out;
+    height: 100%;
+    width: 100%;
+}
+
+.suCardBlue:hover {
+    box-shadow: rgba(64, 97, 132, 0.22) 0px 20px 10px;
+    margin-top: -1px;
+}
+
+.suContainer {
+    height: 100%;
+    width: 100%;
+}
+
+.setting {
+    display: flex;
+    justify-content: flex-end;
+    height: 8px;
+    font-size: 12px;
+    font-style: oblique;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-bottom: 0px;
+}

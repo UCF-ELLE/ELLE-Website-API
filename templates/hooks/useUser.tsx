@@ -1,0 +1,31 @@
+import { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
+import AuthService from '@/services/AuthService';
+import { AuthUser } from '@/types/services/auth';
+
+export function useUser() {
+    const [user, setUser] = useState<AuthUser>();
+    const [loading, setLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        const userCookie = Cookies.get('currentUser');
+        if (userCookie) {
+            setUser(JSON.parse(userCookie));
+        }
+        setLoading(false);
+    }, []);
+
+    const getUserInfo = async () => {
+        const _as = new AuthService();
+        const userInfo = await _as.getUserInfo(user?.jwt as string);
+        return userInfo;
+    };
+
+    const generateUsername = async () => {
+        const _as = new AuthService();
+        const username = _as.generateUsername();
+        return username;
+    };
+
+    return { user, loading, getUserInfo, generateUsername };
+}
