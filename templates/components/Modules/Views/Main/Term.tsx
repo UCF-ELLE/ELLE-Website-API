@@ -226,8 +226,8 @@ export default function Term({
         setTags(JSON.parse(JSON.stringify(originalTags)));
     };
 
-    let imgLink = selectedImgFile;
-    let audioLink = selectedAudioFile;
+    let imgLink = '/ellemedia/' + selectedImgFile;
+    let audioLink = '/ellemedia/' + selectedAudioFile;
 
     let disableImgButton = !selectedImgFile;
     let disableAudioButton = !selectedAudioFile;
