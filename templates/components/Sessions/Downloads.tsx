@@ -196,7 +196,7 @@ export function DownloadLoggedUserItems() {
     return (
         <>
             <Button
-                id='downloadLoggedPastas'
+                id='downloadLoggedUserItems'
                 style={{
                     backgroundColor: '#37f0f9',
                     color: 'black',
@@ -213,7 +213,7 @@ export function DownloadLoggedUserItems() {
                 <DownloadSpinner loading={loading} type='itemBtn' />
             </Button>
 
-            <Tooltip placement='top' isOpen={loggedUserItemTooltipOpen} target='downloadLoggedAnswers' toggle={() => toggleLoggedUserItemTooltip()}>
+            <Tooltip placement='top' isOpen={loggedUserItemTooltipOpen} target='downloadLoggedUserItems' toggle={() => toggleLoggedUserItemTooltip()}>
                 Download Logged User Items
             </Tooltip>
         </>
