@@ -27,6 +27,7 @@ from resources.store import (
     AllUserItems,
     AllUserPurchasableItems,
     ChangeUserItemColor,
+    GetUserItemCSV,
     LoadDefaultUserItems,
     LoggedUserItem,
     PurchaseUserItem,
@@ -317,6 +318,7 @@ api.add_resource(
     LoadDefaultUserItems, API_ENDPOINT_PREFIX + "store/user/loaddefaultitems"
 )
 api.add_resource(LoggedUserItem, API_ENDPOINT_PREFIX + "store/user/items/logged")
+api.add_resource(GetUserItemCSV, API_ENDPOINT_PREFIX + "store/user/items/logged/csv")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)

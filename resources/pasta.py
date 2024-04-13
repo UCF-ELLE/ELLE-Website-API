@@ -8,7 +8,6 @@ from db_utils import *
 from utils import *
 from exceptions_util import *
 from datetime import datetime
-import codecs
 
 
 def timedelta_to_time(delta):

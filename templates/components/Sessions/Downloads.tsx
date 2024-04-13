@@ -11,6 +11,7 @@ export function Downloads() {
             <DownloadSessionLogs />
             <DownloadGameLogs />
             <DownloadLoggedPastas />
+            <DownloadLoggedUserItems />
         </Col>
     );
 }
@@ -119,8 +120,8 @@ export function DownloadSessionLogs() {
 
 export function DownloadLoggedPastas() {
     const { user } = useUser();
-    const [loggedPastaTooltipOpen, setLoggedAnsTooltipOpen] = useState(false);
-    const toggleLoggedPastaTooltip = () => setLoggedAnsTooltipOpen(!loggedPastaTooltipOpen);
+    const [loggedPastaTooltipOpen, setLoggedPastaTooltipOpen] = useState(false);
+    const toggleLoggedPastaTooltip = () => setLoggedPastaTooltipOpen(!loggedPastaTooltipOpen);
 
     const [{ data, loading, error }, refetchCSV] = useAxios<string>(
         {
@@ -161,8 +162,59 @@ export function DownloadLoggedPastas() {
                 <DownloadSpinner loading={loading} type='pastaBtn' />
             </Button>
 
-            <Tooltip placement='top' isOpen={loggedPastaTooltipOpen} target='downloadLoggedAnswers' toggle={() => toggleLoggedPastaTooltip()}>
+            <Tooltip placement='top' isOpen={loggedPastaTooltipOpen} target='downloadLoggedPastas' toggle={() => toggleLoggedPastaTooltip()}>
                 Download Logged Pastas
+            </Tooltip>
+        </>
+    );
+}
+
+export function DownloadLoggedUserItems() {
+    const { user } = useUser();
+    const [loggedUserItemTooltipOpen, setLoggedUserItemTooltipOpen] = useState(false);
+    const toggleLoggedUserItemTooltip = () => setLoggedUserItemTooltipOpen(!loggedUserItemTooltipOpen);
+
+    const [{ data, loading, error }, refetchCSV] = useAxios<string>(
+        {
+            method: 'get',
+            url: '/elleapi/store/user/items/logged/csv',
+            headers: { Authorization: 'Bearer ' + user?.jwt }
+        },
+        { manual: true }
+    );
+
+    useEffect(() => {
+        if (loading || error || !data) return;
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'logged_user_items.csv');
+        document.body.appendChild(link);
+        link.click();
+    }, [data, loading, error]);
+
+    return (
+        <>
+            <Button
+                id='downloadLoggedUserItems'
+                style={{
+                    backgroundColor: '#37f0f9',
+                    color: 'black',
+                    border: 'none',
+                    marginRight: '15px',
+                    display: 'grid',
+                    fontSize: '10px',
+                    fontWeight: '700',
+                    padding: '2px 2px 0 2px',
+                    minWidth: '50px'
+                }}
+                onClick={() => refetchCSV()}
+            >
+                <DownloadSpinner loading={loading} type='itemBtn' />
+            </Button>
+
+            <Tooltip placement='top' isOpen={loggedUserItemTooltipOpen} target='downloadLoggedUserItems' toggle={() => toggleLoggedUserItemTooltip()}>
+                Download Logged User Items
             </Tooltip>
         </>
     );
