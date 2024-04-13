@@ -1,9 +1,7 @@
 # Setup a Development Server on Digital Ocean
 
 1. Start up a new Digital Ocean Droplet (use a Marketplace Droplet with MySQL bundled in, otherwise you'll have to install the MySQL client and server, steps not provided). You'll need at least 2 GB of RAM to build the React site on the server. The steps below were tested using Ubuntu 22.04.
-
 2. After that, go to your Digital Ocean dashboard and on the left sidebar click **Networking**. Click on the **Firewall** tab and create a firewall. Your firewall should have ports open, at the very minimum, for 22, 80, 443, 5050 (range 5000-5050), and 3000.
-
 3. As the root user, run:
 
 ```
@@ -22,9 +20,9 @@ CREATE USER 'elle'@'localhost' IDENTIFIED BY 'INSERT_PASSWORD';
 GRANT INSERT, UPDATE, DELETE, SELECT ON elle_database.* TO 'elle'@'localhost';
 ```
 
--   Ensure the permissions were granted to the new user by running `SHOW GRANTS for 'elle'@'localhost';`
--   If you used a droplet with MySQL and phpmyadmin bundled in, you can now login to phpMyAdmin using this user.
-    -   You should be able to access it at [IP_ADDRESS]/phpmyadmin
+- Ensure the permissions were granted to the new user by running `SHOW GRANTS for 'elle'@'localhost';`
+- If you used a droplet with MySQL and phpmyadmin bundled in, you can now login to phpMyAdmin using this user.
+  - You should be able to access it at [IP_ADDRESS]/phpmyadmin
 
 6. Install a Redis database by running:
 
@@ -46,7 +44,7 @@ service redis restart
 systemctl redis status
 ```
 
--   If you encounter any problems installing it, refer to the [guide that was followed](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-20-04) in 2023.
+- If you encounter any problems installing it, refer to the [guide that was followed](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-20-04) in 2023.
 
 9. Run:
 
@@ -59,7 +57,6 @@ apt-get install python3.11
 ```
 
 10. Clone the GitHub repo: `git clone https://github.com/UCF-ELLE/ELLE-Website-API.git`. (It doesn't matter what directory you clone into, but old static file servers typically host at `/var/www/`. The production site hosts from the `/home/elle` directory, so don't be opposed to cloning into your home directory.)
-
 11. Then install the Python requirements:
 
 ```
@@ -84,7 +81,7 @@ MYSQL_DATABASE_HOST = 'localhost'
 SECRET_KEY = 'ian'
 ```
 
--   Note: What `SECRET_KEY` does is a mystery
+- Note: What `SECRET_KEY` does is a mystery
 
 14. Go to `ELLE-Website-API/templates` then build the React website:
 
@@ -103,7 +100,7 @@ touch elle.conf
 
 16. Paste this content into the file:
 
-```
+```apache
 <VirtualHost *:80>
     ServerName INSERT_YOUR_DROPLET'S_IP_ADDRESS
     DocumentRoot /var/www/html

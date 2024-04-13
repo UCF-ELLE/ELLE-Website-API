@@ -11,8 +11,8 @@ node_modules/
 
 
 # Upload-related folders
-deletes
-uploads
+deletes/*
+!deletes/.gitkeep
 images/*
 !images/.gitkeep
 audios/*

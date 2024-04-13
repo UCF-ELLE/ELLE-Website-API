@@ -5,6 +5,7 @@ import Spinner from './Spinner';
 import csvImage from '@/public/static/images/csv.png';
 import logImage from '@/public/static/images/log.png';
 import pastaImage from '@/public/static/images/pastaCSV.png';
+import itemImage from '@/public/static/images/itemCSV.png';
 
 function DownloadSpinner({ loading, type }: { loading: boolean; type?: string }) {
     const ImageComponent = useMemo(() => {
@@ -39,6 +40,22 @@ function DownloadSpinner({ loading, type }: { loading: boolean; type?: string })
                             alt='pasta icon'
                         />{' '}
                         Pasta
+                    </>
+                );
+            case 'itemBtn':
+                return (
+                    <>
+                        <Image
+                            style={{
+                                width: '30px',
+                                height: '30px',
+                                display: 'flex',
+                                justifySelf: 'center'
+                            }}
+                            src={itemImage}
+                            alt='item icon'
+                        />{' '}
+                        Items
                     </>
                 );
             default:
