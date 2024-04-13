@@ -374,16 +374,14 @@ class LoadDefaultUserItems(Resource):
         # If the user is logging in for the first time, wear the default items
         data["firstTime"] = getParameter("firstTime", str, False, "")
 
-        if (
-            not data["firstTime"]
-            or data["firstTime"].lower() == "false"
-            or data["firstTime"] == "0"
-        ):
-            data["firstTime"] = False
-        elif data["firstTime"].lower() == "true" or data["firstTime"] == "1":
-            data["firstTime"] = True
-        else:
-            return errorMessage("Invalid firstTime parameter"), 400
+        # If firstTime is provided, check if it is a valid boolean
+        if data["firstTime"] != None:
+            if data["firstTime"].lower() == "false" or data["firstTime"] == "0":
+                data["firstTime"] = False
+            elif data["firstTime"].lower() == "true" or data["firstTime"] == "1":
+                data["firstTime"] = True
+            else:
+                return errorMessage("Invalid firstTime parameter"), 400
 
         permission, user_id = validate_permissions()
 
@@ -399,7 +397,7 @@ class LoadDefaultUserItems(Resource):
 
             # If the request does not provide the firstTime parameter, check if the user already has items
             # If so, we can assume it is not the first time
-            if not data["firstTime"]:
+            if data["firstTime"] == None:
                 query = "SELECT COUNT(userItemID) FROM `user_item` WHERE `userID` = %s"
                 result = getFromDB(query, data["userID"], conn, cursor)
 
