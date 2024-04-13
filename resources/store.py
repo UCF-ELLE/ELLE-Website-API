@@ -818,7 +818,7 @@ class LoggedUserItem(Resource):
 
 
 class GetUserItemCSV(Resource):
-    """API to download a CSV of all logged pasta records"""
+    """API to download a CSV of all logged user_item records"""
 
     @jwt_required
     def get(self):
@@ -836,7 +836,7 @@ class GetUserItemCSV(Resource):
         except redis.exceptions.ConnectionError:
             redis_conn = None
 
-        checksum_query = "CHECKSUM TABLE `logged_pasta`"
+        checksum_query = "CHECKSUM TABLE `logged_user_item`"
         checksum = getFromDB(checksum_query)
         checksum = str(checksum[0][1])
 
@@ -848,7 +848,7 @@ class GetUserItemCSV(Resource):
         if checksum == logged_user_item_chks:
             csv = redis_conn.get("logged_user_item_csv")
         else:
-            last_query = "SELECT MAX(logID) FROM `logged_pasta`"
+            last_query = "SELECT MAX(logItemID) FROM `logged_user_item`"
             last_db_id = getFromDB(last_query)
             last_db_id = str(last_db_id[0][0])
 
@@ -857,7 +857,7 @@ class GetUserItemCSV(Resource):
             else:
                 last_rd_id = None
 
-            count_query = "SELECT COUNT(*) FROM `logged_pasta`"
+            count_query = "SELECT COUNT(*) FROM `logged_user_item`"
             db_count = getFromDB(count_query)
             db_count = str(db_count[0][0])
 
@@ -867,13 +867,13 @@ class GetUserItemCSV(Resource):
                 rd_log_user_item_count = None
 
             query = """
-                    SELECT lui.logID, ui.userID, u.username, s.moduleID, m.name, i.game, i.itemID, i.itemType, i.name, ui.color, i.gender, lui.sessionID
+                    SELECT lui.logItemID, ui.userID, u.username, s.moduleID, m.name, i.game, i.itemID, i.itemType, i.name, ui.color, i.gender, lui.sessionID
                     FROM logged_user_item lui
                     INNER JOIN user_item ui ON lui.userItemID = ui.userItemID
                     INNER JOIN user u ON ui.userID = u.userID
                     INNER JOIN item i ON ui.itemID = i.itemID
-                    INNER JOIN module m ON i.game = m.game
-                    INNER JOIN session s ON lui.sessionID = s.sessionID;
+                    INNER JOIN session s ON lui.sessionID = s.sessionID
+                    INNER JOIN module m ON m.moduleID = s.moduleID;
                     """
 
             if db_count != rd_log_user_item_count or rd_log_user_item_count is None:
@@ -882,7 +882,7 @@ class GetUserItemCSV(Resource):
 
             else:
                 csv = ""
-                query += f"WHERE lp.logID > {last_db_id}"
+                query += f"WHERE lui.logItemID > {last_db_id}"
                 results = getFromDB(query)
                 if redis_conn.get("logged_user_item_csv") is not None:
                     csv = redis_conn.get("logged_user_item_csv")
@@ -911,5 +911,7 @@ class GetUserItemCSV(Resource):
         return Response(
             csv,
             mimetype="text/csv",
-            headers={"Content-disposition": "attachment; filename=Logged_Pastas.csv"},
+            headers={
+                "Content-disposition": "attachment; filename=Logged_User_Items.csv"
+            },
         )
