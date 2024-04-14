@@ -161,8 +161,8 @@
         - Authorization: JWT token
     - **Body:**
         - userID (int, required): ID of the user.
-        - firstTime (string, optional): Indicates whether it is the user's first time logging in. If not provided, the system checks if the user already has items. If provided, must be a valid boolean value (true/false or 1/0).
         - game (string, required): Name of the game for which default items are to be loaded.
+        - firstTime (string, optional): Indicates whether it is the user's first time logging in. If not provided, the system checks if the user already has items. If provided, must be a valid boolean value (true/false or 1/0).
     - **Returns:**
         - JSON object containing a success message confirming the loading of default items.
 

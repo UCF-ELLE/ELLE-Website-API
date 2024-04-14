@@ -602,7 +602,7 @@ class LoadDefaultUserItems(Resource):
     def post(self):
         data = {}
         data["userID"] = getParameter("userID", int, True, "")
-        data["game"] = getParameter("game", int, True, "")
+        data["game"] = getParameter("game", str, True, "")
         # If the user is logging in for the first time, wear the default items
         data["firstTime"] = getParameter("firstTime", str, False, "")
 
