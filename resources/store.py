@@ -630,8 +630,8 @@ class LoadDefaultUserItems(Resource):
             # If the request does not provide the firstTime parameter, check if the user already has items
             # If so, we can assume it is not the first time
             if data["firstTime"] == None:
-                query = "SELECT COUNT(userItemID) FROM `user_item` WHERE `userID` = %s"
-                result = getFromDB(query, data["userID"], conn, cursor)
+                query = "SELECT COUNT(userItemID) FROM `user_item` WHERE `userID` = %s AND `game` = %s"
+                result = getFromDB(query, (data["userID"], data["game"]), conn, cursor)
 
                 if result[0][0] > 0:
                     data["firstTime"] = False
