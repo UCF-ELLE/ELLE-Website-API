@@ -77,7 +77,7 @@ class StoreItem(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage(str(error)), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -120,7 +120,7 @@ class StoreItem(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage(str(error)), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -190,7 +190,7 @@ class StoreItem(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage("An error occurred while updating the item."), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -229,7 +229,7 @@ class StoreItem(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage("An error occurred while deleting the item."), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -280,7 +280,7 @@ class AllStoreItems(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage(str(error)), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -325,7 +325,7 @@ class UserItem(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage(str(error)), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -385,7 +385,7 @@ class UserItem(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage(str(error)), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -435,7 +435,7 @@ class UserItem(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage("An error occurred while deleting the user item."), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -512,7 +512,7 @@ class UserItem(Resource):
         except Exception as error:
             print(error)
             conn.rollback()
-            return errorMessage("An error occurred while updating the user item."), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -589,7 +589,7 @@ class PurchaseUserItem(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage(str(error)), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -681,7 +681,7 @@ class LoadDefaultUserItems(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage(str(error)), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -781,7 +781,7 @@ class WearUserItem(Resource):
         except Exception as error:
             print(error)
             conn.rollback()
-            return errorMessage("An error occurred while updating the user item."), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -839,7 +839,7 @@ class ChangeUserItemColor(Resource):
         except Exception as error:
             print(error)
             conn.rollback()
-            return errorMessage("An error occurred while updating the user item."), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -904,7 +904,7 @@ class AllUserItems(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage(str(error)), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -924,6 +924,9 @@ class AllUserItems(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
+            query = "DELETE FROM `logged_user_item` WHERE `sessionID` IN (SELECT `sessionID` FROM `session` WHERE `userID` = %s)"
+            postToDB(query, data["userID"], conn, cursor)
+
             query = "DELETE FROM `user_item` WHERE `userID` = %s AND `game` = %s"
             postToDB(query, (data["userID"], data["game"]), conn, cursor)
 
@@ -936,7 +939,7 @@ class AllUserItems(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage("An error occurred while deleting the user items."), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
@@ -1041,7 +1044,7 @@ class LoggedUserItem(Resource):
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
-            return errorMessage("An error occurred while logging the user items."), 500
+            return errorMessage(error), 500
         finally:
             if conn.open:
                 cursor.close()
