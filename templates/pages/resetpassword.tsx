@@ -1,12 +1,12 @@
-import React, { Component, useState } from 'react';
-import { Button, Form, FormGroup, Input, Label, InputGroup, FormFeedback, Alert } from 'reactstrap';
-import axios from 'axios';
-import Image from 'next/image';
-import '../stylesheets/loginstyle.css';
 import Layout from '@/app/layout';
 import { useUser } from '@/hooks/useUser';
+import '@/public/static/css/loginstyle.css';
 import hideImage from '@/public/static/images/hide.png';
 import showImage from '@/public/static/images/show.png';
+import axios from 'axios';
+import Image from 'next/image';
+import React, { useState } from 'react';
+import { Alert, Button, Form, FormFeedback, FormGroup, Input, InputGroup, Label } from 'reactstrap';
 
 export default function ResetPassword() {
     const [email, setEmail] = useState('');
