@@ -924,6 +924,9 @@ class AllUserItems(Resource):
             conn = mysql.connect()
             cursor = conn.cursor()
 
+            query = "DELETE FROM `logged_user_item` WHERE `sessionID` IN (SELECT `sessionID` FROM `session` WHERE `userID` = %s)"
+            postToDB(query, data["userID"], conn, cursor)
+
             query = "DELETE FROM `user_item` WHERE `userID` = %s AND `game` = %s"
             postToDB(query, (data["userID"], data["game"]), conn, cursor)
 
