@@ -287,6 +287,238 @@ class AllStoreItems(Resource):
                 conn.close()
 
 
+class UserItem(Resource):
+    # returns the user item specified with the ID and returns the user item with of properties assoicatied with that user item
+    @jwt_required
+    def get(self):
+        data = {}
+        data["userItemID"] = getParameter("userItemID", int, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = "SELECT * FROM `user_item` WHERE `userItemID` = %s"
+            result = getFromDB(query, data["userItemID"], conn, cursor)
+            if len(result) == 0:
+                raise CustomException("User item does not exist!", 404)
+            user_item = {
+                "userItemID": result[0][0],
+                "userID": result[0][1],
+                "itemID": result[0][2],
+                "timeOfPurchase": result[0][3].strftime("%Y-%m-%d %H:%M:%S"),
+                "game": result[0][4],
+                "isWearing": result[0][5],
+                "color": result[0][6],
+            }
+
+            raise ReturnSuccess(user_item, 200)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+    @jwt_required
+    def post(self):
+        data = {}
+        data["userID"] = getParameter("userID", int, True, "")
+        data["itemID"] = getParameter("itemID", int, True, "")
+        data["timeOfPurchase"] = getParameter("timeOfPurchase", str, True, "")
+        data["game"] = getParameter("game", str, True, "")
+        data["isWearing"] = getParameter("isWearing", str, True, "")
+        data["color"] = getParameter("color", str, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = "INSERT INTO `user_item` (`userID`, `itemID`, `timeOfPurchase`, `game`, `isWearing`, `color`) VALUES (%s, %s, %s, %s, %s, %s)"
+            postToDB(
+                query,
+                (
+                    data["userID"],
+                    data["itemID"],
+                    data["timeOfPurchase"],
+                    data["game"],
+                    data["isWearing"],
+                    data["color"],
+                ),
+                conn,
+                cursor,
+            )
+
+            # Get userItemID of the user item that was just added
+            query = "SELECT `userItemID` FROM `user_item` WHERE `userID` = %s AND `itemID` = %s"
+            result = getFromDB(query, (data["userID"], data["itemID"]), conn, cursor)
+            for row in result:
+                userItemID = row[0]
+
+            raise ReturnSuccess(
+                {
+                    "Message": "Successfully created a user item",
+                    "userItemID": int(userItemID),
+                },
+                201,
+            )
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+    # deletes a user item from the database table
+    @jwt_required
+    def delete(self):
+        data = {}
+        data["userItemID"] = getParameter("userItemID", int, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = "SELECT * FROM `user_item` WHERE `userItemID` = %s"
+            result = getFromDB(query, data["userItemID"], conn, cursor)
+            if len(result) == 0:
+                return errorMessage("User item does not exist!"), 404
+            user_item = {
+                "userItemID": result[0][0],
+                "userID": result[0][1],
+                "itemID": result[0][2],
+                "timeOfPurchase": result[0][3].strftime("%Y-%m-%d %H:%M:%S"),
+                "game": result[0][4],
+                "isWearing": result[0][5],
+                "color": result[0][6],
+            }
+
+            # Check if the user has the item
+            if user_item["userID"] != user_id and permission != "su":
+                return errorMessage("You do not have access to this item!"), 404
+
+            query = "DELETE FROM `user_item` WHERE `userItemID` = %s"
+            postToDB(query, (data["userItemID"],), conn, cursor)
+
+            raise ReturnSuccess({"Message": "Successfully deleted the user item"}, 200)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage("An error occurred while deleting the user item."), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+    @jwt_required
+    def put(self):
+        data = {}
+        data["userItemID"] = getParameter("userItemID", int, True, "")
+        data["userID"] = getParameter("userID", int, False, "")
+        data["itemID"] = getParameter("itemID", int, False, "")
+        data["timeOfPurchase"] = getParameter("timeOfPurchase", str, False, "")
+        data["game"] = getParameter("game", str, False, "")
+        data["isWearing"] = getParameter("isWearing", str, False, "")
+        data["color"] = getParameter("color", str, False, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = "SELECT * FROM `user_item` WHERE `userItemID` = %s"
+            result = getFromDB(query, data["userItemID"], conn, cursor)
+            if len(result) == 0:
+                return errorMessage("User item does not exist!"), 404
+            user_item = {
+                "userItemID": result[0][0],
+                "userID": result[0][1],
+                "itemID": result[0][2],
+                "timeOfPurchase": result[0][3].strftime("%Y-%m-%d %H:%M:%S"),
+                "game": result[0][4],
+                "isWearing": result[0][5],
+                "color": result[0][6],
+            }
+
+            # Check if the user has the item
+            if user_item["userID"] != user_id and permission != "su":
+                return errorMessage("You do not have access to this item!"), 404
+
+            update_fields = []
+            query_parameters = []
+
+            for key, value in data.items():
+                if key != "userItemID" and value != None:
+                    update_fields.append("`{}` = %s".format(key))
+                    query_parameters.append(value)
+
+            if not update_fields:
+                return errorMessage("No fields to update provided."), 400
+
+            query = "UPDATE `user_item` SET {} WHERE `userItemID` = %s".format(
+                ", ".join(update_fields)
+            )
+            query_parameters.append(data["userItemID"])
+
+            postToDB(query, tuple(query_parameters))
+
+            raise ReturnSuccess(
+                {
+                    "Message": f"Successfully updated user item {user_item['userItemID']}"
+                },
+                200,
+            )
+
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            print(error)
+            conn.rollback()
+            return errorMessage("An error occurred while updating the user item."), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+
 class PurchaseUserItem(Resource):
     # adds a user item to the database table
     @jwt_required
@@ -370,20 +602,18 @@ class LoadDefaultUserItems(Resource):
     def post(self):
         data = {}
         data["userID"] = getParameter("userID", int, True, "")
-        data["game"] = request.args.get("game", "")
+        data["game"] = getParameter("game", str, True, "")
         # If the user is logging in for the first time, wear the default items
         data["firstTime"] = getParameter("firstTime", str, False, "")
 
-        if (
-            not data["firstTime"]
-            or data["firstTime"].lower() == "false"
-            or data["firstTime"] == "0"
-        ):
-            data["firstTime"] = False
-        elif data["firstTime"].lower() == "true" or data["firstTime"] == "1":
-            data["firstTime"] = True
-        else:
-            return errorMessage("Invalid firstTime parameter"), 400
+        # If firstTime is provided, check if it is a valid boolean
+        if data["firstTime"] != None:
+            if data["firstTime"].lower() == "false" or data["firstTime"] == "0":
+                data["firstTime"] = False
+            elif data["firstTime"].lower() == "true" or data["firstTime"] == "1":
+                data["firstTime"] = True
+            else:
+                return errorMessage("Invalid firstTime parameter"), 400
 
         permission, user_id = validate_permissions()
 
@@ -399,9 +629,9 @@ class LoadDefaultUserItems(Resource):
 
             # If the request does not provide the firstTime parameter, check if the user already has items
             # If so, we can assume it is not the first time
-            if not data["firstTime"]:
-                query = "SELECT COUNT(userItemID) FROM `user_item` WHERE `userID` = %s"
-                result = getFromDB(query, data["userID"], conn, cursor)
+            if data["firstTime"] == None:
+                query = "SELECT COUNT(userItemID) FROM `user_item` WHERE `userID` = %s AND `game` = %s"
+                result = getFromDB(query, (data["userID"], data["game"]), conn, cursor)
 
                 if result[0][0] > 0:
                     data["firstTime"] = False
@@ -683,6 +913,7 @@ class AllUserItems(Resource):
     @jwt_required
     def delete(self):
         data = {}
+        data["userID"] = getParameter("userID", int, True, "")
         data["game"] = getParameter("game", str, True, "")
 
         permission, user_id = validate_permissions()
@@ -694,7 +925,7 @@ class AllUserItems(Resource):
             cursor = conn.cursor()
 
             query = "DELETE FROM `user_item` WHERE `userID` = %s AND `game` = %s"
-            postToDB(query, (user_id, data["game"]), conn, cursor)
+            postToDB(query, (data["userID"], data["game"]), conn, cursor)
 
             raise ReturnSuccess({"Message": "Successfully deleted the user items"}, 200)
         except CustomException as error:

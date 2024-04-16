@@ -32,6 +32,7 @@ from resources.store import (
     LoggedUserItem,
     PurchaseUserItem,
     StoreItem,
+    UserItem,
     WearUserItem,
 )
 from resources.user import (
@@ -307,6 +308,7 @@ api.add_resource(GetPastaCSV, API_ENDPOINT_PREFIX + "pastagame/loggedpasta/csv")
 # Store Specific Endpoints
 api.add_resource(StoreItem, API_ENDPOINT_PREFIX + "store/item")
 api.add_resource(AllStoreItems, API_ENDPOINT_PREFIX + "store/items")
+api.add_resource(UserItem, API_ENDPOINT_PREFIX + "store/user/item")
 api.add_resource(PurchaseUserItem, API_ENDPOINT_PREFIX + "store/purchase")
 api.add_resource(WearUserItem, API_ENDPOINT_PREFIX + "store/wear")
 api.add_resource(AllUserItems, API_ENDPOINT_PREFIX + "store/user/items")

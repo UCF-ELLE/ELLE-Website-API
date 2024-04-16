@@ -1,258 +1,292 @@
 ### `StoreItem` Class
 
-**Endpoint**: `/api/store/item`
+**Endpoint:** `/elleapi/store/item`
 
 #### Methods:
 
 1. `POST`
 
-    - **Description:** Adds an item to the database table.
-    - **Authorization:** JWT token required.
-    - **Request Body:**
-        - `name` (str, required): Name of the item.
-        - `game` (str, required): Game associated with the item.
-        - `itemType` (str, required): Type of the item.
-        - `points` (int, optional): Points associated with the item.
-        - `isDefault` (bool, optional): Indicates if the item is default.
-        - `gender` (enum('M', 'F', 'N'), optional): Gender associated with the item.
+    - Adds an item to the database table.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Body:**
+        - name (string, required): Name of the item.
+        - game (string, required): Name of the game associated with the item.
+        - itemType (string, required): Type of the item.
+        - points (int, optional): Points associated with the item.
+        - isDefault (string, optional): Whether the item is default. If not provided, defaults to False.
+        - gender (string, optional): Gender associated with the item. If not provided or invalid, defaults to "N".
     - **Returns:**
-        - If successful:
-            - Status Code: 201
-            - Content: JSON object containing the newly created item's ID and a success message.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON object containing a success message and the ID of the newly created item.
 
 2. `GET`
 
-    - **Description:** Retrieves the item specified by `itemID` along with its properties.
-    - **Authorization:** JWT token required.
-    - **Query Parameters:**
-        - `itemID` (int, required): ID of the item to retrieve.
+    - Returns the item specified with the ID and returns the item with properties associated with that item.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Params:**
+        - itemID (int, optional): ID of the item.
     - **Returns:**
-        - If successful:
-            - Status Code: 200
-            - Content: JSON object containing the retrieved item's properties.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If the item does not exist:
-            - Status Code: 404
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON object representing the item with properties associated with it.
 
 3. `PUT`
 
-    - **Description:** Updates an item in the database table.
-    - **Authorization:** JWT token required.
-    - **Request Body:**
-        - `itemID` (int, required): ID of the item to update.
-        - `name` (str, optional): Updated name of the item.
-        - `game` (str, optional): Updated game associated with the item.
-        - `itemType` (str, optional): Updated type of the item.
-        - `points` (int, optional): Updated points associated with the item.
-        - `isDefault` (bool, optional): Updated indication if the item is default.
-        - `gender` (enum('M', 'F', 'N'), optional): Updated gender associated with the item.
+    - Updates an item in the database table.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Body:**
+        - itemID (int, required): ID of the item to update.
+        - name (string, optional): Name of the item.
+        - game (string, optional): Name of the game associated with the item.
+        - itemType (string, optional): Type of the item.
+        - points (int, optional): Points associated with the item.
+        - isDefault (string, optional): Whether the item is default. If not provided, defaults to False.
+        - gender (string, optional): Gender associated with the item.
     - **Returns:**
-        - If successful:
-            - Status Code: 200
-            - Content: JSON object containing a success message.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON object containing a success message confirming the update of the item.
 
 4. `DELETE`
 
-    - **Description:** Deletes an item from the database table.
-    - **Authorization:** JWT token required.
-    - **Query Parameters:**
-        - `itemID` (int, required): ID of the item to delete.
+    - Deletes an item from the database table.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Params:**
+        - itemID (int, required): ID of the item.
     - **Returns:**
-        - If successful:
-            - Status Code: 200
-            - Content: JSON object containing a success message.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON object containing a success message confirming the deletion of the item.
 
 ### `AllStoreItems` Class
 
-**Endpoint**: `/api/store/items`
+**Endpoint:** `/elleapi/store/items`
 
 #### Methods:
 
 1. `GET`
 
-    - **Description:** Retrieves all items from the database table. Can be filtered by game.
-    - **Authorization:** JWT token required.
-    - **Query Parameters:**
-        - `game` (str, optional): Filters items by the specified game.
+    - Returns all items in the database table.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Params:**
+        - game (string, optional): Name of the game to filter items by.
     - **Returns:**
-        - If successful:
-            - Status Code: 200
-            - Content: JSON array containing objects representing items.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON array containing objects representing each item with their respective properties.
+
+### `UserItem` Class
+
+**Endpoint:** `/elleapi/user/item`
+
+#### Methods:
+
+1. `GET`
+
+    - Returns the user item specified with the ID and returns the user item with properties associated with that user item.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Params:**
+        - userItemID (int, required): ID of the user item.
+    - **Returns:**
+        - JSON object representing the user item with properties associated with it.
+
+2. `POST`
+
+    - Adds a user item to the database table.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Body:**
+        - userID (int, required): ID of the user purchasing the item.
+        - itemID (int, required): ID of the item being purchased.
+        - timeOfPurchase (string, required): Time of purchase in the format YYYY-MM-DD HH:MM:SS.
+        - game (string, required): Name of the game associated with the item.
+        - isWearing (string, required): Indicates whether the user is wearing the item.
+        - color (string, required): Color of the item.
+    - **Returns:**
+        - JSON object containing a success message and the ID of the newly created user item.
+
+3. `DELETE`
+
+    - Deletes a user item from the database table.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Params:**
+        - userItemID (int, required): ID of the user item.
+    - **Returns:**
+        - JSON object containing a success message confirming the deletion of the user item.
+
+4. `PUT`
+
+    - Updates a user item in the database table.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Body:**
+        - userItemID (int, required): ID of the user item to update.
+        - userID (int, optional): ID of the user purchasing the item.
+        - itemID (int, optional): ID of the item being purchased.
+        - timeOfPurchase (string, optional): Time of purchase in the format YYYY-MM-DD HH:MM:SS.
+        - game (string, optional): Name of the game associated with the item.
+        - isWearing (string, optional): Indicates whether the user is wearing the item.
+        - color (string, optional): Color of the item.
+    - **Returns:**
+        - JSON object containing a success message confirming the update of the user item.
 
 ### `PurchaseUserItem` Class
 
-**Endpoint**: `/api/store/purchase`
+**Endpoint:** `/elleapi/store/purchase`
 
 #### Methods:
 
 1. `POST`
 
-    - **Description:** Adds a user item to the database table upon purchase.
-    - **Authorization:** JWT token required.
-    - **Request Body:**
-        - `userID` (int, required): ID of the user purchasing the item.
-        - `itemID` (int, required): ID of the item being purchased.
-        - `game` (str, required): Game associated with the purchase.
-        - `isWearing` (bool, optional): Indicates if the item is being worn by the user (default: False).
+    - Adds a user item to the database table.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Body:**
+        - userID (int, required): ID of the user purchasing the item.
+        - itemID (int, required): ID of the item being purchased.
+        - game (string, required): Name of the game associated with the item.
+        - isWearing (string, optional): Indicates whether the user is wearing the item. If not provided, defaults to False.
+        - color (string, optional): Color of the item.
     - **Returns:**
-        - If successful:
-            - Status Code: 201
-            - Content: JSON object containing a success message and the ID of the purchased user item.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON object containing a success message and the ID of the newly purchased user item.
 
 ### `LoadDefaultUserItems` Class
 
-**Endpoint**: `/api/store/user/loaddefaultitems`
+**Endpoint:** `/elleapi/store/loaddefaultitems`
 
 #### Methods:
 
 1. `POST`
 
-    - **Description:** Loads default items for a game into the `user_item` table when the user logs in. If the user is logging in for the first time, the first default
-      item of each item type is worn automatically.
-    - **Authorization:** JWT token required.
-    - **Request Body:**
-        - `userID` (int, required): ID of the user logging in.
-        - `firstTime` (bool, optional): Indicates if the user is logging in for the first time (default: dependent on if user has any items).
-    - **Query Parameters:**
-        - `game` (str, required): Game for which default items should be loaded.
+    - Loads default user items for a specific game.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Body:**
+        - userID (int, required): ID of the user.
+        - game (string, required): Name of the game for which default items are to be loaded.
+        - firstTime (string, optional): Indicates whether it is the user's first time logging in. If not provided, the system checks if the user already has items. If provided, must be a valid boolean value (true/false or 1/0).
     - **Returns:**
-        - If successful:
-            - Status Code: 201
-            - Content: JSON object containing a success message.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If the game is not provided:
-            - Status Code: 400
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON object containing a success message confirming the loading of default items.
 
 ### `WearUserItem` Class
 
-**Endpoint**: `/api/store/wear`
+**Endpoint:** `/elleapi/store/wear`
 
 #### Methods:
 
 1. `PUT`
 
-    - **Description:** Updates a user item in the database table, indicating whether it is being worn or not.
-    - **Authorization:** JWT token required.
-    - **Request Body:**
-        - `userItemID` (int, required): ID of the user item to update.
-        - `isWearing` (bool, required): Indicates whether the item is being worn (`"true"` or `"false"`).
-        - `replaceItem` (bool, optional): Indicates whether the item that is being worn should replace items of a similar type that are currently being worn.
+    - Updates a user item to indicate whether it is being worn.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Body:**
+        - userItemID (int, required): ID of the user item.
+        - isWearing (string, required): Indicates whether the item is being worn. Must be a valid boolean value (true/false or 1/0).
+        - replaceItem (string, optional): Indicates whether the item is replacing a currently worn item. Must be a valid boolean value (true/false or 1/0). If true, and if the user is currently wearing an item of the same type, the wear flag will be removed from that item.
     - **Returns:**
-        - If successful:
-            - Status Code: 200
-            - Content: JSON object containing a success message. Optionally, if another item was replaced by the updated item, the replaced item's name is included in the response.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON object containing a success message indicating the update status of the user item. If applicable, it also contains information about the replaced item.
+
+### `ChangeUserItemColor` Class
+
+**Endpoint:** `/elleapi/store/user/items/color`
+
+#### Methods:
+
+1. `PUT`
+
+    - Updates the color of a user item in the database table.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Body:**
+        - userItemID (int, required): ID of the user item.
+        - color (string, required): New color value for the user item.
+    - **Returns:**
+        - JSON object containing a success message indicating the color change status of the user item.
 
 ### `AllUserItems` Class
 
-**Endpoint**: `/api/store/user/items`
+**Endpoint:** `/elleapi/store/user/items`
 
 #### Methods:
 
 1. `GET`
 
-    - **Description:** Retrieves all user items from the database table. Can be filtered by userID and/or game.
-    - **Authorization:** JWT token required.
+    - Returns all user items in the database table.
+    - **Headers:**
+        - Authorization: JWT token
     - **Query Parameters:**
-        - `userID` (int, optional): ID of the user whose items to retrieve.
-        - `game` (str, optional): Game associated with the items to retrieve.
+        - userID (int, optional): ID of the user whose items are to be fetched.
+        - game (string, optional): Name of the game for filtering items.
     - **Returns:**
-        - If successful:
-            - Status Code: 200
-            - Content: JSON array containing objects representing user items.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If the user is not authorized to view other users' items:
-            - Status Code: 400
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON object containing a list of user items with their details.
 
 2. `DELETE`
 
-    - **Description:** Deletes all user items for a specific game from the database table.
-    - **Authorization:** JWT token required.
-    - **Request Body:**
-        - `game` (str, required): Game for which user items should be deleted.
+    - Deletes all user items for a specific game from the database table.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Query Parameters:**
+        - game (string, required): Name of the game for which user items are to be deleted.
     - **Returns:**
-        - If successful:
-            - Status Code: 200
-            - Content: JSON object containing a success message.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON object containing a success message indicating the deletion status of the user items.
 
 ### `AllUserPurchasableItems` Class
 
-**Endpoint**: `/api/store/user/purchasable`
+**Endpoint:** `/elleapi/store/user/purchasable`
 
-#### Methods:
+#### Method:
 
 1. `GET`
 
-    - **Description:** Retrieves all items that a user can purchase from the database table. Can be filtered by game.
-    - **Authorization:** JWT token required.
+    - Returns all items that a user can purchase.
+    - **Headers:**
+        - Authorization: JWT token
     - **Query Parameters:**
-        - `game` (str, optional): Game for which purchasable items should be retrieved.
+        - game (string, optional): Name of the game for filtering purchasable items.
     - **Returns:**
-        - If successful:
-            - Status Code: 200
-            - Content: JSON array containing objects representing purchasable items.
-        - If invalid user:
-            - Status Code: 401
-            - Content: Error message
-        - If an error occurs:
-            - Status Code: 500
-            - Content: Error message
+        - JSON object containing a list of purchasable items for the user with their details.
+
+### `LoggedUserItem` Class
+
+**Endpoint:** `/elleapi/store/user/items/logged`
+
+#### Method:
+
+1. `POST`
+
+    - Logs user items for a specific session.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Parameters:**
+        - userID (int, required): The ID of the user whose items are being logged.
+        - sessionID (int, required): The ID of the session to which the user items are being logged.
+    - **Returns:**
+        - JSON object with a success message indicating that user items have been successfully logged.
+
+### `GetUserItemCSV` Class
+
+**Endpoint:** `/elleapi/store/user/items/logged/csv`
+
+#### Method:
+
+1. `GET`
+
+    - Allows downloading a CSV file containing all logged `user_item` records.
+    - **Headers:**
+        - Authorization: JWT token
+    - **Returns:**
+        - CSV file containing the logged `user_item` records.
+    - **Additional Notes:**
+        - The CSV file is formatted with the following columns:
+            1. Logged Item ID
+            2. User ID
+            3. Username
+            4. Module ID
+            5. Module Name
+            6. Game
+            7. Item ID
+            8. Item Type
+            9. Item Name
+            10. Color
+            11. Gender
+            12. Session ID
+        - If the connection to Redis is available and the checksum of the table matches with the cached checksum, the CSV is retrieved from the cache. Otherwise, a new CSV is generated from the database query and cached in Redis.
+        - The CSV file is returned as a downloadable attachment with the filename "Logged_User_Items.csv".
