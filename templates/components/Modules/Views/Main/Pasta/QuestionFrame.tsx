@@ -56,9 +56,9 @@ export default function QuestionFrame({ questionFrame, curModule }: { questionFr
             category: editedCategory,
             splitQuestionVar: editedSplitQuestionVar,
             identifyQuestionVar: editedIdentifyQuestionVar,
-            mc1QuestionText: editedMC1QuestionText,
+            mc1QuestionText: editedMC1QuestionText === '' ? undefined : editedMC1QuestionText,
             mc1Options: editedMC1Options,
-            mc2QuestionText: editedMC2QuestionText,
+            mc2QuestionText: editedMC2QuestionText === '' ? undefined : editedMC2QuestionText,
             mc2Options: editedMC2Options
         };
         console.log(editedQuestionFrame);
