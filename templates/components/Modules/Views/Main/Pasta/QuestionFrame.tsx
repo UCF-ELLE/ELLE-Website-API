@@ -11,11 +11,11 @@ import cancelImage from '@/public/static/images/cancel.png';
 import deleteImage from '@/public/static/images/delete.png';
 import submitImage from '@/public/static/images/submit.png';
 import toolsImage from '@/public/static/images/tools.png';
-import { QuestionFrame } from '@/types/api/pastagame';
+import { QuestionFrame as QuestionFrameType } from '@/types/api/pastagame';
 import { Typeahead, TypeaheadRef } from 'react-bootstrap-typeahead';
 import { Option } from 'react-bootstrap-typeahead/types/types';
 
-export default function QuestionFrame({ questionFrame, curModule }: { questionFrame: QuestionFrame; curModule: Module }) {
+export default function QuestionFrame({ questionFrame, curModule }: { questionFrame: QuestionFrameType; curModule: Module }) {
     const [modal, setModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [editedDisplayName, setEditedDisplayName] = useState(questionFrame.displayName);
@@ -49,7 +49,7 @@ export default function QuestionFrame({ questionFrame, curModule }: { questionFr
 
         setEditMode(false);
 
-        const editedQuestionFrame: QuestionFrame = {
+        const editedQuestionFrame: QuestionFrameType = {
             qframeID: questionFrame.qframeID,
             moduleID: questionFrame.moduleID,
             displayName: editedDisplayName,
