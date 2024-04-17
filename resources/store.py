@@ -334,7 +334,7 @@ class UserItem(Resource):
     @jwt_required
     def post(self):
         data = {}
-        data["userID"] = getParameter("userID", int, True, "")
+        data["userID"] = getParameter("userID", int, False, "")
         data["itemID"] = getParameter("itemID", int, True, "")
         data["timeOfPurchase"] = getParameter("timeOfPurchase", str, True, "")
         data["game"] = getParameter("game", str, True, "")
@@ -344,6 +344,9 @@ class UserItem(Resource):
         permission, user_id = validate_permissions()
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
+
+        if data["userID"] is None:
+            data["userID"] = user_id
 
         try:
             conn = mysql.connect()
@@ -524,7 +527,7 @@ class PurchaseUserItem(Resource):
     @jwt_required
     def post(self):
         data = {}
-        data["userID"] = getParameter("userID", int, True, "")
+        data["userID"] = getParameter("userID", int, False, "")
         data["itemID"] = getParameter("itemID", int, True, "")
         data["timeOfPurchase"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data["game"] = getParameter("game", str, True, "")
@@ -534,6 +537,9 @@ class PurchaseUserItem(Resource):
         permission, user_id = validate_permissions()
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
+
+        if data["userID"] is None:
+            data["userID"] = user_id
 
         if (
             data["isWearing"]
@@ -601,7 +607,7 @@ class LoadDefaultUserItems(Resource):
     @jwt_required
     def post(self):
         data = {}
-        data["userID"] = getParameter("userID", int, True, "")
+        data["userID"] = getParameter("userID", int, False, "")
         data["game"] = getParameter("game", str, True, "")
         # If the user is logging in for the first time, wear the default items
         data["firstTime"] = getParameter("firstTime", str, False, "")
@@ -623,9 +629,20 @@ class LoadDefaultUserItems(Resource):
         if not data["game"]:
             return errorMessage("Game not provided"), 400
 
+        if data["userID"] is None:
+            data["userID"] = user_id
+
         try:
             conn = mysql.connect()
             cursor = conn.cursor()
+
+            # Check if the game exists
+            query = "SELECT DISTINCT `game` FROM `item`";
+            result = getFromDB(query, None, conn, cursor)
+            games = [row[0] for row in result]
+
+            if data["game"] not in games:
+                return errorMessage("Game does not exist!"), 404
 
             # If the request does not provide the firstTime parameter, check if the user already has items
             # If so, we can assume it is not the first time
@@ -913,7 +930,7 @@ class AllUserItems(Resource):
     @jwt_required
     def delete(self):
         data = {}
-        data["userID"] = getParameter("userID", int, True, "")
+        data["userID"] = getParameter("userID", int, False, "")
         data["game"] = getParameter("game", str, True, "")
 
         permission, user_id = validate_permissions()
@@ -1010,12 +1027,15 @@ class LoggedUserItem(Resource):
     @jwt_required
     def post(self):
         data = {}
-        data["userID"] = getParameter("userID", int, True, "")
+        data["userID"] = getParameter("userID", int, False, "")
         data["sessionID"] = getParameter("sessionID", int, True, "")
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
+
+        if data["userID"] is None:
+            data["userID"] = user_id
 
         if permission == "st" and data["userID"] != user_id:
             return errorMessage("User not authorized to log other user's items."), 400

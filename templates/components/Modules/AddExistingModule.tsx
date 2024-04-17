@@ -34,7 +34,7 @@ export default function AddExistingModule({
     classOptions: { value: number; label: string }[];
     currentClass: { value: number; label: string };
 }) {
-    const { user } = useUser();
+    const { user, loading } = useUser();
     const [allModulesInDB, setAllModulesInDB] = useState<Module[]>([]);
     const [reusuableModules, setReusuableModules] = useState<Module[]>([]);
     const [classState, setClassState] = useState<{
@@ -49,26 +49,50 @@ export default function AddExistingModule({
         value: string;
     }>({ label: '', value: '' });
     const [isSelected, setIsSelected] = useState(false);
+    const [initialLoad, setInitialLoad] = useState(true);
 
+    // Retrieve all modules in the database
     useEffect(() => {
-        let config = {
-            params: { groupID: currentClass.value },
-            headers: { Authorization: 'Bearer ' + user?.jwt }
-        };
+        if (!loading && user && initialLoad) {
+            let config = {
+                params: { groupID: currentClass.value },
+                headers: { Authorization: 'Bearer ' + user?.jwt }
+            };
 
-        axios
-            .get('/elleapi/retrievemodules', config)
-            .then((res) => {
-                setAllModulesInDB(res.data);
+            console.log(loading, user, initialLoad);
 
-                if (currentClass.value !== 0) {
-                    updateClass(currentClass);
-                }
-            })
-            .catch((error) => {
-                console.log('getAllModulesInDB error: ', error.message);
-            });
-    });
+            axios
+                .get('/elleapi/retrievemodules', config)
+                .then((res) => {
+                    setInitialLoad(false);
+                    setAllModulesInDB(res.data);
+
+                    if (currentClass.value !== 0) {
+                        axios
+                            .get('/elleapi/retrievegroupmodules', config)
+                            .then((res) => {
+                                let modules: Module[] = [];
+
+                                let idList = res.data.map((module: Module) => module.moduleID);
+
+                                allModulesInDB.map((module) => {
+                                    if (idList.indexOf(module.moduleID) === -1) {
+                                        modules.push(module);
+                                    }
+                                });
+                                setClassState(currentClass);
+                                setReusuableModules(modules);
+                            })
+                            .catch(function (error) {
+                                console.log('updateClass in addExistingModule.js error: ', error.message);
+                            });
+                    }
+                })
+                .catch((error) => {
+                    console.log('getAllModulesInDB error: ', error.message);
+                });
+        }
+    }, [allModulesInDB, currentClass, initialLoad, loading, user]);
 
     const updateClass = (value: { label: string; value: number }) => {
         if (value !== null) {

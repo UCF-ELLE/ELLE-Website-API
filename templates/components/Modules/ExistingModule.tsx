@@ -39,7 +39,7 @@ export default function ExistingModule({
 
     return (
         <tr>
-            <td>{module.name}</td>
+            <td>{`${module.name}${module.isPastaModule ? ' 🍝' : ''}`}</td>
             <td>{module.language}</td>
             <td>{module.username}</td>
             <td>
