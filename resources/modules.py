@@ -69,7 +69,7 @@ class RetrieveGroupModules(Resource):
         """Get all modules associated with the given groupID"""
         is_pasta = getParameter("isPasta", str, False, "")
 
-        if is_pasta:
+        if is_pasta != None:
             if is_pasta.lower() == "true" or is_pasta == "1":
                 is_pasta = 1
             elif is_pasta.lower() == "false" or is_pasta == "0":
@@ -92,12 +92,15 @@ class RetrieveGroupModules(Resource):
                 """
 
         if is_pasta:
-            query += f" WHERE `group_module`.`groupID` = {group_id} AND `module`.`isPastaModule` = {is_pasta}"
+            query += (
+                " WHERE `group_module`.`groupID` = %s AND `module`.`isPastaModule` = %s"
+            )
+            records = getFromDB(tuple(query, is_pasta), group_id)
 
         else:
-            query += f" WHERE `group_module`.`groupID` = {group_id}"
+            query += " WHERE `group_module`.`groupID` = %s"
+            records = getFromDB(query, group_id)
 
-        records = getFromDB(query, group_id)
         modules = []
         for row in records:
             modules.append(convertModuleToJSON(row))

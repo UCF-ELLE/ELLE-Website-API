@@ -116,8 +116,8 @@ export default function ModuleSearch({
                 ) : null}
             </InputGroup>
             <br />
-            <Modal isOpen={openForm === 1} toggle={() => setOpenForm(1)}>
-                <ModalHeader toggle={() => setOpenForm(1)}>Existing Modules</ModalHeader>
+            <Modal isOpen={openForm === 1}>
+                <ModalHeader toggle={() => (openForm !== 1 ? setOpenForm(1) : setOpenForm(0))}>Existing Modules</ModalHeader>
                 <ModalBody style={{ padding: '0 20px 30px 20px' }}>
                     <AddExistingModule updateModuleList={updateModuleList} classOptions={classOptions} currentClass={selectedClass} />
                 </ModalBody>

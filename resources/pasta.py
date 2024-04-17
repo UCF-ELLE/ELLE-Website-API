@@ -1051,6 +1051,9 @@ class PastaHighScore(Resource):
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
 
+        if data["userID"] is None:
+            data["userID"] = user_id
+
         try:
             conn = mysql.connect()
             cursor = conn.cursor()
