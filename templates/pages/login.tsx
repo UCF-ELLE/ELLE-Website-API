@@ -51,7 +51,7 @@ export default function Login() {
         <Layout noFooter>
             <div className='login-bg'>
                 <div className='row main' style={{ margin: 0 }}>
-                    <div className='login-form'>
+                    <div className='login-form' style={{ marginTop: 20 }}>
                         <h4 style={{ textAlign: 'center' }}>Welcome back to ELLE.</h4>
                         <Form onSubmit={(e) => submit(e)}>
                             <FormGroup>
