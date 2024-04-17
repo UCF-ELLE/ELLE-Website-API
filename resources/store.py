@@ -637,7 +637,7 @@ class LoadDefaultUserItems(Resource):
             cursor = conn.cursor()
 
             # Check if the game exists
-            query = "SELECT DISTINCT `game` FROM `item`";
+            query = "SELECT DISTINCT `game` FROM `item`"
             result = getFromDB(query, None, conn, cursor)
             games = [row[0] for row in result]
 
@@ -766,26 +766,33 @@ class WearUserItem(Resource):
                     WHERE i.game = (SELECT game FROM user_item WHERE userItemID = {data["userItemID"]})
                     AND i.itemType = (SELECT itemType FROM item WHERE itemID = (SELECT itemID FROM user_item WHERE userItemID = {data["userItemID"]}))
                     AND ui.isWearing = 1
+                    AND ui.userID = {user_item["userID"]}
                     AND ui.userItemID != {data["userItemID"]};
                 """
                 result = getFromDB(query, None, conn, cursor)
 
                 if len(result) > 0:
-                    query = (
-                        "UPDATE `user_item` SET `isWearing` = 0 WHERE `userItemID` = %s"
-                    )
-                    postToDB(query, result[0][0], conn, cursor)
-                    success["ReplacedItem"] = {
-                        "itemID": result[0][0],
-                        "name": result[0][7],
-                    }
+                    success["ReplacedItem"] = []
+                    # For each item of the same type that is currently being worn, set isWearing to 0
+                    for row in result:
+                        query = "UPDATE `user_item` SET `isWearing` = 0 WHERE `userItemID` = %s"
+                        postToDB(query, (row[0]), conn, cursor)
+
+                        success["ReplacedItem"].append(
+                            {
+                                "itemID": row[0],
+                                "name": row[7],
+                            }
+                        )
 
             query = "UPDATE `user_item` SET `isWearing` = %s WHERE `userItemID` = %s"
             postToDB(query, (data["isWearing"], data["userItemID"]), conn, cursor)
 
+            wearing_var = "wearing" if data["isWearing"] == 1 else "not wearing"
+
             # Success message should mention if an item was replaced by the new item if applicable
             success["Message"] = (
-                f"Successfully wore user item {user_item['userItemID']}"
+                f"Successfully {wearing_var} user item {user_item['userItemID']}"
             )
 
             raise ReturnSuccess(success, 200)
