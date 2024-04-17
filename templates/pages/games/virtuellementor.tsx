@@ -201,10 +201,11 @@ function VirtuELLEMentor() {
     useEffect(() => {
         if (isLoaded && !userLoading) {
             const jwt = user?.jwt;
-            console.log('Sending JWT to Unity Card Game...');
-            sendMessage('LoadingText', 'WebGLLoginAttempt', jwt);
+            const userID = user?.userID;
+            console.log('Sending JWT and userID to Unity Card Game...');
+            sendMessage('LoadingText', 'WebGLLoginAttempt', JSON.stringify({ jwt, userID }));
         }
-    }, [isLoaded, sendMessage, user?.jwt, userLoading]);
+    }, [isLoaded, sendMessage, user?.jwt, user?.userID, userLoading]);
 
     // Fullscreen button
     const handleOnClickFullscreen = () => {
