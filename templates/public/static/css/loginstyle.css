@@ -48,14 +48,9 @@ html {
 
 .reset-bg {
     background: url('../images/intro-carousel/4.jpg') repeat;
-    position: fixed;
-    top: 0;
-    background-size: cover;
-    left: 0;
-    right: 0;
-    bottom: 0;
     min-width: 100%;
-    min-height: 100%;
+    min-height: calc(100vh - 100px);
+    height: calc(100vh - 100px);
 }
 
 .main {
@@ -124,7 +119,7 @@ input::-webkit-input-placeholder {
 
 .login-form,
 .reset-box {
-    margin: 20px auto;
+    margin: 0px auto;
     max-width: 600px;
     padding: 10px 40px;
     box-shadow: 0 0 1rem 0 rgba(0, 0, 0, .5);
@@ -137,16 +132,16 @@ input::-webkit-input-placeholder {
 }
 
 .forgot-box {
-    max-width: 500px;
-    padding: 10px 20px;
-    margin-bottom: 200px;
-    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, .2);
+    margin: 20px auto;
+    max-width: 600px;
+    padding: 10px 40px;
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, .5);
     border-radius: 5px;
     position: relative;
     z-index: 1;
     background: inherit;
     overflow: hidden;
-    backdrop-filter: blur(30px);
+    backdrop-filter: blur(70px);
 }
 
 .reset-box .invalid-feedback,

@@ -106,8 +106,8 @@ export default function ResetPassword() {
     return (
         <Layout>
             <div className='reset-bg'>
-                <div>
-                    <div className='reset-box'>
+                <div className='row main' style={{ margin: 0 }}>
+                    <div className='reset-box' style={{ marginTop: 20 }}>
                         <h4 style={{ display: 'flex', justifyContent: 'center' }}>Reset Your Password</h4>
                         {success ? <Alert color='success'>{msg}</Alert> : null}
                         {error ? <Alert color='danger'>{msg}</Alert> : null}
