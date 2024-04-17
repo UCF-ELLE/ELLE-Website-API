@@ -764,7 +764,7 @@ class WearUserItem(Resource):
                     FROM user_item ui
                     INNER JOIN item i ON ui.itemID = i.itemID
                     WHERE i.game = (SELECT game FROM user_item WHERE userItemID = {data["userItemID"]})
-                    AND i.itemType = (SELECT itemType FROM item WHERE itemID = (SELECT itemID FROM user_item WHERE userItemID = {data["userItemID"]}))
+                    AND i.itemType = (SELECT itemType FROM item WHERE itemID = {user_item["itemID"]})
                     AND ui.isWearing = 1
                     AND ui.userID = {user_item["userID"]}
                     AND ui.userItemID != {data["userItemID"]};
