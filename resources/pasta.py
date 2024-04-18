@@ -1158,7 +1158,7 @@ class GetPastaCSV(Resource):
 
         if checksum == logged_pasta_chks:
             return Response(
-                csv=redis_conn.get("logged_pasta_csv"),
+                redis_conn.get("logged_pasta_csv"),
                 mimetype="text/csv",
                 headers={
                     "Content-disposition": "attachment; filename=Logged_Pastas.csv"
