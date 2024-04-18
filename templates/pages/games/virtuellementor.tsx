@@ -3,19 +3,19 @@
 Converted from class-based to functional component in Spring 2023.
 **************************/
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { Button } from 'reactstrap';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Unity, useUnityContext } from 'react-unity-webgl';
+import { Button } from 'reactstrap';
 
-import '@/public/static/css/style.css';
 import '@/lib/font-awesome/css/font-awesome.min.css';
-import '@/lib/owlcarousel/assets/owl.carousel.min.css';
 import '@/lib/ionicons/css/ionicons.min.css';
+import '@/lib/owlcarousel/assets/owl.carousel.min.css';
+import '@/public/static/css/style.css';
 
+import GameLayout from '@/components/Layouts/GameLayout';
+import { useUser } from '@/hooks/useUser';
 import { useRouter } from 'next/router';
 import { ReactUnityEventParameter } from 'react-unity-webgl/distribution/types/react-unity-event-parameters';
-import Layout from '@/app/layout';
-import { useUser } from '@/hooks/useUser';
 
 function VirtuELLEMentor() {
     const { user, loading: userLoading } = useUser();
@@ -234,33 +234,31 @@ function VirtuELLEMentor() {
     );
 
     return (
-        <Layout requireUser>
-            <div className='gamesBg mainDiv'>
-                <div className='center-contents'>
-                    <div className='webglLoadingStatusBox' style={{ visibility: isLoaded ? 'hidden' : 'visible' }}>
-                        <p className='webglLoadingStatusText'>Loading {Math.round(loadingProgression * 100)}%</p>
-                    </div>
-
-                    <Unity
-                        unityProvider={unityProvider}
-                        devicePixelRatio={devicePixelRatio}
-                        style={{
-                            width: '1152px',
-                            height: '648px',
-                            visibility: isLoaded ? 'visible' : 'hidden'
-                        }}
-                    />
-                    <br />
-                    <br />
-                    <Button onClick={handleOnClickFullscreen} style={{ visibility: isLoaded ? 'visible' : 'hidden' }}>
-                        Fullscreen
-                    </Button>
+        <div className='gamesBg mainDiv'>
+            <div className='center-contents'>
+                <div className='webglLoadingStatusBox' style={{ visibility: isLoaded ? 'hidden' : 'visible' }}>
+                    <p className='webglLoadingStatusText'>Loading {Math.round(loadingProgression * 100)}%</p>
                 </div>
+
+                <Unity
+                    unityProvider={unityProvider}
+                    devicePixelRatio={devicePixelRatio}
+                    style={{
+                        width: '1152px',
+                        height: '648px',
+                        visibility: isLoaded ? 'visible' : 'hidden'
+                    }}
+                />
                 <br />
                 <br />
+                <Button onClick={handleOnClickFullscreen} style={{ visibility: isLoaded ? 'visible' : 'hidden' }}>
+                    Fullscreen
+                </Button>
             </div>
-        </Layout>
+            <br />
+            <br />
+        </div>
     );
 }
 
-export default VirtuELLEMentor;
+VirtuELLEMentor.getLayout = (page: React.JSX.Element) => <GameLayout>{page}</GameLayout>;
