@@ -1252,7 +1252,13 @@ class GetPastaCSV(Resource):
                         )
                         replace = getFromDB(replace_query, record[3])
                         record[4] = replace[0][0]
-                    csv_writer.writerow(record)
+                    processed_record = []
+                    for field in record:
+                        if isinstance(field, str) and "," in field:
+                            processed_record.append(f'"{field}"')
+                        else:
+                            processed_record.append(field)
+                    csv_writer.writerow(processed_record)
 
             csv_data.seek(0)
 
