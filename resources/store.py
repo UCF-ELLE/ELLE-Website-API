@@ -1,3 +1,4 @@
+from io import StringIO
 from flask_restful import Resource
 from flask_jwt_extended import (
     jwt_required,
@@ -1107,7 +1108,13 @@ class GetUserItemCSV(Resource):
             logged_user_item_chks = None
 
         if checksum == logged_user_item_chks:
-            csv = redis_conn.get("logged_user_item_csv")
+            return Response(
+                redis_conn.get("logged_user_item_csv"),
+                mimetype="text/csv",
+                headers={
+                    "Content-disposition": "attachment; filename=Logged_Pastas.csv"
+                },
+            )
         else:
             last_query = "SELECT MAX(logItemID) FROM `logged_user_item`"
             last_db_id = getFromDB(last_query)
@@ -1137,18 +1144,40 @@ class GetUserItemCSV(Resource):
                     INNER JOIN module m ON m.moduleID = s.moduleID;
                     """
 
+            csv_data = StringIO()
+            csv_writer = csv.writer(csv_data)
+
             if db_count != rd_log_user_item_count or rd_log_user_item_count is None:
-                csv = "Logged Item ID, User ID, Username, Module ID, Module Name, Game, Item ID, Item Type, Item Name, Color, Gender, Session ID\n"
                 results = getFromDB(query)
 
             else:
-                csv = ""
-                query += f"WHERE lui.logItemID > {last_db_id}"
+                query += (
+                    f" WHERE lp.logID > {last_db_id}"  # Include the WHERE condition
+                )
                 results = getFromDB(query)
+
                 if redis_conn.get("logged_user_item_csv") is not None:
-                    csv = redis_conn.get("logged_user_item_csv")
+                    redis_csv_data = redis_conn.get("logged_pasta_csv")
+                    redis_csv_rows = redis_csv_data.strip().split("\n")
+                    for row in redis_csv_rows:
+                        csv_writer.writerow(row.split(","))
 
             if results and results[0]:
+                if len(csv_data.getvalue()) == 0:
+                    csv_writer.writerow(
+                        [
+                            "Log Item ID",
+                            "User ID",
+                            "Username",
+                            "Module ID",
+                            "Module Name",
+                            "Game",
+                            "Item ID",
+                            "Item Type",
+                            "Name",
+                            "Color",
+                        ]
+                    )
                 for record in results:
                     if record[4] is None:
                         replace_query = (
@@ -1156,21 +1185,26 @@ class GetUserItemCSV(Resource):
                         )
                         replace = getFromDB(replace_query, record[3])
                         record[4] = replace[0][0]
-                    csv = (
-                        csv
-                        + f"""{record[0]}, {record[1]}, {record[2]}, {record[3]}, {record[4]}, {record[5]}, {record[6]}, {record[7]}, {record[8]}, {record[9]}, {record[10]}, {record[11]}\n"""
-                    )
+                    processed_record = []
+                    for field in record:
+                        if isinstance(field, str) and "," in field:
+                            processed_record.append(f'"{field}"')
+                        else:
+                            processed_record.append(field)
+                    csv_writer.writerow(processed_record)
+
+            csv_data.seek(0)
 
             last_record_id = results[-1][0]
 
             if redis_conn is not None:
-                redis_conn.set("logged_user_item_csv", csv)
+                redis_conn.set("logged_user_item_csv", csv_data.getvalue())
                 redis_conn.set("logged_user_item_chks", checksum)
                 redis_conn.set("last_logged_user_item_id", last_record_id)
                 redis_conn.set("log_user_item_count", db_count)
 
         return Response(
-            csv,
+            csv_data,
             mimetype="text/csv",
             headers={
                 "Content-disposition": "attachment; filename=Logged_User_Items.csv"
