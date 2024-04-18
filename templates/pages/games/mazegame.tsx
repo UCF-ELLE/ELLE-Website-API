@@ -12,7 +12,7 @@ import '@/lib/ionicons/css/ionicons.min.css';
 import Layout from '@/components/Layouts/Layout';
 import { useUser } from '@/hooks/useUser';
 
-function MazeGame() {
+export default function MazeGame() {
     const { user } = useUser();
 
     const { unityProvider, requestFullscreen, isLoaded, sendMessage, loadingProgression } = useUnityContext({

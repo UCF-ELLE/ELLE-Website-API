@@ -17,7 +17,7 @@ import { useUser } from '@/hooks/useUser';
 import { useRouter } from 'next/router';
 import { ReactUnityEventParameter } from 'react-unity-webgl/distribution/types/react-unity-event-parameters';
 
-function VirtuELLEMentor() {
+export default function VirtuELLEMentor() {
     const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
     const router = useRouter();
