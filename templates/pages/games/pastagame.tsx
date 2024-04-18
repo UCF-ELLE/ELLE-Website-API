@@ -69,26 +69,6 @@ export default function PastaKerfuffELLE() {
         setUNITY_playerScore(score as number);
     }, []);
 
-    useEffect(() => {
-        /* Problem: user is in the middle of a Card Game play session and closes the browser. The /session API endpoint was called to start the Session, but
-         * the /endsession API endpoint was never called, forever putting that Session in limbo as no end time gets recorded for it.
-         *
-         * Solution: since the Unity game didn't get to end the session, call the /endsession endpoint using React
-         */
-        window.addEventListener('beforeunload', openWarningDialog);
-        window.addEventListener('unload', endOngoingSession);
-        // router.events.on('routeChangeStart', handleEarlyNavigation);
-        return () => {
-            if (isLoaded) {
-                endOngoingSession();
-                unloadUnityGame();
-            }
-            window.removeEventListener('beforeunload', openWarningDialog);
-            window.removeEventListener('unload', endOngoingSession);
-            // router.events.off('routeChangeStart', handleEarlyNavigation);
-        };
-    }, [isLoaded]);
-
     // Taken from https://react-unity-webgl.dev/docs/api/event-system
     useEffect(() => {
         addEventListener('setUserIsPlayingGame', UNITY_setUserIsPlayingGame);
@@ -130,8 +110,6 @@ export default function PastaKerfuffELLE() {
 
     const endOngoingSession = useCallback(async () => {
         // Only run it if the user is currently in the middle of a session
-        console.log('UNITY_userIsPlayingGame:', UNITY_userIsPlayingGame, 'ref', userPlayingGameRef.current);
-        console.log('UNITY_sessionID:', UNITY_sessionID, 'ref', sessionIDRef.current);
         if (sessionIDRef.current || UNITY_sessionID) {
             // Get current time
             console.log('Ending user session...');
@@ -145,7 +123,7 @@ export default function PastaKerfuffELLE() {
 
             // Have to use xhr because Axios's async property fails to do the API call when the browser closes
             let xhr = new XMLHttpRequest();
-            xhr.open('POST', 'http://209.97.147.181/elleapi/endsession', false);
+            xhr.open('POST', '/elleapi/endsession', false);
             xhr.setRequestHeader('Authorization', 'Bearer ' + user?.jwt);
             xhr.setRequestHeader('Content-Type', 'application/json');
             let data = JSON.stringify({
@@ -160,6 +138,26 @@ export default function PastaKerfuffELLE() {
     async function unloadUnityGame() {
         await unload();
     }
+
+    useEffect(() => {
+        /* Problem: user is in the middle of a Card Game play session and closes the browser. The /session API endpoint was called to start the Session, but
+         * the /endsession API endpoint was never called, forever putting that Session in limbo as no end time gets recorded for it.
+         *
+         * Solution: since the Unity game didn't get to end the session, call the /endsession endpoint using React
+         */
+        window.addEventListener('beforeunload', openWarningDialog);
+        window.addEventListener('unload', endOngoingSession);
+        // router.events.on('routeChangeStart', handleEarlyNavigation);
+        return () => {
+            if (isLoaded) {
+                endOngoingSession();
+                unloadUnityGame();
+            }
+            window.removeEventListener('beforeunload', openWarningDialog);
+            window.removeEventListener('unload', endOngoingSession);
+            // router.events.off('routeChangeStart', handleEarlyNavigation);
+        };
+    }, [isLoaded]);
 
     // Automatically log the user into the Unity Pasta Game
     // Given that the Unity Pasta Game requires direct access to the user's userID, we must send it to the game along with the JWT
