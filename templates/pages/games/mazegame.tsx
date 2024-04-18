@@ -9,7 +9,7 @@ import { Unity, useUnityContext } from 'react-unity-webgl';
 import '@/lib/font-awesome/css/font-awesome.min.css';
 import '@/lib/owlcarousel/assets/owl.carousel.min.css';
 import '@/lib/ionicons/css/ionicons.min.css';
-import Layout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import { useUser } from '@/hooks/useUser';
 
 function MazeGame() {
@@ -34,34 +34,32 @@ function MazeGame() {
     };
 
     return (
-        <Layout requireUser>
-            <div className='downloadsBg mainDiv'>
-                <div className='center-contents'>
-                    <div className='webglLoadingStatusBox' style={{ visibility: isLoaded ? 'hidden' : 'visible' }}>
-                        <p className='webglLoadingStatusText'>Loading {Math.round(loadingProgression * 100)}%</p>
-                    </div>
-
-                    <Unity
-                        unityProvider={unityProvider}
-                        style={{
-                            width: '1152px',
-                            height: '648px',
-                            visibility: isLoaded ? 'visible' : 'hidden'
-                        }}
-                    />
-                    <br />
-                    <br />
-                    <Button onClick={handleOnClickFullscreen} style={{ visibility: isLoaded ? 'visible' : 'hidden' }}>
-                        Fullscreen
-                    </Button>
+        <div className='downloadsBg mainDiv'>
+            <div className='center-contents'>
+                <div className='webglLoadingStatusBox' style={{ visibility: isLoaded ? 'hidden' : 'visible' }}>
+                    <p className='webglLoadingStatusText'>Loading {Math.round(loadingProgression * 100)}%</p>
                 </div>
-                <p className='mazeGame' style={{ color: 'black' }}>
-                    If there are no available modules for you to select, try logging out and logging back in.
-                </p>
+
+                <Unity
+                    unityProvider={unityProvider}
+                    style={{
+                        width: '1152px',
+                        height: '648px',
+                        visibility: isLoaded ? 'visible' : 'hidden'
+                    }}
+                />
                 <br />
+                <br />
+                <Button onClick={handleOnClickFullscreen} style={{ visibility: isLoaded ? 'visible' : 'hidden' }}>
+                    Fullscreen
+                </Button>
             </div>
-        </Layout>
+            <p className='mazeGame' style={{ color: 'black' }}>
+                If there are no available modules for you to select, try logging out and logging back in.
+            </p>
+            <br />
+        </div>
     );
 }
 
-export default MazeGame;
+MazeGame.getLayout = (page: React.JSX.Element) => <Layout requireUser>{page}</Layout>;

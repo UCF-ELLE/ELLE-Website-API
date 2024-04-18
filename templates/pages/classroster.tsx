@@ -23,7 +23,7 @@ import axios from 'axios';
 
 import Class from '@/components/ClassRoster/Class';
 import Footer from '../components/Footer';
-import Layout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import { useUser } from '@/hooks/useUser';
 import { GroupUser, UserGroup } from '@/types/api/group';
 import Image from 'next/image';
@@ -281,45 +281,42 @@ export default function ClassRoster() {
     };
 
     return (
-        <Layout requireUser>
-            <div>
-                <Container className='user-list mainContainer'>
-                    <br></br>
-                    <br></br>
-                    <div>
-                        <h3>Class Roster</h3>
-                        <Nav id='userList'>
-                            <Row>
-                                <Col sm={4}>
-                                    <Container className='userListTabs'>
-                                        <NavItem>
-                                            <NavLink
-                                                active={activeTab === 'students'}
-                                                onClick={() => resetVal('students')}
-                                                style={{ cursor: 'pointer' }}
-                                            >
-                                                Students
-                                            </NavLink>
-                                        </NavItem>
-                                        <NavItem>
-                                            <NavLink active={activeTab === 'tas'} onClick={() => resetVal('tas')} style={{ cursor: 'pointer' }}>
-                                                TAs
-                                            </NavLink>
-                                        </NavItem>
-                                    </Container>
-                                </Col>
-                                <Col sm={8}>
-                                    <TabContent activeTab={activeTab}>
-                                        <TabPane tabId={'students'}>{renderUserTable('st')}</TabPane>
-                                        <TabPane tabId={'tas'}>{renderUserTable('ta')}</TabPane>
-                                    </TabContent>
-                                </Col>
-                            </Row>
-                        </Nav>
-                    </div>
-                </Container>
-                <Footer></Footer>
-            </div>
-        </Layout>
+        <div>
+            <Container className='user-list mainContainer'>
+                <br></br>
+                <br></br>
+                <div>
+                    <h3>Class Roster</h3>
+                    <Nav id='userList'>
+                        <Row>
+                            <Col sm={4}>
+                                <Container className='userListTabs'>
+                                    <NavItem>
+                                        <NavLink active={activeTab === 'students'} onClick={() => resetVal('students')} style={{ cursor: 'pointer' }}>
+                                            Students
+                                        </NavLink>
+                                    </NavItem>
+                                    <NavItem>
+                                        <NavLink active={activeTab === 'tas'} onClick={() => resetVal('tas')} style={{ cursor: 'pointer' }}>
+                                            TAs
+                                        </NavLink>
+                                    </NavItem>
+                                </Container>
+                            </Col>
+                            <Col sm={8}>
+                                <TabContent activeTab={activeTab}>
+                                    <TabPane tabId={'students'}>{renderUserTable('st')}</TabPane>
+                                    <TabPane tabId={'tas'}>{renderUserTable('ta')}</TabPane>
+                                </TabContent>
+                            </Col>
+                        </Row>
+                    </Nav>
+                </div>
+            </Container>
+        </div>
     );
 }
+
+ClassRoster.getLayout = function getLayout(page: React.JSX.Element) {
+    return <Layout requireUser>{page}</Layout>;
+};

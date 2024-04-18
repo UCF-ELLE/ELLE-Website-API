@@ -4,7 +4,7 @@ import axios from 'axios';
 
 import '../lib/bootstrap/css/bootstrap.min.css';
 import '../lib/ionicons/css/ionicons.min.css';
-import Layout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import { useUser } from '@/hooks/useUser';
 
 export default function GameCode() {
@@ -36,43 +36,43 @@ export default function GameCode() {
     };
 
     return (
-        <Layout requireUser>
-            <div className='mainDiv'>
-                <Row>
-                    <Col
+        <div className='mainDiv'>
+            <Row>
+                <Col
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        zIndex: '1',
+                        position: 'relative',
+                        top: '300px'
+                    }}
+                >
+                    <Button className='gameCodeBtn' id='gameCodeBtn' onClick={() => toggleModal()}>
+                        Generate Code
+                    </Button>
+                </Col>
+                <video width='100%' height='100%' style={{ marginTop: '-40px' }} autoPlay loop muted>
+                    <source src={'/elle/static/videos/ELLE_blocks.mp4'} type='video/mp4' />
+                </video>
+            </Row>
+
+            <Modal isOpen={modalOpen} toggle={() => toggleModal()}>
+                <ModalHeader toggle={() => toggleModal()}>Your OTC</ModalHeader>
+                <ModalBody>
+                    <p
                         style={{
                             display: 'flex',
                             justifyContent: 'center',
-                            zIndex: '1',
-                            position: 'relative',
-                            top: '300px'
+                            fontSize: 'xx-large',
+                            fontWeight: '600'
                         }}
                     >
-                        <Button className='gameCodeBtn' id='gameCodeBtn' onClick={() => toggleModal()}>
-                            Generate Code
-                        </Button>
-                    </Col>
-                    <video width='100%' height='100%' style={{ marginTop: '-40px' }} autoPlay loop muted>
-                        <source src={'/elle/static/videos/ELLE_blocks.mp4'} type='video/mp4' />
-                    </video>
-                </Row>
-
-                <Modal isOpen={modalOpen} toggle={() => toggleModal()}>
-                    <ModalHeader toggle={() => toggleModal()}>Your OTC</ModalHeader>
-                    <ModalBody>
-                        <p
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'center',
-                                fontSize: 'xx-large',
-                                fontWeight: '600'
-                            }}
-                        >
-                            {OTC}
-                        </p>
-                    </ModalBody>
-                </Modal>
-            </div>
-        </Layout>
+                        {OTC}
+                    </p>
+                </ModalBody>
+            </Modal>
+        </div>
     );
 }
+
+GameCode.getLayout = (page: React.JSX.Element) => <Layout requireUser>{page}</Layout>;

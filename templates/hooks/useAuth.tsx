@@ -1,7 +1,7 @@
 import AuthService from '@/services/AuthService';
 import Cookies from 'js-cookie';
 import { AuthUser, UserRegisterInfo } from '@/types/services/auth';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 export const useAuth = () => {
     const router = useRouter();

@@ -10,7 +10,7 @@ import diceImage from '@/public/static/images/dice.png';
 import hideImage from '@/public/static/images/hide.png';
 import showImage from '@/public/static/images/show.png';
 
-import RootLayout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import Image from 'next/image';
@@ -94,215 +94,213 @@ export default function Signup() {
     };
 
     return (
-        <RootLayout noFooter>
-            <div className='signup-bg'>
-                <div>
-                    <div className='login-form'>
-                        <h4 style={{ textAlign: 'center', color: 'white' }}>Start your ELLE experience today.</h4>
-                        {registerErr ? generateErrorMsg() : null}
-                        <Form onSubmit={(e) => submit(e)} className='signup-form-details'>
-                            <FormGroup>
-                                <Label for='userName'>Username</Label>
-                                <InputGroup>
-                                    <Input
-                                        value={username}
-                                        id='username'
-                                        name='username'
-                                        placeholder='Click the die for a username!'
-                                        autoComplete='off'
-                                        disabled={true}
-                                    />
-                                    <div>
-                                        <Button
+        <div className='signup-bg'>
+            <div>
+                <div className='login-form'>
+                    <h4 style={{ textAlign: 'center', color: 'white' }}>Start your ELLE experience today.</h4>
+                    {registerErr ? generateErrorMsg() : null}
+                    <Form onSubmit={(e) => submit(e)} className='signup-form-details'>
+                        <FormGroup>
+                            <Label for='userName'>Username</Label>
+                            <InputGroup>
+                                <Input
+                                    value={username}
+                                    id='username'
+                                    name='username'
+                                    placeholder='Click the die for a username!'
+                                    autoComplete='off'
+                                    disabled={true}
+                                />
+                                <div>
+                                    <Button
+                                        style={{
+                                            backgroundColor: 'white',
+                                            border: 'none',
+                                            borderRadius: '0 5px 5px 0',
+                                            height: '100%'
+                                        }}
+                                        name='dice'
+                                        onClick={async () => genUsername()}
+                                    >
+                                        <Image
+                                            src={diceImage}
+                                            alt='Icon made by Freepik from www.flaticon.com'
                                             style={{
-                                                backgroundColor: 'white',
-                                                border: 'none',
-                                                borderRadius: '0 5px 5px 0',
-                                                height: '100%'
+                                                width: '24px',
+                                                height: '24px'
                                             }}
-                                            name='dice'
-                                            onClick={async () => genUsername()}
-                                        >
+                                        />
+                                    </Button>
+                                </div>
+                            </InputGroup>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for='password'>Password</Label>
+                            <InputGroup>
+                                <Input
+                                    value={password}
+                                    onChange={(e) => validatePassword(e)}
+                                    type={hiddenPassword ? 'password' : 'text'}
+                                    id='password'
+                                    name='password'
+                                    placeholder='*********'
+                                    autoComplete='new-password'
+                                    style={{ border: 'none' }}
+                                />
+                                <div>
+                                    <Button
+                                        style={{
+                                            backgroundColor: 'white',
+                                            border: 'none',
+                                            borderRadius: '0 5px 5px 0',
+                                            height: '100%'
+                                        }}
+                                        name='hiddenPassword'
+                                        onClick={(e) => togglePWPrivacy(e)}
+                                    >
+                                        {hiddenPassword ? (
                                             <Image
-                                                src={diceImage}
-                                                alt='Icon made by Freepik from www.flaticon.com'
+                                                src={hideImage}
+                                                alt='Icon made by Pixel perfect from www.flaticon.com'
                                                 style={{
                                                     width: '24px',
                                                     height: '24px'
                                                 }}
                                             />
-                                        </Button>
-                                    </div>
-                                </InputGroup>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label for='password'>Password</Label>
-                                <InputGroup>
-                                    <Input
-                                        value={password}
-                                        onChange={(e) => validatePassword(e)}
-                                        type={hiddenPassword ? 'password' : 'text'}
-                                        id='password'
-                                        name='password'
-                                        placeholder='*********'
-                                        autoComplete='new-password'
-                                        style={{ border: 'none' }}
-                                    />
-                                    <div>
-                                        <Button
-                                            style={{
-                                                backgroundColor: 'white',
-                                                border: 'none',
-                                                borderRadius: '0 5px 5px 0',
-                                                height: '100%'
-                                            }}
-                                            name='hiddenPassword'
-                                            onClick={(e) => togglePWPrivacy(e)}
-                                        >
-                                            {hiddenPassword ? (
-                                                <Image
-                                                    src={hideImage}
-                                                    alt='Icon made by Pixel perfect from www.flaticon.com'
-                                                    style={{
-                                                        width: '24px',
-                                                        height: '24px'
-                                                    }}
-                                                />
-                                            ) : (
-                                                <Image
-                                                    src={showImage}
-                                                    alt='Icon made by Kiranshastry from www.flaticon.com'
-                                                    style={{
-                                                        width: '24px',
-                                                        height: '24px'
-                                                    }}
-                                                />
-                                            )}
-                                        </Button>
-                                    </div>
-                                </InputGroup>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label for='confirmation'>Confirm Password</Label>
-                                <InputGroup>
-                                    <Input
-                                        value={confirmation}
-                                        valid={validConfirm}
-                                        invalid={invalidConfirm}
-                                        onChange={(e) => validatePassword(e)}
-                                        type={hiddenConfirm ? 'password' : 'text'}
-                                        id='confirmation'
-                                        name='confirmation'
-                                        placeholder='*********'
-                                        autoComplete='new-password'
-                                        style={{ border: 'none' }}
-                                    />
-                                    <div>
-                                        <Button
-                                            style={{
-                                                backgroundColor: 'white',
-                                                border: 'none',
-                                                borderRadius: '0 5px 5px 0',
-                                                height: '100%'
-                                            }}
-                                            name='hiddenConfirm'
-                                            onClick={(e) => togglePWPrivacy(e)}
-                                        >
-                                            {hiddenConfirm ? (
-                                                <Image
-                                                    src={hideImage}
-                                                    alt='Icon made by Pixel perfect from www.flaticon.com'
-                                                    style={{
-                                                        width: '24px',
-                                                        height: '24px'
-                                                    }}
-                                                />
-                                            ) : (
-                                                <Image
-                                                    src={showImage}
-                                                    alt='Icon made by Kiranshastry from www.flaticon.com'
-                                                    style={{
-                                                        width: '24px',
-                                                        height: '24px'
-                                                    }}
-                                                />
-                                            )}
-                                        </Button>
-                                    </div>
-                                    <FormFeedback valid>The passwords match!</FormFeedback>
-                                    <FormFeedback invalid={invalidConfirm.toString()}>The passwords do not match, please try again.</FormFeedback>
-                                </InputGroup>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label for='classCode'>OPTIONAL: Email</Label>
+                                        ) : (
+                                            <Image
+                                                src={showImage}
+                                                alt='Icon made by Kiranshastry from www.flaticon.com'
+                                                style={{
+                                                    width: '24px',
+                                                    height: '24px'
+                                                }}
+                                            />
+                                        )}
+                                    </Button>
+                                </div>
+                            </InputGroup>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for='confirmation'>Confirm Password</Label>
+                            <InputGroup>
                                 <Input
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    type='text'
-                                    id='email'
-                                    name='email'
-                                    placeholder='Optional'
-                                    autoComplete='off'
+                                    value={confirmation}
+                                    valid={validConfirm}
+                                    invalid={invalidConfirm}
+                                    onChange={(e) => validatePassword(e)}
+                                    type={hiddenConfirm ? 'password' : 'text'}
+                                    id='confirmation'
+                                    name='confirmation'
+                                    placeholder='*********'
+                                    autoComplete='new-password'
+                                    style={{ border: 'none' }}
                                 />
-                            </FormGroup>
-                            <FormGroup>
-                                <Label for='classCode'>OPTIONAL: Class Code</Label>
-                                <Input
-                                    value={classCode}
-                                    onChange={(e) => setClassCode(e.target.value)}
-                                    type='text'
-                                    id='classCode'
-                                    name='classCode'
-                                    placeholder='Optional'
-                                    autoComplete='off'
-                                />
-                            </FormGroup>
-                            <FormGroup>
-                                <Label for='location'>OPTIONAL: What state/country are you in right now?</Label>
-                                <Input
-                                    value={location}
-                                    onChange={(e) => setLocation(e.target.value)}
-                                    type='text'
-                                    id='location'
-                                    name='location'
-                                    placeholder='Optional'
-                                    autoComplete='off'
-                                />
-                            </FormGroup>
-                            <FormGroup>
-                                <Label for='reason'>
-                                    OPTIONAL: What brings you to the ELLE site? What are your motivations for learning a language?
-                                </Label>
-                                <Input
-                                    value={reason}
-                                    onChange={(e) => setReason(e.target.value)}
-                                    type='textarea'
-                                    id='reason'
-                                    name='reason'
-                                    placeholder='Optional'
-                                    autoComplete='off'
-                                />
-                            </FormGroup>
-                            <Button color='primary' type='submit' className='btn-block' disabled={username.length > 0 && validConfirm ? false : true}>
-                                Signup
-                            </Button>
-                        </Form>
-                        <br></br>
-                        <p style={{ color: 'white' }}>
-                            Already have an account? &nbsp;
-                            <Link
-                                href='/login'
-                                style={{
-                                    color: '#007bff',
-                                    textDecoration: 'underline'
-                                }}
-                            >
-                                Log in.
-                            </Link>
-                        </p>
-                    </div>
+                                <div>
+                                    <Button
+                                        style={{
+                                            backgroundColor: 'white',
+                                            border: 'none',
+                                            borderRadius: '0 5px 5px 0',
+                                            height: '100%'
+                                        }}
+                                        name='hiddenConfirm'
+                                        onClick={(e) => togglePWPrivacy(e)}
+                                    >
+                                        {hiddenConfirm ? (
+                                            <Image
+                                                src={hideImage}
+                                                alt='Icon made by Pixel perfect from www.flaticon.com'
+                                                style={{
+                                                    width: '24px',
+                                                    height: '24px'
+                                                }}
+                                            />
+                                        ) : (
+                                            <Image
+                                                src={showImage}
+                                                alt='Icon made by Kiranshastry from www.flaticon.com'
+                                                style={{
+                                                    width: '24px',
+                                                    height: '24px'
+                                                }}
+                                            />
+                                        )}
+                                    </Button>
+                                </div>
+                                <FormFeedback valid>The passwords match!</FormFeedback>
+                                <FormFeedback invalid={invalidConfirm.toString()}>The passwords do not match, please try again.</FormFeedback>
+                            </InputGroup>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for='classCode'>OPTIONAL: Email</Label>
+                            <Input
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                type='text'
+                                id='email'
+                                name='email'
+                                placeholder='Optional'
+                                autoComplete='off'
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for='classCode'>OPTIONAL: Class Code</Label>
+                            <Input
+                                value={classCode}
+                                onChange={(e) => setClassCode(e.target.value)}
+                                type='text'
+                                id='classCode'
+                                name='classCode'
+                                placeholder='Optional'
+                                autoComplete='off'
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for='location'>OPTIONAL: What state/country are you in right now?</Label>
+                            <Input
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                type='text'
+                                id='location'
+                                name='location'
+                                placeholder='Optional'
+                                autoComplete='off'
+                            />
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for='reason'>OPTIONAL: What brings you to the ELLE site? What are your motivations for learning a language?</Label>
+                            <Input
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                type='textarea'
+                                id='reason'
+                                name='reason'
+                                placeholder='Optional'
+                                autoComplete='off'
+                            />
+                        </FormGroup>
+                        <Button color='primary' type='submit' className='btn-block' disabled={username.length > 0 && validConfirm ? false : true}>
+                            Signup
+                        </Button>
+                    </Form>
+                    <br></br>
+                    <p style={{ color: 'white' }}>
+                        Already have an account? &nbsp;
+                        <Link
+                            href='/login'
+                            style={{
+                                color: '#007bff',
+                                textDecoration: 'underline'
+                            }}
+                        >
+                            Log in.
+                        </Link>
+                    </p>
                 </div>
             </div>
-        </RootLayout>
+        </div>
     );
 }
+
+Signup.getLayout = (page: React.JSX.Element) => <Layout noFooter>{page}</Layout>;

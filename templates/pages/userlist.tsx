@@ -24,7 +24,7 @@ import UserComponent from '@/components/UserList/UserComponent';
 import { User } from '@/types/api/user';
 import Spinner from '../components/Loading/Spinner';
 import { useUser } from '@/hooks/useUser';
-import Layout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import useAxios from 'axios-hooks';
 import { PermissionGroup } from '@/types/misc';
 import Image from 'next/image';
@@ -253,83 +253,78 @@ export default function UserList({}: {}) {
     };
 
     return (
-        <Layout requireUser>
-            <div>
-                <Container className='user-list mainContainer'>
-                    <br></br>
-                    <br></br>
-                    <div>
-                        <h3>List of Users</h3>
-                        <Row style={{ width: '100%' }}>
-                            <Col style={{ flex: '0.4 0 0%' }}>
-                                <ListGroup>
-                                    <ListGroupItem
-                                        action
-                                        active={activeTab === 'superAdmins'}
-                                        onClick={() => resetVal('superAdmins')}
-                                        color='userItem'
-                                    >
-                                        Super Admins
-                                    </ListGroupItem>
-                                    <ListGroupItem action active={activeTab === 'professors'} onClick={() => resetVal('professors')} color='userItem'>
-                                        Professors
-                                    </ListGroupItem>
-                                    <ListGroupItem action active={activeTab === 'students'} onClick={() => resetVal('students')} color='userItem'>
-                                        Students
-                                    </ListGroupItem>
-                                </ListGroup>
-                            </Col>
-                            <Col>
-                                <TabContent activeTab={activeTab}>
-                                    <Row style={{ marginBottom: 16 }}>
-                                        <Col sm={11} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <InputGroup style={{ width: '92%', borderRadius: '8px', boxShadow: '0 2px 5px 0 rgba(0,0,0,.21)' }}>
-                                                <div style={{ margin: '10px' }}>
-                                                    <Image
-                                                        src={searchImage}
-                                                        alt='Icon made by Freepik from www.flaticon.com'
-                                                        style={{ width: '20px', height: '20px' }}
-                                                    />
-                                                </div>
-                                                <Input
-                                                    style={{ border: 'none' }}
-                                                    type='text'
-                                                    placeholder='Search'
-                                                    value={search}
-                                                    onChange={updateSearch}
-                                                />
-                                            </InputGroup>
-                                            <Button
-                                                style={{
-                                                    display: 'flex',
-                                                    borderRadius: '30px',
-                                                    width: 44.5,
-                                                    height: 38,
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                    padding: 0,
-                                                    backgroundColor: '#5faeb5',
-                                                    borderColor: '#5faeb5'
-                                                }}
-                                                onClick={() => toggleElevateModal()}
-                                            >
+        <div>
+            <Container className='user-list mainContainer'>
+                <br></br>
+                <br></br>
+                <div>
+                    <h3>List of Users</h3>
+                    <Row style={{ width: '100%' }}>
+                        <Col style={{ flex: '0.4 0 0%' }}>
+                            <ListGroup>
+                                <ListGroupItem action active={activeTab === 'superAdmins'} onClick={() => resetVal('superAdmins')} color='userItem'>
+                                    Super Admins
+                                </ListGroupItem>
+                                <ListGroupItem action active={activeTab === 'professors'} onClick={() => resetVal('professors')} color='userItem'>
+                                    Professors
+                                </ListGroupItem>
+                                <ListGroupItem action active={activeTab === 'students'} onClick={() => resetVal('students')} color='userItem'>
+                                    Students
+                                </ListGroupItem>
+                            </ListGroup>
+                        </Col>
+                        <Col>
+                            <TabContent activeTab={activeTab}>
+                                <Row style={{ marginBottom: 16 }}>
+                                    <Col sm={11} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <InputGroup style={{ width: '92%', borderRadius: '8px', boxShadow: '0 2px 5px 0 rgba(0,0,0,.21)' }}>
+                                            <div style={{ margin: '10px' }}>
                                                 <Image
-                                                    src={plusImage}
-                                                    alt='Icon made by srip from www.flaticon.com'
-                                                    style={{ width: '15px', height: '15px' }}
+                                                    src={searchImage}
+                                                    alt='Icon made by Freepik from www.flaticon.com'
+                                                    style={{ width: '20px', height: '20px' }}
                                                 />
-                                            </Button>
-                                        </Col>
-                                    </Row>
-                                    <TabPane tabId={'superAdmins'}>{renderUserTable('su')}</TabPane>
-                                    <TabPane tabId={'professors'}>{renderUserTable('pf')}</TabPane>
-                                    <TabPane tabId={'students'}>{renderUserTable('st')}</TabPane>
-                                </TabContent>
-                            </Col>
-                        </Row>
-                    </div>
-                </Container>
-            </div>
-        </Layout>
+                                            </div>
+                                            <Input
+                                                style={{ border: 'none' }}
+                                                type='text'
+                                                placeholder='Search'
+                                                value={search}
+                                                onChange={updateSearch}
+                                            />
+                                        </InputGroup>
+                                        <Button
+                                            style={{
+                                                display: 'flex',
+                                                borderRadius: '30px',
+                                                width: 44.5,
+                                                height: 38,
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                padding: 0,
+                                                backgroundColor: '#5faeb5',
+                                                borderColor: '#5faeb5'
+                                            }}
+                                            onClick={() => toggleElevateModal()}
+                                        >
+                                            <Image
+                                                src={plusImage}
+                                                alt='Icon made by srip from www.flaticon.com'
+                                                style={{ width: '15px', height: '15px' }}
+                                            />
+                                        </Button>
+                                    </Col>
+                                </Row>
+                                <TabPane tabId={'superAdmins'}>{renderUserTable('su')}</TabPane>
+                                <TabPane tabId={'professors'}>{renderUserTable('pf')}</TabPane>
+                                <TabPane tabId={'students'}>{renderUserTable('st')}</TabPane>
+                            </TabContent>
+                        </Col>
+                    </Row>
+                </div>
+            </Container>
+        </div>
     );
 }
+
+UserList.getLayout = (page: React.JSX.Element) => <Layout requireUser>{page}</Layout>;

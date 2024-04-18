@@ -14,7 +14,7 @@ import '@/lib/ionicons/css/ionicons.min.css';
 
 import { useRouter } from 'next/router';
 import { ReactUnityEventParameter } from 'react-unity-webgl/distribution/types/react-unity-event-parameters';
-import Layout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import { useUser } from '@/hooks/useUser';
 import Image from 'next/image';
 
@@ -24,7 +24,7 @@ import keys from '@/public/static/images/AnimELLE/keyboard.png';
 import cursor from '@/public/static/images/AnimELLE/mouse.svg';
 import e from '@/public/static/images/AnimELLE/ekey.svg';
 
-function AnimELLEGame() {
+export default function AnimELLEGame() {
     const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
     const router = useRouter();
@@ -224,85 +224,84 @@ function AnimELLEGame() {
     );
 
     return (
-        <Layout requireUser>
-            <div className='animelle-game-container'>
-                <meta name='apple-mobile-web-app-capable' content='yes' />
-                <div className='center-contents'>
-                    <div className='webglLoadingStatusBox' style={{ visibility: isLoaded ? 'hidden' : 'visible' }}>
-                        <p className='webglLoadingStatusText'>Loading {Math.round(loadingProgression * 100)}%</p>
-                    </div>
-                    <div className='gameContainer'>
-                        <Unity
-                            unityProvider={unityProvider}
-                            style={{
-                                height: 600,
-                                width: 800,
-                                visibility: isLoaded ? 'visible' : 'hidden',
-                                background: 'transparent'
-                            }}
-                            devicePixelRatio={devicePixelRatio}
-                        />
-                        <Button
-                            className='fsbtn'
-                            onClick={handleOnClickFullscreen}
-                            style={{
-                                visibility: isLoaded ? 'visible' : 'hidden'
-                            }}
-                        >
-                            Fullscreen
-                        </Button>
-                    </div>
+        <div className='animelle-game-container'>
+            <meta name='apple-mobile-web-app-capable' content='yes' />
+            <div className='center-contents'>
+                <div className='webglLoadingStatusBox' style={{ visibility: isLoaded ? 'hidden' : 'visible' }}>
+                    <p className='webglLoadingStatusText'>Loading {Math.round(loadingProgression * 100)}%</p>
                 </div>
-                <div className='divContainer'>
-                    <div className='instruct-filler'>{/* <h4>Listen to Tito!</h4> <img src={tito} className='tito' alt="tito" /> */}</div>
-                    <div className='logoContainer'>
-                        <div className='imgContainer'>
-                            <Image src={logo} className='logo' alt='game logo' />
-                            <h3 className='credits'>Credits:</h3>
+                <div className='gameContainer'>
+                    <Unity
+                        unityProvider={unityProvider}
+                        style={{
+                            height: 600,
+                            width: 800,
+                            visibility: isLoaded ? 'visible' : 'hidden',
+                            background: 'transparent'
+                        }}
+                        devicePixelRatio={devicePixelRatio}
+                    />
+                    <Button
+                        className='fsbtn'
+                        onClick={handleOnClickFullscreen}
+                        style={{
+                            visibility: isLoaded ? 'visible' : 'hidden'
+                        }}
+                    >
+                        Fullscreen
+                    </Button>
+                </div>
+            </div>
+            <div className='divContainer'>
+                <div className='instruct-filler'>{/* <h4>Listen to Tito!</h4> <img src={tito} className='tito' alt="tito" /> */}</div>
+                <div className='logoContainer'>
+                    <div className='imgContainer'>
+                        <Image src={logo} className='logo' alt='game logo' />
+                        <h3 className='credits'>Credits:</h3>
+                    </div>
+                    <div className='row'>
+                        <div className='column'>
+                            <p className='names'>Tam Nguyen </p>
+                            <p className='names'>Justin Reeves</p>
+                            <p className='names'>Natali Siam-Pollo</p>
                         </div>
-                        <div className='row'>
-                            <div className='column'>
-                                <p className='names'>Tam Nguyen </p>
-                                <p className='names'>Justin Reeves</p>
-                                <p className='names'>Natali Siam-Pollo</p>
-                            </div>
-                            <div className='column'>
-                                <p className='names'>Michael Alfieri</p>
-                                <p className='names'>Connor Price</p>
-                            </div>
-                        </div>{' '}
-                        {/*<!--row--> */}
-                        <div className='row'>
-                            <div className='column'>
-                                <p className='names'>Derek Dyer</p>
-                                <p className='names'>Trevor Larson</p>
-                            </div>
-                            <div className='column'>
-                                <p className='names'>Robert Bereiter</p>
-                                <p className='names'>Arwin Nimityongskul</p>
-                            </div>
-                        </div>{' '}
-                        {/*<!--row--> */}
+                        <div className='column'>
+                            <p className='names'>Michael Alfieri</p>
+                            <p className='names'>Connor Price</p>
+                        </div>
                     </div>{' '}
-                    {/*<!--logo--> */}
-                    <div className='instruct-actual'>
-                        <Image src={instruct} className='instruct' alt='game logo' />
-                        <div className='keyContainer'>
-                            <Image src={keys} className='keys' alt='keys' />
-                            <p className='instructions'>Moving the Player (arrow keys work too!)</p>
-                            <br></br>
+                    {/*<!--row--> */}
+                    <div className='row'>
+                        <div className='column'>
+                            <p className='names'>Derek Dyer</p>
+                            <p className='names'>Trevor Larson</p>
                         </div>
-                        <div className='keyContainer'>
-                            <Image src={cursor} className='keys' alt='keys' />
-                            <p className='instructions'>Hovering Tooltips, Button Selection</p>
-                            <br></br>
+                        <div className='column'>
+                            <p className='names'>Robert Bereiter</p>
+                            <p className='names'>Arwin Nimityongskul</p>
                         </div>
-                        <div className='keyContainer'>
-                            <Image src={e} className='keys' alt='keys' />
-                            <p className='instructions'>For interacting with objects/NPCs with Emotes, Continue Dialogue</p>
-                            <br></br>
-                        </div>
-                        {/* <div className="keyContainer">
+                    </div>{' '}
+                    {/*<!--row--> */}
+                </div>{' '}
+                {/*<!--logo--> */}
+                <div className='instruct-actual'>
+                    <Image src={instruct} className='instruct' alt='game logo' />
+                    <div className='keyContainer'>
+                        <Image src={keys} className='keys' alt='keys' />
+                        <p className='instructions'>Moving the Player (arrow keys work too!)</p>
+                        <br></br>
+                    </div>
+                    <div className='keyContainer'>
+                        <Image src={cursor} className='keys' alt='keys' />
+                        <p className='instructions'>Hovering Tooltips, Button Selection</p>
+                        <br></br>
+                    </div>
+                    <div className='keyContainer'>
+                        <Image src={e} className='keys' alt='keys' />
+                        <p className='instructions'>For interacting with objects/NPCs with Emotes, Continue Dialogue</p>
+                        <br></br>
+                    </div>
+                    {/* <div className="keyContainer">
                         <img src={q} className='keys' alt="keys" />
                         <p className='instructions'>Opening Fast Travel Menu</p><br></br>
                     </div>
@@ -314,11 +313,11 @@ function AnimELLEGame() {
                         <img src={a} className='keys' alt="keys" />
                         <p className='instructions'>Opening "Ask Tito" Menu</p><br></br>
                     </div> */}
-                        <br></br>
-                        <br></br>
-                        {/* <p className='instructions'>-Scavenger Hunt:<br></br><br></br>"Spacebar" - For picking up Scavenger Hunt items, Continue Dialogue</p><br></br> */}
+                    <br></br>
+                    <br></br>
+                    {/* <p className='instructions'>-Scavenger Hunt:<br></br><br></br>"Spacebar" - For picking up Scavenger Hunt items, Continue Dialogue</p><br></br> */}
 
-                        {/* CONTROLS FOR ANIMELLE CROSSING:
+                    {/* CONTROLS FOR ANIMELLE CROSSING:
                         - General:
                         * Arrow Keys - Moving the Player
                         * Mouse - Hovering Tooltips, Button Selection
@@ -336,12 +335,11 @@ function AnimELLEGame() {
 
                         - Matching Game, Fill-In-The-Blank, Multiple Choice
                         * Mouse -  Button Selection */}
-                    </div>
-                </div>{' '}
-                {/*<!--divContainer--> */}
-            </div>
-        </Layout>
+                </div>
+            </div>{' '}
+            {/*<!--divContainer--> */}
+        </div>
     );
 }
 
-export default AnimELLEGame;
+AnimELLEGame.getLayout = (page: React.JSX.Element) => <Layout requireUser>{page}</Layout>;

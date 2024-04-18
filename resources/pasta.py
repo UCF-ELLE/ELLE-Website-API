@@ -1,3 +1,4 @@
+from io import StringIO
 from flask import request, Response
 from flask_restful import Resource
 from flask_jwt_extended import (
@@ -1208,47 +1209,63 @@ class GetPastaCSV(Resource):
                         pasta p ON lp.pastaID = p.pastaID
                     """
 
+            csv_data = StringIO()
+            csv_writer = csv.writer(csv_data)
+
             if db_count != rd_log_pasta_count or rd_log_pasta_count is None:
-                csv = "Log ID, User ID, Username, Module ID, Pasta Module Name, Question, Pasta Utterance, Session ID, Correct, Log time\n"
+                results = getFromDB(query)
+            else:
+                query += (
+                    f" WHERE lp.logID > {last_db_id}"  # Include the WHERE condition
+                )
                 results = getFromDB(query)
 
-            else:
-                csv = ""
-                query += f"WHERE lp.logID > {last_db_id}"
-                results = getFromDB(query)
                 if redis_conn.get("logged_pasta_csv") is not None:
-                    csv = redis_conn.get("logged_pasta_csv")
+                    # Get the CSV data from Redis and convert it to a list of rows
+                    redis_csv_data = redis_conn.get("logged_pasta_csv")
+                    redis_csv_rows = redis_csv_data.strip().split("\n")
+                    for row in redis_csv_rows:
+                        csv_writer.writerow(
+                            row.split(",")
+                        )  # Write each row to the CSV writer
 
             if results and results[0]:
+                if len(csv_data.getvalue()) == 0:
+                    csv_writer.writerow(
+                        [
+                            "Log ID",
+                            "User ID",
+                            "Username",
+                            "Module ID",
+                            "Pasta Module Name",
+                            "Question",
+                            "Pasta Utterance",
+                            "Session ID",
+                            "Correct",
+                            "Log time",
+                        ]
+                    )
                 for record in results:
-
-                    if record[4]:
-                        record[4] = convert_to_utf8(record[4])
-
-                    if record[6]:
-                        record[6] = convert_to_utf8(record[6])
-
                     if record[4] is None:
                         replace_query = (
                             "SELECT `name` FROM `deleted_module` WHERE `moduleID` = %s"
                         )
                         replace = getFromDB(replace_query, record[3])
                         record[4] = replace[0][0]
-                    csv = (
-                        csv
-                        + f"""{record[0]}, {record[1]}, {record[2]}, {record[3]}, {record[4]}, {record[5]}, {record[6]}, {record[7]}, {record[8]}, {record[9]}\n"""
-                    )
+                    csv_writer.writerow(record)
+
+            csv_data.seek(0)
 
             last_record_id = results[-1][0]
 
             if redis_conn is not None:
-                redis_conn.set("logged_pasta_csv", csv)
+                redis_conn.set("logged_pasta_csv", csv_data.getvalue())
                 redis_conn.set("logged_pasta_chks", checksum)
                 redis_conn.set("last_logged_pasta_id", last_record_id)
                 redis_conn.set("log_pasta_count", db_count)
 
         return Response(
-            csv,
+            csv_data,
             mimetype="text/csv",
             headers={"Content-disposition": "attachment; filename=Logged_Pastas.csv"},
         )

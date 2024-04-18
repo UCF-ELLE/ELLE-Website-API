@@ -1,4 +1,4 @@
-import Layout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import { useUser } from '@/hooks/useUser';
 import '@/public/static/css/loginstyle.css';
 import hideImage from '@/public/static/images/hide.png';
@@ -104,107 +104,107 @@ export default function ResetPassword() {
     };
 
     return (
-        <Layout>
-            <div className='reset-bg'>
-                <div className='row main' style={{ margin: 0 }}>
-                    <div className='reset-box' style={{ marginTop: 20 }}>
-                        <h4 style={{ display: 'flex', justifyContent: 'center' }}>Reset Your Password</h4>
-                        {success ? <Alert color='success'>{msg}</Alert> : null}
-                        {error ? <Alert color='danger'>{msg}</Alert> : null}
-                        <Form onSubmit={(e) => resetPassword(e)} style={{ marginBottom: '10px' }}>
-                            <FormGroup>
-                                <Label>Email:</Label>
-                                <InputGroup style={{ borderRadius: '12px' }}>
-                                    <Input placeholder='user@email.com' name='email' value={email} onChange={(e) => setEmail(e.target.value)} />
-                                </InputGroup>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label>ResetToken:</Label>
-                                <InputGroup style={{ borderRadius: '12px' }}>
-                                    <Input placeholder='token' name='token' value={token} onChange={(e) => setToken(e.target.value)} />
-                                </InputGroup>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label>Password:</Label>
-                                <InputGroup style={{ borderRadius: '12px' }}>
-                                    <Input
-                                        value={password}
-                                        onChange={(e) => validatePassword(e)}
-                                        type={hiddenPassword ? 'password' : 'text'}
-                                        name='password'
-                                        placeholder='*********'
-                                        autoComplete='new-password'
-                                        style={{ border: 'none' }}
-                                    />
-                                    <div>
-                                        <Button
-                                            style={{ backgroundColor: 'white', border: 'none' }}
-                                            name='hiddenPassword'
-                                            onClick={() => togglePWPrivacy('hiddenPassword')}
-                                        >
-                                            {hiddenPassword ? (
-                                                <Image
-                                                    src={hideImage}
-                                                    alt='Icon made by Pixel perfect from www.flaticon.com'
-                                                    style={{ width: '24px', height: '24px' }}
-                                                />
-                                            ) : (
-                                                <Image
-                                                    src={showImage}
-                                                    alt='Icon made by Kiranshastry from www.flaticon.com'
-                                                    style={{ width: '24px', height: '24px' }}
-                                                />
-                                            )}
-                                        </Button>
-                                    </div>
-                                </InputGroup>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label>Confirm Password:</Label>
-                                <InputGroup style={{ borderRadius: '12px' }}>
-                                    <Input
-                                        value={confirm}
-                                        valid={validConfirm}
-                                        invalid={invalidConfirm}
-                                        onChange={(e) => validatePassword(e)}
-                                        type={hiddenConfirm ? 'password' : 'text'}
-                                        name='confirm'
-                                        placeholder='*********'
-                                        autoComplete='new-password'
-                                        style={{ border: 'none' }}
-                                    />
-                                    <div>
-                                        <Button
-                                            style={{ backgroundColor: 'white', border: 'none', borderRadius: '0 5px 5px 0' }}
-                                            name='hiddenConfirm'
-                                            onClick={() => togglePWPrivacy('hiddenConfirm')}
-                                        >
-                                            {hiddenConfirm ? (
-                                                <Image
-                                                    src={hideImage}
-                                                    alt='Icon made by Pixel perfect from www.flaticon.com'
-                                                    style={{ width: '24px', height: '24px' }}
-                                                />
-                                            ) : (
-                                                <Image
-                                                    src={showImage}
-                                                    alt='Icon made by Kiranshastry from www.flaticon.com'
-                                                    style={{ width: '24px', height: '24px' }}
-                                                />
-                                            )}
-                                        </Button>
-                                    </div>
-                                    <FormFeedback valid>The passwords match!</FormFeedback>
-                                    <FormFeedback invalid={invalidConfirm.toString()}>The passwords do not match, please try again.</FormFeedback>
-                                </InputGroup>
-                            </FormGroup>
-                            <Button block type='submit' disabled={validConfirm ? false : true}>
-                                Reset
-                            </Button>
-                        </Form>
-                    </div>
+        <div className='reset-bg'>
+            <div className='row main' style={{ margin: 0 }}>
+                <div className='reset-box' style={{ marginTop: 20 }}>
+                    <h4 style={{ display: 'flex', justifyContent: 'center' }}>Reset Your Password</h4>
+                    {success ? <Alert color='success'>{msg}</Alert> : null}
+                    {error ? <Alert color='danger'>{msg}</Alert> : null}
+                    <Form onSubmit={(e) => resetPassword(e)} style={{ marginBottom: '10px' }}>
+                        <FormGroup>
+                            <Label>Email:</Label>
+                            <InputGroup style={{ borderRadius: '12px' }}>
+                                <Input placeholder='user@email.com' name='email' value={email} onChange={(e) => setEmail(e.target.value)} />
+                            </InputGroup>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>ResetToken:</Label>
+                            <InputGroup style={{ borderRadius: '12px' }}>
+                                <Input placeholder='token' name='token' value={token} onChange={(e) => setToken(e.target.value)} />
+                            </InputGroup>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>Password:</Label>
+                            <InputGroup style={{ borderRadius: '12px' }}>
+                                <Input
+                                    value={password}
+                                    onChange={(e) => validatePassword(e)}
+                                    type={hiddenPassword ? 'password' : 'text'}
+                                    name='password'
+                                    placeholder='*********'
+                                    autoComplete='new-password'
+                                    style={{ border: 'none' }}
+                                />
+                                <div>
+                                    <Button
+                                        style={{ backgroundColor: 'white', border: 'none' }}
+                                        name='hiddenPassword'
+                                        onClick={() => togglePWPrivacy('hiddenPassword')}
+                                    >
+                                        {hiddenPassword ? (
+                                            <Image
+                                                src={hideImage}
+                                                alt='Icon made by Pixel perfect from www.flaticon.com'
+                                                style={{ width: '24px', height: '24px' }}
+                                            />
+                                        ) : (
+                                            <Image
+                                                src={showImage}
+                                                alt='Icon made by Kiranshastry from www.flaticon.com'
+                                                style={{ width: '24px', height: '24px' }}
+                                            />
+                                        )}
+                                    </Button>
+                                </div>
+                            </InputGroup>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>Confirm Password:</Label>
+                            <InputGroup style={{ borderRadius: '12px' }}>
+                                <Input
+                                    value={confirm}
+                                    valid={validConfirm}
+                                    invalid={invalidConfirm}
+                                    onChange={(e) => validatePassword(e)}
+                                    type={hiddenConfirm ? 'password' : 'text'}
+                                    name='confirm'
+                                    placeholder='*********'
+                                    autoComplete='new-password'
+                                    style={{ border: 'none' }}
+                                />
+                                <div>
+                                    <Button
+                                        style={{ backgroundColor: 'white', border: 'none', borderRadius: '0 5px 5px 0' }}
+                                        name='hiddenConfirm'
+                                        onClick={() => togglePWPrivacy('hiddenConfirm')}
+                                    >
+                                        {hiddenConfirm ? (
+                                            <Image
+                                                src={hideImage}
+                                                alt='Icon made by Pixel perfect from www.flaticon.com'
+                                                style={{ width: '24px', height: '24px' }}
+                                            />
+                                        ) : (
+                                            <Image
+                                                src={showImage}
+                                                alt='Icon made by Kiranshastry from www.flaticon.com'
+                                                style={{ width: '24px', height: '24px' }}
+                                            />
+                                        )}
+                                    </Button>
+                                </div>
+                                <FormFeedback valid>The passwords match!</FormFeedback>
+                                <FormFeedback invalid={invalidConfirm.toString()}>The passwords do not match, please try again.</FormFeedback>
+                            </InputGroup>
+                        </FormGroup>
+                        <Button block type='submit' disabled={validConfirm ? false : true}>
+                            Reset
+                        </Button>
+                    </Form>
                 </div>
             </div>
-        </Layout>
+        </div>
     );
 }
+
+ResetPassword.getLayout = (page: React.JSX.Element) => <Layout noFooter>{page}</Layout>;

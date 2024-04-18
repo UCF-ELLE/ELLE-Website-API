@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Input, Label, Row, Col, Modal, ModalHeader, ModalBody, Alert } from 'reactstrap';
 import axios from 'axios';
 import { useUser } from '@/hooks/useUser';
-import Layout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import '@/public/static/css/loginstyle.css';
 
 export default function ForgotPassword() {
@@ -38,60 +38,55 @@ export default function ForgotPassword() {
     };
 
     return (
-        <Layout>
-            <div className='forgot-bg'>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <div className='forgot-box'>
-                        <h4 style={{ display: 'flex', justifyContent: 'center', margin: '10px' }}>Forgot your Password?</h4>
-                        <Row style={{ display: 'flex', justifyContent: 'center', margin: '10px' }}>
-                            Do you have an email associated with your account?
-                        </Row>
-                        <Row style={{ marginBottom: '10px' }}>
-                            <Col style={{ display: 'flex', justifyContent: 'center' }}>
-                                <Button style={{ fontWeight: 'bold' }} onClick={() => toggleEmailModal()}>
-                                    Yes, I do!
-                                </Button>
-                            </Col>
-                            <Col style={{ display: 'flex', justifyContent: 'center' }}>
-                                <Button style={{ fontWeight: 'bold' }} onClick={() => toggleHelpModal()}>
-                                    No, I do not.
-                                </Button>
-                            </Col>
-                        </Row>
-                    </div>
-
-                    <Modal isOpen={emailModalOpen} toggle={() => toggleEmailModal()}>
-                        <ModalHeader toggle={() => toggleEmailModal()}>Send me an email</ModalHeader>
-                        <ModalBody>
-                            {alertOpen ? (
-                                <Alert color='info' style={{ fontSize: 'small' }}>
-                                    If there&apos;s an user associated with the provided email, we will send information on how to reset your
-                                    password. If you have not received it within 15 minutes, please check under junk or spam emails.
-                                </Alert>
-                            ) : null}
-                            <Label>Email:</Label>
-                            <Row>
-                                <Col xs='10'>
-                                    <Input
-                                        placeholder='user@email.com'
-                                        name='email'
-                                        value={email}
-                                        onChange={(e) => setEmail(e.currentTarget.value)}
-                                    />
-                                </Col>
-                                <Col xs='2' style={{ padding: '0' }}>
-                                    <Button onClick={() => sendEmail()}>Send</Button>
-                                </Col>
-                            </Row>
-                        </ModalBody>
-                    </Modal>
-
-                    <Modal isOpen={helpModalOpen} toggle={() => toggleHelpModal()}>
-                        <ModalHeader toggle={() => toggleHelpModal()}>Help</ModalHeader>
-                        <ModalBody>Please ask your professor or the super admin to reset your password.</ModalBody>
-                    </Modal>
+        <div className='forgot-bg'>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <div className='forgot-box'>
+                    <h4 style={{ display: 'flex', justifyContent: 'center', margin: '10px' }}>Forgot your Password?</h4>
+                    <Row style={{ display: 'flex', justifyContent: 'center', margin: '10px' }}>
+                        Do you have an email associated with your account?
+                    </Row>
+                    <Row style={{ marginBottom: '10px' }}>
+                        <Col style={{ display: 'flex', justifyContent: 'center' }}>
+                            <Button style={{ fontWeight: 'bold' }} onClick={() => toggleEmailModal()}>
+                                Yes, I do!
+                            </Button>
+                        </Col>
+                        <Col style={{ display: 'flex', justifyContent: 'center' }}>
+                            <Button style={{ fontWeight: 'bold' }} onClick={() => toggleHelpModal()}>
+                                No, I do not.
+                            </Button>
+                        </Col>
+                    </Row>
                 </div>
+
+                <Modal isOpen={emailModalOpen} toggle={() => toggleEmailModal()}>
+                    <ModalHeader toggle={() => toggleEmailModal()}>Send me an email</ModalHeader>
+                    <ModalBody>
+                        {alertOpen ? (
+                            <Alert color='info' style={{ fontSize: 'small' }}>
+                                If there&apos;s an user associated with the provided email, we will send information on how to reset your password. If
+                                you have not received it within 15 minutes, please check under junk or spam emails.
+                            </Alert>
+                        ) : null}
+                        <Label>Email:</Label>
+                        <Row>
+                            <Col xs='10'>
+                                <Input placeholder='user@email.com' name='email' value={email} onChange={(e) => setEmail(e.currentTarget.value)} />
+                            </Col>
+                            <Col xs='2' style={{ padding: '0' }}>
+                                <Button onClick={() => sendEmail()}>Send</Button>
+                            </Col>
+                        </Row>
+                    </ModalBody>
+                </Modal>
+
+                <Modal isOpen={helpModalOpen} toggle={() => toggleHelpModal()}>
+                    <ModalHeader toggle={() => toggleHelpModal()}>Help</ModalHeader>
+                    <ModalBody>Please ask your professor or the super admin to reset your password.</ModalBody>
+                </Modal>
             </div>
-        </Layout>
+        </div>
     );
 }
+
+ForgotPassword.getLayout = (page: React.JSX.Element) => <Layout noFooter>{page}</Layout>;

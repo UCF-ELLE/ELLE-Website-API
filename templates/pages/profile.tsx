@@ -4,7 +4,7 @@ import SuperAdminView from '../components/Profile/SuperAdminView';
 import AdminView from '../components/Profile/AdminView';
 import StudentView from '@/components/Profile/StudentView';
 import { useUser } from '@/hooks/useUser';
-import Layout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import '@/public/static/css/style.css';
 import { User } from '@/types/api/user';
 
@@ -30,16 +30,16 @@ export default function Profile() {
     };
 
     return (
-        <Layout>
-            <div>
-                <Container className='mainContainer'>
-                    <br></br>
-                    {permission === 'su' ? <SuperAdminView username={username} email={email} editEmail={editEmail} /> : null}
-                    {permission === 'pf' ? <AdminView username={username} email={email} editEmail={editEmail} /> : null}
-                    {permission === 'st' ? <StudentView username={username} email={email} editEmail={editEmail} /> : null}
-                    <br />
-                </Container>
-            </div>
-        </Layout>
+        <div>
+            <Container className='mainContainer'>
+                <br></br>
+                {permission === 'su' ? <SuperAdminView username={username} email={email} editEmail={editEmail} /> : null}
+                {permission === 'pf' ? <AdminView username={username} email={email} editEmail={editEmail} /> : null}
+                {permission === 'st' ? <StudentView username={username} email={email} editEmail={editEmail} /> : null}
+                <br />
+            </Container>
+        </div>
     );
 }
+
+Profile.getLayout = (page: React.JSX.Element) => <Layout requireUser>{page}</Layout>;
