@@ -23,7 +23,7 @@ import instruct from '@/public/static/images/AnimELLE/instructions.png';
 import keys from '@/public/static/images/AnimELLE/keyboard.png';
 import cursor from '@/public/static/images/AnimELLE/mouse.svg';
 import e from '@/public/static/images/AnimELLE/ekey.svg';
-import { GameContext } from '@/components/Layouts/GameLayout';
+import GameLayout, { GameContext } from '@/components/Layouts/GameLayout';
 
 export default function AnimELLEGame() {
     const { user, loading: userLoading } = useUser();
@@ -320,4 +320,4 @@ export default function AnimELLEGame() {
     );
 }
 
-AnimELLEGame.getLayout = (page: React.JSX.Element) => <Layout requireUser>{page}</Layout>;
+AnimELLEGame.getLayout = (page: React.JSX.Element) => <GameLayout>{page}</GameLayout>;
