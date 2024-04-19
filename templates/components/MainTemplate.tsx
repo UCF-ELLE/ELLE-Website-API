@@ -1,9 +1,7 @@
-'use client';
-
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/components/Navigation/Link';
 
-import backgroundFullImage from '../public/static/images/ELLE/ELLE-Background-Full.png';
+import backgroundFullImage from '@/public/static/images/ELLE/ELLE-Background-Full.png';
 
 import { useAuth } from '@/hooks/useAuth';
 import styles from './Layout.module.css';

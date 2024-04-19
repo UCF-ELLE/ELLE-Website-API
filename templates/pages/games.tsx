@@ -1,4 +1,4 @@
-import Layout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import { useMemo } from 'react';
 import Select, { SingleValue } from 'react-select';
 
@@ -72,18 +72,15 @@ export default function Games() {
     const options = useMemo(() => GameSectionProps.map((game) => ({ value: game.anchor, label: game.title })), [GameSectionProps]);
 
     return (
-        <Layout>
-            <div className='gamesBg'>
-                <a id='top'></a>
-
-                {/* Create the game selection dropdown menu */}
-                <br />
+        <div className='gamesBg'>
+            <a id='top'></a>
+            <div style={{ marginTop: 24 }}>
                 <Select className='dropdown button' options={options} onChange={(e) => handleGameChange(e)} placeholder='Select a Game' />
-
-                {GameSectionProps.map((game, idx) => (
-                    <GameSection key={game.anchor} {...game} />
-                ))}
             </div>
-        </Layout>
+
+            {GameSectionProps.map((game, idx) => (
+                <GameSection key={game.anchor} {...game} />
+            ))}
+        </div>
     );
 }

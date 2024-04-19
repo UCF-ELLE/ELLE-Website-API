@@ -1,4 +1,4 @@
-import Layout from '@/app/layout';
+import Layout from '@/components/Layouts/Layout';
 import { useUser } from '@/hooks/useUser';
 import { useCallback, useEffect, useState } from 'react';
 import { Col, Container, Label, Row } from 'reactstrap';
@@ -288,103 +288,103 @@ export default function Modules() {
     classChanged ? updateModuleList('change') : null;
 
     return (
-        <Layout requireUser>
-            <div>
-                <Container className='mainContainer'>
-                    <br />
-                    <Row style={{ marginBottom: '15px' }}>
-                        <Col className='Left Column' xs='3'>
-                            <h3
+        <div>
+            <Container className='mainContainer'>
+                <br />
+                <Row style={{ marginBottom: '15px' }}>
+                    <Col className='Left Column' xs='3'>
+                        <h3
+                            style={{
+                                margin: '5px 0 0 0',
+                                color: '#16a3b8'
+                            }}
+                        >
+                            Your ELLE Modules:
+                        </h3>
+                    </Col>
+                    {currentPermissionLevel !== 'su' ? (
+                        <Col
+                            className='Right Column'
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'flex-end'
+                            }}
+                        >
+                            <Label
                                 style={{
-                                    margin: '5px 0 0 0',
-                                    color: '#16a3b8'
+                                    margin: '5px 8px 0 0',
+                                    fontSize: 'large'
                                 }}
                             >
-                                Your ELLE Modules:
-                            </h3>
-                        </Col>
-                        {currentPermissionLevel !== 'su' ? (
-                            <Col
-                                className='Right Column'
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'flex-end'
+                                Class:{' '}
+                            </Label>
+                            <Select
+                                name='selectedClass'
+                                instanceId={'select-class'}
+                                options={classOptions}
+                                className='basic-single'
+                                classNamePrefix='select'
+                                isClearable={true}
+                                value={selectedClass}
+                                onChange={(e) =>
+                                    updateClassContext({
+                                        value: e?.value as number,
+                                        label: e?.label as string
+                                    })
+                                }
+                                styles={{
+                                    valueContainer: () => ({
+                                        width: '147px'
+                                    }),
+                                    // Fixes the overlapping problem of the component
+                                    menu: (provided) => ({
+                                        ...provided,
+                                        zIndex: 9999
+                                    }),
+                                    singleValue: (provided) => ({
+                                        ...provided,
+                                        margin: '0 0 0 10px'
+                                    }),
+                                    input: (provided) => ({
+                                        ...provided,
+                                        margin: '0 0 0 10px'
+                                    })
                                 }}
-                            >
-                                <Label
-                                    style={{
-                                        margin: '5px 8px 0 0',
-                                        fontSize: 'large'
-                                    }}
-                                >
-                                    Class:{' '}
-                                </Label>
-                                <Select
-                                    name='selectedClass'
-                                    instanceId={'select-class'}
-                                    options={classOptions}
-                                    className='basic-single'
-                                    classNamePrefix='select'
-                                    isClearable={true}
-                                    value={selectedClass}
-                                    onChange={(e) =>
-                                        updateClassContext({
-                                            value: e?.value as number,
-                                            label: e?.label as string
-                                        })
-                                    }
-                                    styles={{
-                                        valueContainer: () => ({
-                                            width: '147px'
-                                        }),
-                                        // Fixes the overlapping problem of the component
-                                        menu: (provided) => ({
-                                            ...provided,
-                                            zIndex: 9999
-                                        }),
-                                        singleValue: (provided) => ({
-                                            ...provided,
-                                            margin: '0 0 0 10px'
-                                        }),
-                                        input: (provided) => ({
-                                            ...provided,
-                                            margin: '0 0 0 10px'
-                                        })
-                                    }}
-                                />
-                            </Col>
-                        ) : null}
-                    </Row>
-                    <Row className='Seperated Col'>
-                        <ModuleSearch
-                            modules={modules}
-                            updateModuleList={updateModuleList}
-                            dynamicModules={dynamicModules}
-                            setDynamicModules={setDynamicModules}
-                            selectedClass={selectedClass}
-                            classOptions={classOptions}
-                            updateCurrentModule={updateCurrentModule}
-                            deleteModule={deleteModule}
-                            editModule={editModule}
-                            unlinkModule={unlinkModule}
-                        />
-                        <Col className='Right Column'>
-                            {currentModule && (
-                                <MainModuleView
-                                    currentClass={selectedClass}
-                                    curModule={currentModule}
-                                    questions={questions}
-                                    mentorQuestions={mentorQuestions}
-                                    updateCurrentModule={updateCurrentModule}
-                                    allAnswers={allAnswers}
-                                    modificationWarning={modificationWarning}
-                                    toggleModificationWarning={toggleModificationWarning}
-                                />
-                            )}
+                            />
                         </Col>
-                    </Row>
-                </Container>
-            </div>
-        </Layout>
+                    ) : null}
+                </Row>
+                <Row className='Seperated Col'>
+                    <ModuleSearch
+                        modules={modules}
+                        updateModuleList={updateModuleList}
+                        dynamicModules={dynamicModules}
+                        setDynamicModules={setDynamicModules}
+                        selectedClass={selectedClass}
+                        classOptions={classOptions}
+                        updateCurrentModule={updateCurrentModule}
+                        deleteModule={deleteModule}
+                        editModule={editModule}
+                        unlinkModule={unlinkModule}
+                    />
+                    <Col className='Right Column'>
+                        {currentModule && (
+                            <MainModuleView
+                                currentClass={selectedClass}
+                                curModule={currentModule}
+                                questions={questions}
+                                mentorQuestions={mentorQuestions}
+                                updateCurrentModule={updateCurrentModule}
+                                allAnswers={allAnswers}
+                                modificationWarning={modificationWarning}
+                                toggleModificationWarning={toggleModificationWarning}
+                            />
+                        )}
+                    </Col>
+                </Row>
+            </Container>
+        </div>
     );
 }
+
+Modules.getLayout = (page: React.JSX.Element) => <Layout requireUser>{page}</Layout>;
