@@ -1227,13 +1227,10 @@ class GetPastaCSV(Resource):
                 results = getFromDB(query)
 
                 if redis_conn.get("logged_pasta_csv") is not None:
-                    # Get the CSV data from Redis and convert it to a list of rows
                     redis_csv_data = redis_conn.get("logged_pasta_csv")
                     redis_csv_rows = redis_csv_data.strip().split("\n")
                     for row in redis_csv_rows:
-                        csv_writer.writerow(
-                            row.split(",")
-                        )  # Write each row to the CSV writer
+                        csv_writer.writerow(row.split(","))
 
             if results and results[0]:
                 if len(csv_data.getvalue()) == 0:

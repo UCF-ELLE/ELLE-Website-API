@@ -17,7 +17,6 @@ import GameLayout, { GameContext } from '@/components/Layouts/GameLayout';
 export default function PastaKerfuffELLE() {
     const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
-    const router = useRouter();
     // Used to determine when the user is in the middle of a Pasta Game session (and NOT in any other screen e.g. the main menu)
     // Do note, the references are used to store the most recent values of the states, as the states themselves are reset when changing the page
     const { UNITY_userIsPlayingGame, setUNITY_userIsPlayingGame } = useContext(GameContext);
@@ -54,11 +53,8 @@ export default function PastaKerfuffELLE() {
     );
 
     useEffect(() => {
-        console.log('UNITY_userIsPlayingGame:', UNITY_userIsPlayingGame);
         userPlayingGameRef.current = UNITY_userIsPlayingGame;
-        console.log('UNITY_sessionID:', UNITY_sessionID);
         sessionIDRef.current = UNITY_sessionID;
-        console.log('UNITY_playerScore:', UNITY_playerScore);
         userScoreRef.current = UNITY_playerScore;
     }, [UNITY_playerScore, UNITY_sessionID, UNITY_userIsPlayingGame]);
 

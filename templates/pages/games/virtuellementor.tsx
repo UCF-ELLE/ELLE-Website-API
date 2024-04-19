@@ -3,7 +3,7 @@
 Converted from class-based to functional component in Spring 2023.
 **************************/
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Unity, useUnityContext } from 'react-unity-webgl';
 import { Button } from 'reactstrap';
 
@@ -12,7 +12,7 @@ import '@/lib/ionicons/css/ionicons.min.css';
 import '@/lib/owlcarousel/assets/owl.carousel.min.css';
 import '@/public/static/css/style.css';
 
-import GameLayout from '@/components/Layouts/GameLayout';
+import GameLayout, { GameContext } from '@/components/Layouts/GameLayout';
 import { useUser } from '@/hooks/useUser';
 import { useRouter } from 'next/router';
 import { ReactUnityEventParameter } from 'react-unity-webgl/distribution/types/react-unity-event-parameters';
@@ -20,12 +20,16 @@ import { ReactUnityEventParameter } from 'react-unity-webgl/distribution/types/r
 export default function VirtuELLEMentor() {
     const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
-    const router = useRouter();
-    // Used to determine when the user is in the middle of a Card Game session (and NOT in any other screen e.g. the main menu)
-    const [UNITY_userIsPlayingGame, setUNITY_userIsPlayingGame] = useState(false);
+    // Used to determine when the user is in the middle of a Pasta Game session (and NOT in any other screen e.g. the main menu)
+    // Do note, the references are used to store the most recent values of the states, as the states themselves are reset when changing the page
+    const { UNITY_userIsPlayingGame, setUNITY_userIsPlayingGame } = useContext(GameContext);
+    const userPlayingGameRef = useRef(UNITY_userIsPlayingGame);
     const [UNITY_sessionID, setUNITY_sessionID] = useState('');
+    const sessionIDRef = useRef(UNITY_sessionID);
     const [UNITY_playerScore, setUNITY_playerScore] = useState(0);
+    const userScoreRef = useRef(UNITY_playerScore);
     const [UNITY_pausedTime, setUNITY_pausedTime] = useState(0); // In-game time spent on pause menu, in seconds
+    const pausedTimeRef = useRef(UNITY_pausedTime);
 
     // Load Unity WebGL game
     const { unityProvider, requestFullscreen, isLoaded, sendMessage, loadingProgression, addEventListener, removeEventListener, unload } =
@@ -39,16 +43,26 @@ export default function VirtuELLEMentor() {
 
     // Event handlers for when Unity sends events to Event
     // Unity doesn't let us send booleans to React, so we have to convert them to booleans ourselves
-    const UNITY_setUserIsPlayingGame = useCallback((state: ReactUnityEventParameter) => {
-        let bool: boolean;
-        if (typeof state === 'string') {
-            bool = state === 'true' ? true : false;
-        } else if (typeof state === 'number') {
-            bool = state === 1 ? true : false;
-        } else bool = false;
+    const UNITY_setUserIsPlayingGame = useCallback(
+        (state: ReactUnityEventParameter) => {
+            let bool: boolean;
+            if (typeof state === 'string') {
+                bool = state === 'true' ? true : false;
+            } else if (typeof state === 'number') {
+                bool = state === 1 ? true : false;
+            } else bool = false;
 
-        setUNITY_userIsPlayingGame(bool);
-    }, []);
+            setUNITY_userIsPlayingGame(bool);
+        },
+        [setUNITY_userIsPlayingGame]
+    );
+
+    useEffect(() => {
+        userPlayingGameRef.current = UNITY_userIsPlayingGame;
+        sessionIDRef.current = UNITY_sessionID;
+        userScoreRef.current = UNITY_playerScore;
+        pausedTimeRef.current = UNITY_pausedTime;
+    }, [UNITY_pausedTime, UNITY_playerScore, UNITY_sessionID, UNITY_userIsPlayingGame]);
 
     const UNITY_setSessionID = useCallback((sessionID: ReactUnityEventParameter) => {
         setUNITY_sessionID(sessionID as string);
@@ -60,58 +74,20 @@ export default function VirtuELLEMentor() {
         setUNITY_pausedTime(time as number);
     }, []);
 
-    // Prevent user from accidentally clicking on a link and leaving the page while in the middle of a Card Game session
-    const handleEarlyNavigation = useCallback(async () => {
-        // Only run it if the user is currently in the middle of a session
-        if (isLoaded) {
-            try {
-                if (UNITY_userIsPlayingGame) {
-                    // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
-                    console.log('User is in the middle of a Card Game session. Extracting game info...');
-                    sendMessage('GameManager', 'WEBGL_ExtractGameInfo');
-                }
-
-                if (!window.confirm('Are you sure you want to leave?')) {
-                    throw Error('User cancelled the navigation.');
-                } else {
-                    // Unload the Unity game
-                    await unload();
-                }
-            } catch (e: any) {
-                // Prevents the navigation from happening
-                if (e.message === 'User cancelled the navigation.') return;
-                else {
-                    console.log(e);
-                }
-            }
-        }
-    }, [UNITY_userIsPlayingGame, isLoaded, sendMessage, unload]);
-
     // Taken from https://react-unity-webgl.dev/docs/api/event-system
     useEffect(() => {
         addEventListener('setUserIsPlayingGame', UNITY_setUserIsPlayingGame);
         addEventListener('setSessionID', UNITY_setSessionID);
         addEventListener('setPlayerScore', UNITY_setPlayerScore);
         addEventListener('setPausedTime', UNITY_setPausedTime);
-        router.events.on('routeChangeStart', handleEarlyNavigation);
         return () => {
             console.log('Removing event listeners...');
             removeEventListener('setUserIsPlayingGame', UNITY_setUserIsPlayingGame);
             removeEventListener('setSessionID', UNITY_setSessionID);
             removeEventListener('setPlayerScore', UNITY_setPlayerScore);
             removeEventListener('setPausedTime', UNITY_setPausedTime);
-            router.events.off('routeChangeStart', handleEarlyNavigation);
         };
-    }, [
-        addEventListener,
-        removeEventListener,
-        UNITY_setUserIsPlayingGame,
-        UNITY_setSessionID,
-        UNITY_setPlayerScore,
-        UNITY_setPausedTime,
-        router.events,
-        handleEarlyNavigation
-    ]);
+    }, [addEventListener, removeEventListener, UNITY_setUserIsPlayingGame, UNITY_setSessionID, UNITY_setPlayerScore, UNITY_setPausedTime]);
 
     // This runs only ONCE, when the component renders for the first time
     useEffect(() => {
@@ -129,25 +105,50 @@ export default function VirtuELLEMentor() {
     const openWarningDialog = useCallback(
         (e: BeforeUnloadEvent) => {
             // Only run if the user is currently in the middle of a session
-            if (UNITY_userIsPlayingGame) {
+            if (userPlayingGameRef.current || UNITY_userIsPlayingGame) {
                 // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
                 sendMessage('GameManager', 'WEBGL_ExtractGameInfo');
             }
 
             // Ask user to confirm if they want to leave the page
             e.preventDefault();
-
-            /* Debug statements
-                console.log("userIsPlayingGame: " + UNITY_userIsPlayingGame.current);
-                console.log("sessionID: " + UNITY_sessionID.current);
-                console.log("playerScore: " + UNITY_playerScore.current);
-                console.log("pausedTime: " + UNITY_pausedTime.current);
-                */
-
-            e.returnValue = '';
         },
         [UNITY_userIsPlayingGame, sendMessage]
     );
+
+    const endOngoingSession = useCallback(async () => {
+        // Only run it if the user is currently in the middle of a session
+        if (sessionIDRef.current || UNITY_sessionID) {
+            // Get current time
+            console.log('Ending user session...');
+            let date = new Date();
+            const pausedTime = pausedTimeRef.current || UNITY_pausedTime;
+
+            // Subtract in-game paused time
+            let pausedTimeMilliSeconds = pausedTime * 1000;
+            let finalDate = new Date(date.getTime() - pausedTimeMilliSeconds);
+
+            // 0-pad the minutes if it's less than 10 minutes (so it shows up like "09")
+            let finalTimeMinutes = finalDate.getMinutes() < 10 ? '0' + finalDate.getMinutes() : finalDate.getMinutes();
+            let finalTime = finalDate.getHours() + ':' + finalTimeMinutes;
+
+            // Have to use xhr because Axios's async property fails to do the API call when the browser closes
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '/elleapi/endsession', false);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + user?.jwt);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            let data = JSON.stringify({
+                sessionID: sessionIDRef.current || UNITY_sessionID,
+                endTime: finalTime,
+                playerScore: userScoreRef.current || UNITY_playerScore
+            });
+            xhr.send(data);
+        }
+    }, [UNITY_playerScore, UNITY_sessionID, user]);
+
+    async function unloadUnityGame() {
+        await unload();
+    }
 
     useEffect(() => {
         /* Problem: user is in the middle of a Card Game play session and closes the browser. The /session API endpoint was called to start the Session, but
@@ -155,47 +156,19 @@ export default function VirtuELLEMentor() {
          *
          * Solution: since the Unity game didn't get to end the session, call the /endsession endpoint using React
          */
-        const endOngoingSession = async () => {
-            // Only run it if the user is currently in the middle of a session
-            if (UNITY_userIsPlayingGame) {
-                // Get current time
-                console.log('Ending user session...');
-                let date = new Date();
-
-                // Subtract in-game paused time
-                let pausedTimeMilliSeconds = UNITY_pausedTime * 1000;
-                let finalDate = new Date(date.getTime() - pausedTimeMilliSeconds);
-
-                // 0-pad the minutes if it's less than 10 minutes (so it shows up like "09")
-                let finalTimeMinutes = finalDate.getMinutes() < 10 ? '0' + finalDate.getMinutes() : finalDate.getMinutes();
-                let finalTime = finalDate.getHours() + ':' + finalTimeMinutes;
-
-                /* Debug statements
-                    console.log("Unity paused time: " + UNITY_pausedTime.current);
-                    console.log("Unity paused time (in milliseconds): " + pausedTimeMilliSeconds);
-                    console.log(currentTime + " - " + pausedTimeMilliSeconds + " milliseconds = " + finalTime);
-                */
-
-                // Have to use xhr because Axios's async property fails to do the API call when the browser closes
-                let xhr = new XMLHttpRequest();
-                xhr.open('POST', '/elleapi/endsession', false);
-                xhr.setRequestHeader('Authorization', 'Bearer ' + user?.jwt);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                let data = JSON.stringify({
-                    sessionID: UNITY_sessionID,
-                    endTime: finalTime,
-                    playerScore: UNITY_playerScore
-                });
-                xhr.send(data);
-            }
-        };
         window.addEventListener('beforeunload', openWarningDialog);
         window.addEventListener('unload', endOngoingSession);
+        // router.events.on('routeChangeStart', handleEarlyNavigation);
         return () => {
+            if (isLoaded) {
+                endOngoingSession();
+                unloadUnityGame();
+            }
             window.removeEventListener('beforeunload', openWarningDialog);
             window.removeEventListener('unload', endOngoingSession);
+            // router.events.off('routeChangeStart', handleEarlyNavigation);
         };
-    });
+    }, [isLoaded]);
 
     // Automatically log the user into the Unity Card Game
     useEffect(() => {
