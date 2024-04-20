@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import MainTemplate from '@/components/MainTemplate';
 import Footer from '@/components/Footer';
 import { PermissionGroup } from '@/types/misc';

@@ -1,4 +1,4 @@
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { MentorQuestionFrequency, MentorQuestion as MentorQuestionType } from '@/types/api/mentors';
 import { Module, ModuleQuestion, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';

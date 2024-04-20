@@ -6,7 +6,7 @@ import axios from 'axios';
 import TermStats from './TermStats';
 import TermBarChart from './TermBarChart';
 import { TermPerformance } from '@/types/api/stats';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 export default function ClassPerformance({ groupID }: { groupID: string }) {
     const { user } = useUser();

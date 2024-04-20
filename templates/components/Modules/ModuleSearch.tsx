@@ -20,7 +20,7 @@ import StudentView from './Views/StudentView';
 import SuperAdminView from './Views/SuperAdminView';
 import Image from 'next/image';
 import searchImage from '@/public/static/images/search.png';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import React, { useState } from 'react';
 import { Module } from '@/types/api/modules';
 

@@ -5,7 +5,7 @@ import axios from 'axios';
 import '../lib/bootstrap/css/bootstrap.min.css';
 import '../lib/ionicons/css/ionicons.min.css';
 import Layout from '@/components/Layouts/Layout';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 export default function GameCode() {
     const { user } = useUser();

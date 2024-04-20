@@ -24,7 +24,7 @@ import axios from 'axios';
 import Class from '@/components/ClassRoster/Class';
 import Footer from '../components/Footer';
 import Layout from '@/components/Layouts/Layout';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { GroupUser, UserGroup } from '@/types/api/group';
 import Image from 'next/image';
 

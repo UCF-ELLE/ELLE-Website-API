@@ -3,7 +3,7 @@ import { Alert, Button, ButtonGroup, Modal, ModalHeader, ModalBody, ModalFooter,
 import axios from 'axios';
 import { MentorQuestion } from '@/types/api/mentors';
 import { Module } from '@/types/api/modules';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 import submitImage from '@/public/static/images/submit.png';
 import cancelImage from '@/public/static/images/cancel.png';

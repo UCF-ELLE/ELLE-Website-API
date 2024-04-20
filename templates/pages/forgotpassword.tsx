@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Input, Label, Row, Col, Modal, ModalHeader, ModalBody, Alert } from 'reactstrap';
 import axios from 'axios';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import Layout from '@/components/Layouts/Layout';
 import '@/public/static/css/loginstyle.css';
 

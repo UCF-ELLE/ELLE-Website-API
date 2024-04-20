@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from 'reactstrap';
 import axios from 'axios';
 import { Module } from '@/types/api/modules';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 export default function ExistingModule({
     module,

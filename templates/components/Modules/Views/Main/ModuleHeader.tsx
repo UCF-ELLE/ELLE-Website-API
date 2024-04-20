@@ -1,7 +1,7 @@
 import { Row, Input, InputGroup, InputGroupText, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem, Button } from 'reactstrap';
 import Image from 'next/image';
 import searchImage from '@/public/static/images/search.png';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module } from '@/types/api/modules';
 
 export default function ModuleHeader({

@@ -5,7 +5,7 @@ import axios from 'axios';
 
 import ExistingModule from '@/components/Modules/ExistingModule';
 import languageCodes from '@/public/static/json/languageCodes.json';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import Image from 'next/image';
 
 import moduleImage from '@/public/static/images/module.png';

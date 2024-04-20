@@ -1,5 +1,5 @@
 import Layout from '@/components/Layouts/Layout';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { useCallback, useEffect, useState } from 'react';
 import { Col, Container, Label, Row } from 'reactstrap';
 

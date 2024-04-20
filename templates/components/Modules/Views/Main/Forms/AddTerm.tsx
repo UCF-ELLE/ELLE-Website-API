@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Autocomplete from '../Autocomplete';
 import TagList from '../TagList';
 
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import InfoImage from '@/public/static/images/info.png';
 import { Module } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';

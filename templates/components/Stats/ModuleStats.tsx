@@ -6,8 +6,8 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { Bar, Pie } from 'react-chartjs-2';
 import { Button, Card, Col, Modal, ModalBody, ModalHeader, Table } from 'reactstrap';
-import Wave from '../Loading/Wave';
-import { useUser } from '@/hooks/useUser';
+import Spinner from '../Loading/Spinner';
+import { useUser } from '@/hooks/useAuth';
 import styles from '../Profile/SuperAdminView.module.css';
 
 type ModuleStatsType = {
@@ -62,7 +62,7 @@ export function ModuleStats() {
     const renderModulesChart = () => {
         // check if response exists and or if loading
         if (moduleError || moduleLoading || moduleResponse === undefined) {
-            return <Wave chart='modules' />;
+            return <Spinner chart='module' />;
         }
 
         const moduleData = moduleResponse.data;
@@ -210,7 +210,7 @@ export function ModuleStats() {
     const renderLanguageChart = () => {
         // check if response exists and or if loading
         if (languageError || languageLoading || languageResponse === undefined) {
-            return <Wave chart='language' />;
+            return <Spinner chart='language' />;
         }
 
         const languages = languageResponse.data;
@@ -261,7 +261,7 @@ export function ModuleStats() {
                 <Pie
                     data={languageData}
                     height={198}
-                    width={396}
+                    width={474}
                     options={{
                         cutout: 50,
                         responsive: false,
@@ -297,7 +297,7 @@ export function ModuleStats() {
             </Col>
             <Col className='Module Right Columns' xs='5' style={{ paddingLeft: '0px' }}>
                 <div className={styles.suCardBlue}>
-                    Module Languages
+                    <p>Module Languages</p>
                     {renderLanguageChart()}
                 </div>
             </Col>

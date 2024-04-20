@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Form, FormGroup, Label, Input, Row, Col, Alert, Nav, NavItem, NavLink, TabContent, TabPane } from 'reactstrap';
 import axios from 'axios';
 import classnames from 'classnames';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';
 

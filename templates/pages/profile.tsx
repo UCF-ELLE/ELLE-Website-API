@@ -3,7 +3,7 @@ import { Container } from 'reactstrap';
 import SuperAdminView from '../components/Profile/SuperAdminView';
 import AdminView from '../components/Profile/AdminView';
 import StudentView from '@/components/Profile/StudentView';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import Layout from '@/components/Layouts/Layout';
 import '@/public/static/css/style.css';
 import { User } from '@/types/api/user';

@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { Alert, Badge, Button, Col, Form, FormGroup, Input, Label, Row } from 'reactstrap';
 
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module } from '@/types/api/modules';
 import { IdentityQuestionForm, MultipleChoiceQuestionForm } from './MiniForms';
 import axios from 'axios';

@@ -23,7 +23,7 @@ import '@/public/static/css/style.css';
 import UserComponent from '@/components/UserList/UserComponent';
 import { User } from '@/types/api/user';
 import Spinner from '../components/Loading/Spinner';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import Layout from '@/components/Layouts/Layout';
 import useAxios from 'axios-hooks';
 import { PermissionGroup } from '@/types/misc';

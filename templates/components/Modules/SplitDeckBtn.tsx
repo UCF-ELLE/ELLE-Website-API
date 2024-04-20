@@ -23,7 +23,7 @@ import {
 import toolsImage from '@/public/static/images/tools.png';
 import deleteImage from '@/public/static/images/delete.png';
 import unlinkImage from '@/public/static/images/unlink.png';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module } from '@/types/api/modules';
 
 export default function SplitDeckBtn({

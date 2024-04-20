@@ -3,7 +3,7 @@ import { Button, Form, FormGroup, Label, Input, Row, Col, Alert } from 'reactstr
 import Select from 'react-select';
 import axios from 'axios';
 import languageCodes from '@/public/static/json/languageCodes.json';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { LanguageCode } from '@/types/misc';
 
 export default function AddModule({

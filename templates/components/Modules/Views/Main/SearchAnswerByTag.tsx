@@ -7,7 +7,7 @@ import Autocomplete from './Autocomplete';
 import AnswerButtonList from './AnswerButtonList';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Tag, Term } from '@/types/api/terms';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 export default function SearchAnswersByTag({
     curModule,

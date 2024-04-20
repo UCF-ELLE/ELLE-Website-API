@@ -6,7 +6,7 @@ import TagList from './TagList';
 import Autocomplete from './Autocomplete';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import Image from 'next/image';
 
 // This is awful

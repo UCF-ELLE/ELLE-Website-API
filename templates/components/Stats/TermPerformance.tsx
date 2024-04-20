@@ -3,7 +3,7 @@ import { Card, CardHeader, Collapse, Button, Modal, ModalHeader, ModalBody } fro
 import ClassPerformance from './ClassPerformance';
 import SpecificStudentStats from './SpecificStudentStats';
 import { UserGroup } from '@/types/api/group';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 export default function TermPerformance({ classes }: { classes: UserGroup[] }) {
     const [collapseTab, setCollapseTab] = React.useState(-1);

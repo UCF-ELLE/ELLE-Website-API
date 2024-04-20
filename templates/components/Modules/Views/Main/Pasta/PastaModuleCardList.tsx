@@ -1,4 +1,4 @@
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module } from '@/types/api/modules';
 import { Pasta as PastaType, QuestionFrame as QuestionFrameType } from '@/types/api/pastagame';
 import { useContext, useEffect, useMemo } from 'react';

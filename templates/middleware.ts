@@ -9,13 +9,17 @@ export function middleware(request: NextRequest) {
 
     if (['/login', '/signup'].includes(request.nextUrl.pathname)) {
         if (currentUser) {
-            return NextResponse.redirect(new URL('/profile', request.url));
+            const url = request.nextUrl.clone();
+            url.pathname = '/profile';
+            return NextResponse.redirect(url);
         }
         return NextResponse.next();
     }
     if (!currentUser || Date.now() > JSON.parse(currentUser).expiredAt) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/login';
         request.cookies.delete('currentUser');
-        const response = NextResponse.redirect(new URL('/login', request.url));
+        const response = NextResponse.redirect(url);
         response.cookies.delete('currentUser');
 
         return response;

@@ -22,7 +22,7 @@ import axios from 'axios';
 import Password from './Password';
 import ModulePerformance from '../Stats/ModulePerformance';
 import TermPerformance from '../Stats/TermPerformance';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { UserGroup } from '@/types/api/group';
 
 type StudentViewProps = {

@@ -5,7 +5,7 @@ import { Chart, ArcElement, Tooltip, Legend } from 'chart.js';
 import Wave from '../Loading/Wave';
 import Image from 'next/image';
 import moreRegImage from '@/public/static/images/moreReg.png';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import useAxios from 'axios-hooks';
 import styles from '../Profile/SuperAdminView.module.css';
 
@@ -47,7 +47,10 @@ export default function TagStats() {
             return <Wave chart='tag' />;
         }
 
-        const tagData = response.data;
+        let tagData = response.data;
+
+        // Sort the keys by value
+        tagData = Object.fromEntries(Object.entries(tagData).sort(([, a], [, b]) => b - a));
 
         let numTerms = 0;
         Object.values(tagData).map((tag) => (numTerms += tag));
@@ -90,7 +93,10 @@ export default function TagStats() {
             return <Wave chart='tag' />;
         }
 
-        const tagData = response.data;
+        let tagData = response.data;
+
+        // Filter tagData to not include keys with a value of 1 or less
+        tagData = Object.fromEntries(Object.entries(tagData).filter(([key, value]) => value > 1));
 
         let chartColors = getColors(Object.keys(tagData).length);
 

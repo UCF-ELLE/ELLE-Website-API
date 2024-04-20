@@ -15,7 +15,7 @@ import '@/lib/ionicons/css/ionicons.min.css';
 import { useRouter } from 'next/router';
 import { ReactUnityEventParameter } from 'react-unity-webgl/distribution/types/react-unity-event-parameters';
 import Layout from '@/components/Layouts/Layout';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import Image from 'next/image';
 
 import logo from '@/public/static/images/AnimELLE/logo0309.svg';

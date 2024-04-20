@@ -9,7 +9,7 @@ import SessionComponent from '../components/Sessions/SessionComponent';
 import { Downloads } from '../components/Sessions/Downloads';
 import { LoggedAnswer } from '@/types/api/logged_answer';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import Layout from '@/components/Layouts/Layout';
 import Image from 'next/image';
 

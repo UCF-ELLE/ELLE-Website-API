@@ -1,5 +1,6 @@
 // Create standard next js app wrapper
 import Layout from '@/components/Layouts/Layout';
+import { AuthenticationProvider } from '@/hooks/useAuth';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { NextComponentType, NextPageContext } from 'next/types';
@@ -26,7 +27,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                 <title>{`Elle 2.0${env === 'development' ? ' Dev' : ''}`}</title>
                 <link rel='icon' href={env === 'production' ? '/elle/favicon.ico' : '/elle/favicon-dev.ico'} />
             </Head>
-            {getLayout(<Component {...pageProps} />)}
+            <AuthenticationProvider>{getLayout(<Component {...pageProps} />)}</AuthenticationProvider>
         </>
     );
 }

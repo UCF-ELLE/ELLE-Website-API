@@ -6,7 +6,7 @@ import hidePasswordImage from '@/public/static/images/hide.png';
 import showPasswordImage from '@/public/static/images/show.png';
 import Image from 'next/image';
 import styles from './SuperAdminView.module.css';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 export default function Password({
     userType,
