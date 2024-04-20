@@ -5,7 +5,7 @@ import AddAnswer from '../AddAnswer';
 import SearchAnswersByTag from '../SearchAnswerByTag';
 
 // import MicRecorder from 'mic-recorder';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';
 import { useAudioRecorder } from 'react-audio-voice-recorder';

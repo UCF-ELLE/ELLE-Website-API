@@ -1,7 +1,7 @@
 import React, { Fragment, useContext, useEffect, useMemo, useState } from 'react';
 import { Alert, Badge, Button, ButtonGroup, Col, Collapse, Input, Modal, ModalBody, ModalFooter, ModalHeader, Row } from 'reactstrap';
 
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module } from '@/types/api/modules';
 import Image from 'next/image';
 

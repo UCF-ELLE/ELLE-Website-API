@@ -3,7 +3,7 @@ import Select, { GroupBase, SelectInstance } from 'react-select';
 import { Alert, Button, Col, Form, FormGroup, Input, Label, Row } from 'reactstrap';
 import languageCodes from '@/public/static/json/languageCodes.json';
 import { Language, LanguageCode } from '@/types/misc';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import axios from 'axios';
 import { Module } from '@/types/api/modules';
 

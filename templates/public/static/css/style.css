@@ -208,28 +208,19 @@ h6 {
 }
 
 #intro .intro-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    border: 5px solid rgb(14, 194, 155);
-    border-radius: 30px;
-    background-color: white;
-    max-width: 80%;
-    padding: 2rem;
 }
 
 #intro .intro-content h2 {
     color: #0c2e8a;
     margin-bottom: 2rem;
-    font-size: 4rem;
+    font-size: 3.35vw;
     font-weight: 700;
+    margin-bottom: 0;
 }
 
 #intro .intro-content h2 span {
@@ -261,7 +252,6 @@ h6 {
     padding: 10px 32px;
     border-radius: 2px;
     transition: 0.5s;
-    margin: 10px;
     color: #fff;
 }
 

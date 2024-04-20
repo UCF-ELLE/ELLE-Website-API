@@ -4,7 +4,7 @@ import { MentorQuestion, MentorQuestionFrequency } from '@/types/api/mentors';
 import { createContext, useCallback, useEffect, useState } from 'react';
 import { Row, Col, Container } from 'reactstrap';
 import ModuleToolRow from './ModuleToolRow';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import axios from 'axios';
 import { Tag } from '@/types/api/terms';
 import ModuleCardList from './ModuleCardList';

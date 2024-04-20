@@ -9,7 +9,7 @@ import '@/lib/ionicons/css/ionicons.min.css';
 import '@/lib/owlcarousel/assets/owl.carousel.min.css';
 import '@/public/static/css/style.css';
 
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { useRouter } from 'next/router';
 import { ReactUnityEventParameter } from 'react-unity-webgl/distribution/types/react-unity-event-parameters';
 import GameLayout, { GameContext } from '@/components/Layouts/GameLayout';

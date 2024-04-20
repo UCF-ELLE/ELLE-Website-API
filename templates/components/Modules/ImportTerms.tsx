@@ -7,7 +7,7 @@ import axios from 'axios';
 import TermFields from '@/components/Modules/TermFields';
 import { Module } from '@/types/api/modules';
 import { Term } from '@/types/api/terms';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 import uploadCSVImage from '@/public/static/images/uploadCSV.png';
 import importImage from '@/public/static/images/import.png';

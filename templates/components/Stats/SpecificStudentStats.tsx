@@ -8,7 +8,7 @@ import TermStats from './TermStats';
 import TermBarChart from './TermBarChart';
 import useAxios from 'axios-hooks';
 import axios from 'axios';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { TermPerformance } from '@/types/api/stats';
 
 export default function SpecificStudentStats({ groupID }: { groupID?: string }) {

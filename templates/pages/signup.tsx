@@ -12,7 +12,7 @@ import showImage from '@/public/static/images/show.png';
 
 import Layout from '@/components/Layouts/Layout';
 import { useAuth } from '@/hooks/useAuth';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import Image from 'next/image';
 
 export default function Signup() {

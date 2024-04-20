@@ -1,4 +1,4 @@
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { LoggedAnswer } from '@/types/api/logged_answer';
 import { StudentResponse } from '@/types/api/mentors';
 import { Question } from '@/types/api/question';

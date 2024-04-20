@@ -10,7 +10,7 @@ import '@/lib/font-awesome/css/font-awesome.min.css';
 import '@/lib/owlcarousel/assets/owl.carousel.min.css';
 import '@/lib/ionicons/css/ionicons.min.css';
 import Layout from '@/components/Layouts/Layout';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 export default function MazeGame() {
     const { user } = useUser();

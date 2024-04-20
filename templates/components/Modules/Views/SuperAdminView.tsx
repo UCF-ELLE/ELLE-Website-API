@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card } from 'reactstrap';
 import { Nav, NavItem, NavLink, TabContent, TabPane } from 'reactstrap';
 import SplitDeckBtn from '../SplitDeckBtn';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module } from '@/types/api/modules';
 
 export default function SuperAdminView({

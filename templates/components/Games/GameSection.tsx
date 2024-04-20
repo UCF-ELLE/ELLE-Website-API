@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Row, Col, Collapse } from 'reactstrap';
 import Image, { StaticImageData } from 'next/image';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import React, { useMemo } from 'react';
 import { CaretDownFill } from 'react-bootstrap-icons';
 

@@ -1,7 +1,7 @@
 import React, { createRef, useContext, useState } from 'react';
 import { Alert, Badge, Button, Col, Form, FormGroup, Input, Label, Row } from 'reactstrap';
 
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module } from '@/types/api/modules';
 import { Pasta, QuestionFrame } from '@/types/api/pastagame';
 import { Typeahead, TypeaheadRef } from 'react-bootstrap-typeahead';

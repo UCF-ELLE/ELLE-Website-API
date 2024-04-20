@@ -6,7 +6,7 @@ import TagList from '../TagList';
 import Autocomplete from '../Autocomplete';
 import AnswerButtonList from '../AnswerButtonList';
 import { Tag, Term } from '@/types/api/terms';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
 import { LoggedAnswer } from '@/types/api/logged_answer';
 import { Typeahead } from 'react-bootstrap-typeahead';

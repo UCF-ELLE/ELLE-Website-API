@@ -1,4 +1,4 @@
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Module } from '@/types/api/modules';
 import { Row, Col, Badge } from 'reactstrap';
 import Manual from '../../Manual';

@@ -1,6 +1,6 @@
 import Spinner from '@/components/Loading/Spinner';
 import ThreeDots from '@/components/Loading/ThreeDots';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import useAxios from 'axios-hooks';
 import { useEffect } from 'react';
 import { Bar, Pie } from 'react-chartjs-2';
@@ -61,7 +61,7 @@ export function PlatformStats() {
                 {
                     label: 'Average Score (%)',
                     data: [mb.avg_score.toFixed(2), cp.avg_score.toFixed(2), vr.avg_score.toFixed(2)],
-                    backgroundColor: ['#abc9cd', '#658e93', '#7abe80']
+                    backgroundColor: ['#96384e', '#eda48e', '#eed284']
                 }
             ]
         };

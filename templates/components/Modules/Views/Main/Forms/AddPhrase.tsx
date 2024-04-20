@@ -3,7 +3,7 @@ import { Button, Form, FormGroup, Label, Input, Row, Col, Alert } from 'reactstr
 import axios from 'axios';
 // import MicRecorder from 'mic-recorder';
 import { Module } from '@/types/api/modules';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { useAudioRecorder } from 'react-audio-voice-recorder';
 
 export default function AddPhrase({

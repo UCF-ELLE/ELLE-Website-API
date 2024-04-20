@@ -1,5 +1,5 @@
 import Layout from '@/components/Layouts/Layout';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import '@/public/static/css/loginstyle.css';
 import hideImage from '@/public/static/images/hide.png';
 import showImage from '@/public/static/images/show.png';

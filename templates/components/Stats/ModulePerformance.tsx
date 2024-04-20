@@ -7,7 +7,7 @@ import { Bar } from 'react-chartjs-2';
 import { Chart } from 'chart.js';
 import moreRegImage from '@/public/static/images/moreReg.png';
 import Image from 'next/image';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { Tooltip } from 'chart.js';
 
 type ModulePerformanceType = {

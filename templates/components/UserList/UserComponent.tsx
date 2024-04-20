@@ -3,7 +3,7 @@ import { Button, Modal, ModalHeader, ModalBody, Table, Card, CardBody, Row, Col,
 import axios from 'axios';
 import { User } from '@/types/api/user';
 import { PermissionGroup } from '@/types/misc';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import Image from 'next/image';
 import moreImage from '@/public/static/images/more.png';
 import shuffleImage from '@/public/static/images/shuffle.png';

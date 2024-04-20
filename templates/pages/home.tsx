@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import Layout from '@/components/Layouts/Layout';
 import loginPic from '@/public/static/images/ELLE/ELLE_Login.jpg';
 
 import '@/lib/font-awesome/css/font-awesome.min.css';
@@ -12,16 +11,32 @@ export default function Home() {
     return (
         <div className='mainDiv'>
             <section id='intro'>
-                <div className='intro-content'>
-                    <h2>
-                        The ultimate way
-                        <br />
-                        to learn a language.
-                    </h2>
-                    <div>
-                        <Link href='/games' className='btn-projects scrollto'>
-                            Play ELLE
-                        </Link>
+                <div style={{ display: 'flex', justifyContent: 'center', height: '100%' }}>
+                    <div className='intro-content'>
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                gap: 20,
+                                padding: 32,
+                                backgroundColor: 'white',
+                                border: '5px solid #0ec29b',
+                                borderRadius: 30,
+                                maxHeight: '100%'
+                            }}
+                        >
+                            <h2>
+                                The ultimate way
+                                <br />
+                                to learn a language.
+                            </h2>
+                            <div>
+                                <Link href='/games' className='btn-projects scrollto'>
+                                    Play ELLE
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -36,7 +51,7 @@ export default function Home() {
                                 justifyContent: 'center'
                             }}
                         >
-                            <Image src={loginPic} alt='' height='288' width='540' />
+                            <Image src={loginPic} alt='' height='288' width='540' priority />
                         </div>
                         <div className='col-lg-5 content'>
                             <h2>Meet the Endless Learner.</h2>

@@ -28,7 +28,7 @@ import ModulePerformance from '../Stats/ModulePerformance';
 import TermPerformance from '../Stats/TermPerformance';
 import Image from 'next/image';
 import moreImage from '@/public/static/images/more.png';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import { UserGroup } from '@/types/api/group';
 import ClassDetailsComponent from './ClassDetailsComponent';
 

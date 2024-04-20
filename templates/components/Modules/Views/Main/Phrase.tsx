@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Alert, Button, ButtonGroup, Input, Modal, ModalHeader, ModalBody, ModalFooter, Tooltip } from 'reactstrap';
 import axios from 'axios';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 import Image from 'next/image';
 
 import imageImage from '@/public/static/images/image.png';

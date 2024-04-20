@@ -8,7 +8,7 @@ import AddAnswer from './AddAnswer';
 import { Module, ModuleQuestion, ModuleQuestionAnswer } from '@/types/api/modules';
 import { Tag } from '@/types/api/terms';
 import { LoggedAnswer } from '@/types/api/logged_answer';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 import imageImage from '@/public/static/images/image.png';
 import headphonesImage from '@/public/static/images/headphones.png';

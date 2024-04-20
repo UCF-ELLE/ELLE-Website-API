@@ -38,9 +38,12 @@ jobs:
                   script_stop: true
                   script: |
                       cd /var/www/ELLE-Website-API
-                      pm2 stop all
+                      git stash
                       git pull
+                      git stash pop
+                      pm2 restart elle_api
                       cd templates/
+                      pm2 stop elle_website
                       npm install
                       npm run build
-                      pm2 start all
+                      pm2 start elle_website

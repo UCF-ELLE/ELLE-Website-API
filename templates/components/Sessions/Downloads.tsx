@@ -3,7 +3,7 @@ import { Col } from 'reactstrap';
 import { Button, Tooltip } from 'reactstrap';
 import DownloadSpinner from '../Loading/DownloadSpinner';
 import useAxios from 'axios-hooks';
-import { useUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useAuth';
 
 export function Downloads() {
     return (
