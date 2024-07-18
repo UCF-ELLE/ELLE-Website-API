@@ -212,8 +212,8 @@ export default function AnimELLEGame() {
                     <Unity
                         unityProvider={unityProvider}
                         style={{
-                            height: 600,
-                            width: 800,
+                            height: 675,
+                            width: 1200,
                             visibility: isLoaded ? 'visible' : 'hidden',
                             background: 'transparent'
                         }}
