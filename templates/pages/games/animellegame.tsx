@@ -211,13 +211,12 @@ export default function AnimELLEGame() {
                 <div className='gameContainer'>
                     <Unity
                         unityProvider={unityProvider}
-                        style={{
-                            height: 675,
-                            width: 1200,
-                            visibility: isLoaded ? 'visible' : 'hidden',
-                            background: 'transparent'
-                        }}
                         devicePixelRatio={devicePixelRatio}
+                        style={{
+                            width: '1152px',
+                            height: '648px',
+                            visibility: isLoaded ? 'visible' : 'hidden'
+                        }}
                     />
                     <Button
                         className='fsbtn'
