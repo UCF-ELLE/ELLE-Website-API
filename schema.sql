@@ -16,6 +16,21 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `adaptive_learning`
+--
+
+DROP TABLE IF EXISTS `adaptive_learning`;
+CREATE TABLE `adaptive_learning` (
+  `userID` int NOT NULL,
+  `termID` int NOT NULL,
+  `activation_val` float NOT NULL DEFAULT '-9999',
+  `decay_val` float NOT NULL DEFAULT '0.3',
+  `dates` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Stored in a unique format due to lack of array support in SQL database.',
+  `alpha_val` float NOT NULL DEFAULT '0.3',
+  `times` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
 -- Table structure for table `animelle_save_data`
 --
 
