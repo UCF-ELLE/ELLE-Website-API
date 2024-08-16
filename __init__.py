@@ -117,6 +117,7 @@ from resources.mentors import (
 )
 from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALValues
 from resources.animelle import AnimELLESaveData
+from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALValues
 import config
 
 app = Flask(__name__, static_folder="templates/build", static_url_path="/")

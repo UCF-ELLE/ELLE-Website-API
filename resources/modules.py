@@ -409,6 +409,7 @@ class Module(Resource):
         parser.add_argument("language", type=str, required=True)
         parser.add_argument("complexity", type=int, required=False)
         parser.add_argument("isPastaModule", type=str, required=False)
+
         data = parser.parse_args()
 
         name = data["name"].encode("utf8")
@@ -421,7 +422,12 @@ class Module(Resource):
         else:
             complexity = 2
         if data["isPastaModule"]:
-            isPastaModule = bool(data["isPastaModule"])
+            if data["isPastaModule"].lower() == "false" or data["isPastaModule"] == "0":
+                isPastaModule = False
+            elif (
+                data["isPastaModule"].lower() == "true" or data["isPastaModule"] == "1"
+            ):
+                isPastaModule = True
         else:
             isPastaModule = False
 
