@@ -46,6 +46,13 @@ systemctl redis status
 
 - If you encounter any problems installing it, refer to the [guide that was followed](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-20-04) in 2023.
 
+- You can also try running the following commands if the above doesn't work:
+
+```
+sudo systemctl restart redis.service
+sudo systemctl status redis
+```
+
 9. Run:
 
 ```
@@ -56,8 +63,10 @@ apt-get update
 apt-get install python3.11
 ```
 
+- Ensure that your version of node is at least >= v20.11.0. Check with the command `node -v` and if necessary, update node using `sudo n latest`.
+
 10. Clone the GitHub repo: `git clone https://github.com/UCF-ELLE/ELLE-Website-API.git`. (It doesn't matter what directory you clone into, but old static file servers typically host at `/var/www/`. The production site hosts from the `/home/elle` directory, so don't be opposed to cloning into your home directory.)
-11. Then install the Python requirements:
+11. Then install the Python requirements, and ensure that you are in the correct directory when doing so:
 
 ```
 pip3 install -r requirements.txt
@@ -123,8 +132,8 @@ touch elle.conf
 17. Activate the `mod_proxy` Apache features to set up a proxy from the Flask/Next.JS servers to the `/elle` and `/elleapi` paths.
 
 ```
-a2enmod mod_proxy
-a2enmod mod_proxy_http
+a2enmod proxy
+a2enmod proxy_http
 ```
 
 18. Enable the site file:
