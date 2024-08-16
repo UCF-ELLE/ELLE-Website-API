@@ -211,13 +211,13 @@ export default function AnimELLEGame() {
                 <div className='gameContainer'>
                     <Unity
                         unityProvider={unityProvider}
+                        devicePixelRatio={devicePixelRatio}
                         style={{
-                            height: 600,
-                            width: 800,
+                            width: '1152px',
+                            height: '648px',
                             visibility: isLoaded ? 'visible' : 'hidden',
                             background: 'transparent'
                         }}
-                        devicePixelRatio={devicePixelRatio}
                     />
                     <Button
                         className='fsbtn'
@@ -232,6 +232,35 @@ export default function AnimELLEGame() {
             </div>
             <div className='divContainer'>
                 <div className='instruct-filler'>{/* <h4>Listen to Tito!</h4> <img src={tito} className='tito' alt="tito" /> */}</div>
+                <div className='logoContainer'>
+                    <div className='imgContainer'>
+                        <Image src={logo} className='logo' alt='game logo' />
+                        <h3 className='credits'>Credits:</h3>
+                    </div>
+                    <div className='row'>
+                        <div className='column'>
+                            <p className='names'>Tam Nguyen </p>
+                            <p className='names'>Justin Reeves</p>
+                            <p className='names'>Natali Siam-Pollo</p>
+                        </div>
+                        <div className='column'>
+                            <p className='names'>Michael Alfieri</p>
+                            <p className='names'>Connor Price</p>
+                        </div>
+                    </div>{' '}
+                    {/*<!--row--> */}
+                    <div className='row'>
+                        <div className='column'>
+                            <p className='names'>Derek Dyer</p>
+                            <p className='names'>Trevor Larson</p>
+                        </div>
+                        <div className='column'>
+                            <p className='names'>Robert Bereiter</p>
+                            <p className='names'>Arwin Nimityongskul</p>
+                        </div>
+                    </div>{' '}
+                    {/*<!--row--> */}
+                </div>{' '}
                 <div className='logoContainer'>
                     <div className='imgContainer'>
                         <Image src={logo} className='logo' alt='game logo' />

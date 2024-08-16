@@ -115,6 +115,7 @@ from resources.mentors import (
     GetMentorQuestionFrequency,
     CreateMentorQuestionFrequency,
 )
+from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALValues
 from resources.animelle import AnimELLESaveData
 import config
 
@@ -321,6 +322,9 @@ api.add_resource(
 )
 api.add_resource(LoggedUserItem, API_ENDPOINT_PREFIX + "store/user/items/logged")
 api.add_resource(GetUserItemCSV, API_ENDPOINT_PREFIX + "store/user/items/logged/csv")
+api.add_resource(UpdateALValue, API_ENDPOINT_PREFIX + "adaptivelearning/updatetermvalues")
+api.add_resource(GetSingleALValue, API_ENDPOINT_PREFIX + "adaptivelearning/gettermvalue")
+api.add_resource(GetALValues, API_ENDPOINT_PREFIX + "adaptivelearning/gettermlistvalues")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
