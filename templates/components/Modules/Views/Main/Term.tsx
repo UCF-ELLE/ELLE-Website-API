@@ -1,23 +1,22 @@
-import React, { Fragment, useEffect, useState } from 'react';
-import { Alert, Button, ButtonGroup, Modal, ModalHeader, ModalBody, ModalFooter, Collapse, Input, Tooltip } from 'reactstrap';
-import axios from 'axios';
-
-import TagList from './TagList';
-import Autocomplete from './Autocomplete';
+import { Alert, Button, ButtonGroup, Collapse, Input, Modal, ModalBody, ModalFooter, ModalHeader, Tooltip } from 'reactstrap';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
-import { Tag } from '@/types/api/terms';
-import { useUser } from '@/hooks/useAuth';
-import Image from 'next/image';
+import React, { Fragment, useEffect, useState } from 'react';
 
+import Autocomplete from './Autocomplete';
+import Image from 'next/image';
+import { Tag } from '@/types/api/terms';
+import TagList from './TagList';
+import axios from 'axios';
+import cancelImage from '@/public/static/images/cancel.png';
+import deleteImage from '@/public/static/images/delete.png';
+import headphonesImage from '@/public/static/images/headphones.png';
 // This is awful
 import imageImage from '@/public/static/images/image.png';
-import headphonesImage from '@/public/static/images/headphones.png';
-import toolsImage from '@/public/static/images/tools.png';
-import deleteImage from '@/public/static/images/delete.png';
-import uploadImage from '@/public/static/images/uploadImage.png';
-import uploadAudioImage from '@/public/static/images/uploadAudio.png';
 import submitImage from '@/public/static/images/submit.png';
-import cancelImage from '@/public/static/images/cancel.png';
+import toolsImage from '@/public/static/images/tools.png';
+import uploadAudioImage from '@/public/static/images/uploadAudio.png';
+import uploadImage from '@/public/static/images/uploadImage.png';
+import { useUser } from '@/hooks/useAuth';
 
 export default function Term({
     card,
@@ -44,8 +43,8 @@ export default function Term({
     const [editedType, setEditedType] = useState(card.type === null ? '' : card.type);
     const [editedGender, setEditedGender] = useState(card.gender === null ? '' : card.gender);
     const [collapseTags, setCollapseTags] = useState(false);
-    const [selectedImgFile, setSelectedImgFile] = useState(card.imageLocation);
-    const [selectedAudioFile, setSelectedAudioFile] = useState(card.audioLocation);
+    const [selectedImgFile, setSelectedImgFile] = useState(new File([], ''));
+    const [selectedAudioFile, setSelectedAudioFile] = useState(new File([], ''));
     const [changedImage, setChangedImage] = useState(false);
     const [changedAudio, setChangedAudio] = useState(false);
     const [tags, setTags] = useState<Tag[]>([]);
@@ -101,14 +100,19 @@ export default function Term({
 
     //function that inputs image when user uploads a new image to the card
     const imgFileSelectedHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedImgFile(event.currentTarget.files ? event.currentTarget.files[0].toString() : undefined);
-        setChangedImage(true);
+        if (event.target.files) {
+            console.log('selectedImgFile: ', event.target.files[0].toString());
+            setSelectedImgFile(event.target.files[0]);
+            setChangedImage(true);
+        }
     };
 
     //function that inputs audio when user uploads new audio to the card
     const audioFileSelectedHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedAudioFile(event.currentTarget.files ? event.currentTarget.files[0].toString() : undefined);
-        setChangedAudio(true);
+        if (event.target.files) {
+            setSelectedAudioFile(event.target.files[0]);
+            setChangedAudio(true);
+        }
     };
 
     //function that submits all of the edited data put on a card
@@ -226,11 +230,11 @@ export default function Term({
         setTags(JSON.parse(JSON.stringify(originalTags)));
     };
 
-    let imgLink = '/elle' + selectedImgFile;
-    let audioLink = '/elle' + selectedAudioFile;
+    let imgLink = '/elleapi' + card.imageLocation;
+    let audioLink = '/elleapi' + card.audioLocation;
 
-    let disableImgButton = !selectedImgFile;
-    let disableAudioButton = !selectedAudioFile;
+    let disableImgButton = !card.imageLocation;
+    let disableAudioButton = !card.audioLocation;
 
     let imgButtonClass = disableImgButton ? 'disabled-btn' : 'enabled-btn';
     let audioButtonClass = disableAudioButton ? 'disabled-btn' : 'enabled-btn';

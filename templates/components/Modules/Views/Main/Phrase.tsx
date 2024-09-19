@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { Alert, Button, ButtonGroup, Input, Modal, ModalHeader, ModalBody, ModalFooter, Tooltip } from 'reactstrap';
-import axios from 'axios';
+import { Alert, Button, ButtonGroup, Input, Modal, ModalBody, ModalFooter, ModalHeader, Tooltip } from 'reactstrap';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
-import { useUser } from '@/hooks/useAuth';
-import Image from 'next/image';
+import React, { useState } from 'react';
 
-import imageImage from '@/public/static/images/image.png';
+import Image from 'next/image';
+import axios from 'axios';
+import cancelImage from '@/public/static/images/cancel.png';
 import headphonesImage from '@/public/static/images/headphones.png';
-import uploadImageImage from '@/public/static/images/uploadImage.png';
-import uploadAudioImage from '@/public/static/images/uploadAudio.png';
+import imageImage from '@/public/static/images/image.png';
+import submitImage from '@/public/static/images/submit.png';
 import toolImage from '@/public/static/images/tools.png';
 import trashImage from '@/public/static/images/delete.png';
-import submitImage from '@/public/static/images/submit.png';
-import cancelImage from '@/public/static/images/cancel.png';
+import uploadAudioImage from '@/public/static/images/uploadAudio.png';
+import uploadImageImage from '@/public/static/images/uploadImage.png';
+import { useUser } from '@/hooks/useAuth';
 
 export default function Phrase({
     card,
@@ -27,8 +27,8 @@ export default function Phrase({
 }) {
     const [editedFront, setEditedFront] = useState(card.front);
     const [editedBack, setEditedBack] = useState(card.back);
-    const [selectedImgFile, setSelectedImgFile] = useState(card.imageLocation);
-    const [selectedAudioFile, setSelectedAudioFile] = useState(card.audioLocation);
+    const [selectedImgFile, setSelectedImgFile] = useState(new File([], ''));
+    const [selectedAudioFile, setSelectedAudioFile] = useState(new File([], ''));
     const [id, setId] = useState(card.termID);
     const [modal, setModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -53,8 +53,12 @@ export default function Phrase({
 
         //TYPEOF this 'term' will always be ph, so we will not allow the user to edit or see the type
 
-        data.append('image', changedImage && selectedImgFile !== undefined ? selectedImgFile : new Blob());
-        data.append('audio', changedAudio && selectedAudioFile !== undefined ? selectedAudioFile : new Blob());
+        if (changedImage) {
+            data.append('image', selectedImgFile);
+        }
+        if (changedAudio) {
+            data.append('audio', selectedAudioFile);
+        }
 
         editedFront && data.append('front', editedFront);
         editedBack && data.append('back', editedBack);
@@ -119,14 +123,15 @@ export default function Phrase({
 
     const imgFileSelectedHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
-            setSelectedImgFile(event.target.files[0].toString());
+            console.log('selectedImgFile: ', event.target.files[0].toString());
+            setSelectedImgFile(event.target.files[0]);
             setChangedImage(true);
         }
     };
 
     const audioFileSelectedHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
-            setSelectedAudioFile(event.target.files[0].toString());
+            setSelectedAudioFile(event.target.files[0]);
             setChangedAudio(true);
         }
     };
@@ -143,11 +148,11 @@ export default function Phrase({
         setModal(!modal);
     };
 
-    let imgLink = '/elleapi' + selectedImgFile;
-    let audioLink = 'elleapi' + selectedAudioFile;
+    let imgLink = '/elleapi' + card.imageLocation;
+    let audioLink = '/elleapi' + card.audioLocation;
 
-    let disableImgButton = !selectedImgFile;
-    let disableAudioButton = !selectedAudioFile;
+    let disableImgButton = !card.imageLocation;
+    let disableAudioButton = !card.audioLocation;
 
     let imgButtonClass = disableImgButton ? 'disabled-btn' : 'enabled-btn';
     let audioButtonClass = disableAudioButton ? 'disabled-btn' : 'enabled-btn';

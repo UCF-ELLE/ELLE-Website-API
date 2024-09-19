@@ -19,11 +19,10 @@ IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "PNG", "JPEG", "JPG"]
 AUDIO_EXTENSIONS = ["ogg", "wav", "mp3"]
 
 # Path to folders - change accordingly
-TEMP_UPLOAD_FOLDER = "static/temp_uploads/"
-TEMP_DELETE_FOLDER = "static/deletes/"
-IMG_UPLOAD_FOLDER = "static/images/"
-AUD_UPLOAD_FOLDER = "static/audios/"
-
+TEMP_UPLOAD_FOLDER = "temp_uploads/"
+TEMP_DELETE_FOLDER = "deletes/"
+IMG_UPLOAD_FOLDER = "images/"
+AUD_UPLOAD_FOLDER = "audios/"
 # That path to append to the URL so that the media is accessible publicly
 # e.g. https://chdr.cs.ucf.edu/images/[FILE_NAME]
 IMG_RETRIEVE_FOLDER = "/images/"

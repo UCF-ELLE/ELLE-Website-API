@@ -193,12 +193,13 @@ def index():
     return send_from_directory("pages", "index.html")
 
 
-@app.route("/images/<path:path>")
+@app.route(API_ENDPOINT_PREFIX + "images/<path:path>")
 def images(path):
     return send_from_directory("images", path)
 
 
-@app.route("/audios/<path:path>")
+
+@app.route(API_ENDPOINT_PREFIX + "audios/<path:path>")
 def audios(path):
     return send_from_directory("audios", path)
 
