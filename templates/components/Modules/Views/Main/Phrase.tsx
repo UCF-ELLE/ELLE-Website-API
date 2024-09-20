@@ -87,8 +87,8 @@ export default function Phrase({
     const handleCancelEdit = () => {
         setEditedFront(card.front);
         setEditedBack(card.back);
-        setSelectedImgFile(card.imageLocation);
-        setSelectedAudioFile(card.audioLocation);
+        setSelectedImgFile(new File([], ''));
+        setSelectedAudioFile(new File([], ''));
         setId(card.termID);
         setModal(false);
         setEditMode(false);

@@ -223,8 +223,8 @@ export default function Term({
         setEditedType(card.type === null ? '' : card.type);
         setEditedGender(card.gender);
         setCollapseTags(false);
-        setSelectedImgFile(card.imageLocation);
-        setSelectedAudioFile(card.audioLocation);
+        setSelectedImgFile(new File([], ''));
+        setSelectedAudioFile(new File([], ''));
         setChangedImage(false);
         setChangedAudio(false);
         setTags(JSON.parse(JSON.stringify(originalTags)));
