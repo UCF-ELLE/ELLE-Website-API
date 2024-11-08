@@ -80,6 +80,7 @@ from resources.modules import (
     RetrieveAllModules,
     RetrieveGroupModules,
     AddModuleGroup,
+    RemoveModuleGroup,
     SearchModules,
     RetrieveUserModules,
 )
@@ -230,6 +231,7 @@ api.add_resource(RetrieveAllModules, API_ENDPOINT_PREFIX + "retrievemodules")
 api.add_resource(RetrieveGroupModules, API_ENDPOINT_PREFIX + "retrievegroupmodules")
 api.add_resource(RetrieveUserModules, API_ENDPOINT_PREFIX + "retrieveusermodules")
 api.add_resource(AddModuleGroup, API_ENDPOINT_PREFIX + "addmoduletogroup")
+api.add_resource(RemoveModuleGroup, API_ENDPOINT_PREFIX + "removemodulefromgroup")
 api.add_resource(SearchModules, API_ENDPOINT_PREFIX + "searchmodules")
 api.add_resource(AttachQuestion, API_ENDPOINT_PREFIX + "attachquestion")
 api.add_resource(AttachTerm, API_ENDPOINT_PREFIX + "attachterm")

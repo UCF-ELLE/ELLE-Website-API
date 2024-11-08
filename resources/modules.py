@@ -785,14 +785,12 @@ class AddModuleGroup(Resource):
                 query, (data["moduleID"], data["groupID"]), conn, cursor
             )
 
-            # They module is already in the group, so unlink them
+            # They module is already in the group, so raise an exception
             if exisistingRecord and exisistingRecord[0]:
-                deleteQuery = """
-                              DELETE from `group_module` WHERE moduleID = %s
-                              AND groupID = %s
-                              """
-                postToDB(deleteQuery, (data["moduleID"], data["groupID"]), conn, cursor)
-                raise ReturnSuccess("Successfully unlinked them", 200)
+                raise CustomException(
+                    "Cannot link. Module and class are already linked.",
+                    500
+                )
 
             # They aren't already linked so link them
             else:
@@ -801,12 +799,77 @@ class AddModuleGroup(Resource):
                               VALUES (%s, %s)	
                               """
                 postToDB(insertQuery, (data["moduleID"], data["groupID"]), conn, cursor)
-                raise ReturnSuccess("Successfully added module to group", 200)
+                raise ReturnSuccess("Successfully linked module to class", 200)
 
             raise CustomException(
-                "Something went wrong when trying to un/link the module to the group",
+                "Something went wrong when trying to link the module to the class",
                 500,
             )
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+class RemoveModuleGroup(Resource):
+    """For detaching modules from groups"""
+
+    @jwt_required
+    def post(self):
+        data = {}
+        data["moduleID"] = getParameter("moduleID", int, True)
+        data["groupID"] = getParameter("groupID", int, True)
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        group_id = data["groupID"]
+        if permission == "st" and not is_ta(user_id, group_id):
+            return errorMessage("User not authorized to do this"), 401
+        
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            # Check for an existing record
+            query = """
+                    SELECT 1 FROM `group_module` WHERE moduleID = %s
+                    AND groupID = %s
+                    """
+            existingRecord = getFromDB(
+                query, (data["moduleID"], data["groupID"]), conn, cursor
+            )
+
+            # If it exists, unlink them (remove them from the table)
+            if existingRecord and existingRecord[0]:
+                deleteQuery = """
+                              DELETE from `group_module` WHERE moduleID = %s
+                              AND groupID = %s
+                              """
+                postToDB(deleteQuery, (data["moduleID"], data["groupID"]), conn, cursor)
+                raise ReturnSuccess("Successfully unlinked module from the class", 200)
+
+            # They aren't linked, so the unlink is failed
+            else:
+                raise CustomException(
+                    "Cannot unlink. Module and class are not linked.",
+                    500
+                )
+        
+            raise CustomException(
+                "Something went wrong when trying to unlink the module from the class",
+                500,
+            )
+
         except CustomException as error:
             conn.rollback()
             return error.msg, error.returnCode
