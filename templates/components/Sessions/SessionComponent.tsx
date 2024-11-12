@@ -19,22 +19,24 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
     const [questionID, setQuestionID] = useState('');
     const { user } = useUser();
 
-    const convertTimetoDecimal = (time: string) => {
-        let hoursMinutes = time.split(/[.:]/);
-        let hours = parseInt(hoursMinutes[0], 10);
-        let minutes = hoursMinutes[1] ? parseInt(hoursMinutes[1], 10) : 0;
-        return hours + minutes / 60;
+    const convertTimeToMinutes = (time: string) => {
+        let [hours, minutes] = time.split(/[.:]/).map((t) => parseInt(t, 10));
+        return hours * 60 + (minutes || 0);
     };
+
 
     const calculateTimeDiff = (start: number, end: number) => {
         let result = end - start;
-
-        // If negative duration is added, correct it
+    
+        // Correct for negative duration (crossing midnight)
         if (result < 0) {
-            result += 24;
+            result += 24 * 60; 
         }
-        // Format number to 2 decimal places
-        return result.toFixed(2);
+    
+        const hours = Math.floor(result / 60);
+        const minutes = result % 60;
+    
+        return `${hours} hrs ${minutes} mins`;
     };
 
     const showLoggedAnswers = async (session: Session) => {
@@ -158,9 +160,9 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
                                     <td>
                                         {session.endTime !== null && session.startTime !== null
                                             ? calculateTimeDiff(
-                                                  convertTimetoDecimal(session.startTime || '0:00'),
-                                                  convertTimetoDecimal(session.endTime || '0:00')
-                                              ) + ' hrs'
+                                                convertTimeToMinutes(session.startTime || '0:00'),
+                                                convertTimeToMinutes(session.endTime || '0:00')
+                                            )
                                             : 'invalid values'}
                                     </td>
                                     <td>{session.moduleID}</td>

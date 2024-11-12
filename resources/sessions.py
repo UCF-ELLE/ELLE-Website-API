@@ -389,6 +389,7 @@ class GetSessionCSV(Resource):
                         INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID`
                         WHERE `session`.`sessionID` > {redis_lastseen_sessionID}
                         GROUP BY `session`.`sessionID`
+                        ORDER by `session`,`sessionDate` DESC
                         """
                 else:
                     csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
@@ -398,6 +399,7 @@ class GetSessionCSV(Resource):
                             INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
                             INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID`
                             GROUP BY `session`.`sessionID`
+                            ORDER by `session`,`sessionDate` DESC
                             """
             else:
                     csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
@@ -407,6 +409,7 @@ class GetSessionCSV(Resource):
                         INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
                         INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID`
                         GROUP BY `session`.`sessionID`
+                        ORDER by `session`,`sessionDate` DESC
                         """
             
             get_max_session_count = "SELECT COUNT(session.sessionID) FROM session"
