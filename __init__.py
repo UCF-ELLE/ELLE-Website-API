@@ -100,6 +100,7 @@ from resources.group import (
     SearchUserGroups,
     UsersInGroup,
     GenerateGroupCode,
+    GetGroupModules
 )
 from resources.logged_answer import LoggedAnswer, GetLoggedAnswerCSV
 from resources.mentors import (
@@ -256,6 +257,7 @@ api.add_resource(GenerateUsername, API_ENDPOINT_PREFIX + "generateusername")
 api.add_resource(GetLoggedAnswerCSV, API_ENDPOINT_PREFIX + "getloggedanswercsv")
 api.add_resource(GetUsernames, API_ENDPOINT_PREFIX + "getusernames")
 api.add_resource(GenerateGroupCode, API_ENDPOINT_PREFIX + "generategroupcode")
+api.add_resource(GetGroupModules, API_ENDPOINT_PREFIX + "getgroupmodules")
 api.add_resource(GenerateOTC, API_ENDPOINT_PREFIX + "generateotc")
 api.add_resource(OTCLogin, API_ENDPOINT_PREFIX + "otclogin")
 api.add_resource(User_Preferences, API_ENDPOINT_PREFIX + "userpreferences")

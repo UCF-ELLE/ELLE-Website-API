@@ -378,3 +378,69 @@ class GenerateGroupCode(Resource):
             if(conn.open):
                 cursor.close()
                 conn.close()
+
+class GetGroupModules(Resource):
+    """For returned every module attached to a class."""
+
+    @jwt_required
+    def get(self):
+        data = {}
+        data["groupID"] = getParameter("groupID", int, True)
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+        
+        group_id = data["groupID"]
+        if permission == "st" and not is_ta(user_id, group_id):
+            return errorMessage("User is not authorized to view this"), 401
+        
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = """
+                    SELECT * FROM group_module WHERE groupID = %s
+                    """
+            
+            group_modules = getFromDB(
+                query, data["groupID"], conn, cursor
+            )
+
+            if group_modules and group_modules[0]:
+
+                moduleIds = []
+
+                for group_module in group_modules:
+                    moduleIds.append(group_module[1])
+                
+                module_query = """
+                               SELECT * FROM module WHERE moduleID IN %s
+                               """
+                
+                modules = getFromDB(
+                    module_query, (moduleIds,), conn, cursor
+                )
+
+                if modules:
+                    return modules
+                
+                else:
+                    raise CustomException(
+                        "Could not get modules for the class.", 500
+                    )
+                
+            else:
+                raise CustomException(
+                    "Could not get module ids for the class.", 500
+                )
+
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        
+        finally:
+            if conn.open:
+                cursor.close
+                conn.close()
+
