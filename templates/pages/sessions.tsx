@@ -97,7 +97,8 @@ export default function Sessions() {
                                 color='info'
                                 style={{
                                     margin: '0px',
-                                    textAlign: 'center'
+                                    textAlign: 'center',
+                                    width: '50%'
                                 }}
                             >
                                 Click on a row to reveal logged answers.
