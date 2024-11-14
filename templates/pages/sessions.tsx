@@ -31,6 +31,7 @@ export default function Sessions() {
     const { user, loading: userLoading } = useUser();
     const permission = user?.permissionGroup;
     const router = useRouter();
+    const [alertOpen, setAlertOpen] = useState<boolean>(true);
 
     useEffect(() => {
         require('@/lib/ionicons/css/ionicons.min.css');
@@ -48,6 +49,11 @@ export default function Sessions() {
     const handleSearch = () => {
         setLoading(true);
         searchSession();
+    };
+
+
+    const toggleAlert = () => {
+        setAlertOpen(!alertOpen);
     };
 
     const searchSession = () => {
@@ -92,9 +98,11 @@ export default function Sessions() {
                             padding: permission === 'su' ? '0 0 0 30px' : '0 30px 0 30px'
                         }}
                     >
-                        {searched && sessions.length !== 0 && loading === false ? (
+                        {searched && sessions.length !== 0 && loading === false && alertOpen ? (
                             <Alert
                                 color='info'
+                                isOpen={alertOpen}
+                                toggle={toggleAlert}
                                 style={{
                                     margin: '0px',
                                     textAlign: 'center',
