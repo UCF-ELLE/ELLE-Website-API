@@ -105,8 +105,7 @@ export default function Sessions() {
                                 toggle={toggleAlert}
                                 style={{
                                     margin: '0px',
-                                    textAlign: 'center',
-                                    width: '50%'
+                                    textAlign: 'center'
                                 }}
                             >
                                 Click on a row to reveal logged answers.
