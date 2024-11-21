@@ -4,8 +4,9 @@ import { StudentResponse } from '@/types/api/mentors';
 import { Question } from '@/types/api/question';
 import { Session } from '@/types/api/sessions';
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge, Card, Col, Modal, ModalBody, ModalHeader, Row, Table } from 'reactstrap';
+import { Downloads } from "./Downloads"
 
 export default function SessionComponent({ sessions }: { sessions: Session[] }) {
     const [currentSession, setCurrentSession] = useState<Session>();
@@ -18,6 +19,8 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
     const [mentorQuestions, setMentorQuestions] = useState<Question[]>([]);
     const [questionID, setQuestionID] = useState('');
     const { user } = useUser();
+    const [earliestDate, setEarliestDate] = useState<string>('');
+
 
     const convertTimeToMinutes = (time: string) => {
         let [hours, minutes] = time.split(/[.:]/).map((t) => parseInt(t, 10));
@@ -133,8 +136,21 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
         setModalOpen(!modalOpen);
     };
 
+    useEffect(() => {
+        if (sessions && sessions.length > 0) {
+            const earliest = sessions.reduce((earliest, session) => {
+                const currentSessionDate = session.sessionDate || '';
+                return new Date(currentSessionDate) < new Date(earliest) ? currentSessionDate : earliest;
+            }, sessions[0].sessionDate || '');
+
+            setEarliestDate(earliest);
+        }
+    }, [sessions]);
+
+
     return (
         <div>
+            <Downloads earliestDate={earliestDate} />
             <Card style={{ border: 'none', height: '56vh', overflow: 'scroll' }}>
                 <Table hover className='minimalisticTable'>
                     <thead>

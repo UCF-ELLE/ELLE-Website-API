@@ -329,18 +329,185 @@ class GetAllSessions(Resource):
                 conn.close()
 
 
+# class GetSessionCSV(Resource):
+#     """API to download a CSV of all session records"""
+
+#     @jwt_required
+#     def get(self):
+#         """Download all the session records on the database, including sessions associated with deleted modules, as a CSV file"""
+
+#         permission, user_id = validate_permissions()
+#         if not permission or not user_id or permission != 'su':
+#             return errorMessage("Invalid user"), 401
+        
+#         try:
+#             redis_conn = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, charset=REDIS_CHARSET, decode_responses=True)
+#             redis_sessions_chksum = redis_conn.get('sessions_checksum')
+#             redis_sessions_csv = redis_conn.get('sessions_csv')
+#             redis_lastseen_sessionID = redis_conn.get('lastseen_sessionID')
+#             redis_session_count = redis_conn.get('session_count')
+#         except redis.exceptions.ConnectionError:
+#             redis_conn = None
+#             redis_sessions_chksum = None
+#             redis_sessions_csv = None
+#             redis_lastseen_sessionID = None
+#             redis_session_count = None
+
+#         get_max_sessionID = "SELECT MAX(`session`.`sessionID`) FROM `session`"
+#         get_sessions_chksum = "CHECKSUM TABLE `session`"
+#         max_sessionID = getFromDB(get_max_sessionID)
+#         chksum_session = getFromDB(get_sessions_chksum)
+        
+#         if max_sessionID and max_sessionID[0] and chksum_session and chksum_session[0]:
+#             max_sessionID = str(max_sessionID[0][0])
+#             chksum_session = str(chksum_session[0][1])
+#         else:
+#             return errorMessage("Error retrieving data"), 500
+
+#         if not redis_session_count or not redis_sessions_chksum or not redis_sessions_csv or not redis_lastseen_sessionID or redis_sessions_chksum != chksum_session:
+#             if redis_session_count and redis_sessions_chksum and redis_sessions_csv and redis_sessions_chksum != chksum_session:
+#                 #if the checksum values don't match, then something changed
+#                 get_sub_session_count = f"SELECT COUNT(`session`.`sessionID`) FROM `session` WHERE `session`.`sessionID` <= {redis_lastseen_sessionID}"
+#                 get_all_session_count = f"SELECT COUNT(`session`.`sessionID`) FROM `session`"
+#                 sub_session_count = getFromDB(get_sub_session_count)
+#                 all_session_count = getFromDB(get_all_session_count)
+
+#                 if sub_session_count and sub_session_count[0] and all_session_count and all_session_count[0]:
+#                     sub_session_count = str(sub_session_count[0][0])
+#                     all_session_count = str(all_session_count[0][0])
+#                 else:
+#                     return errorMessage("Error retrieving data"), 500
+                
+#                 if all_session_count != redis_session_count and sub_session_count == redis_session_count:
+#                     # The only time we want to just fetch newly added values is when the subcount is the same
+#                     # as cached (meaning nothing that we cached has changed).
+#                     csv = redis_sessions_csv
+#                     query = f"""
+#                         SELECT `session`.*, `user`.`username`, `module`.`name`, COUNT(`logged_answer`.`logID`) FROM `session`
+#                         LEFT JOIN `logged_answer` ON `logged_answer`.`sessionID` = `session`.`sessionID`
+#                         INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
+#                         INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID`
+#                         WHERE `session`.`sessionID` > {redis_lastseen_sessionID}
+#                         GROUP BY `session`.`sessionID`
+#                         ORDER by `session`,`sessionDate` DESC
+#                         """
+#                 else:
+#                     csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
+#                     query = """
+#                             SELECT `session`.*, `user`.`username`, `module`.`name`, COUNT(`logged_answer`.`logID`) FROM `session`
+#                             LEFT JOIN `logged_answer` ON `logged_answer`.`sessionID` = `session`.`sessionID`
+#                             INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
+#                             INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID`
+#                             GROUP BY `session`.`sessionID`
+#                             ORDER by `session`,`sessionDate` DESC
+#                             """
+#             else:
+#                     csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
+#                     query = """
+#                         SELECT `session`.*, `user`.`username`, `module`.`name`, COUNT(`logged_answer`.`logID`) FROM `session` 
+#                         LEFT JOIN `logged_answer` ON `logged_answer`.`sessionID` = `session`.`sessionID`
+#                         INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
+#                         INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID`
+#                         GROUP BY `session`.`sessionID`
+#                         ORDER by `session`,`sessionDate` DESC
+#                         """
+            
+#             get_max_session_count = "SELECT COUNT(session.sessionID) FROM session"
+#             max_session_count = getFromDB(get_max_session_count)
+#             if max_session_count and max_session_count[0]:
+#                 max_session_count = str(max_session_count[0][0])
+#             else:
+#                 return errorMessage("Error retrieving data"), 500
+            
+#             results = getFromDB(query)
+#             if results and results[0]:
+#                 for record in results:
+#                     if record[6]:
+#                         time_spent, _ = getTimeDiffFormatted(record[5], record[6])
+#                     else:
+#                         log_time_query = "SELECT `logged_answer`.`log_time` FROM `logged_answer` WHERE `sessionID`=%s ORDER BY `logID` DESC LIMIT 1"
+#                         last_log_time = getFromDB(log_time_query, record[0])
+#                         if last_log_time and last_log_time[0] and last_log_time[0][0] != None:
+#                             time_spent, _ = getTimeDiffFormatted(record[5], last_log_time[0][0])
+#                             record[6], _ = getTimeDiffFormatted(time_obj = last_log_time[0][0])
+#                             if record[3] != time.strftime("%Y-%m-%d"):
+#                                 query_update_time = f"UPDATE `session` SET `session`.`endTime` = '{dateTimeToMySQL(last_log_time[0][0])}' WHERE `session`.`sessionID` = {record[0]}"
+#                                 postToDB(query_update_time)
+#                         else:
+#                             time_spent = None
+#                     if not record[4]:
+#                         get_logged_answer_score = """
+#                                                   SELECT `logged_answer`.`correct`
+#                                                   FROM `logged_answer`
+#                                                   WHERE `logged_answer`.`sessionID` = %s
+#                                                   """
+#                         answer_data = getFromDB(get_logged_answer_score, record[0])
+#                         if answer_data and answer_data[0]:
+#                             correct_answers = 0
+#                             for answer_record in answer_data:
+#                                 correct_answers = correct_answers + answer_record[0]
+#                             update_score_query = """
+#                                                  UPDATE `session` SET `session`.`playerScore` = %s
+#                                                  WHERE `session`.`sessionID` = %s
+#                                                  """
+#                             postToDB(update_score_query, (correct_answers, record[0]))
+#                             record[4] = correct_answers
+#                     platform = "Mobile" if record[7] == 'mb' else "PC" if record[7] == 'cp' else "Virtual Reality"
+#                     if record[2] is None:
+#                         replace_query = "SELECT `name` FROM `deleted_module` WHERE `moduleID` = %s"
+#                         replace = getFromDB(replace_query, record[9])
+#                         record[11] = replace[0][0]
+#                     # csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
+#                     if record[12] != 0 and record[12] and record[4]:
+#                         percentCorrect = (record[4] / record[12])
+#                         roundedPercentCorrect = round(percentCorrect, 3)
+#                     else:
+#                         roundedPercentCorrect = None
+
+#                     csv = csv + f"""{record[0]}, {record[1]}, {record[10]}, {record[2]}, {record[9]}, {record[11]}, {record[3]}, {record[4]}, {record[12]}, {roundedPercentCorrect},{getTimeDiffFormatted(time_obj = record[5])[0]}, {getTimeDiffFormatted(time_obj = record[6])[0] if record[6] else None}, {time_spent}, {platform}, {record[8]}\n"""
+
+#                 if redis_conn:
+#                     redis_conn.set('sessions_csv', csv)
+#                     redis_conn.set('sessions_checksum', chksum_session)
+#                     redis_conn.set('lastseen_sessionID', max_sessionID)
+#                     redis_conn.set('session_count', max_session_count)
+#             return Response(
+#                 csv,
+#                 mimetype="text/csv",
+#                 headers={"Content-disposition":
+#                 "attachment; filename=Sessions.csv"})
+#         elif max_sessionID == redis_lastseen_sessionID and chksum_session == redis_sessions_chksum:
+#             return Response(
+#                 redis_sessions_csv,
+#                 mimetype="text/csv",
+#                 headers={"Content-disposition":
+#                 "attachment; filename=Sessions.csv"})
+#         else:
+#             return errorMessage("Something went wrong with computing CSV"), 500
+
 class GetSessionCSV(Resource):
-    """API to download a CSV of all session records"""
+    """API to download a CSV of all session records with additional filters."""
 
     @jwt_required
     def get(self):
-        """Download all the session records on the database, including sessions associated with deleted modules, as a CSV file"""
+        """Download all session records with optional filters for date range and sort order."""
 
+        # Check permissions
         permission, user_id = validate_permissions()
         if not permission or not user_id or permission != 'su':
             return errorMessage("Invalid user"), 401
-        
+
+        # Get query parameters
+        start_date = request.args.get('startDate')  # Optional start date filter
+        end_date = request.args.get('endDate')  # Optional end date filter
+        sort_order = request.args.get('order', 'desc').lower()  # Sort order: 'asc' or 'desc'
+
+        # Validate query parameters
+        if sort_order not in ['asc', 'desc']:
+            return errorMessage("Invalid sort order"), 400
+
         try:
+            # Initialize Redis connection
             redis_conn = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, charset=REDIS_CHARSET, decode_responses=True)
             redis_sessions_chksum = redis_conn.get('sessions_checksum')
             redis_sessions_csv = redis_conn.get('sessions_csv')
@@ -353,134 +520,90 @@ class GetSessionCSV(Resource):
             redis_lastseen_sessionID = None
             redis_session_count = None
 
+        # Retrieve session checksum and max session ID
         get_max_sessionID = "SELECT MAX(`session`.`sessionID`) FROM `session`"
         get_sessions_chksum = "CHECKSUM TABLE `session`"
         max_sessionID = getFromDB(get_max_sessionID)
         chksum_session = getFromDB(get_sessions_chksum)
-        
+
         if max_sessionID and max_sessionID[0] and chksum_session and chksum_session[0]:
             max_sessionID = str(max_sessionID[0][0])
             chksum_session = str(chksum_session[0][1])
         else:
             return errorMessage("Error retrieving data"), 500
 
-        if not redis_session_count or not redis_sessions_chksum or not redis_sessions_csv or not redis_lastseen_sessionID or redis_sessions_chksum != chksum_session:
-            if redis_session_count and redis_sessions_chksum and redis_sessions_csv and redis_sessions_chksum != chksum_session:
-                #if the checksum values don't match, then something changed
-                get_sub_session_count = f"SELECT COUNT(`session`.`sessionID`) FROM `session` WHERE `session`.`sessionID` <= {redis_lastseen_sessionID}"
-                get_all_session_count = f"SELECT COUNT(`session`.`sessionID`) FROM `session`"
-                sub_session_count = getFromDB(get_sub_session_count)
-                all_session_count = getFromDB(get_all_session_count)
+        # Check Redis cache validity
+        if redis_session_count and redis_sessions_chksum and redis_sessions_csv:
+            if (
+                redis_sessions_chksum == chksum_session and
+                max_sessionID == redis_lastseen_sessionID and
+                not start_date and not end_date and sort_order == 'desc'
+            ):
+                # If cache matches and no additional filters, return cached data
+                return Response(
+                    redis_sessions_csv,
+                    mimetype="text/csv",
+                    headers={"Content-disposition": "attachment; filename=Sessions.csv"}
+                )
 
-                if sub_session_count and sub_session_count[0] and all_session_count and all_session_count[0]:
-                    sub_session_count = str(sub_session_count[0][0])
-                    all_session_count = str(all_session_count[0][0])
-                else:
-                    return errorMessage("Error retrieving data"), 500
-                
-                if all_session_count != redis_session_count and sub_session_count == redis_session_count:
-                    # The only time we want to just fetch newly added values is when the subcount is the same
-                    # as cached (meaning nothing that we cached has changed).
-                    csv = redis_sessions_csv
-                    query = f"""
-                        SELECT `session`.*, `user`.`username`, `module`.`name`, COUNT(`logged_answer`.`logID`) FROM `session`
-                        LEFT JOIN `logged_answer` ON `logged_answer`.`sessionID` = `session`.`sessionID`
-                        INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
-                        INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID`
-                        WHERE `session`.`sessionID` > {redis_lastseen_sessionID}
-                        GROUP BY `session`.`sessionID`
-                        ORDER by `session`,`sessionDate` DESC
-                        """
-                else:
-                    csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
-                    query = """
-                            SELECT `session`.*, `user`.`username`, `module`.`name`, COUNT(`logged_answer`.`logID`) FROM `session`
-                            LEFT JOIN `logged_answer` ON `logged_answer`.`sessionID` = `session`.`sessionID`
-                            INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
-                            INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID`
-                            GROUP BY `session`.`sessionID`
-                            ORDER by `session`,`sessionDate` DESC
-                            """
-            else:
-                    csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
-                    query = """
-                        SELECT `session`.*, `user`.`username`, `module`.`name`, COUNT(`logged_answer`.`logID`) FROM `session` 
-                        LEFT JOIN `logged_answer` ON `logged_answer`.`sessionID` = `session`.`sessionID`
-                        INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
-                        INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID`
-                        GROUP BY `session`.`sessionID`
-                        ORDER by `session`,`sessionDate` DESC
-                        """
-            
-            get_max_session_count = "SELECT COUNT(session.sessionID) FROM session"
-            max_session_count = getFromDB(get_max_session_count)
-            if max_session_count and max_session_count[0]:
-                max_session_count = str(max_session_count[0][0])
-            else:
-                return errorMessage("Error retrieving data"), 500
-            
-            results = getFromDB(query)
-            if results and results[0]:
-                for record in results:
-                    if record[6]:
-                        time_spent, _ = getTimeDiffFormatted(record[5], record[6])
-                    else:
-                        log_time_query = "SELECT `logged_answer`.`log_time` FROM `logged_answer` WHERE `sessionID`=%s ORDER BY `logID` DESC LIMIT 1"
-                        last_log_time = getFromDB(log_time_query, record[0])
-                        if last_log_time and last_log_time[0] and last_log_time[0][0] != None:
-                            time_spent, _ = getTimeDiffFormatted(record[5], last_log_time[0][0])
-                            record[6], _ = getTimeDiffFormatted(time_obj = last_log_time[0][0])
-                            if record[3] != time.strftime("%Y-%m-%d"):
-                                query_update_time = f"UPDATE `session` SET `session`.`endTime` = '{dateTimeToMySQL(last_log_time[0][0])}' WHERE `session`.`sessionID` = {record[0]}"
-                                postToDB(query_update_time)
-                        else:
-                            time_spent = None
-                    if not record[4]:
-                        get_logged_answer_score = """
-                                                  SELECT `logged_answer`.`correct`
-                                                  FROM `logged_answer`
-                                                  WHERE `logged_answer`.`sessionID` = %s
-                                                  """
-                        answer_data = getFromDB(get_logged_answer_score, record[0])
-                        if answer_data and answer_data[0]:
-                            correct_answers = 0
-                            for answer_record in answer_data:
-                                correct_answers = correct_answers + answer_record[0]
-                            update_score_query = """
-                                                 UPDATE `session` SET `session`.`playerScore` = %s
-                                                 WHERE `session`.`sessionID` = %s
-                                                 """
-                            postToDB(update_score_query, (correct_answers, record[0]))
-                            record[4] = correct_answers
-                    platform = "Mobile" if record[7] == 'mb' else "PC" if record[7] == 'cp' else "Virtual Reality"
-                    if record[2] is None:
-                        replace_query = "SELECT `name` FROM `deleted_module` WHERE `moduleID` = %s"
-                        replace = getFromDB(replace_query, record[9])
-                        record[11] = replace[0][0]
-                    # csv = 'Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, Session Date, Player Score, Total Attempted Questions, Percentage Correct, Start Time, End Time, Time Spent, Platform, Mode\n'
-                    if record[12] != 0 and record[12] and record[4]:
-                        percentCorrect = (record[4] / record[12])
-                        roundedPercentCorrect = round(percentCorrect, 3)
-                    else:
-                        roundedPercentCorrect = None
+        # Construct the SQL query with filters
+        query = """
+            SELECT `session`.*, `user`.`username`, `module`.`name`, COUNT(`logged_answer`.`logID`) 
+            FROM `session`
+            LEFT JOIN `logged_answer` ON `logged_answer`.`sessionID` = `session`.`sessionID`
+            INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
+            INNER JOIN `module` ON `module`.`moduleID` = `session`.`moduleID`
+            WHERE 1=1
+        """
+        params = []
+        if start_date:
+            query += " AND `session`.`sessionDate` >= %s"
+            params.append(start_date)
+        if end_date:
+            query += " AND `session`.`sessionDate` <= %s"
+            params.append(end_date)
 
-                    csv = csv + f"""{record[0]}, {record[1]}, {record[10]}, {record[2]}, {record[9]}, {record[11]}, {record[3]}, {record[4]}, {record[12]}, {roundedPercentCorrect},{getTimeDiffFormatted(time_obj = record[5])[0]}, {getTimeDiffFormatted(time_obj = record[6])[0] if record[6] else None}, {time_spent}, {platform}, {record[8]}\n"""
+        query += f" GROUP BY `session`.`sessionID` ORDER BY `session`.`sessionDate` {sort_order}"
 
-                if redis_conn:
-                    redis_conn.set('sessions_csv', csv)
-                    redis_conn.set('sessions_checksum', chksum_session)
-                    redis_conn.set('lastseen_sessionID', max_sessionID)
-                    redis_conn.set('session_count', max_session_count)
-            return Response(
-                csv,
-                mimetype="text/csv",
-                headers={"Content-disposition":
-                "attachment; filename=Sessions.csv"})
-        elif max_sessionID == redis_lastseen_sessionID and chksum_session == redis_sessions_chksum:
-            return Response(
-                redis_sessions_csv,
-                mimetype="text/csv",
-                headers={"Content-disposition":
-                "attachment; filename=Sessions.csv"})
-        else:
-            return errorMessage("Something went wrong with computing CSV"), 500
+        # Fetch data from the database
+        results = getFromDB(query, tuple(params))
+        if not results or not results[0]:
+            return errorMessage("No data found"), 404
+
+        # Prepare CSV header
+        csv = ('Session ID, User ID, User Name, Module ID, Deleted Module ID, Module Name, '
+               'Session Date, Player Score, Total Attempted Questions, Percentage Correct, '
+               'Start Time, End Time, Time Spent, Platform, Mode\n')
+
+        # Process results and populate CSV
+        for record in results:
+            # Additional processing for derived fields
+            time_spent = None
+            if record[6]:  # End time is present
+                time_spent, _ = getTimeDiffFormatted(record[5], record[6])
+            else:  # End time is missing, calculate using log times
+                log_time_query = "SELECT `log_time` FROM `logged_answer` WHERE `sessionID`=%s ORDER BY `logID` DESC LIMIT 1"
+                last_log_time = getFromDB(log_time_query, record[0])
+                if last_log_time and last_log_time[0]:
+                    time_spent, _ = getTimeDiffFormatted(record[5], last_log_time[0][0])
+
+            platform = "Mobile" if record[7] == 'mb' else "PC" if record[7] == 'cp' else "Virtual Reality"
+            percent_correct = (record[4] / record[12]) if record[12] and record[4] else None
+
+            # Append row to CSV
+            csv += f"{record[0]}, {record[1]}, {record[10]}, {record[2]}, {record[9]}, {record[11]}, " \
+                   f"{record[3]}, {record[4]}, {record[12]}, {round(percent_correct, 3) if percent_correct else None}, " \
+                   f"{record[5]}, {record[6]}, {time_spent}, {platform}, {record[8]}\n"
+
+        # Cache the new CSV data in Redis
+        if redis_conn:
+            redis_conn.set('sessions_csv', csv)
+            redis_conn.set('sessions_checksum', chksum_session)
+            redis_conn.set('lastseen_sessionID', max_sessionID)
+            redis_conn.set('session_count', len(results))
+
+        return Response(
+            csv,
+            mimetype="text/csv",
+            headers={"Content-disposition": "attachment; filename=Sessions.csv"}
+        )
