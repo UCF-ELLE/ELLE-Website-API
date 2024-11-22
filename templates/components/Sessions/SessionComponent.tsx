@@ -20,6 +20,7 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
     const [questionID, setQuestionID] = useState('');
     const { user } = useUser();
     const [earliestDate, setEarliestDate] = useState<string>('');
+    const permission = user?.permissionGroup;
 
 
     const convertTimeToMinutes = (time: string) => {
@@ -149,7 +150,9 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
 
     return (
         <div>
-            <Downloads earliestDate={earliestDate} />
+            {permission === 'su' ? (
+                <Downloads earliestDate={earliestDate} />
+            ) : null}
             <Card style={{ border: 'none', height: '56vh', overflow: 'scroll' }}>
                 <Table hover className='minimalisticTable'>
                     <thead>
