@@ -83,6 +83,7 @@ export function DownloadSessionLogs({earliestDate}: DownloadsProps) {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState(''); 
     const [sortOrder, setSortOrder] = useState('desc'); 
+    const [error, setError] = useState('');
 
     useEffect(() => {
         if (earliestDate) {
@@ -97,7 +98,7 @@ export function DownloadSessionLogs({earliestDate}: DownloadsProps) {
     const toggleModal = () => setModalOpen(!modalOpen);
 
     // Axios request for CSV download
-    const [{ data, loading, error }, refetchCSV] = useAxios<string>(
+    const [{ data, loading, error: fetchError}, refetchCSV] = useAxios<string>(
         {
             method: 'get',
             url: '/elleapi/getsessioncsv',
@@ -113,16 +114,20 @@ export function DownloadSessionLogs({earliestDate}: DownloadsProps) {
 
     // Handle CSV file download
     useEffect(() => {
-        if (loading || error || !data) return;
+        if (loading || fetchError || !data) return;
         const url = window.URL.createObjectURL(new Blob([data]));
         const link = document.createElement('a');
         link.href = url;
         link.setAttribute('download', `sessions_${startDate || 'all'}_${endDate || 'all'}_${sortOrder}.csv`);
         document.body.appendChild(link);
         link.click();
-    }, [data, loading, error]);
+    }, [data, loading, fetchError]);
 
     const handleDownload = () => {
+        if (new Date(startDate) > new Date(endDate)) {
+            setError('The start date must be before the end date.');
+            return;
+        }
         refetchCSV(); 
         toggleModal(); 
     };
@@ -160,6 +165,7 @@ export function DownloadSessionLogs({earliestDate}: DownloadsProps) {
             <Modal isOpen={modalOpen} toggle={toggleModal}>
                 <ModalHeader toggle={toggleModal}>Download Options</ModalHeader>
                 <ModalBody>
+                    {error && <p style={{ color: 'red' }}>{error}</p>}
                     <Label for='startDate'>Start Date</Label>
                     <Input
                         type='date'
