@@ -147,7 +147,6 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
         }
     }, [sessions]);
 
-
     return (
         <div>
             <Downloads earliestDate={earliestDate} />

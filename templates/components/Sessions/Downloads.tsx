@@ -18,6 +18,7 @@ export function Downloads({ earliestDate }: DownloadsProps) {
 }
 interface DownloadsProps {
     earliestDate: string; 
+}
 
 export function DownloadGameLogs() {
     const { user } = useUser();
