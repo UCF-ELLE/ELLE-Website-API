@@ -114,7 +114,7 @@ export default function Sessions() {
                     </Col>
                     {permission === 'su' ? (
                         <Col xs='2' style={{ padding: '0px' }}>
-                            {/*<Downloads />*/}
+                            <Downloads />
                         </Col>
                     ) : null}
                 </Row>
