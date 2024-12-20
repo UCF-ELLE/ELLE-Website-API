@@ -165,7 +165,6 @@ export function DownloadSessionLogs({earliestDate}: DownloadsProps) {
             <Modal isOpen={modalOpen} toggle={toggleModal}>
                 <ModalHeader toggle={toggleModal}>Download Options</ModalHeader>
                 <ModalBody>
-                    
                     {error && <p style={{ color: 'red' }}>{error}</p>}
                     <Label for='startDate'>Start Date</Label>
                     <Input
@@ -194,7 +193,6 @@ export function DownloadSessionLogs({earliestDate}: DownloadsProps) {
                         <option value='desc'>Descending (Newest First)</option>
                         <option value='asc'>Ascending (Oldest First)</option>
                     </Input>
-                    <p style={{ fontSize: 'smaller', color: '#6c757d', marginTop: '10px', marginBottom: '-5px' }}>To download all sessions, leave the start date blank.</p>
                 </ModalBody>
                 <ModalFooter>
                     <Button color='primary' onClick={handleDownload}>

@@ -150,6 +150,9 @@ export default function SessionComponent({ sessions }: { sessions: Session[] }) 
 
     return (
         <div>
+            {permission === 'su' ? (
+                <Downloads earliestDate={earliestDate} />
+            ) : null}
             <Card style={{ border: 'none', height: '56vh', overflow: 'scroll' }}>
                 <Table hover className='minimalisticTable'>
                     <thead>
