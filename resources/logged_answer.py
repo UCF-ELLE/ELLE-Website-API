@@ -189,9 +189,9 @@ class GetLoggedAnswerCSV(Resource):
                 rd_log_ans_count = None
 
             if db_count != rd_log_ans_count or rd_log_ans_count is None:
-                csv = 'Log ID, User ID, Username, Module ID, Deleted Module ID, Module Name, Question ID, Deleted Question ID, Term ID, Deleted Term ID, Session ID, Correct, Log time, Mode\n'
+                csv = 'Date, Log ID, User ID, Username, Module ID, Deleted Module ID, Module Name, Question ID, Deleted Question ID, Term ID, Deleted Term ID, Session ID, Correct, Log time, Mode\n'
                 query = """
-                        SELECT `logged_answer`.*, `session`.`userID`, `user`.`username`, `module`.`moduleID`, `module`.`name`, `session`.`deleted_moduleID` FROM `logged_answer` 
+                        SELECT `session`.`sessionDate`, `logged_answer`.*, `session`.`userID`, `user`.`username`, `module`.`moduleID`, `module`.`name`, `session`.`deleted_moduleID` FROM `logged_answer` 
                         INNER JOIN `session` ON `session`.`sessionID` = `logged_answer`.`sessionID`
                         INNER JOIN `user` ON `user`.`userID` = `session`.`userID`
                         INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID`
@@ -206,7 +206,7 @@ class GetLoggedAnswerCSV(Resource):
                         csv = csv + f"""{record[0]}, {record[9]}, {record[10]}, {record[11]}, {record[13]}, {record[12]}, {record[1]}, {record[7]}, {record[2]}, {record[8]}, {record[3]}, {record[4]}, {str(record[6])}, {record[5]}\n"""
             else:
                 csv = ""
-                query = "SELECT `logged_answer`.*, `session`.`userID`, `user`.`username`, `module`.`moduleID`, `module`.`name`, `session`.`deleted_moduleID` FROM `logged_answer` \
+                query = "SELECT `session`.`sessionDate`, `logged_answer`.*, `session`.`userID`, `user`.`username`, `module`.`moduleID`, `module`.`name`, `session`.`deleted_moduleID` FROM `logged_answer` \
                         INNER JOIN `session` ON `session`.`sessionID` = `logged_answer`.`sessionID` \
                         INNER JOIN `user` ON `user`.`userID` = `session`.`userID` \
                         INNER JOIN `module` on `module`.`moduleID` = `session`.`moduleID` \
