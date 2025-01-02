@@ -1,6 +1,6 @@
 import { Alert, Button, ButtonGroup, Input, Modal, ModalBody, ModalFooter, ModalHeader, Tooltip } from 'reactstrap';
 import { Module, ModuleQuestionAnswer } from '@/types/api/modules';
-import React, { useState } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 
 import Image from 'next/image';
 import axios from 'axios';
@@ -13,6 +13,7 @@ import trashImage from '@/public/static/images/delete.png';
 import uploadAudioImage from '@/public/static/images/uploadAudio.png';
 import uploadImageImage from '@/public/static/images/uploadImage.png';
 import { useUser } from '@/hooks/useAuth';
+import { useAudioRecorder } from 'react-audio-voice-recorder';
 
 export default function Phrase({
     card,
@@ -25,10 +26,18 @@ export default function Phrase({
     updateCurrentModule: (module: Module, task?: string) => void;
     curModule: Module;
 }) {
+    const { startRecording, stopRecording, recordingBlob, isRecording: isAudioRecording } = useAudioRecorder();
+
     const [editedFront, setEditedFront] = useState(card.front);
     const [editedBack, setEditedBack] = useState(card.back);
     const [selectedImgFile, setSelectedImgFile] = useState(new File([], ''));
     const [selectedAudioFile, setSelectedAudioFile] = useState(new File([], ''));
+    const [isRecording, setIsRecording] = useState<boolean>(false);
+    const [blobURL, setBlobURL] = useState<string>('');
+    const [isBlocked, setIsBlocked] = useState<boolean>(false);
+    const [disable, setDisable] = useState<boolean>(true);
+    const [file, setFile] = useState<File>(new File([], ''));
+    const [didUpload, setDidUpload] = useState<boolean>(false);
     const [id, setId] = useState(card.termID);
     const [modal, setModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -42,8 +51,48 @@ export default function Phrase({
     const { user } = useUser();
     const permissionLevel = user?.permissionGroup;
 
+    const start = () => {
+        if (isBlocked) {
+            console.log('Permission Denied');
+        } else {
+            startRecording();
+            setIsRecording(true);
+            setDisable(true);
+        }
+    };
+
+    useEffect(() => {
+        if (!isAudioRecording) {
+            const audio = recordingBlob;
+            if (audio === undefined) {
+                return;
+            }
+            const blob = new Blob([audio], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            setBlobURL(url);
+            setFile(new File([blob], 'audio.wav', { type: 'audio/wav' }));
+            setIsRecording(false);
+            setDisable(false);
+        }
+    }, [isAudioRecording, recordingBlob]);
+
+    const stop = () => {
+        stopRecording();
+    };
+
+    const upload = () => {
+        setSelectedAudioFile(file);
+        // this.setState({ selectedAudioFile: this.state.file });
+        setChangedAudio(true);
+        setDidUpload(true);
+
+        const audioFile = document.getElementById('audioFile') as HTMLInputElement;
+        audioFile.disabled = true;
+    };
+
     const submitEdit = () => {
         setEditMode(false);
+        setDidUpload(false);
 
         const data = new FormData();
 
@@ -157,9 +206,10 @@ export default function Phrase({
     let imgButtonClass = disableImgButton ? 'disabled-btn' : 'enabled-btn';
     let audioButtonClass = disableAudioButton ? 'disabled-btn' : 'enabled-btn';
 
-    return (
-        <>
-            {editMode === false ? (
+
+    if (editMode === false) {
+        return (
+            <Fragment>
                 <tr>
                     <td>{editedFront}</td>
                     <td>{editedBack}</td>
@@ -219,8 +269,11 @@ export default function Phrase({
                         </ModalFooter>
                     </Modal>
                 </tr>
-            ) : (
-                //else
+            </Fragment>
+        )
+    } else {
+        return (
+            <Fragment>
                 <tr>
                     <td>
                         <Input type='number' name='editedFront' onChange={(e) => setEditedFront(e.target.value)} value={editedFront} />
@@ -294,7 +347,92 @@ export default function Phrase({
                         </ButtonGroup>
                     </td>
                 </tr>
-            )}
-        </>
-    );
+
+                {(
+
+                    <tr>
+                        <td style={{ border: 'none' }}>
+                            Record Audio:
+
+                            <br></br>
+                            <div
+                                style={{
+                                    paddingBottom: '5px',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <button
+                                    type='button'
+                                    onClick={start}
+                                    disabled={isRecording}
+                                    style={{
+                                        border: 'solid',
+                                        borderWidth: '1px',
+                                        margin: '5px'
+                                    }}
+                                >
+                                    Record
+                                </button>
+                                <button
+                                    type='button'
+                                    onClick={stop}
+                                    disabled={!isRecording}
+                                    style={{
+                                        border: 'solid',
+                                        borderWidth: '1px',
+                                        margin: '5px'
+                                    }}
+                                >
+                                    Stop
+                                </button>
+
+                                <button
+                                    type='button'
+                                    onClick={upload}
+                                    disabled={disable}
+                                    style={{
+                                        border: 'solid',
+                                        borderWidth: '1px',
+                                        margin: '5px'
+                                    }}
+                                >
+                                    Upload
+                                </button>
+                            </div>
+
+                            <div
+                                style={{
+                                    paddingBottom: '5px',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <audio src={blobURL} controls={true} />
+                            </div>
+
+                            {didUpload ? (
+                                <div
+                                    style={{
+                                        color: 'red',
+                                        paddingBottom: '5px',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        fontSize: '12px'
+                                    }}
+                                >
+                                    Successfully uploaded recorded audio file!
+                                </div>
+                            ) : (
+                                ''
+                            )}
+                        </td>
+                    </tr>
+                )}
+            </Fragment>
+        );
+    }
 }

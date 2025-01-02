@@ -17,6 +17,7 @@ import toolsImage from '@/public/static/images/tools.png';
 import uploadAudioImage from '@/public/static/images/uploadAudio.png';
 import uploadImage from '@/public/static/images/uploadImage.png';
 import { useUser } from '@/hooks/useAuth';
+import { useAudioRecorder } from 'react-audio-voice-recorder';
 
 export default function Term({
     card,
@@ -34,6 +35,8 @@ export default function Term({
     deleteTag: (tagList: Tag[], tag: Tag) => Tag[];
     allTags: Tag[];
 }) {
+    const { startRecording, stopRecording, recordingBlob, isRecording: isAudioRecording } = useAudioRecorder();
+
     const [modal, setModal] = useState(false);
     const [imgTooltipOpen, setImgTooltipOpen] = useState(false);
     const [audioTooltipOpen, setAudioTooltipOpen] = useState(false);
@@ -49,6 +52,12 @@ export default function Term({
     const [changedAudio, setChangedAudio] = useState(false);
     const [tags, setTags] = useState<Tag[]>([]);
     const [originalTags, setOriginalTags] = useState([]);
+    const [isRecording, setIsRecording] = useState<boolean>(false);
+    const [blobURL, setBlobURL] = useState<string>('');
+    const [isBlocked, setIsBlocked] = useState<boolean>(false);
+    const [disable, setDisable] = useState<boolean>(true);
+    const [file, setFile] = useState<File>(new File([], ''));
+    const [didUpload, setDidUpload] = useState<boolean>(false);
     const { user, loading } = useUser();
     const permissionLevel = user?.permissionGroup;
     let imgInput: HTMLInputElement | null;
@@ -74,6 +83,45 @@ export default function Term({
                 });
         }
     }, [card.termID, loading, user]);
+
+    const start = () => {
+        if (isBlocked) {
+            console.log('Permission Denied');
+        } else {
+            startRecording();
+            setIsRecording(true);
+            setDisable(true);
+        }
+    };
+
+    useEffect(() => {
+        if (!isAudioRecording) {
+            const audio = recordingBlob;
+            if (audio === undefined) {
+                return;
+            }
+            const blob = new Blob([audio], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            setBlobURL(url);
+            setFile(new File([blob], 'audio.wav', { type: 'audio/wav' }));
+            setIsRecording(false);
+            setDisable(false);
+        }
+    }, [isAudioRecording, recordingBlob]);
+
+    const stop = () => {
+        stopRecording();
+    };
+
+    const upload = () => {
+        setSelectedAudioFile(file);
+        // this.setState({ selectedAudioFile: this.state.file });
+        setChangedAudio(true);
+        setDidUpload(true);
+
+        const audioFile = document.getElementById('audioFile') as HTMLInputElement;
+        audioFile.disabled = true;
+    };
 
     //TODO: handleAddTag and createTag kinda do the same thing. Maybe they should be one thing?
     //function that adds a tag to list of tags on this card(only available when editmode is true)
@@ -118,6 +166,7 @@ export default function Term({
     //function that submits all of the edited data put on a card
     const submitEdit = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         setEditMode(false);
+        setDidUpload(false);
 
         const data = new FormData();
         let header = {
@@ -407,9 +456,9 @@ export default function Term({
                             onClick={() => audioInput?.click()}
                         >
                             <Image src={uploadAudioImage} alt='Icon made by Srip from www.flaticon.com' style={{ width: '25px', height: '25px' }} />
-                        </Button>
+                        </Button>               
                         <Tooltip placement='top' isOpen={audioTooltipOpen} target='uploadAudio' toggle={() => setAudioTooltipOpen(!audioTooltipOpen)}>
-                            Upload Audio
+                            Upload Audio File
                         </Tooltip>
                     </td>
 
@@ -439,7 +488,94 @@ export default function Term({
                     </td>
                 </tr>
 
-                {tags && (
+                {(
+
+                    <tr>
+                        <td style={{ border: 'none'}}>
+                            Record Audio:
+
+                            <br></br>
+                                <div
+                                    style={{
+                                        paddingBottom: '5px',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <button
+                                        type='button'
+                                        onClick={start}
+                                        disabled={isRecording}
+                                        style={{
+                                            border: 'solid',
+                                            borderWidth: '1px',
+                                            margin: '5px'
+                                        }}
+                                    >
+                                        Record
+                                    </button>
+                                    <button
+                                        type='button'
+                                        onClick={stop}
+                                        disabled={!isRecording}
+                                        style={{
+                                            border: 'solid',
+                                            borderWidth: '1px',
+                                            margin: '5px'
+                                        }}
+                                    >
+                                        Stop
+                                    </button>
+
+                                    <button
+                                        type='button'
+                                        onClick={upload}
+                                        disabled={disable}
+                                        style={{
+                                            border: 'solid',
+                                            borderWidth: '1px',
+                                            margin: '5px'
+                                        }}
+                                    >
+                                        Upload
+                                    </button>
+                                </div>
+
+                                <div
+                                    style={{
+                                        paddingBottom: '5px',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <audio src={blobURL} controls={true} />
+                                </div>
+
+                                {didUpload ? (
+                                    <div
+                                        style={{
+                                            color: 'red',
+                                            paddingBottom: '5px',
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            fontSize: '12px'
+                                        }}
+                                    >
+                                        Successfully uploaded recorded audio file!
+                                    </div>
+                                ) : (
+                                    ''
+                                )}
+                        </td>
+                    </tr>
+                
+                )}
+
+                {
+                tags && (
                     <tr>
                         <td style={{ border: 'none' }} colSpan={8}>
                             <TagList tags={tags} handleDeleteTag={handleDeleteTag} deletable={true} />
