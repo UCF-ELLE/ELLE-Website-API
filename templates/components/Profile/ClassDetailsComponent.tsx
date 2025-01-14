@@ -1,6 +1,7 @@
 import { UserGroup } from '@/types/api/group';
 import React, { useState } from 'react';
 import { Label, Input, Row, Col } from 'reactstrap';
+import ModuleRow from './ModuleRow';
 
 type ClassDetailsProps = {
     item: UserGroup;
@@ -63,6 +64,19 @@ export default function ClassDetailsComponent(props: ClassDetailsProps) {
                     <Label>Class Size: </Label> {props.item.group_users !== undefined ? props.item.group_users.length - 1 : null}
                 </Col>
             </Row>
+            <table style={{ width: '100%', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#9ED3E1', marginTop: '10px', overflow: 'hidden' }}>
+                <thead>
+                    <tr>
+                        <th style={{ padding: '10px', textAlign: 'left' }}>Module Name</th>
+                        <th style={{ padding: '10px', textAlign: 'center', width: '50px' }}>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+            
+            
         </>
     );
 }
