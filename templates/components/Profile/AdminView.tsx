@@ -98,11 +98,11 @@ export default function AdminView(props: AdminViewProps) {
                         </Button>
                     ) : (
                         <Button color='primary' onClick={() => toggleEditClass()}>
-                            Edit
+                            Edit Class Code
                         </Button>
                     )}{' '}
                     <Button color='secondary' onClick={() => deleteClass()}>
-                        Delete
+                        Delete Class
                     </Button>
                 </ModalFooter>
             </Modal>
