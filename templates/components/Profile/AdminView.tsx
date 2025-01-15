@@ -98,11 +98,11 @@ export default function AdminView(props: AdminViewProps) {
                         </Button>
                     ) : (
                         <Button color='primary' onClick={() => toggleEditClass()}>
-                            Edit
+                            Edit Class Code
                         </Button>
                     )}{' '}
                     <Button color='secondary' onClick={() => deleteClass()}>
-                        Delete
+                        Delete Class
                     </Button>
                 </ModalFooter>
             </Modal>
@@ -245,40 +245,6 @@ export default function AdminView(props: AdminViewProps) {
             })
             .catch((error) => {
                 console.log('delete class code error: ', error);
-            });
-    };
-
-    // Grab a list of all modules associated with the class
-    const listModules = () => {
-        let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
-            data: { groupID: currentClassDetails.groupID }
-        };
-
-        axios
-            .get('elleapi/getgroupmodules', header)
-            .then((res) => {
-                // Do what needs done with the returned resources
-            })
-            .catch((error) => {
-                console.log('Error grabbing the classes modules: ', error);
-            });
-    };
-
-    const removeModule = () => {
-        let header = {
-            headers: { Authorization: 'Bearer ' + user?.jwt },
-            // PASS IN MODULE ID BELOW
-            data: { groupID: currentClassDetails.groupID, moduleID: 0}
-        };
-
-        axios
-            .post('/elleapi/removemodulefromgroup', header)
-            .then((res) => {
-                // Fill with anything to be done after removal (Refresh module table)
-            })
-            .catch((error) => {
-                console.log('Error removing module from class: ', error);
             });
     };
 

@@ -412,18 +412,27 @@ class GetGroupModules(Resource):
                 moduleIds = []
 
                 for group_module in group_modules:
-                    moduleIds.append(group_module[1])
+                    moduleIds.append(group_module[0])
                 
                 module_query = """
                                SELECT * FROM module WHERE moduleID IN %s
                                """
+                
+                print(group_modules)
                 
                 modules = getFromDB(
                     module_query, (moduleIds,), conn, cursor
                 )
 
                 if modules:
-                    return modules
+                    convertedModules = []
+
+                    print(modules)
+
+                    for module in modules:
+                        convertedModules.append(convertModuleToJSON(module))
+                        
+                    return convertedModules
                 
                 else:
                     raise CustomException(
@@ -431,9 +440,7 @@ class GetGroupModules(Resource):
                     )
                 
             else:
-                raise CustomException(
-                    "Could not get module ids for the class.", 500
-                )
+                return []
 
         except CustomException as error:
             conn.rollback()
