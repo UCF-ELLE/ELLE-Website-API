@@ -338,27 +338,24 @@ export default function AnimELLEGame() {
                         className="instruct"
                         alt="game logo"
                     />
+                    <Image src={keys} className="keys" alt="keys" />
                     <div className="keyContainer">
-                        <Image src={keys} className="keys" alt="keys" />
                         <p className="instructions">
                             Moving the Player (arrow keys work too!)
                         </p>
-                        <br></br>
                     </div>
+                    <Image src={cursor} className="keys" alt="keys" />
                     <div className="keyContainer">
-                        <Image src={cursor} className="keys" alt="keys" />
                         <p className="instructions">
                             Hovering Tooltips, Button Selection
                         </p>
-                        <br></br>
                     </div>
+                    <Image src={e} className="keys" alt="keys" />
                     <div className="keyContainer">
-                        <Image src={e} className="keys" alt="keys" />
                         <p className="instructions">
                             For interacting with objects/NPCs with Emotes,
                             Continue Dialogue
                         </p>
-                        <br></br>
                     </div>
                     {/* <div className="keyContainer">
                         <img src={q} className='keys' alt="keys" />

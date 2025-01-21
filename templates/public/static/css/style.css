@@ -1533,7 +1533,7 @@ table.statsTable tbody td {
 
 .animelle-game-container .instructions {
     text-align: left;
-    /* padding-left: 7%; */
+    padding-left: 7%; 
 }
 
 .animelle-game-container .instruct {
