@@ -61,10 +61,10 @@ export default function AddPhrase({
             if (audio === undefined) {
                 return;
             }
-            const blob = new Blob([audio], { type: 'audio/wav' });
+            const blob = new Blob([audio], { type: 'audio/mp3' });
             const url = URL.createObjectURL(blob);
             setBlobURL(url);
-            setFile(new File([blob], 'audio.wav', { type: 'audio/wav' }));
+            setFile(new File([blob], 'audio.mp3', { type: 'audio/mp3' }));
             setIsRecording(false);
             setDisable(false);
         }
