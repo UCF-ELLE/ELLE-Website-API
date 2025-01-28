@@ -1532,8 +1532,7 @@ table.statsTable tbody td {
 }
 
 .animelle-game-container .instructions {
-    text-align: left;
-    padding-left: 7%; 
+    text-align: center;
 }
 
 .animelle-game-container .instruct {
@@ -1608,13 +1607,13 @@ float: left;
     padding-bottom: 5%;
     display: grid;
     align-items: center;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr;
     /* column-gap: 5px; */
 
 }
 
 .animelle-game-container .keyContainer p {
-    text-align: left;
+    text-align: center;
 }
 
 /* fullscreen button */
