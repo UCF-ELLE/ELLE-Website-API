@@ -34,7 +34,7 @@ export default function Login() {
         return (
             <Card
                 style={{
-                    width: '500px',
+                    width: '50px',
                     height: '30px',
                     border: 'none',
                     fontSize: '20px',
