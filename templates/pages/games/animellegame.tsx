@@ -253,8 +253,8 @@ export default function AnimELLEGame() {
                         unityProvider={unityProvider}
                         devicePixelRatio={devicePixelRatio}
                         style={{
-                            width: "1152px",
-                            height: "648px",
+                            width: "90%",
+                            height: "90%",
                             visibility: isLoaded ? "visible" : "hidden",
                         }}
                     />
