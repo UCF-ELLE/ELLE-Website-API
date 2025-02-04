@@ -105,7 +105,7 @@ export default function Login() {
                 </Form>
           
                 <p className="text-center mt-3">
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                   <Link href="/signup" style={{ color: '#007bff', textDecoration: 'underline' }}>
                     Create one.
                   </Link>

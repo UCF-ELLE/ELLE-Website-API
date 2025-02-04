@@ -67,7 +67,7 @@ export default function ForgotPassword() {
                     <ModalBody>
                         {alertOpen && (
                             <Alert color="info" style={{ fontSize: 'small' }}>
-                                If there's a user associated with the provided email, we will send information on how to reset your password. If
+                                If there&apos;s a user associated with the provided email, we will send information on how to reset your password. If
                                 you have not received it within 15 minutes, please check your junk or spam emails.
                             </Alert>
                         )}
