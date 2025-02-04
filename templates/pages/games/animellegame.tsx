@@ -253,8 +253,8 @@ export default function AnimELLEGame() {
                         unityProvider={unityProvider}
                         devicePixelRatio={devicePixelRatio}
                         style={{
-                            width: "1152px",
-                            height: "648px",
+                            width: "90%",
+                            height: "90%",
                             visibility: isLoaded ? "visible" : "hidden",
                         }}
                     />
@@ -270,9 +270,6 @@ export default function AnimELLEGame() {
                 </div>
             </div>
             <div className="divContainer">
-                <div className="instruct-filler">
-                    {/* <h4>Listen to Tito!</h4> <img src={tito} className='tito' alt="tito" /> */}
-                </div>
                 <div className="logoContainer">
                     <div className="imgContainer">
                         <Image src={logo} className="logo" alt="game logo" />
@@ -300,104 +297,41 @@ export default function AnimELLEGame() {
                             <p className="names">Arwin Nimityongskul</p>
                         </div>
                     </div>{" "}
-                    {/*<!--row--> */}
-                </div>{" "}
-                <div className="logoContainer">
-                    <div className="imgContainer">
-                        <Image src={logo} className="logo" alt="game logo" />
-                        <h3 className="credits">Credits:</h3>
+                    <div className="row">
+                        <div>
+                            <Image
+                                src={instruct}
+                                className="instruct"
+                                alt="game logo"
+                            />
+                            <Image src={keys} className="keys" alt="keys" />
+                            <div className="keyContainer">
+                                <p className="instructions">
+                                    Moving the Player (arrow keys work too!)
+                                </p>
+                            </div>
+                            <Image src={cursor} className="keys" alt="keys" />
+                            <div className="keyContainer">
+                                <p className="instructions">
+                                    Hovering Tooltips, Button Selection
+                                </p>
+                            </div>
+                            <Image src={e} className="keys" alt="keys" />
+                            <div className="keyContainer">
+                                <p className="instructions">
+                                    For interacting with objects/NPCs with Emotes,
+                                    Continue Dialogue
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="row">
-                        <div className="column">
-                            <p className="names">Tam Nguyen </p>
-                            <p className="names">Justin Reeves</p>
-                            <p className="names">Natali Siam-Pollo</p>
-                        </div>
-                        <div className="column">
-                            <p className="names">Michael Alfieri</p>
-                            <p className="names">Connor Price</p>
-                        </div>
-                    </div>{" "}
-                    {/*<!--row--> */}
-                    <div className="row">
-                        <div className="column">
-                            <p className="names">Derek Dyer</p>
-                            <p className="names">Trevor Larson</p>
-                        </div>
-                        <div className="column">
-                            <p className="names">Robert Bereiter</p>
-                            <p className="names">Arwin Nimityongskul</p>
-                        </div>
-                    </div>{" "}
                     {/*<!--row--> */}
                 </div>{" "}
                 {/*<!--logo--> */}
-                <div className="instruct-actual">
-                    <Image
-                        src={instruct}
-                        className="instruct"
-                        alt="game logo"
-                    />
-                    <div className="keyContainer">
-                        <Image src={keys} className="keys" alt="keys" />
-                        <p className="instructions">
-                            Moving the Player (arrow keys work too!)
-                        </p>
-                        <br></br>
-                    </div>
-                    <div className="keyContainer">
-                        <Image src={cursor} className="keys" alt="keys" />
-                        <p className="instructions">
-                            Hovering Tooltips, Button Selection
-                        </p>
-                        <br></br>
-                    </div>
-                    <div className="keyContainer">
-                        <Image src={e} className="keys" alt="keys" />
-                        <p className="instructions">
-                            For interacting with objects/NPCs with Emotes,
-                            Continue Dialogue
-                        </p>
-                        <br></br>
-                    </div>
-                    {/* <div className="keyContainer">
-                        <img src={q} className='keys' alt="keys" />
-                        <p className='instructions'>Opening Fast Travel Menu</p><br></br>
-                    </div>
-                    <div className="keyContainer">
-                        <img src={p} className='keys' alt="keys" />
-                        <p className='instructions'>Opening Pause Menu</p><br></br>
-                    </div>
-                    <div className="keyContainer">
-                        <img src={a} className='keys' alt="keys" />
-                        <p className='instructions'>Opening "Ask Tito" Menu</p><br></br>
-                    </div> */}
-                    <br></br>
-                    <br></br>
-                    {/* <p className='instructions'>-Scavenger Hunt:<br></br><br></br>"Spacebar" - For picking up Scavenger Hunt items, Continue Dialogue</p><br></br> */}
-
-                    {/* CONTROLS FOR ANIMELLE CROSSING:
-                        - General:
-                        * Arrow Keys - Moving the Player
-                        * Mouse - Hovering Tooltips, Button Selection
-                        * "E" Key - For interacting with objects/NPCs with Emotes, Continue Dialogue
-                        * "Q" - Opening Fast Travel Menu
-                        * "P" - Opening Pause Menu
-                        * "A" - Opening "Ask Tito" Menu
-
-
-                        -Scavenger Hunt:
-                        * W/A/S/D - Moving the Player
-                        * Mouse -  Button Selection
-                        * "E" Key - For interacting with NPCs with Emotes
-                        * "Spacebar" - For picking up Scavenger Hunt items, Continue Dialogue 
-
-                        - Matching Game, Fill-In-The-Blank, Multiple Choice
-                        * Mouse -  Button Selection */}
-                </div>
             </div>{" "}
             {/*<!--divContainer--> */}
         </div>
+
     );
 }
 

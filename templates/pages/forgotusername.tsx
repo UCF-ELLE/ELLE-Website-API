@@ -38,49 +38,60 @@ export default function ForgotUsername() {
     };
 
     return (
-        <div className='forgot-bg'>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                <div className='forgot-box'>
-                    <h4 style={{ display: 'flex', justifyContent: 'center', margin: '10px' }}>Forgot your username?</h4>
-                    <Row style={{ display: 'flex', justifyContent: 'center', margin: '10px' }}>
-                        Do you have an email associated with your account?
+        <div className="forgot-bg">
+            <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+                <div className="forgot-box p-4 shadow rounded" style={{ maxWidth: '600px', width: '100%' }}>
+                    <h4 className="text-center mb-4">Forgot your username?</h4>
+                    <Row className="text-center mb-4">
+                        <Col xs="12">
+                            <div>Do you have an email associated with your account?</div>
+                        </Col>
                     </Row>
-                    <Row style={{ marginBottom: '10px' }}>
-                        <Col style={{ display: 'flex', justifyContent: 'center' }}>
-                            <Button style={{ fontWeight: 'bold' }} onClick={() => toggleEmailModal()}>
+                    <Row className="mb-4">
+                        <Col xs="12" sm="6" className="d-flex justify-content-center mb-2 mb-sm-0">
+                            <Button size="sm" style={{ fontWeight: 'bold' }} onClick={() => toggleEmailModal()} block>
                                 Yes, I do!
                             </Button>
                         </Col>
-                        <Col style={{ display: 'flex', justifyContent: 'center' }}>
-                            <Button style={{ fontWeight: 'bold' }} onClick={() => toggleHelpModal()}>
+                        <Col xs="12" sm="6" className="d-flex justify-content-center">
+                            <Button size="sm" style={{ fontWeight: 'bold' }} onClick={() => toggleHelpModal()} block>
                                 No, I do not.
                             </Button>
                         </Col>
                     </Row>
                 </div>
 
-                <Modal isOpen={emailModalOpen} toggle={() => toggleEmailModal()}>
+                {/* Email Modal */}
+                <Modal isOpen={emailModalOpen} toggle={() => toggleEmailModal()} size="lg">
                     <ModalHeader toggle={() => toggleEmailModal()}>Send me an email</ModalHeader>
                     <ModalBody>
-                        {alertOpen ? (
-                            <Alert color='info' style={{ fontSize: 'small' }}>
-                                If there&apos;s an user associated with the provided email, we will send information on your username. If you have not
-                                received it within 15 minutes, please check under junk or spam emails.
+                        {alertOpen && (
+                            <Alert color="info" style={{ fontSize: 'small' }}>
+                                If there's a user associated with the provided email, we will send information on your username. If you have not
+                                received it within 15 minutes, please check your junk or spam emails.
                             </Alert>
-                        ) : null}
+                        )}
                         <Label>Email:</Label>
                         <Row>
-                            <Col xs='10'>
-                                <Input placeholder='user@email.com' name='email' value={email} onChange={(e) => setEmail(e.currentTarget.value)} />
+                            <Col xs="12" sm="10">
+                                <Input
+                                    placeholder="user@email.com"
+                                    name="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.currentTarget.value)}
+                                />
                             </Col>
-                            <Col xs='2' style={{ padding: '0' }}>
-                                <Button onClick={() => sendEmail()}>Send</Button>
+                            <Col xs="12" sm="2" className="p-0 d-flex justify-content-center">
+                                <Button size="sm" onClick={() => sendEmail()} className="w-100">
+                                    Send
+                                </Button>
                             </Col>
                         </Row>
                     </ModalBody>
                 </Modal>
 
-                <Modal isOpen={helpModalOpen} toggle={() => toggleHelpModal()}>
+                {/* Help Modal */}
+                <Modal isOpen={helpModalOpen} toggle={() => toggleHelpModal()} size="lg">
                     <ModalHeader toggle={() => toggleHelpModal()}>Help</ModalHeader>
                     <ModalBody>Please ask your professor or the super admin to help you find your username.</ModalBody>
                 </Modal>

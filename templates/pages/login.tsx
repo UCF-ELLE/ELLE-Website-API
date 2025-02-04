@@ -48,78 +48,71 @@ export default function Login() {
     };
 
     return (
-        <div className='login-bg'>
-            <div className='row main' style={{ margin: 0 }}>
-                <div className='login-form' style={{ marginTop: 20 }}>
-                    <h4 style={{ textAlign: 'center' }}>Welcome back to ELLE.</h4>
-                    <Form onSubmit={(e) => submit(e)}>
-                        <FormGroup>
-                            <Label for='userName'>Username:</Label>
-                            <Input
-                                type='text'
-                                name='username'
-                                onChange={(e) => setUsername(e.target.value)}
-                                value={username}
-                                id='username'
-                                placeholder='Username'
-                            />
-                            <Link
-                                href='/forgotusername'
-                                style={{
-                                    color: '#007bff',
-                                    textDecoration: 'underline',
-                                    fontSize: 'small',
-                                    float: 'right'
-                                }}
-                            >
-                                Forgot your username?
-                            </Link>
-                        </FormGroup>{' '}
-                        <FormGroup>
-                            <Label for='password'>Password:</Label>
-                            <Input
-                                type='password'
-                                name='password'
-                                onChange={(e) => setPassword(e.target.value)}
-                                value={password}
-                                id='password'
-                                placeholder='Password'
-                            />
-                            <Link
-                                href='/forgotpassword'
-                                style={{
-                                    color: '#007bff',
-                                    textDecoration: 'underline',
-                                    fontSize: 'small',
-                                    float: 'right'
-                                }}
-                            >
-                                Forgot your password?
-                            </Link>
-                        </FormGroup>
-                        <br />
-                        <Button color='primary' type='submit' className='btn-block'>
-                            Submit
-                        </Button>
-                        <br />
-                        {loginErr ? generateErrorMsg() : null}
-                    </Form>
-                    <br></br>
-                    <p>
-                        Don&apos;t have an account?&nbsp;
-                        <Link
-                            href='/signup'
-                            style={{
-                                color: '#007bff',
-                                textDecoration: 'underline'
-                            }}
-                        >
-                            Create one.
-                        </Link>
-                    </p>
-                </div>
+        <div className="login-bg">
+            <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+              <div className="login-form p-4 shadow rounded" style={{ maxWidth: '500px', width: '100%' }}>
+                <h4 className="text-center mb-4">Welcome back to ELLE.</h4>
+                <Form onSubmit={(e) => submit(e)}>
+                  <FormGroup>
+                    <Label for="userName">Username:</Label>
+                    <Input
+                      type="text"
+                      name="username"
+                      onChange={(e) => setUsername(e.target.value)}
+                      value={username}
+                      id="username"
+                      placeholder="Username"
+                    />
+                    <Link
+                      href="/forgotusername"
+                      style={{
+                        color: '#007bff',
+                        textDecoration: 'underline',
+                        fontSize: 'small',
+                        float: 'right',
+                      }}
+                    >
+                      Forgot your username?
+                    </Link>
+                  </FormGroup>
+          
+                  <FormGroup>
+                    <Label for="password">Password:</Label>
+                    <Input
+                      type="password"
+                      name="password"
+                      onChange={(e) => setPassword(e.target.value)}
+                      value={password}
+                      id="password"
+                      placeholder="Password"
+                    />
+                    <Link
+                      href="/forgotpassword"
+                      style={{
+                        color: '#007bff',
+                        textDecoration: 'underline',
+                        fontSize: 'small',
+                        float: 'right',
+                      }}
+                    >
+                      Forgot your password?
+                    </Link>
+                  </FormGroup>
+                  <Button color="primary" type="submit" className="btn-block">
+                    Submit
+                  </Button>
+                  {loginErr && generateErrorMsg()}
+                </Form>
+          
+                <p className="text-center mt-3">
+                  Don't have an account?{' '}
+                  <Link href="/signup" style={{ color: '#007bff', textDecoration: 'underline' }}>
+                    Create one.
+                  </Link>
+                </p>
+              </div>
             </div>
-        </div>
+          </div>          
     );
 }
 
