@@ -1,35 +1,97 @@
-# This YAML file is used to stop the PM2 processes on the dev server, pull the latest changes from the GitHub repository, and restart the PM2 processes. The SSH keys are stored in the GitHub repository secrets and are used to authenticate the GitHub Actions workflow with the dev server.
-name: Update Dev Server
-concurrency: ${{ github.workflow }}
+---
+name: CI/CD Pipeline
 
 on:
-    push:
-        branches:
-            - dev
-    workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
 
 jobs:
-    deploy:
-        name: Pull from GitHub
-        runs-on: ubuntu-latest
-        steps:
-            - name: Install SSH Keys
-              run: |
-                  install -m 600 -D /dev/null ~/.ssh/id_rsa
-                  echo "${{ secrets.DEV_SSH_KEY }}" > ~/.ssh/id_rsa
-                  ssh-keyscan -H ${{ secrets.DEV_SSH_HOST }} >> ~/.ssh/known_hosts
-            - name: SSH Remote Commands
-              uses: appleboy/ssh-action@v0.1.7
-              with:
-                  host: ${{ secrets.DEV_SSH_HOST }}
-                  username: ${{ secrets.DEV_SSH_USER }}
-                  key: ${{ secrets.DEV_SSH_KEY }}
-                  script_stop: true
-                  script: |
-                      cd /var/www/ELLE-Website-API
-                      git pull
-                      pm2 restart elle_api
-                      cd templates/
-                      npm install
-                      npm run build
-                      pm2 restart elle_website
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.11.0'
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies and Build
+        run: |
+          # Install dependencies for Next.js frontend
+          cd templates
+          npm install
+
+          # Build Next.js frontend
+          npm run build
+          if [ $? -ne 0 ]; then
+            echo "Next.js app failed to build!"
+            exit 1
+          else
+            echo "Next.js app built successfully!"
+          fi
+
+          # Install Flask dependencies
+          cd ..
+          pip3 install -r requirements.txt
+
+          python3 -c 'import __init__' || {
+          echo "Flask app failed to import"
+          exit 1
+          }
+          echo "Flask app dependencies installed and app imported successfully"
+
+      - name: Deploy to DigitalOcean
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.KEY }}
+          script: |
+            cd ELLE-Website-API/
+            git pull origin ${{ github.ref_name }}
+
+            # Install dependencies and build frontend
+            cd templates
+            npm install
+            npm run build
+            if [ $? -ne 0 ]; then
+              echo "Next.js app failed to build!"
+              exit 1
+            else
+              echo "Next.js app built successfully!"
+            fi
+
+            # Restart applications
+            pm2 restart all
+            sudo systemctl restart apache2
+
+      - name: Health Check for Flask App
+        run: |
+          # Check if Flask app is running by sending an HTTP request
+          if curl --fail http://localhost:5000; then
+            echo "Flask app is up and running!"
+          else
+            echo "Flask app is NOT running!"
+            exit 1
+          fi
+
+      - name: Build Next.js Website
+        run: |
+          cd ELLE-Website-API/templates
+          npm run build
+          if [ $? -ne 0 ]; then
+            echo "Next.js app failed to build!"
+            exit 1
+          else
+            echo "Next.js app built successfully!"
+          fi
