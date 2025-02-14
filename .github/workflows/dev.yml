@@ -54,7 +54,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DO_HOST }}
-          username: ${{ secrets.DO_USER }}
+          username: "root"
           key: ${{ secrets.KEY }}
           script: |
             cd ELLE-Website-API/
@@ -75,23 +75,3 @@ jobs:
             pm2 restart all
             sudo systemctl restart apache2
 
-      - name: Health Check for Flask App
-        run: |
-          # Check if Flask app is running by sending an HTTP request
-          if curl --fail http://localhost:5000; then
-            echo "Flask app is up and running!"
-          else
-            echo "Flask app is NOT running!"
-            exit 1
-          fi
-
-      - name: Build Next.js Website
-        run: |
-          cd ELLE-Website-API/templates
-          npm run build
-          if [ $? -ne 0 ]; then
-            echo "Next.js app failed to build!"
-            exit 1
-          else
-            echo "Next.js app built successfully!"
-          fi
