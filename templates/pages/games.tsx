@@ -65,8 +65,8 @@ export default function Games() {
         return GameSectionJSON.map((game, idx) => {
             return {
                 ...game,
-                color: idx % 2 === 0 ? '#3f6184' : '#5da8af',
-                buttonColor: idx % 2 === 0 ? '#5da8af' : '#3f6184',
+                color: idx % 2 === 0 ? '#000000' : '#ffffff',
+                buttonColor: idx % 2 === 0 ? '#ffffff' : '#000000',
                 image: anchorToImage(game.anchor)
             };
         });
