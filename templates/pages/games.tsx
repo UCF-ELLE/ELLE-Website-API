@@ -10,7 +10,7 @@ import MazeGameImage from '@/public/static/images/mazeGameplay.png';
 import MillenIElleImage from '@/public/static/images/milleniimage.png';
 import PastaGameImage from '@/public/static/images/pastakerfuffle.png';
 import SpinNSpellImage from '@/public/static/images/spinnspellBlocks.png';
-import TalkWithTitoImage from '@/public/static/images/talkwithtito.png'
+import TalkWithTitoImage from '@/public/static/images/titoChatbot.png'
 
 import GameSectionJSON from '@/public/static/json/gameSections.json';
 
