@@ -1,5 +1,5 @@
 "use client"
-// push
+
 import "@/public/static/css/style.css";
 import "@/lib/font-awesome/css/font-awesome.min.css";
 import "@/lib/owlcarousel/assets/owl.carousel.min.css";
@@ -10,7 +10,7 @@ import coming_soon from "@/public/static/images/ConversAItionELLE/coming_soon.pn
 import tito_speak from "@/public/static/images/ConversAItionELLE/tito.png";
 import Image from "next/image";
 
-export default function talkwithtito(){
+export default function TalkWithTito(){
   const titoStatements:string[] = ['Tito is creating a new dish', 'Tito is freshening up', 'Tito is taking a nap']
   const titoStatementsRef = useRef<string[]>(titoStatements)
 
