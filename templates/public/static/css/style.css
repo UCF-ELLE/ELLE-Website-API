@@ -11,6 +11,11 @@
 /*--------------------------------------------------------------
 # General
 --------------------------------------------------------------*/
+
+
+/*Font imports*/
+@import url('https://fonts.googleapis.com/css2?family=Irish+Grover&display=swap');
+
 body {
     background: #fff;
     color: #444;
