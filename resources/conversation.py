@@ -1,6 +1,5 @@
 """
-    temporary location to store the database util functions to support
-    creating a chatbot, inserting a chatbot, etc.
+OLD FILE -- TO DELETE
 """
 from flask_restful import Resource
 from flask_jwt_extended import (
@@ -11,7 +10,6 @@ from db_utils import *
 from utils import *
 from exceptions_util import *
 import json
-
 def getMessages(userId, chatbotId):
     try:
         conn = mysql.connect()
