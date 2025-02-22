@@ -76,12 +76,12 @@
         "link": "",
         "external": true,
         "title": "AudibELLE",
-        "description": "Fulfill customer spoken requests at a spooky convenience store!",
+        "description": "Fulfill customer spoken requests at a spooky convenience store! Contact Dr. Johnson to play!",
         "altImage": "Audibelle Image",
         "teams": [
             {
                 "name": "Senior Design Team",
-                "members": ["placeholder"]
+                "members": ["Matthew Sand", "Tyler Phung", "Jesus Carballosa Arteaga", "Liam Galloway", "Nathaell Avril Leman"]
             }
         ]
     },
