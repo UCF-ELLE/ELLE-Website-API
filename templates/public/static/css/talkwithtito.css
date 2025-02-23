@@ -10,62 +10,62 @@
 }
 
 /* Palm Tree Background */
-body {
-    height: 115vh; /* Full viewport height */
-    background-image: url('../images/ConversAItionELLE/trees.png');
-    background-size: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    display: flex;
-    justify-content: center;
-    
-  }
-  
-  /* Game container */
-  .game-container{
-    position: relative;
-    margin-top: 5em;
-    width: 1100px;
-    height: 650px;
-    margin-bottom: 5em;
-  }
-  .game-background{
-    width: 100%;
-    height: 100%;
-  }
-  
-  /* Tito Picture */
-  .tito-overlay{
-    position: absolute;
-    width: 45%;
-    top: 45%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    animation: Tito-spin infinite 20s linear;
-    transform-origin: center;
-  }
-  
-  @keyframes Tito-spin {
-    from {
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    to {
-      transform: translate(-50%, -50%) rotate(360deg);
-    }
-  }
-  
-  /* Tito Statements */
-  .text-overlay{
-    color: white;
-    position: absolute;
-    top: 11.5%;             
-    left: 50%; 
-    transform: translate(-50%, -50%);
-  }
 
-  .play-loading-button {
-    position: absolute;
-    top: 0px;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.talkwithtito-body{
+   /* Full viewport height */
+  background-image: url('../images/ConversAItionELLE/trees.png');
+  background-color: rgb(154, 219, 219);
+  background-position: -50%;
+}
+
+
+/* Game container */
+.game-container{
+  position: relative;
+  margin-top: 5em;
+  width: 1100px;
+  height: 650px;
+  margin-bottom: 5em;
+  display: flex;
+  justify-content: center;
+}
+.game-background{
+  width: 100%;
+  height: 100%;
+}
+
+/* Tito Picture */
+.tito-overlay{
+  position: absolute;
+  width: 45%;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: Tito-spin infinite 20s linear;
+  transform-origin: center;
+}
+
+@keyframes Tito-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
   }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Tito Statements */
+.text-overlay{
+  color: white;
+  position: absolute;
+  top: 11.5%;             
+  left: 50%; 
+  transform: translate(-50%, -50%);
+}
+
+.play-loading-button {
+  position: absolute;
+  top: 0px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
