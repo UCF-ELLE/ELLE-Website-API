@@ -24,6 +24,7 @@ export default function TalkWithTito() {
   const [playClicked, setPlayClicked] = useState<boolean>(false);
 
   //Handles play button click
+  //Should fade out main menu and go to chatbot menu
   const handlePlayClick = () => {
     if (isLoading) {
       return;
@@ -50,7 +51,7 @@ export default function TalkWithTito() {
     <div className="relative w-full mt-2 mb-2 flex justify-center">
       <button onClick={() => setIsLoading(!isLoading)} className="absolute top-1 right-1 z-1 text-red-800 font-bold border-red-800 border-2 bg-white">Toggle loading (temporary)</button>
       {!playClicked ?
-        <div className="relative w-[80%] h-fit border-2 border-black">
+        <div className="relative w-[80%] h-fit border-2 border-black"> {/*Main container for start menu*/}
           <Image src={coming_soon} alt="TalkWithTito placeholder" className="game-background" />
           {
             isLoading ?
@@ -69,8 +70,12 @@ export default function TalkWithTito() {
           </div>
         </div>
         :
-        <div className="bg-white relative w-[90vw] h-fit max-h-[80vh] border-2 border-black">
-          <button onClick={() => setPlayClicked(false)}>Click to return to main menu</button>
+        <div className="bg-white relative w-[90vw] h-fit max-h-[80vh] border-2 border-black"> {/*Main container for chat menu*/}
+          <button onClick={() => setPlayClicked(false)} className="absolute top-0 right-0 w-10 h-10 bg-red-500"></button>
+          {/*Main container for chat menu*/}
+          <div className="">
+            
+          </div>
         </div>
       }
 
