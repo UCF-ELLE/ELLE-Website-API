@@ -207,7 +207,7 @@ export default function AnimELLEGame() {
 
     // Fullscreen button
     const handleOnClickFullscreen = () => {
-        requestFullscreen(true);
+        sendMessage("GameManager", "ToggleFullScreen")
     };
 
     const handleChangePixelRatio = useCallback(
