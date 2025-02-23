@@ -54,10 +54,10 @@ export default function TalkWithTito() {
 
   return (
     <div className="talkwithtito-body">
-      <div className="relative w-full mt-2 mb-2 flex justify-center">
+      <div className="relative w-full mt-2 mb-2 flex justify-center py-2">
         <button onClick={() => setIsLoading(!isLoading)} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
         {!playClicked ? (
-          <div className="relative w-[80%] h-fit border-2 border-black">
+          <div className="relative w-[60%] h-fit border-2 border-black">
             <Image src={coming_soon} alt="TalkWithTito placeholder" className="game-background" />
             {isLoading ? (
               <Image src={tito_speak} alt="TalkWithTito placeholder" className="tito-overlay" />
@@ -81,7 +81,7 @@ export default function TalkWithTito() {
             </div>
           </div>
         ) : (
-          <div className="bg-white relative w-[80%] h-fit border-2 border-black">
+          <div className="bg-white relative w-[60%] h-fit border-2 border-black">
             <Image src={coming_soon} alt="TalkWithTito placeholder" className="game-background" />
             <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
               Welcome, [username]
