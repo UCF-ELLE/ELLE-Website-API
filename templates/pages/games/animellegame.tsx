@@ -45,6 +45,7 @@ export default function AnimELLEGame() {
     const userScoreRef = useRef(UNITY_playerScore);
     const [winHeight, setWinHeight] = useState("90%");
     const [winWidth, setWinWidth] = useState("90%");
+    const [creditsVisibility, setCreditsVisibility] = useState(true);
 
     // Load Unity WebGL game
     const {
@@ -218,6 +219,8 @@ export default function AnimELLEGame() {
             setWinWidth("100%");
         }
 
+        setCreditsVisibility(false);
+
         // sendMessage("GameManager", "ToggleFullScreen")
     };
 
@@ -280,7 +283,7 @@ export default function AnimELLEGame() {
                     </Button>
                 </div>
             </div>
-            <div className="divContainer">
+            <div id="creditsContainer" style={{ visibility: creditsVisibility ? "visible" : "hidden" }} className="divContainer">
                 <div className="logoContainer">
                     <div className="imgContainer">
                         <Image src={logo} className="logo" alt="game logo" />
