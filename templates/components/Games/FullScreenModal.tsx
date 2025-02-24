@@ -14,7 +14,7 @@ function App() {
 
     return (
         <div style={{
-            display: 'block', width: 700, padding: 30
+            display: 'block', width: 700, padding: 30, position: 'absolute', zIndex: 50
         }}>
             <h4>ReactJS Reactstrap Modal Component</h4>
             <Button color="primary"
