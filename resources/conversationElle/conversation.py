@@ -40,23 +40,32 @@ class Messages(Resource):
     # API: POST elleapi/chat/messages
     @jwt_required
     def post(self):
+        data = request.get_json()  
+        userId = data.get('userId')
+        chatbotId = data.get('chatbotId')
+        moduleId = data.get('moduleId')
+        userValue = data.get('userValue')
+
         try:
-            moduleId = 1
-            userId = 2
-            chatbotId = 1
-            value = "I want to cook with pans"
-            res = insertMessage(userId, chatbotId, moduleId, 'user', value)
-            jsonify(res)
-            return res, 200
+            # We would need to import these from the LLM helper libraries
+            # llmValue = getLLMResponse(value), currently mocking with dummy value below
+            llmValue = "LLM response is currently WIP"
+
+            if not llmValue:
+                return jsonify({"error": "Failed to generate LLM response"}), 500
+
+            # wordsUsed, grammarGrade = processLLMValue() --> This is how we get wordsUsed, grammar grade, etc.
+            wordsUsed = "test1, test2, test3"
+
+            insertMessages(userId, chatbotId, moduleId, userValue, llmValue)
+
+            return jsonify({"llmResponse": llmValue, "wordsUsed": wordsUsed}), 200
         except Exception as error:
             print(f"Error: {str(error)}")
             return {"error": "error"}, 500
 
-        # insertMessage(userId, chatbotId, moduleId, 'llm', llmValue)
         # Comments below are all TODO:
-        # getLLMResponse(userMessage): if successfull: insert both into DB
-        # insertMessage(userId, chatbotId, moduleId, 'user', value)
-        # insertMessage(userId, chatbotId, moduleId, 'llm', value)
+        # insertMessage(userId, chatbotId, moduleId, 'llm', llmValue)
 
         # if the user enters a word in the vocab list, and the llm says they
         # used it correctly, we need to update the chatbot_session with:

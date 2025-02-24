@@ -44,15 +44,11 @@ def getMessages(userId, chatbotId):
         result = get_from_db_as_dict(query, (userId, chatbotId), conn, cursor)
 
         # Conver the pyton datetime obj to regular iso format
-        # TODO: See if there is a way to get rid of this
-        if result:
-            messages = []
-            for entry in result:
-                entry['timestamp'] = entry['timestamp'].isoformat()
-                messages.append(entry)
-
-        if not result:
-            return ({"message": "Messages not found"}), 404
+        # TODO: See if there is a way to get rid of this -> If not, maybe make it a helper func.
+        messages = []
+        for entry in result:
+            entry['timestamp'] = entry['timestamp'].isoformat()
+            messages.append(entry)
 
         return messages, 200
 
@@ -65,7 +61,7 @@ def getMessages(userId, chatbotId):
             conn.close()
 
 
-def insertMessage(userId, chatbotId, moduleId, source, value):
+def insertMessages(userId, chatbotId, moduleId, userValue, llmValue):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -74,10 +70,15 @@ def insertMessage(userId, chatbotId, moduleId, source, value):
         INSERT INTO messages (userId, chatbotId, moduleId, source, value)
         VALUES (%s, %s, %s, %s, %s)
         """
-        postToDB(query, (userId, chatbotId, moduleId, source, value), conn, cursor)
+        messages = [
+            (userId, chatbotId, moduleId, 'user', userValue),
+            (userId, chatbotId, moduleId, 'llm', llmValue),
+        ]
 
+        cursor.executemany(query, messages)
         conn.commit()
         return {'message': "Message created successfully"}, 200
+
     except Exception as error:
         conn.rollback()
         return errorMessage(str(error)), 500
@@ -127,6 +128,7 @@ def createNewChatbotSession(userId, moduleId):
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
 
+        # Change to camel case
         total_time_chatted = 0.0
         grade = 0.0
         wordsUsed = 0.0
