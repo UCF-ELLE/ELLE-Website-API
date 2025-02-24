@@ -23,7 +23,7 @@ class ChatbotSessions(Resource):
 class Messages(Resource):
     # retrieves all messages for a given chatbot session 
     # API: GET elleapi/chat/messages?userId=${userId}&chatbotId=${chatbotId}
-    @jwt_required
+    # @jwt_required
     def get(self):
         userId = request.args.get('userId')
         chatbotId = request.args.get('chatbotId')
@@ -38,7 +38,7 @@ class Messages(Resource):
 
     # save a new message in the conversation based on userId and chatbotId
     # API: POST elleapi/chat/messages
-    @jwt_required
+    # @jwt_required
     def post(self):
         data = request.get_json()  
         userId = data.get('userId')
@@ -57,9 +57,16 @@ class Messages(Resource):
             # wordsUsed, grammarGrade = processLLMValue() --> This is how we get wordsUsed, grammar grade, etc.
             wordsUsed = "test1, test2, test3"
 
-            insertMessages(userId, chatbotId, moduleId, userValue, llmValue)
+            statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue)
 
-            return jsonify({"llmResponse": llmValue, "wordsUsed": wordsUsed}), 200
+            data = {
+                "llmResponse": llmValue,
+                "wordsUsed": wordsUsed
+            }
+
+            jsonify(data)
+            return data, statusCode
+
         except Exception as error:
             print(f"Error: {str(error)}")
             return {"error": "error"}, 500

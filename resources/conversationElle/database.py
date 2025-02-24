@@ -77,7 +77,7 @@ def insertMessages(userId, chatbotId, moduleId, userValue, llmValue):
 
         cursor.executemany(query, messages)
         conn.commit()
-        return {'message': "Message created successfully"}, 200
+        return 200
 
     except Exception as error:
         conn.rollback()
