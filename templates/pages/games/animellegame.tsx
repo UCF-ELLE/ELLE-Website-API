@@ -215,7 +215,7 @@ export default function AnimELLEGame() {
         }
         else {
             setWinHeight('' + screen.availHeight + 'px');
-            setWinWidth('' + screen.availWidth + 'px');
+            setWinWidth("100%");
         }
 
         // sendMessage("GameManager", "ToggleFullScreen")
