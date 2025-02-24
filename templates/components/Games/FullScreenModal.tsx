@@ -23,7 +23,7 @@ function App() {
                 toggle={toggle}
                 modalTransition={{ timeout: 2000 }}>
                 <ModalBody>
-                    Simple Modal with just ModalBody...
+                    <p>Simple modal with a modal body...</p>
                 </ModalBody>
             </Modal>
         </div >
