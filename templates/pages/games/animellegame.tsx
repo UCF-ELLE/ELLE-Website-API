@@ -283,7 +283,7 @@ export default function AnimELLEGame() {
                     </Button>
                 </div>
             </div>
-            <div id="creditsContainer" style={{ visibility: creditsVisibility ? "visible" : "hidden" }} className="divContainer">
+            { creditsVisibility && (<div id="creditsContainer" className="divContainer">
                 <div className="logoContainer">
                     <div className="imgContainer">
                         <Image src={logo} className="logo" alt="game logo" />
@@ -342,7 +342,7 @@ export default function AnimELLEGame() {
                     {/*<!--row--> */}
                 </div>{" "}
                 {/*<!--logo--> */}
-            </div>{" "}
+            </div>)}{" "}
             {/*<!--divContainer--> */}
         </div>
 
