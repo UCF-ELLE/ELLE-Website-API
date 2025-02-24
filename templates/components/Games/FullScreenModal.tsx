@@ -21,7 +21,9 @@ function App() {
                 onClick={toggle}>Open Modal</Button>
             <Modal isOpen={modal}
                 toggle={toggle}
-                modalTransition={{ timeout: 2000 }}>
+                modalTransition={{ timeout: 2000 }}
+                fullscreen={true}
+                >
                 <ModalBody>
                     <p>Simple modal with a modal body...</p>
                 </ModalBody>
