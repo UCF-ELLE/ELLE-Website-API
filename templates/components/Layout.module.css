@@ -27,7 +27,7 @@
     margin: 0;
     display: block;
     position: relative;
-    z-index: 10010; 
+    z-index: 1049; 
 }
 
 .nav_menu {
@@ -72,7 +72,7 @@
         right: 0;
         background-color: white; 
         box-shadow: 0px 6px 9px rgba(0, 0, 0, 0.1);
-        z-index: 10001;
+        z-index: 1049;
     }
 
     .collapse.show {
