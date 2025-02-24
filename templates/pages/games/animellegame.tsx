@@ -211,11 +211,11 @@ export default function AnimELLEGame() {
     const handleOnClickFullscreen = () => {
         if (screen.availHeight > screen.availWidth) {
             setWinHeight("100%");
-            setWinWidth('' + screen.availWidth);
+            setWinWidth('' + screen.availWidth + 'px');
         }
         else {
-            setWinHeight('' + screen.availHeight);
-            setWinWidth('' + screen.availWidth);
+            setWinHeight('' + screen.availHeight + 'px');
+            setWinWidth('' + screen.availWidth + 'px');
         }
 
         // sendMessage("GameManager", "ToggleFullScreen")
