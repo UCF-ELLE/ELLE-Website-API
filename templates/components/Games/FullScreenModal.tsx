@@ -14,7 +14,7 @@ function App() {
 
     return (
         <div style={{
-            display: 'block', width: 700, padding: 30, position: 'absolute', zIndex: 50
+            display: 'block', width: 700, padding: 30
         }}>
             <h4>ReactJS Reactstrap Modal Component</h4>
             <Button color="primary"
@@ -23,6 +23,7 @@ function App() {
                 toggle={toggle}
                 modalTransition={{ timeout: 2000 }}
                 fullscreen={true}
+                zIndex={100}
                 >
                 <ModalBody>
                     <p>Simple modal with a modal body...</p>
