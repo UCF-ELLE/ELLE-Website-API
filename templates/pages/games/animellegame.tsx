@@ -43,8 +43,8 @@ export default function AnimELLEGame() {
     const sessionIDRef = useRef(UNITY_sessionID);
     const [UNITY_playerScore, setUNITY_playerScore] = useState(0);
     const userScoreRef = useRef(UNITY_playerScore);
-    const winHeight = useRef("90%");
-    const winWidth = useRef("90%");
+    const [winHeight, setWinHeight] = useState("90%");
+    const [winWidth, setWinWidth] = useState("90%");
 
     // Load Unity WebGL game
     const {
@@ -209,8 +209,8 @@ export default function AnimELLEGame() {
 
     // Fullscreen button
     const handleOnClickFullscreen = () => {
-        winWidth.current = "100%";
-        winHeight.current = "100%";
+        setWinHeight("100%");
+        setWinWidth("100%");
 
         // sendMessage("GameManager", "ToggleFullScreen")
     };
@@ -258,8 +258,8 @@ export default function AnimELLEGame() {
                         unityProvider={unityProvider}
                         devicePixelRatio={devicePixelRatio}
                         style={{
-                            width: winWidth.current,
-                            height: winHeight.current,
+                            width: winWidth,
+                            height: winHeight,
                             visibility: isLoaded ? "visible" : "hidden",
                         }}
                     />
