@@ -209,12 +209,12 @@ export default function AnimELLEGame() {
 
     // Fullscreen button
     const handleOnClickFullscreen = () => {
-        if (screen.availHeight > screen.availWidth) {
+        if (window.innerHeight > window.innerWidth) {
             setWinHeight("100%");
-            setWinWidth('' + screen.availWidth + 'px');
+            setWinWidth('' + window.innerWidth + 'px');
         }
         else {
-            setWinHeight('' + screen.availHeight + 'px');
+            setWinHeight('' + window.innerHeight + 'px');
             setWinWidth("100%");
         }
 
