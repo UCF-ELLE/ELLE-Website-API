@@ -31,6 +31,8 @@ import cursor from "@/public/static/images/AnimELLE/mouse.svg";
 import e from "@/public/static/images/AnimELLE/ekey.svg";
 import GameLayout, { GameContext } from "@/components/Layouts/GameLayout";
 
+import FullScreenModal from "@/components/Games/FullScreenModal";
+
 export default function AnimELLEGame() {
     const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
@@ -281,6 +283,7 @@ export default function AnimELLEGame() {
                     >
                         Fullscreen
                     </Button>
+                    <FullScreenModal></FullScreenModal>
                 </div>
             </div>
             { creditsVisibility && (<div id="creditsContainer" className="divContainer">
