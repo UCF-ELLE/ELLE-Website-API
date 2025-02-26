@@ -3,6 +3,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Inter';
+  src: url('../fonts/ConversAItionELLE/Inter/Inter-VariableFont_opsz\,wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Irish Grover';
+  src: url('../fonts/ConversAItionELLE/Irish_Grover/IrishGrover-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 .irish-grover {
   font-family: "Irish Grover", serif;
   font-weight: 400;
