@@ -9,13 +9,22 @@
   font-style: normal;
 }
 
+.inter-font {
+  font-family: "Inter", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+
 /* Palm Tree Background */
 
 .talkwithtito-body{
    /* Full viewport height */
   background-image: url('../images/ConversAItionELLE/trees.png');
-  background-color: rgb(154, 219, 219);
-  background-position: -50%;
+  background-color: #D4ECF2;
+  background-size: 50%;
+  padding: 50px 0px;
 }
 
 
@@ -28,7 +37,9 @@
   margin-bottom: 5em;
   display: flex;
   justify-content: center;
+  margin-bottom: 50px;
 }
+
 .game-background{
   width: 100%;
   height: 100%;
@@ -69,3 +80,68 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+/* Info Boxes (Probably want to do vw at with media query for mobile) */
+
+.info-container{
+  display: flex;
+  justify-content: center;
+  gap: 10vw;
+  margin-bottom: 50px;
+}
+
+.info-box{
+  width: 25%;
+  background-color: #997c54;
+  color: white;
+  padding: 20px;
+  border: 2px solid #604e34;
+  border-radius: 20px;
+  box-shadow: 2px 2px 4px #604e34;
+}
+
+.info-box ul {
+  font-size: 1.5vw;
+}
+
+.info-box2{
+  width: 25%;
+  box-sizing: border-box;
+  background-color: #997c54;
+  color: white;
+  padding: 20px;
+  border: 2px solid #604e34;
+  border-radius: 20px;
+  box-shadow: 2px 2px 4px #604e34;
+}
+
+/* Font Styling */
+.inter-font h1{
+  font-weight: 500;
+  font-size: 2.5vw;
+  margin-bottom: 10px;
+  text-shadow:
+    -2px -2px 0 rgba(0, 0, 0, 0.300),  
+     2px -2px 0 rgba(0, 0, 0, 0.300),  
+    -2px  2px 0 rgba(0, 0, 0, 0.300),  
+     2px  2px 0 black;
+  text-align: center
+}
+
+.inter-font h3{
+  font-family: "Inter", serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 1.5vw;
+  margin-bottom: 10px;
+}
+
+.inter-font p{
+  font-family: "Inter", serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 0.9vw;
+}
+

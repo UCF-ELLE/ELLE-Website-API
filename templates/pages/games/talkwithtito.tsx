@@ -54,7 +54,7 @@ export default function TalkWithTito() {
 
   return (
     <div className="talkwithtito-body">
-      <div className="relative w-full mt-2 mb-2 flex justify-center py-2">
+      <div className="relative w-full mt-2 mb-8 flex justify-center py-2">
         <button onClick={() => setIsLoading(!isLoading)} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
         {!playClicked ? (
           <div className="relative w-[60%] h-fit border-2 border-black">
@@ -113,6 +113,38 @@ export default function TalkWithTito() {
             </div>
           </div>
         )}
+      </div>
+      {/* Information Boxes */}
+      <div className="info-container">
+        <div className="info-box inter-font">
+          <h1 className="inter-font">Description</h1>
+          <h3>
+            Tito is an AI parrot created to assist learners in developing stronger conversational skills in 
+            their target language.
+          </h3>
+          <p>
+            Disclaimer: This chatbot is intended for educational and informational purposes only. While it aims 
+            to provide accurate and helpful responses, it may not always produce fully accurate or comprehensive 
+            information.
+          </p>
+        </div>
+        <div className="info-box inter-font">
+          <h1 className="inter-font">Credits</h1>
+          <h3>John Fletcher Cabreara</h3>
+          <h3>Layne Mazur</h3>
+          <h3>Julianne Tomlinson</h3>
+          <h3>Tina Tran</h3>
+          <h3>Kylee Weener</h3>
+          <h3>Logan Witte</h3>
+        </div>
+      </div>
+      <div className="info-container">
+        <div className="info-box2 inter-font">
+          <h1 className="inter-font">Image Credits</h1>
+          <p>Leaf Image - Josef Mikulcik (Pixabay)</p>
+          <p>Palm Trees - Rama Widya (Pixabay)</p>
+          <p>Palm Leaves - Clker-Free-Vector-Images (Pixabay)</p>
+        </div>
       </div>
     </div>
   );
