@@ -1,8 +1,3 @@
-"use client";
-/*************************
-Converted from class-based to functional component in Spring 2023.
-**************************/
-
 import React, {
     useEffect,
     useState,
@@ -10,7 +5,11 @@ import React, {
     useContext,
     useRef,
 } from "react";
-import { Button } from "reactstrap";
+import {
+    Button, Modal, ModalFooter,
+    ModalHeader, ModalBody
+} from "reactstrap"
+
 import { Unity, useUnityContext } from "react-unity-webgl";
 
 import "@/public/static/css/style.css";
@@ -31,9 +30,11 @@ import cursor from "@/public/static/images/AnimELLE/mouse.svg";
 import e from "@/public/static/images/AnimELLE/ekey.svg";
 import GameLayout, { GameContext } from "@/components/Layouts/GameLayout";
 
-import FullScreenModal from "@/components/Games/AnimELLEModal";
+function App(props: {}) {
+    const [modal, setModal] = React.useState(false);
 
-export default function AnimELLEGame() {
+    const toggle = () => setModal(!modal);
+
     const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
     const router = useRouter();
@@ -253,105 +254,35 @@ export default function AnimELLEGame() {
     );
 
     return (
-        <div className="animelle-game-container">
-            <meta name="apple-mobile-web-app-capable" content="yes" />
-            <div className="center-contents">
-                <div
-                    className="webglLoadingStatusBox"
-                    style={{ visibility: isLoaded ? "hidden" : "visible" }}
-                >
-                    <p className="webglLoadingStatusText">
-                        Loading {Math.round(loadingProgression * 100)}%
-                    </p>
-                </div>
-                <div className="gameContainer">
-                   {/* <Unity
-                        unityProvider={unityProvider}
-                        devicePixelRatio={devicePixelRatio}
-                        style={{
-                            width: winWidth,
-                            height: winHeight,
-                            visibility: isLoaded ? "visible" : "hidden",
-                        }}
-                    /> */}
-                    <Button
-                        className="fsbtn"
-                        onClick={handleOnClickFullscreen}
-                        style={{
-                            visibility: isLoaded ? "visible" : "hidden",
-                        }}
-                    >
-                        Fullscreen
-                    </Button>
-                    <FullScreenModal></FullScreenModal>
-                </div>
-            </div>
-            { creditsVisibility && (<div id="creditsContainer" className="divContainer">
-                <div className="logoContainer">
-                    <div className="imgContainer">
-                        <Image src={logo} className="logo" alt="game logo" />
-                        <h3 className="credits">Credits:</h3>
-                    </div>
-                    <div className="row">
-                        <div className="column">
-                            <p className="names">Tam Nguyen </p>
-                            <p className="names">Justin Reeves</p>
-                            <p className="names">Natali Siam-Pollo</p>
-                        </div>
-                        <div className="column">
-                            <p className="names">Michael Alfieri</p>
-                            <p className="names">Connor Price</p>
-                        </div>
-                    </div>{" "}
-                    {/*<!--row--> */}
-                    <div className="row">
-                        <div className="column">
-                            <p className="names">Derek Dyer</p>
-                            <p className="names">Trevor Larson</p>
-                        </div>
-                        <div className="column">
-                            <p className="names">Robert Bereiter</p>
-                            <p className="names">Arwin Nimityongskul</p>
-                        </div>
-                    </div>{" "}
-                    <div className="row">
-                        <div>
-                            <Image
-                                src={instruct}
-                                className="instruct"
-                                alt="game logo"
-                            />
-                            <Image src={keys} className="keys" alt="keys" />
-                            <div className="keyContainer">
-                                <p className="instructions">
-                                    Moving the Player (arrow keys work too!)
-                                </p>
-                            </div>
-                            <Image src={cursor} className="keys" alt="keys" />
-                            <div className="keyContainer">
-                                <p className="instructions">
-                                    Hovering Tooltips, Button Selection
-                                </p>
-                            </div>
-                            <Image src={e} className="keys" alt="keys" />
-                            <div className="keyContainer">
-                                <p className="instructions">
-                                    For interacting with objects/NPCs with Emotes,
-                                    Continue Dialogue
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    {/*<!--row--> */}
-                </div>{" "}
-                {/*<!--logo--> */}
-            </div>)}{" "}
-            {/*<!--divContainer--> */}
-        </div>
-
+        <div style={{
+            display: 'block', width: 700, padding: 30
+        }}>
+            <h4>ReactJS Reactstrap Modal Component</h4>
+            <Button color="primary"
+                onClick={toggle}>Open Modal</Button>
+            <Modal isOpen={modal}
+                toggle={toggle}
+                modalTransition={{ timeout: 2000 }}
+                fullscreen={true}
+                zIndex={1050}
+                scrollable={false}
+                centered={false}
+                style={{ height: '100%', width: '100%', padding: '0px', top: '0px', position: "absolute" }}
+            >
+                <Unity
+                    unityProvider={unityProvider}
+                    devicePixelRatio={devicePixelRatio}
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        position: "relative",
+                        top: '0px',
+                        visibility: isLoaded ? "visible" : "hidden",
+                    }}
+                />
+            </Modal>
+        </div >
     );
 }
 
-AnimELLEGame.getLayout = (page: React.JSX.Element) => (
-    <GameLayout>{page}</GameLayout>
-);
+export default App;
