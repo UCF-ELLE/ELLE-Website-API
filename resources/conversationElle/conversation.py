@@ -82,6 +82,8 @@ class Messages(Resource):
         # the LLM will also give us: responseScore: which we need to attach to
         # each message?, as we will be showing this to the user.
 
+# TODO: think we may not need to update the "grade" from the frontend -> assuming the grade is wordsUsed/totalWords(we can just do this from backend)
+# so we can potentially just remove this endpoint
 class UpdateChatGrade(Resource):
     # API: PUT/PATCH: elleapi/chat/chatbot/<int:chatbotId>/grade")
     # Updates a chatbot session grade based on userId, chatbotId, and moduleId
