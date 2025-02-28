@@ -11,16 +11,14 @@ import React, {
     useRef,
 } from "react";
 import { Button } from "reactstrap";
-import { Unity, useUnityContext } from "react-unity-webgl";
+import { useUnityContext } from "react-unity-webgl";
 
 import "@/public/static/css/style.css";
 import "@/lib/font-awesome/css/font-awesome.min.css";
 import "@/lib/owlcarousel/assets/owl.carousel.min.css";
 import "@/lib/ionicons/css/ionicons.min.css";
 
-import { useRouter } from "next/router";
 import { ReactUnityEventParameter } from "react-unity-webgl/distribution/types/react-unity-event-parameters";
-import Layout from "@/components/Layouts/Layout";
 import { useUser } from "@/hooks/useAuth";
 import Image from "next/image";
 
@@ -36,7 +34,6 @@ import FullScreenModal from "@/components/Games/AnimELLEModal";
 export default function AnimELLEGame() {
     const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
-    const router = useRouter();
     // Used to determine when the user is in the middle of a Card Game session (and NOT in any other screen e.g. the main menu)
     const { UNITY_userIsPlayingGame, setUNITY_userIsPlayingGame } =
         useContext(GameContext);
@@ -45,17 +42,12 @@ export default function AnimELLEGame() {
     const sessionIDRef = useRef(UNITY_sessionID);
     const [UNITY_playerScore, setUNITY_playerScore] = useState(0);
     const userScoreRef = useRef(UNITY_playerScore);
-    const [winHeight, setWinHeight] = useState("90%");
-    const [winWidth, setWinWidth] = useState("90%");
     const [creditsVisibility, setCreditsVisibility] = useState(true);
 
     // Load Unity WebGL game
     const {
-        unityProvider,
-        requestFullscreen,
         isLoaded,
         sendMessage,
-        loadingProgression,
         addEventListener,
         removeEventListener,
         unload,
@@ -210,79 +202,11 @@ export default function AnimELLEGame() {
         }
     }, [isLoaded, userLoading, user?.jwt, sendMessage]);
 
-    // Fullscreen button
-    const handleOnClickFullscreen = () => {
-        if (window.innerHeight > window.innerWidth) {
-            setWinHeight("100%");
-            setWinWidth('' + window.innerWidth + 'px');
-        }
-        else {
-            setWinHeight('' + window.innerHeight + 'px');
-            setWinWidth("100%");
-        }
-
-        setCreditsVisibility(false);
-
-        // sendMessage("GameManager", "ToggleFullScreen")
-    };
-
-    const handleChangePixelRatio = useCallback(
-        function () {
-            // A function which will update the device pixel ratio of the Unity
-            // Application to match the device pixel ratio of the browser.
-            const updateDevicePixelRatio = function () {
-                setDevicePixelRatio(window.devicePixelRatio);
-            };
-            // A media matcher which watches for changes in the device pixel ratio.
-            const mediaMatcher = window.matchMedia(
-                `screen and (resolution: ${devicePixelRatio}dppx)`
-            );
-            // Adding an event listener to the media matcher which will update the
-            // device pixel ratio of the Unity Application when the device pixel
-            // ratio changes.
-            mediaMatcher.addEventListener("change", updateDevicePixelRatio);
-            return function () {
-                // Removing the event listener when the component unmounts.
-                mediaMatcher.removeEventListener(
-                    "change",
-                    updateDevicePixelRatio
-                );
-            };
-        },
-        [devicePixelRatio]
-    );
-
     return (
         <div className="animelle-game-container">
             <meta name="apple-mobile-web-app-capable" content="yes" />
             <div className="center-contents">
-                <div
-                    className="webglLoadingStatusBox"
-                    style={{ visibility: isLoaded ? "hidden" : "visible" }}
-                >
-                    <p className="webglLoadingStatusText">
-                        Loading {Math.round(loadingProgression * 100)}%
-                    </p>
-                </div>
                 <div className="gameContainer">
-                   {/* <Unity
-                        unityProvider={unityProvider}
-                        devicePixelRatio={devicePixelRatio}
-                        style={{
-                            width: winWidth,
-                            height: winHeight,
-                            visibility: isLoaded ? "visible" : "hidden",
-                        }}
-                    /> */}
-                    <Button
-                        className="fsbtn"
-                        onClick={handleOnClickFullscreen}
-                        style={{
-                            visibility: isLoaded ? "visible" : "hidden",
-                        }}
-                    >
-                        Fullscreen
-                    </Button>
                     <FullScreenModal></FullScreenModal>
                 </div>
             </div>
