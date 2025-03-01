@@ -1,5 +1,8 @@
 "use client"
 
+//React imports
+import { useState, useEffect, useRef } from "react";
+
 // Their CSS files
 import "@/public/static/css/style.css";
 import "@/lib/ionicons/css/ionicons.min.css";
@@ -17,7 +20,8 @@ import settingsIcon from "@/public/static/images/ConversAItionELLE/icon-settings
 import logoutIcon from "@/public/static/images/ConversAItionELLE/icon-log-out.png";
 
 // Component imports
-import { useState, useEffect, useRef } from "react";
+import ModuleButton from "@/components/TalkWithTito/ModuleButton";
+
 import Image from "next/image";
 
 export default function TalkWithTito() {
@@ -25,6 +29,7 @@ export default function TalkWithTito() {
   const titoStatementsRef = useRef<string[]>(titoStatements);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [playClicked, setPlayClicked] = useState<boolean>(false);
+  const [selectedModule, setSelectedModule] = useState<number | null>(null);
 
   // Handles play button click
   const handlePlayClick = () => {
@@ -37,6 +42,10 @@ export default function TalkWithTito() {
 
   const handleExitClick = () => {
     setPlayClicked(false);
+  };
+
+  const handleModuleClick = (moduleId: number) => {
+    setSelectedModule(selectedModule == null ? moduleId : null);
   };
 
   // Cycle through Tito Statements
@@ -54,7 +63,7 @@ export default function TalkWithTito() {
 
   return (
     <div className="talkwithtito-body">
-      <div className="relative w-full mt-2 mb-8 flex justify-center py-2">
+      <div className="relative w-full mt-0 mb-8 flex justify-center py-2">
         <button onClick={() => setIsLoading(!isLoading)} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
         {!playClicked ? (
           <div className="relative w-[60%] h-fit border-2 border-black">
@@ -83,6 +92,7 @@ export default function TalkWithTito() {
         ) : (
           <div className="bg-white relative w-[60%] h-fit border-2 border-black">
             <Image src={coming_soon} alt="TalkWithTito placeholder" className="game-background" />
+            {!selectedModule ? <>
             <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
               Welcome, [username]
             </div>
@@ -90,14 +100,31 @@ export default function TalkWithTito() {
             <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
               Pick a module to get started!
             </div>
-            <div className="absolute top-0 left-0 h-full border-r-2 border-black">
+            </>
+            :
+            <>
+            <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
+              Chat screen
+            </div>
+            </>}
+            <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
               <Image src={chatBackground} alt="Chat Background" className="game-background" />
-              <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between">
-                <div className="w-full py-[0.5em] flex justify-center irish-grover md:text-2xl border-b-2 border-white">
-                  [username]
+              <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between"> {/*Username div (top)*/}
+                <div className="h-[92.5%]">
+                  <div className="w-full h-[9.375%] py-[0.5em] flex justify-center irish-grover md:text-2xl border-b-2 border-white">
+                    [username]
+                  </div>
+                  <div className="w-full h-[90.625%] flex flex-col items-center"> {/*Modules div (middle)*/}
+                    <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-lg">Assigned modules:</div>
+                    <div className="w-full flex overflow-y-auto flex-col items-center">
+                      <ModuleButton moduleName="Kitchen Items" onClick={() => handleModuleClick(1)}/>
+                      <ModuleButton moduleName="Colors" onClick={() => handleModuleClick(2)}/>
+                      <ModuleButton moduleName="Animals" onClick={() => handleModuleClick(3)}/>
+                      <ModuleButton moduleName="Clothing" onClick={() => handleModuleClick(4)}/>
+                    </div>
+                  </div>
                 </div>
-                <div className="w-full flex justify-center" />
-                <div className="w-full flex justify-between items-center irish-grover md:text-2xl border-t-2 border-white">
+                <div className="w-full h-[7.5%] flex justify-between items-center irish-grover md:text-2xl border-t-2 border-white"> {/*Exit div (bottom)*/}
                   <button className="md:text-2xl ml-2 flex items-center py-3" onClick={handleExitClick}>
                     <Image src={logoutIcon} alt="Exit" className="mr-2" />
                     <div className="hidden md:block">Exit Chat</div>
