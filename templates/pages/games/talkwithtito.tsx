@@ -18,6 +18,7 @@ import happyTito from "@/public/static/images/ConversAItionELLE/happyTito.png";
 import chatBackground from "@/public/static/images/ConversAItionELLE/chatbackground.png";
 import settingsIcon from "@/public/static/images/ConversAItionELLE/icon-settings.png";
 import logoutIcon from "@/public/static/images/ConversAItionELLE/icon-log-out.png";
+import settingsBackground from "@/public/static/images/ConversAItionELLE/SettingsBackground.png"
 
 // Component imports
 import ModuleButton from "@/components/TalkWithTito/ModuleButton";
@@ -30,7 +31,6 @@ export default function TalkWithTito() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [playClicked, setPlayClicked] = useState<boolean>(false);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
-
   // Handles play button click
   const handlePlayClick = () => {
     if (!isLoading) setPlayClicked(true);
@@ -45,7 +45,7 @@ export default function TalkWithTito() {
   };
 
   const handleModuleClick = (moduleId: number) => {
-    setSelectedModule(selectedModule == null ? moduleId : null);
+    setSelectedModule(selectedModule === moduleId ? null : moduleId);
   };
 
   // Cycle through Tito Statements
@@ -104,7 +104,7 @@ export default function TalkWithTito() {
             :
             <>
             <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-              Chat screen
+              Chat screen {selectedModule}
             </div>
             </>}
             <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
@@ -115,12 +115,12 @@ export default function TalkWithTito() {
                     [username]
                   </div>
                   <div className="w-full h-[90.625%] flex flex-col items-center"> {/*Modules div (middle)*/}
-                    <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-lg">Assigned modules:</div>
+                    <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
                     <div className="w-full flex overflow-y-auto flex-col items-center">
-                      <ModuleButton moduleName="Kitchen Items" onClick={() => handleModuleClick(1)}/>
-                      <ModuleButton moduleName="Colors" onClick={() => handleModuleClick(2)}/>
-                      <ModuleButton moduleName="Animals" onClick={() => handleModuleClick(3)}/>
-                      <ModuleButton moduleName="Clothing" onClick={() => handleModuleClick(4)}/>
+                      <ModuleButton moduleName="Kitchen Items" onClick={() => handleModuleClick(1)} isSelected={1 == selectedModule} />
+                      <ModuleButton moduleName="Colors" onClick={() => handleModuleClick(2)} isSelected={2 == selectedModule} />
+                      <ModuleButton moduleName="Animals" onClick={() => handleModuleClick(3)} isSelected={3 == selectedModule} />
+                      <ModuleButton moduleName="Clothing" onClick={() => handleModuleClick(4)} isSelected={4 == selectedModule} />
                     </div>
                   </div>
                 </div>
