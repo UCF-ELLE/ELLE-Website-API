@@ -18,10 +18,10 @@ import happyTito from "@/public/static/images/ConversAItionELLE/happyTito.png";
 import chatBackground from "@/public/static/images/ConversAItionELLE/chatbackground.png";
 import settingsIcon from "@/public/static/images/ConversAItionELLE/icon-settings.png";
 import logoutIcon from "@/public/static/images/ConversAItionELLE/icon-log-out.png";
-import settingsBackground from "@/public/static/images/ConversAItionELLE/SettingsBackground.png"
 
 // Component imports
 import ModuleButton from "@/components/TalkWithTito/ModuleButton";
+import Settings from "@/components/TalkWithTito/Settings";
 
 import Image from "next/image";
 
@@ -31,12 +31,14 @@ export default function TalkWithTito() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [playClicked, setPlayClicked] = useState<boolean>(false);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   // Handles play button click
   const handlePlayClick = () => {
     if (!isLoading) setPlayClicked(true);
   };
 
   const openSettings = () => {
+    setSettingsOpen(!settingsOpen);
     return;
   };
 
@@ -65,93 +67,93 @@ export default function TalkWithTito() {
     <div className="talkwithtito-body">
       <div className="relative w-full mt-0 mb-8 flex justify-center py-2">
         <button onClick={() => setIsLoading(!isLoading)} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
-        {!playClicked ? (
-          <div className="relative w-[60%] h-fit border-2 border-black">
-            <Image src={coming_soon} alt="TalkWithTito placeholder" className="game-background" />
-            {isLoading ? (
-              <Image src={tito_speak} alt="TalkWithTito placeholder" className="tito-overlay" />
-            ) : (
-              <Image
-                src={happyTito}
-                alt="Tito is ready"
-                className="absolute w-[35%] top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2"
-              />
-            )}
-            <div className="absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-2xl md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
-              {isLoading ? statement : "Talk With Tito"}
-            </div>
-            <div
-              className={`absolute top-[80%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-bold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover ${
-                !isLoading ? "hover:bg-[#816031] hover:cursor-pointer" : ""
-              }`}
-              onClick={handlePlayClick}
-            >
-              {isLoading ? "Loading..." : "Play!"}
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white relative w-[60%] h-fit border-2 border-black">
-            <Image src={coming_soon} alt="TalkWithTito placeholder" className="game-background" />
-            {!selectedModule ? <>
-            <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
-              Welcome, [username]
-            </div>
-            <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
-              Pick a module to get started!
-            </div>
-            </>
-            :
+        <div className="relative w-[60%] h-fit border-2 border-black">
+          {settingsOpen && <Settings apply={() => setSettingsOpen(false)} />}
+          {!playClicked ? (
             <>
-            <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-              Chat screen {selectedModule}
-            </div>
-            </>}
-            <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
-              <Image src={chatBackground} alt="Chat Background" className="game-background" />
-              <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between"> {/*Username div (top)*/}
-                <div className="h-[92.5%]">
-                  <div className="w-full h-[9.375%] py-[0.5em] flex justify-center irish-grover md:text-2xl border-b-2 border-white">
-                    [username]
+              <Image src={coming_soon} alt="TalkWithTito placeholder" className="game-background" />
+              {isLoading ? (
+                <Image src={tito_speak} alt="TalkWithTito placeholder" className="tito-overlay" />
+              ) : (
+                <Image
+                  src={happyTito}
+                  alt="Tito is ready"
+                  className="absolute w-[35%] top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2"
+                />
+              )}
+              <div className="absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-2xl md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
+                {isLoading ? statement : "Talk With Tito"}
+              </div>
+              <div
+                className={`absolute top-[80%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-bold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover ${!isLoading ? "hover:bg-[#816031] hover:cursor-pointer" : ""
+                  }`}
+                onClick={handlePlayClick}
+              >
+                {isLoading ? "Loading..." : "Play!"}
+              </div>
+            </>) : (<>
+              <Image src={coming_soon} alt="TalkWithTito placeholder" className="game-background" />
+              {!selectedModule ? <>
+                <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
+                  Welcome, [username]
+                </div>
+                <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2" />
+                <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
+                  Pick a module to get started!
+                </div>
+              </>
+                :
+                <>
+                  <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
+                    Chat screen {selectedModule}
                   </div>
-                  <div className="w-full h-[90.625%] flex flex-col items-center"> {/*Modules div (middle)*/}
-                    <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
-                    <div className="w-full flex overflow-y-auto flex-col items-center">
-                      <ModuleButton moduleName="Kitchen Items" onClick={() => handleModuleClick(1)} isSelected={1 == selectedModule} />
-                      <ModuleButton moduleName="Colors" onClick={() => handleModuleClick(2)} isSelected={2 == selectedModule} />
-                      <ModuleButton moduleName="Animals" onClick={() => handleModuleClick(3)} isSelected={3 == selectedModule} />
-                      <ModuleButton moduleName="Clothing" onClick={() => handleModuleClick(4)} isSelected={4 == selectedModule} />
+                </>}
+              <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
+                <Image src={chatBackground} alt="Chat Background" className="game-background" />
+                <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between"> {/*Username div (top)*/}
+                  <div className="h-[92.5%]">
+                    <div className="w-full h-[9.375%] py-[0.5em] flex justify-center irish-grover md:text-2xl border-b-2 border-white">
+                      [username]
+                    </div>
+                    <div className="w-full h-[90.625%] flex flex-col items-center"> {/*Modules div (middle)*/}
+                      <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
+                      <div className="w-full flex overflow-y-auto flex-col items-center">
+                        <ModuleButton moduleName="Kitchen Items" onClick={() => handleModuleClick(1)} isSelected={1 == selectedModule} />
+                        <ModuleButton moduleName="Colors" onClick={() => handleModuleClick(2)} isSelected={2 == selectedModule} />
+                        <ModuleButton moduleName="Animals" onClick={() => handleModuleClick(3)} isSelected={3 == selectedModule} />
+                        <ModuleButton moduleName="Clothing" onClick={() => handleModuleClick(4)} isSelected={4 == selectedModule} />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="w-full h-[7.5%] flex justify-between items-center irish-grover md:text-2xl border-t-2 border-white"> {/*Exit div (bottom)*/}
-                  <button className="md:text-2xl ml-2 flex items-center py-3" onClick={handleExitClick}>
-                    <Image src={logoutIcon} alt="Exit" className="mr-2" />
-                    <div className="hidden md:block">Exit Chat</div>
-                  </button>
-                  <Image
-                    src={settingsIcon}
-                    alt="Settings"
-                    className="mr-2 h-8 w-8 md:h-10 md:w-10 hover:cursor-pointer"
-                    onClick={openSettings}
-                  />
+                  <div className="w-full h-[7.5%] flex justify-between items-center irish-grover md:text-2xl border-t-2 border-white"> {/*Exit div (bottom)*/}
+                    <button className="md:text-2xl ml-2 flex items-center py-3" onClick={handleExitClick}>
+                      <Image src={logoutIcon} alt="Exit" className="mr-2" />
+                      <div className="hidden md:block">Exit Chat</div>
+                    </button>
+                    <Image
+                      src={settingsIcon}
+                      alt="Settings"
+                      className="mr-2 h-8 w-8 md:h-10 md:w-10 hover:cursor-pointer"
+                      onClick={openSettings}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            </>)}
+        </div>
+
       </div>
       {/* Information Boxes */}
       <div className="info-container">
         <div className="info-box inter-font">
           <h1 className="inter-font">Description</h1>
           <h3>
-            Tito is an AI parrot created to assist learners in developing stronger conversational skills in 
+            Tito is an AI parrot created to assist learners in developing stronger conversational skills in
             their target language.
           </h3>
           <p>
-            Disclaimer: This chatbot is intended for educational and informational purposes only. While it aims 
-            to provide accurate and helpful responses, it may not always produce fully accurate or comprehensive 
+            Disclaimer: This chatbot is intended for educational and informational purposes only. While it aims
+            to provide accurate and helpful responses, it may not always produce fully accurate or comprehensive
             information.
           </p>
         </div>
