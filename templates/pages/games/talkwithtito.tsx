@@ -66,6 +66,7 @@ export default function TalkWithTito() {
         setModules(modules);
       };
       loadModules();
+      console.log(modules);
       setIsLoading(false);
     }
   }, [user, userLoading]);
