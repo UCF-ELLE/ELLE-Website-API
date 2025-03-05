@@ -12,7 +12,7 @@ import "@/lib/font-awesome/css/font-awesome.min.css";
 import "@/public/static/css/talkwithtito.css";
 
 // Image imports
-import coming_soon from "@/public/static/images/ConversAItionELLE/coming_soon.png";
+import leaf_background from "@/public/static/images/ConversAItionELLE/coming_soon.png";
 import tito_speak from "@/public/static/images/ConversAItionELLE/tito.png";
 import happyTito from "@/public/static/images/ConversAItionELLE/happyTito.png";
 import chatBackground from "@/public/static/images/ConversAItionELLE/chatbackground.png";
@@ -29,6 +29,8 @@ export default function TalkWithTito() {
   const titoStatements: string[] = ['Tito is creating a new dish...', 'Tito is freshening up...', 'Tito is taking a nap...'];
   const titoStatementsRef = useRef<string[]>(titoStatements);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isFading, setIsFading] = useState<boolean>(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
   const [playClicked, setPlayClicked] = useState<boolean>(false);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -36,6 +38,18 @@ export default function TalkWithTito() {
   const handlePlayClick = () => {
     if (!isLoading) setPlayClicked(true);
   };
+
+  // Handles fade out and fade in features
+  const handleFade = () => {
+    setIsFading(true);
+    setTimeout(() => {
+      setIsLoading(!isLoading);
+      setIsFading(false); // Restore opacity
+      // setIsLoading(false); // Change text to "Play!"
+    }, 700);
+  };
+
+  
 
   const openSettings = () => {
     setSettingsOpen(!settingsOpen);
@@ -63,36 +77,55 @@ export default function TalkWithTito() {
     return () => clearInterval(interval);
   }, [index]);
 
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+
   return (
     <div className="talkwithtito-body">
       <div className="relative w-full mt-0 mb-8 flex justify-center py-2">
-        <button onClick={() => setIsLoading(!isLoading)} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
+        <button onClick={handleFade} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
         <div className="relative w-[60%] h-fit border-2 border-black">
           {settingsOpen && <Settings apply={() => setSettingsOpen(false)} />}
           {!playClicked ? (
             <>
-              <Image src={coming_soon} alt="TalkWithTito placeholder" className="game-background" />
+              <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {isLoading ? (
-                <Image src={tito_speak} alt="TalkWithTito placeholder" className="tito-overlay" />
+                <Image src={tito_speak} alt="TalkWithTito placeholder" 
+                className={`tito-overlay transition-opacity duration-700 ${isFading ? "opacity-0" : "opacity-100"}`} />
+             
               ) : (
-                <Image
-                  src={happyTito}
-                  alt="Tito is ready"
-                  className="absolute w-[35%] top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2"
-                />
+                <>
+                {isVisible && (
+                  <Image
+                    src={happyTito}
+                    alt="Tito is ready"
+                    className="absolute w-[35%] top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2"
+                  />
+                )}
+                </>
               )}
-              <div className="absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-2xl md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
-                {isLoading ? statement : "Talk With Tito"}
+              <div className={`absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-2xl 
+              md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 irish-grover rounded-sm 
+              shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
+              ${isFading ? "opacity-0" : "opacity-100"}`}>
+                {isLoading ? statement : "Talk with Tito"}
+                
               </div>
               <div
-                className={`absolute top-[80%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-bold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover ${!isLoading ? "hover:bg-[#816031] hover:cursor-pointer" : ""
-                  }`}
+                className={`absolute top-[80%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
+                  font-bold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover 
+                  shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
+                  ${!isLoading ? "hover:bg-[#816031] hover:cursor-pointer" : ""}
+                  ${isFading ? "opacity-0" : "opacity-100"}`}
+                  
                 onClick={handlePlayClick}
               >
                 {isLoading ? "Loading..." : "Play!"}
               </div>
             </>) : (<>
-              <Image src={coming_soon} alt="TalkWithTito placeholder" className="game-background" />
+              <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {!selectedModule ? <>
                 <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
                   Welcome, [username]
