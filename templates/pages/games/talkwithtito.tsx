@@ -66,19 +66,9 @@ export default function TalkWithTito() {
         setModules(modules);
       };
       loadModules();
+      setIsLoading(false);
     }
   }, [user, userLoading]);
-
-  useEffect(() => {
-    console.log("Print 1");
-    console.log(modules);
-    console.log("Print 2");
-    modules?.forEach((module) => {
-      console.log("Id, Name, Language: " + module.moduleId, module.moduleName, module.language);
-    });
-  }, [modules])
-  
-
 
   // Handles play button click
   const handlePlayClick = () => {
@@ -184,10 +174,14 @@ export default function TalkWithTito() {
                     <div className="w-full h-[90.625%] flex flex-col items-center"> {/*Modules div (middle)*/}
                       <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
                       <div className="w-full flex overflow-y-auto flex-col items-center">
-                        <ModuleButton moduleName="Kitchen Items" onClick={() => handleModuleClick(1)} isSelected={1 == selectedModule} />
-                        <ModuleButton moduleName="Colors" onClick={() => handleModuleClick(2)} isSelected={2 == selectedModule} />
-                        <ModuleButton moduleName="Animals" onClick={() => handleModuleClick(3)} isSelected={3 == selectedModule} />
-                        <ModuleButton moduleName="Clothing" onClick={() => handleModuleClick(4)} isSelected={4 == selectedModule} />
+                        {modules?.map((module: module, index) => (
+                          <ModuleButton 
+                            key={index} 
+                            moduleName={module.moduleName ? module.moduleName : "Null"} 
+                            onClick={() => handleModuleClick(index)} 
+                            isSelected = {index == selectedModule}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>

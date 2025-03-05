@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 interface propsInterface {
-    moduleName: string;
+    moduleName: String;
     onClick: () => void;
     isSelected: boolean;
 }
