@@ -66,10 +66,15 @@ export default function TalkWithTito() {
         setModules(modules);
       };
       loadModules();
-      console.log(modules);
       setIsLoading(false);
     }
   }, [user, userLoading]);
+
+  useEffect(() => {
+    modules?.forEach((module) => {
+      console.log(module); // Correct way to print each module
+    });
+  }, [modules]);
 
   // Handles play button click
   const handlePlayClick = () => {
