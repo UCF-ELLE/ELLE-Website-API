@@ -43,7 +43,7 @@ export default function TalkWithTito() {
 
   class module {
     moduleId?: number;
-    moduleName?: String;
+    name?: String;
     language?: String;
   }
 
@@ -72,7 +72,8 @@ export default function TalkWithTito() {
 
   useEffect(() => {
     modules?.forEach((module) => {
-      console.log(module); // Correct way to print each module
+      console.log(module);
+      console.log("ID / Name / Language:" + module.moduleId + " " + " " + module.name + " " + module.language);
     });
   }, [modules]);
 
@@ -91,6 +92,9 @@ export default function TalkWithTito() {
   };
 
   const handleModuleClick = (moduleId: number) => {
+    if(moduleId === -1) {
+      return;
+    }
     setSelectedModule(selectedModule === moduleId ? null : moduleId);
   };
 
@@ -182,10 +186,10 @@ export default function TalkWithTito() {
                       <div className="w-full flex overflow-y-auto flex-col items-center">
                         {modules?.map((module: module, index) => (
                           <ModuleButton 
-                            key={index} 
-                            moduleName={module.moduleName ? module.moduleName : "Null"} 
-                            onClick={() => handleModuleClick(index)} 
-                            isSelected = {index == selectedModule}
+                            key={index}
+                            moduleName={module.name ? module.name : "Null"} 
+                            onClick={() => handleModuleClick(module.moduleId ? module.moduleId : -1)} 
+                            isSelected = {module.moduleId === selectedModule}
                           />
                         ))}
                       </div>
