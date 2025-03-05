@@ -3,9 +3,9 @@ import axios from 'axios';
 const ELLE_URL = 'https://chdr.cs.ucf.edu/elleapi';
 
 interface Module {
-    moduleID: string;
-    name: string;
-    language: string;
+    moduleID: number;
+    name: String;
+    language: String;
 }
 
 // Fetches a user's modules given their JWT

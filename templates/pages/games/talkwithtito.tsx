@@ -41,13 +41,13 @@ export default function TalkWithTito() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { user, loading: userLoading } = useUser();
 
-  class module {
-    moduleId?: number;
-    name?: String;
-    language?: String;
+  interface Module {
+    moduleID: number;
+    name: String;
+    language: String;
   }
 
-  const [modules, setModules] = useState<module[] | null>(null);
+  const [modules, setModules] = useState<Module[] | null>(null);
   
 
   // Handles fade out and fade in features
@@ -73,7 +73,7 @@ export default function TalkWithTito() {
   useEffect(() => {
     modules?.forEach((module) => {
       console.log(module);
-      console.log("ID / Name / Language:" + module.moduleId + " " + " " + module.name + " " + module.language);
+      console.log("ID / Name / Language:" + module.moduleID + " " + " " + module.name + " " + module.language);
     });
   }, [modules]);
 
@@ -184,12 +184,12 @@ export default function TalkWithTito() {
                     <div className="w-full h-[90.625%] flex flex-col items-center"> {/*Modules div (middle)*/}
                       <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
                       <div className="w-full flex overflow-y-auto flex-col items-center">
-                        {modules?.map((module: module, index) => (
+                        {modules?.map((module: Module, index) => (
                           <ModuleButton 
                             key={index}
                             moduleName={module.name ? module.name : "Null"} 
-                            onClick={() => handleModuleClick(module.moduleId ? module.moduleId : -1)} 
-                            isSelected = {module.moduleId === selectedModule}
+                            onClick={() => handleModuleClick(module.moduleID ? module.moduleID : -1)} 
+                            isSelected = {module.moduleID === selectedModule}
                           />
                         ))}
                       </div>
