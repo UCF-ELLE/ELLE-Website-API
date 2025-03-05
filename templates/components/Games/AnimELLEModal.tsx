@@ -19,8 +19,6 @@ import "@/lib/ionicons/css/ionicons.min.css";
 import { ReactUnityEventParameter } from "react-unity-webgl/distribution/types/react-unity-event-parameters";
 import { useUser } from "@/hooks/useAuth";
 
-
-
 import { GameContext } from "@/components/Layouts/GameLayout";
 
 function App(props: {}) {
@@ -44,6 +42,7 @@ function App(props: {}) {
         unityProvider,
         isLoaded,
         sendMessage,
+        loadingProgression,
         addEventListener,
         removeEventListener,
         unload,
@@ -221,9 +220,17 @@ function App(props: {}) {
                         height: "100%",
                         position: "relative",
                         top: '0px',
-                        visibility: isLoaded ? "visible" : "hidden",
+                        display: isLoaded ? "block" : "none",
                     }}
                 />
+                <div
+                    className="webglLoadingStatusBox"
+                    style={{ display: isLoaded ? "none" : "block" }}
+                >
+                    <p className="webglLoadingStatusText">
+                        Loading {Math.round(loadingProgression * 100)}%
+                    </p>
+                </div>
             </Modal>
         </div >
     );
