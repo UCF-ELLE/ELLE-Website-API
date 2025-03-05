@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import "@/public/static/css/style.css";
 import "@/lib/ionicons/css/ionicons.min.css";
 import "@/lib/font-awesome/css/font-awesome.min.css";
+import { useUser } from "@/hooks/useAuth";
 
 // Our CSS files
 import "@/public/static/css/talkwithtito.css";
@@ -23,9 +24,13 @@ import logoutIcon from "@/public/static/images/ConversAItionELLE/icon-log-out.pn
 import ModuleButton from "@/components/TalkWithTito/ModuleButton";
 import Settings from "@/components/TalkWithTito/Settings";
 
+//Import frontend API calls
+import { fetchModules } from "@/services/TitoService";
+
 import Image from "next/image";
 
 export default function TalkWithTito() {
+
   const titoStatements: string[] = ['Tito is creating a new dish...', 'Tito is freshening up...', 'Tito is taking a nap...'];
   const titoStatementsRef = useRef<string[]>(titoStatements);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -34,10 +39,16 @@ export default function TalkWithTito() {
   const [playClicked, setPlayClicked] = useState<boolean>(false);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  // Handles play button click
-  const handlePlayClick = () => {
-    if (!isLoading) setPlayClicked(true);
-  };
+  const { user, loading: userLoading } = useUser();
+
+  class module {
+    moduleId?: number;
+    moduleName?: String;
+    language?: String;
+  }
+
+  const [modules, setModules] = useState<module[] | null>(null);
+  
 
   // Handles fade out and fade in features
   const handleFade = () => {
@@ -45,11 +56,34 @@ export default function TalkWithTito() {
     setTimeout(() => {
       setIsLoading(!isLoading);
       setIsFading(false); // Restore opacity
-      // setIsLoading(false); // Change text to "Play!"
     }, 700);
   };
 
+  useEffect(() => {
+    if (!userLoading && user) {
+      const loadModules = async () => {
+        const modules = await fetchModules(user?.jwt);
+        setModules(modules);
+      };
+      loadModules();
+    }
+  }, [user, userLoading]);
+
+  useEffect(() => {
+    console.log("Print 1");
+    console.log(modules);
+    console.log("Print 2");
+    modules?.forEach((module) => {
+      console.log("Id, Name, Language: " + module.moduleId, module.moduleName, module.language);
+    });
+  }, [modules])
   
+
+
+  // Handles play button click
+  const handlePlayClick = () => {
+    if (!isLoading) setPlayClicked(true);
+  };
 
   const openSettings = () => {
     setSettingsOpen(!settingsOpen);
@@ -85,25 +119,24 @@ export default function TalkWithTito() {
   return (
     <div className="talkwithtito-body">
       <div className="relative w-full mt-0 mb-8 flex justify-center py-2">
-        <button onClick={handleFade} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
         <div className="relative w-[60%] h-fit border-2 border-black">
           {settingsOpen && <Settings apply={() => setSettingsOpen(false)} />}
           {!playClicked ? (
             <>
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {isLoading ? (
-                <Image src={tito_speak} alt="TalkWithTito placeholder" 
-                className={`tito-overlay transition-opacity duration-700 ${isFading ? "opacity-0" : "opacity-100"}`} />
-             
+                <Image src={tito_speak} alt="TalkWithTito placeholder"
+                  className={`tito-overlay transition-opacity duration-700 ${isFading ? "opacity-0" : "opacity-100"}`} />
+
               ) : (
                 <>
-                {isVisible && (
-                  <Image
-                    src={happyTito}
-                    alt="Tito is ready"
-                    className="absolute w-[35%] top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2"
-                  />
-                )}
+                  {isVisible && (
+                    <Image
+                      src={happyTito}
+                      alt="Tito is ready"
+                      className="absolute w-[35%] top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2"
+                    />
+                  )}
                 </>
               )}
               <div className={`absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-2xl 
@@ -111,7 +144,7 @@ export default function TalkWithTito() {
               shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
               ${isFading ? "opacity-0" : "opacity-100"}`}>
                 {isLoading ? statement : "Talk with Tito"}
-                
+
               </div>
               <div
                 className={`absolute top-[80%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
@@ -119,7 +152,7 @@ export default function TalkWithTito() {
                   shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
                   ${!isLoading ? "hover:bg-[#816031] hover:cursor-pointer" : ""}
                   ${isFading ? "opacity-0" : "opacity-100"}`}
-                  
+
                 onClick={handlePlayClick}
               >
                 {isLoading ? "Loading..." : "Play!"}
