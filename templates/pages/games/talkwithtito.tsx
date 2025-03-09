@@ -28,6 +28,7 @@ import Settings from "@/components/TalkWithTito/Settings";
 import { fetchModules } from "@/services/TitoService";
 
 import Image from "next/image";
+import ChatScreen from "@/components/TalkWithTito/ChatScreen";
 
 export default function TalkWithTito() {
 
@@ -170,7 +171,7 @@ export default function TalkWithTito() {
                 :
                 <>
                   <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-                    Chat screen {selectedModule}
+                    <ChatScreen moduleID={selectedModule} />
                   </div>
                 </>}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
