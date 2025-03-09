@@ -48,7 +48,6 @@ export default function TalkWithTito() {
   }
 
   const [modules, setModules] = useState<Module[] | null>(null);
-  
 
   // Handles fade out and fade in features
   const handleFade = () => {
@@ -73,7 +72,7 @@ export default function TalkWithTito() {
   useEffect(() => {
     modules?.forEach((module) => {
       console.log(module);
-      console.log("ID / Name / Language:" + module.moduleID + " " + " " + module.name + " " + module.language);
+      console.log("ID / Name / Language:" + module.moduleID + " " + module.name + " " + module.language);
     });
   }, [modules]);
 
