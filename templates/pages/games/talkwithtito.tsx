@@ -36,7 +36,6 @@ export default function TalkWithTito() {
   const titoStatementsRef = useRef<string[]>(titoStatements);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFading, setIsFading] = useState<boolean>(false);
-  const [isVisible, setIsVisible] = useState<boolean>(false);
   const [playClicked, setPlayClicked] = useState<boolean>(false);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -50,13 +49,23 @@ export default function TalkWithTito() {
 
   const [modules, setModules] = useState<Module[] | null>(null);
 
-  // Handles fade out and fade in features
-  const handleFade = () => {
+  const handleLoading = () =>{
+    setTimeout(() => {
+      handleTransition()
+    }, 5000);
+  }
+
+  // Handles tito transitions
+  const handleTransition = () => {
+    // Tito fade in and out
     setIsFading(true);
+
+    //Tito pop in
     setTimeout(() => {
       setIsLoading(!isLoading);
       setIsFading(false); // Restore opacity
     }, 700);
+
   };
 
   useEffect(() => {
@@ -110,15 +119,11 @@ export default function TalkWithTito() {
 
     return () => clearInterval(interval);
   }, [index]);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
-
-
+  
   return (
     <div className="talkwithtito-body">
       <div className="relative w-full mt-0 mb-8 flex justify-center py-2">
+        <button onClick={handleLoading} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
         <div className="relative w-[60%] h-fit border-2 border-black">
           {settingsOpen && <Settings apply={() => setSettingsOpen(false)} />}
           {!playClicked ? (
@@ -130,13 +135,11 @@ export default function TalkWithTito() {
 
               ) : (
                 <>
-                  {isVisible && (
-                    <Image
-                      src={happyTito}
-                      alt="Tito is ready"
-                      className="absolute w-[35%] top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2"
-                    />
-                  )}
+                <Image
+                    src={happyTito}
+                    alt="Tito is ready"
+                    className={`pop-animation absolute w-[35%] top-[22%] left-[32%] -translate-x-1/2 -translate-y-1/2`}
+                  />
                 </>
               )}
               <div className={`absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-2xl 
@@ -160,11 +163,14 @@ export default function TalkWithTito() {
             </>) : (<>
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {!selectedModule ? <>
-                <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
+                <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
+                font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover
+                shadow-[0px_4px_4px_rgba(0,0,0,0.3)]">
                   Welcome, [username]
                 </div>
                 <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2" />
-                <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 border-2 border-black rounded irish-grover">
+                <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
+                font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover">
                   Pick a module to get started!
                 </div>
               </>
