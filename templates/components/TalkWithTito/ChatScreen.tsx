@@ -110,7 +110,7 @@ export default function ChatScreen(props: propsInterface) {
             <Image src={palmTree} className="absolute right-0 bottom-0 z-1 w-[33.9%] aspect-[268/516]" alt="Decorative palm tree" />
 
             {/*Vocabulary list div*/}
-            <VocabList words={terms?.map(term => (term.questionFront))} used={usedTerms}/>
+            <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={usedTerms}/>
 
             {/*Sent/recieved messages div*/}
             <div>
