@@ -14,9 +14,10 @@ interface propsInterface {
 export default function VocabList(props: propsInterface) {
     return(
         (props.words && props.used) &&
-        <div className="absolute top-1 right-1 w-fit h-fit flex flex-col items-center z-2">
-                <Image src={cloud2} className="" alt="Vocabulary List" />
-                <div id="vocabList" className="w-[277px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded p-2 mt-1 flex flex-col items-center justify-center">
+        <div className="absolute top-1 right-1 w-fit h-fit flex flex-col items-center">
+                <Image src={cloud2} className="z-20" alt="Vocabulary List" />
+                <div className="z-10 w-[277px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl p-2 mt-1 flex flex-col items-center justify-center 
+                overflow-y-auto max-h-[20em]">
                     {props.words?.map((word, index) => (
                         <div 
                         key={index}
