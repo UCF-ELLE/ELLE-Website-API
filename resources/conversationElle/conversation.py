@@ -2,18 +2,31 @@ from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required
 from .database import * 
+# from .llm import *
 
 class ChatbotSessions(Resource):
-    # get an existing chatbot session based on userId and moduleId
-    # if the chatbot session does not exist for a given module, it creates it.
-    # API: GET elleapi/chat/chatbot?userID=${userId}&moduleID=${moduleId}
+    # get an existing chatbot session based on userId and moduleId, if the chatbot session does not exist for a given module, it creates it.
+    # API: POST elleapi/chat/chatbot
     # @jwt_required
-    def get(self):
-        userId = request.args.get('userId')
-        moduleId = request.args.get('moduleId')
+    def post(self):
+        data = request.get_json()
+        userId = data.get('userId')
+        moduleId = data.get('moduleId')
 
         try:
             chatbotSession, statusCode = getChatbotSession(userId, moduleId)
+
+            # various helper funcs imported from /llm/...
+            # syncVocabListWithLLM()
+            # userBackground = getUserBackground()
+            # userMusicChoice = getUserMusicChoice()
+            # response = jsonify({
+            #     "chatbotSession": chatbotSession,
+            #     "userBackground": userBackground,
+            #     "userMusicChoice": userMusicChoice
+            # })
+            # return response, statusCode
+
             jsonify(chatbotSession)
             return chatbotSession, statusCode
         except Exception as error:
