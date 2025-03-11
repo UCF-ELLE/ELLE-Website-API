@@ -43,18 +43,15 @@ interface Term {
 }
 
 // Takes in user's access_token and moduleID
-// Returns all terms' termID, questionFront (non-english term), questionBack (english term)
-export const fetchModuleTerms = async (access_token: string, moduleID: Blob): Promise<Term[]> => {
-
-  const formData = new FormData();
-  formData.append("moduleID", moduleID);
-
+// Returns all terms' termID, questionFront (non-English term), questionBack (English term)
+export const fetchModuleTerms = async (access_token: string, moduleID: number): Promise<Term[]> => {
   try {
-      const response = await axios.post<APITerm[]>(`${ELLE_URL}/modulequestions`, formData, {
+      const response = await axios.post<APITerm[]>(`${ELLE_URL}/modulequestions`, { moduleID }, {
           headers: {
               Authorization: `Bearer ${access_token}`,
           },
       });
+
       return response.data.map(term => ({
           termID: term.answers[0]?.termID,
           questionFront: term.answers[0]?.front,
@@ -64,7 +61,7 @@ export const fetchModuleTerms = async (access_token: string, moduleID: Blob): Pr
       handleError(error);
       return [];
   }
-}
+};
 
 // Utility function for handling errors
 const handleError = (error: unknown): void => {

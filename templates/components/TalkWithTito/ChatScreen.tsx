@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
+import {fetchModuleTerms} from "@/services/TitoService";
+import { useUser } from "@/hooks/useAuth";
 
 /* Titos :D */
 import happyTito from "@/public/static/images/ConversAItionELLE/happyTito.png";
@@ -13,9 +15,8 @@ import respondingTito from "@/public/static/images/ConversAItionELLE/respondingT
 /* Other assets */
 import background from "@/public/static/images/ConversAItionELLE/Graident Background.png";
 import palmTree from "@/public/static/images/ConversAItionELLE/Palm Tree.png";
-import cloud from "@/public/static/images/ConversAItionELLE/vocab cloud.png";
-import cloud2 from "@/public/static/images/ConversAItionELLE/cloudWithText.png";
 import sendMessage from "@/public/static/images/ConversAItionELLE/send.png";
+import VocabList from "./VocabList";
 
 
 interface propsInterface {
@@ -27,6 +28,37 @@ function handleSendMessageClick() {
 }
 
 export default function ChatScreen(props: propsInterface) {
+
+    const { user, loading: userLoading } = useUser();
+
+    interface Term {
+        termID: number;
+        questionFront: string;
+        questionBack: string;
+    }
+    const [terms, setTerms] = useState<Term[]>();
+    const [usedTerms, setUsedTerms] = useState<boolean[]>();
+
+    // Called once when component mounts
+    // Used to initialize terms
+    useEffect(() => {
+        if(!userLoading && user) {
+            const loadTerms = async () => {
+                const newTerms = await fetchModuleTerms(user?.jwt, props.moduleID);
+                setTerms(newTerms);
+            }
+            loadTerms();
+        }
+    }, [user, userLoading, props.moduleID]);
+
+    //Temporary - assigns usedTerms randomly for visual testing
+    useEffect(() => {
+        if(terms) {
+            setUsedTerms(terms.map((term, index) => (index % 2 == 0 ? true : false)))
+        }
+    }, [terms])
+    
+
     return(
         <div className="w-full h-full"> {/*Outer container div*/}
 
@@ -34,18 +66,7 @@ export default function ChatScreen(props: propsInterface) {
             <Image src={palmTree} className="absolute right-0 bottom-0 z-1 w-[33.9%] aspect-[268/516]" alt="Decorative palm tree" />
 
             {/*Vocabulary list div*/}
-            <div className="absolute top-1 right-1 w-fit h-fit flex flex-col items-center z-2">
-                <Image src={cloud2} className="" alt="Vocabulary List" />
-                <div id="vocabList" className="w-[277px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded p-2 mt-1 flex flex-col items-center justify-center">
-                    <div className="break-words line-through select-none">Rojo</div>
-                    <div className="break-words select-none">Verde</div>
-                    <div className="break-words line-through select-none">Azul</div>
-                    <div className="break-words line-through select-none">Amarillo</div>
-                    <div className="break-words select-none">Morado</div>
-                    <div className="break-words line-through select-none">Rosa</div>
-                </div>
-            </div>
-            
+            <VocabList words={terms?.map(term => (term.questionFront))} used={usedTerms}/>
 
             {/*Sent/recieved messages div*/}
             <div>

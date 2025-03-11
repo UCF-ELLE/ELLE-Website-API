@@ -2,12 +2,12 @@
 
 //React imports
 import { useState, useEffect, useRef } from "react";
+import { useUser } from "@/hooks/useAuth";
 
 // Their CSS files
 import "@/public/static/css/style.css";
 import "@/lib/ionicons/css/ionicons.min.css";
 import "@/lib/font-awesome/css/font-awesome.min.css";
-import { useUser } from "@/hooks/useAuth";
 
 // Our CSS files
 import "@/public/static/css/talkwithtito.css";
@@ -47,12 +47,14 @@ export default function TalkWithTito() {
     language: String;
   }
 
-  const [modules, setModules] = useState<Module[] | null>(null);
+  const [modules, setModules] = useState<Module[] | null>(
+    /*[{moduleID: 1, name: "Test module", language: "Spanish"}]*/
+  );
 
   const handleLoading = () =>{
     setTimeout(() => {
       handleTransition()
-    }, 5000);
+    }, 500);
   }
 
   // Handles tito transitions
