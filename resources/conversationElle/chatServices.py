@@ -3,8 +3,8 @@ from fastapi import FastAPI, HTTPException
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from safetensors.torch import load_file
 from pydantic import BaseModel
-#from config import MAX_NEW_TOKENS, TEMPERATURE, TOP_K, TOP_P, model_path, main_prompt, device, music_prompt, vocab_list, background_prompt
-from config import MAX_NEW_TOKENS, TEMPERATURE, TOP_K, TOP_P, model_path, main_prompt, device
+from config import MAX_NEW_TOKENS, TEMPERATURE, TOP_K, TOP_P, model_path, main_prompt, device, music_prompt, vocab_list, background_prompt, background_files, music_files
+#from config import MAX_NEW_TOKENS, TEMPERATURE, TOP_K, TOP_P, model_path, main_prompt, device
 import re
 import json
 import sys
@@ -45,47 +45,55 @@ class GenerateRequest(BaseModel):
 class GenerateResponse(BaseModel):
     generated_text: str
 
-def createNewChatbot(data):
-    # Return choice of background.
-    '''
+def getUserBackground():
+    """
+    Returns a filename in the background folder with name that
+    is the most similar to the words in the vocab list.
+    """
     full_prompt = f"Instruction: {background_prompt}\nUser: {vocab_list}\nAssistant:"
     inputs = tokenizer(full_prompt, return_tensors="pt").to(device)
 
-    with torch.no_grad():
-        outputs = model.generate(
-            inputs["input_ids"],
-            max_new_tokens=MAX_NEW_TOKENS,
-            temperature=TEMPERATURE,
-            top_k=TOP_K,
-            top_p=TOP_P,
-            do_sample=True
-        )
+    try:
+        with torch.no_grad():
+            outputs = model.generate(
+                inputs["input_ids"],
+                max_new_tokens=MAX_NEW_TOKENS,
+                temperature=TEMPERATURE,
+                top_k=TOP_K,
+                top_p=TOP_P,
+                do_sample=True
+            )
+    except Exception as e:
+        return background_files[0]
+
     generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     chosen_background = GenerateResponse(generated_text=generated_text)
+    return chosen_background
 
-    # Return choice of music.
+def getUserMusicChoice():
+    """
+    Returns a filename in the music folder with name that
+    is the most similar to the words in the vocab list.
+    """
     full_prompt = f"Instruction: {music_prompt}\nUser: {vocab_list}\nAssistant:"
     inputs = tokenizer(full_prompt, return_tensors="pt").to(device)
 
-    with torch.no_grad():
-        outputs = model.generate(
-            inputs["input_ids"],
-            max_new_tokens=MAX_NEW_TOKENS,
-            temperature=TEMPERATURE,
-            top_k=TOP_K,
-            top_p=TOP_P,
-            do_sample=True
-        )
+    try:
+        with torch.no_grad():
+            outputs = model.generate(
+                inputs["input_ids"],
+                max_new_tokens=MAX_NEW_TOKENS,
+                temperature=TEMPERATURE,
+                top_k=TOP_K,
+                top_p=TOP_P,
+                do_sample=True
+            )
+    except Exception as e:
+        return music_files[0]
+
     generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    chosen_music = GenerateResponse(generated_text=generated_text)'''
-
-    #connect with LLM LATER HERE.
-    response = "Hola soy Tito"
-
-    #append_new_message('llm', response)
-    
-    #return {'reply': response, 'background': chosen_background, 'music': chosen_music}
-    return {'reply': response}
+    chosen_music = GenerateResponse(generated_text=generated_text)
+    return chosen_music
 
 def handle_message(message: str) -> GenerateResponse:
     """

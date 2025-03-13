@@ -19,14 +19,14 @@ vocab_list = {"cocinar", "lavar", "moler"}
 vocal_percent = 0.5
 
 # Reading list of background files
-#background_directory = "./assets/backgrounds"
-#background_files = os.listdir(background_directory)
-#background_files = [f for f in background_files if os.path.isfile(background_directory+'/'+ f) and not '.py' in f]
+background_directory = "./assets/backgrounds"
+background_files = os.listdir(background_directory)
+background_files = [f for f in background_files if os.path.isfile(background_directory+'/'+ f) and not '.py' in f]
 
 # Reading list of music files
-#music_directory = "./assets/music"
-#music_files = os.listdir(background_directory)
-#music_files = [f for f in music_files if os.path.isfile(music_directory+'/'+ f) and not '.py' in f]
+music_directory = "./assets/music"
+music_files = os.listdir(background_directory)
+music_files = [f for f in music_files if os.path.isfile(music_directory+'/'+ f) and not '.py' in f]
 
 json_string = """{\"thought\": # you should always think about what you need to do, \"tool\": # the 
 name of the tool. This must be one of: [test_function], \"tool_input\": # the input to the tool}"""
@@ -39,16 +39,16 @@ main_prompt = f"""
     You and {name} need to go over these vocabulary words: {vocab_list}. Every response you 
     generate must be in the following JSON format: {json_string}."""
 
-#choose_background = """You need to always respond in the following JSON format:
+choose_background = """You need to always respond in the following JSON format:
     #{\"file\": # one file name from: """ + background_files + """}."""
 
-#choose_music = """You need to always respond in the following JSON format:
+choose_music = """You need to always respond in the following JSON format:
     #{\"file\": # one file name from: """ + music_files + """}."""
 
-#background_prompt = f"""You are an expert summarizer. Your goal is to select the word that best matches a list of words.
+background_prompt = f"""You are an expert summarizer. Your goal is to select the word that best matches a list of words.
     #Every response you generate must be in the following JSON format {choose_background}."""
 
-#music_prompt = f"""You are an expert summarizer. Your goal is to select the word that best matches a list of words.
+music_prompt = f"""You are an expert summarizer. Your goal is to select the word that best matches a list of words.
     #Every response you generate must be in the following JSON format {choose_music}."""
 
 # Other important variables for all files go here...
