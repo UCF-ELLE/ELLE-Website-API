@@ -1,20 +1,47 @@
+import React, {useState} from 'react';
 import Image from "next/image";
 import settingsBackground from "@/public/static/images/ConversAItionELLE/SettingsBackground.png";
 import infoIcon from "@/public/static/images/ConversAItionELLE/info.png"
+import ReactHowler from 'react-howler';
 
 interface propsInterface {
   apply: () => void
 }
 
+// Song List
+const songList = [
+  "/elle/TitoAudios/techno.mp3", // Adjust paths for each song if needed
+  "/elle/TitoAudios/techno.mp3",
+  "/elle/TitoAudios/techno.mp3",
+  "/elle/TitoAudios/techno.mp3",
+  "/elle/TitoAudios/techno.mp3",
+  "/elle/TitoAudios/techno.mp3",
+  "/elle/TitoAudios/techno.mp3",
+  "/elle/TitoAudios/techno.mp3",
+  "/elle/TitoAudios/techno.mp3",
+  "/elle/TitoAudios/techno.mp3"
+];
+
 export default function ModuleButton(props: propsInterface) {
 
   function handleApplyClick() {
+
     props.apply();
   }
+  
+  // Music
+  
+  const [isPlaying, setIsPlaying] = useState<boolean[]>(Array(songList.length).fill(false));
+
+  const toggleMusic = (index: number) => {
+    setIsPlaying((prev) =>
+      prev.map((state, i) => (i === index ? !state : state))
+    );
+  };
 
   return (
-    <div className="absolute top-0 left-0 w-full h-full bg-[#35353580] z-1">
-      <div className="absolute top-[50%] left-[50%] w-[60%] h-[70%] -translate-x-1/2 -translate-y-1/2 z-1 flex flex-col">
+    <div className="absolute top-0 left-0 w-full h-full bg-[#35353580] z-50">
+      <div className="absolute top-[50%] left-[50%] w-[60%] h-[70%] -translate-x-1/2 -translate-y-1/2 z-50 flex flex-col">
         <Image
           src={settingsBackground}
           className="absolute top-0 left-0 w-full h-full"
@@ -31,9 +58,15 @@ export default function ModuleButton(props: propsInterface) {
             <div className="p-2 ml-32 w-fit">
               <div className="text-lg">Song List</div>
               <div className="grid grid-cols-2 gap-x-20 gap-y-1 max-h-[10em]">{/* Songs container */}
-                    {[...Array(10)].map((_, index) => (
+                    {songList.map((path, index) => (
                         <div key={index} className="flex flex-nowrap">
-                        <input type="checkbox" className="mr-1"/>
+                        <input type="checkbox" className="mr-1" checked={isPlaying[index]} onChange={()=>toggleMusic(index)}/>
+                        <ReactHowler
+                          src={path} // use variable name
+                          playing={isPlaying[index]}
+                          loop={true} // Optional: set to true if you want the song to repeat
+                          volume={0.5} // Adjust volume (0 to 1)
+                        />
                         <div className="w-[5em]">Song {index + 1}</div>
                         <Image src={infoIcon} alt="Info"/>
                         </div>

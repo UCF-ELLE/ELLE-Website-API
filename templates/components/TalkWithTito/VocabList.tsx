@@ -32,7 +32,7 @@ function WordItem({ wordFront, wordBack, used }: WordItemProps) {
             onMouseLeave={() => setIsHovered(false)}
             className="break-all select-none text-center w-full"
         >
-            {isHovered ? wordBack : wordFront}
+            {isHovered ? wordFront : wordBack}
         </div>
     );
 }
