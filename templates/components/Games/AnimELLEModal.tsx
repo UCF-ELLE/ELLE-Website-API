@@ -36,6 +36,7 @@ function App(props: {}) {
     const sessionIDRef = useRef(UNITY_sessionID);
     const [UNITY_playerScore, setUNITY_playerScore] = useState(0);
     const userScoreRef = useRef(UNITY_playerScore);
+    const [unmountFlag, setUnmountFlag] = useState<boolean>(false);
 
     // Load Unity WebGL game
     const {
@@ -43,6 +44,7 @@ function App(props: {}) {
         isLoaded,
         sendMessage,
         loadingProgression,
+        UNSAFE__unityInstance,
         addEventListener,
         removeEventListener,
         unload,
@@ -197,6 +199,21 @@ function App(props: {}) {
         }
     }, [isLoaded, userLoading, user?.jwt, sendMessage]);
 
+    async function detachGame() {
+        if (UNITY_userIsPlayingGame) {
+            // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
+            sendMessage("GameManager", "LeavingPageEvents");
+        }
+
+        await UNSAFE__unityInstance?.Quit();
+
+        setUnmountFlag(true);
+    }
+
+    function openHandler() {
+        setUnmountFlag(false);
+    }
+
     return (
         <div style={{
             display: 'block', width: 700, padding: 30
@@ -211,6 +228,9 @@ function App(props: {}) {
                 scrollable={false}
                 centered={false}
                 style={{ height: '100%', width: '100%', padding: '0px', top: '0px', position: "absolute" }}
+                onClosed={detachGame}
+                onOpened={openHandler}
+                unmountOnClose={unmountFlag}
             >
                 <Unity
                     unityProvider={unityProvider}

@@ -26,7 +26,11 @@ import cursor from "@/public/static/images/AnimELLE/mouse.svg";
 import e from "@/public/static/images/AnimELLE/ekey.svg";
 import GameLayout, { GameContext } from "@/components/Layouts/GameLayout";
 
+import { useUnityContext } from "react-unity-webgl";
+
 import FullScreenModal from "@/components/Games/AnimELLEModal";
+
+import { UnityInstance } from "react-unity-webgl/declarations/unity-instance";
 
 export default function AnimELLEGame() {
     // Used to determine when the user is in the middle of a Card Game session (and NOT in any other screen e.g. the main menu)
