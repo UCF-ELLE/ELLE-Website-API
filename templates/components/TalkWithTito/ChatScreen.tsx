@@ -23,10 +23,6 @@ interface propsInterface {
     moduleID: number;
 }
 
-function handleSendMessageClick() {
-
-}
-
 export default function ChatScreen(props: propsInterface) {
 
     const { user, loading: userLoading } = useUser();
@@ -36,8 +32,7 @@ export default function ChatScreen(props: propsInterface) {
         questionFront: string;
         questionBack: string;
     }
-    const [terms, setTerms] = useState<Term[]>(
-        /*[
+    const [terms, setTerms] = useState<Term[]>([
             { termID: 0, questionFront: "Rojo", questionBack: "Red" },
             { termID: 1, questionFront: "Azul", questionBack: "Blue" },
             { termID: 2, questionFront: "Amarillo", questionBack: "Yellow" },
@@ -78,10 +73,16 @@ export default function ChatScreen(props: propsInterface) {
             { termID: 37, questionFront: "Libro", questionBack: "Book" },
             { termID: 38, questionFront: "Cuaderno", questionBack: "Notebook" },
             { termID: 39, questionFront: "Lápiz", questionBack: "Pencil" },
-            { termID: 40, questionFront: "Bolígrafo", questionBack: "Pen" }
-        ]*/
-    );
+            { termID: 40, questionFront: "Bolígrafo", questionBack: "Pen" }]);
     const [usedTerms, setUsedTerms] = useState<boolean[]>();
+
+    const [userMessage, setUserMessage] = useState("");
+
+    function handleSendMessageClick() {
+        //SEND MESSAGE TO BACKEND TODO
+        console.log("Sending " + userMessage);
+        setUserMessage("");
+    }
 
     // Called once when component mounts
     // Used to initialize terms
@@ -89,7 +90,12 @@ export default function ChatScreen(props: propsInterface) {
         if(!userLoading && user) {
             const loadTerms = async () => {
                 const newTerms = await fetchModuleTerms(user?.jwt, props.moduleID);
-                setTerms(newTerms);
+                if(newTerms) {
+                    setTerms(newTerms);
+                }
+                else {
+                    console.log("Error fetching terms: newTerms is null");
+                }
             }
             loadTerms();
         }
@@ -107,7 +113,7 @@ export default function ChatScreen(props: propsInterface) {
         <div className="w-full h-full"> {/*Outer container div*/}
 
             <Image src={background} className="w-full absolute top-0 left-0" alt="Background"/>
-            <Image src={palmTree} className="absolute right-0 bottom-0 z-1 w-[33.9%] aspect-[268/516]" alt="Decorative palm tree" />
+            <Image src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" draggable={false} alt="Decorative palm tree" />
 
             {/*Vocabulary list div*/}
             <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={usedTerms}/>
@@ -117,12 +123,17 @@ export default function ChatScreen(props: propsInterface) {
                 
             </div>
 
-            {/*Chat box div*/}
-            <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357]
-            flex items-center justify-center
-            ">
-                <div className="w-[70%] min-h-[3em] h-fit max-h-full bg-white rounded mx-3" />
-                <Image src={sendMessage} alt="Send message" onClick={handleSendMessageClick}/>
+            {/* Chat box div */}
+            <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex items-center justify-center p-4">
+                <textarea 
+                    placeholder="Type here..." 
+                    className="w-[80%] min-h-[3em] h-fit max-h-[7em] bg-white rounded-lg p-2 resize-none overflow-y-auto focus:ring-2"
+                    value={userMessage}
+                    onChange={(e) => setUserMessage(e.target.value)}
+                />
+                <button onClick={handleSendMessageClick} className="ml-2 z-20">
+                    <Image src={sendMessage} className="w-full h-full rounded-full" alt="Send message" />
+                </button>
             </div>
         </div>
     )
