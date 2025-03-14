@@ -17,6 +17,7 @@ import background from "@/public/static/images/ConversAItionELLE/Graident Backgr
 import palmTree from "@/public/static/images/ConversAItionELLE/Palm Tree.png";
 import sendMessage from "@/public/static/images/ConversAItionELLE/send.png";
 import VocabList from "./VocabList";
+import Messages from "./Messages"
 
 
 interface propsInterface {
@@ -119,9 +120,7 @@ export default function ChatScreen(props: propsInterface) {
             <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={usedTerms}/>
 
             {/*Sent/recieved messages div*/}
-            <div>
-                
-            </div>
+            <Messages />
 
             {/* Chat box div */}
             <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex items-center justify-center p-4">
