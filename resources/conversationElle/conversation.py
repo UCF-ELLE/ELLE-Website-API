@@ -75,9 +75,9 @@ class Messages(Resource):
 
             # termsUsed = array of strings (of used words)
             # termsUsed = checkTermsUsedLLM(termsUsed)
-            # checkGrammarGrade() -> this is the analytics feedback, needs to upload to DB after.
-            # but the frontend is not getting this information.
-            termsUsed = [1, 2, 3]
+
+            # checkAnalyticsLLM() -> this is the analytics feedback, needs to upload data DB after.
+            termsUsed = ["apple", "blueberry"]
 
             statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue)
 
@@ -93,23 +93,8 @@ class Messages(Resource):
             print(f"Error: {str(error)}")
             return {"error": "error"}, 500
 
-        # Comments below are all TODO:
-        # insertMessage(userId, chatbotId, moduleId, 'llm', llmValue)
-
-        # if the user enters a word in the vocab list, and the llm says they
-        # used it correctly, we need to update the chatbot_session with:
-        # termsUsed json with the new words, update their grade, and wordsUsed.
-        # something like: checkIfVocabWasUsed()
-
-        # the LLM will also give us: responseScore: which we need to attach to
-        # each message?, as we will be showing this to the user.
-
-# TODO: think we may not need to update the "grade" from the frontend -> assuming the grade is wordsUsed/totalWords(we can just do this from backend)
-# so we can potentially just remove this endpoint
+# TODO: Remove
 class UpdateChatGrade(Resource):
-    # API: PUT/PATCH: elleapi/chat/chatbot/<int:chatbotId>/grade")
-    # Updates a chatbot session grade based on userId, chatbotId, and moduleId
-    # TODO: Finish updating query for this one.
     @jwt_required
     def patch(self, chatbotId):
         userId = 2
@@ -119,8 +104,6 @@ class UpdateChatGrade(Resource):
         return res
 
 class UpdateChatTime(Resource):
-    # API: PUT/PATCH: elleapi/chat/chatbot/<int:chatbotId>/time")
-    # Updates a chatbot session grade based on userId, chatbotId, and moduleId
     # TODO: Finish updating query for this one.
     @jwt_required
     def patch(self, chatbotId):
