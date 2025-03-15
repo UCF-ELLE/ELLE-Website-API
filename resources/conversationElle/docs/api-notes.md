@@ -125,8 +125,8 @@
 - **Request body** (JSON):
   ```json
   {
-    "userId": int,              # ID of the user
-    "totalTimeChatted": float   # Total time in seconds
+    "chatbotId": int,              # ID of the user
+    "timeChatted": float,          # New time chatted for session 
   }
   ```
 
@@ -134,7 +134,6 @@
   ```json
   {
     "status": "success",
-    "message": "Total time updated successfully"
   }
   ```
 
