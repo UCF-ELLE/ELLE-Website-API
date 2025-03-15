@@ -77,12 +77,11 @@ interface GetChatBotResponse {
   timestamp?: string;
 }
 
-// getChatBot (POST)
+// getChatBot (GET)
 export const getChatbot = async (access_token: string, userId: number, moduleId: number): Promise<GetChatBotResponse | null> => {
   try {
-    const response = await axios.post(
-      `${ELLE_URL}/chatbot`,
-      { userId, moduleId },
+    const response = await axios.get(
+      `${ELLE_URL}/chatbot/${userId}/${moduleId}`,
       {
         headers: { Authorization: `Bearer ${access_token}` }
       }
@@ -110,10 +109,12 @@ type GetMessagesResponse = ChatMessage[];
 // getMessages (GET)
 export const getMessages = async (access_token: string, userId: number, chatbotId: number): Promise<GetMessagesResponse | null> => {
   try {
-    const response = await axios.get(`${ELLE_URL}/chat/messages`, {
-      params: { userId, chatbotId },
-      headers: { Authorization: `Bearer ${access_token}` }
-    });
+    const response = await axios.get(
+      `${ELLE_URL}/chat/messages/${userId}/${chatbotId}`,
+      {
+        headers: { Authorization: `Bearer ${access_token}` }
+      }
+    );
     console.log("getMessages response:");
     return response.data;
   } catch (error) {
