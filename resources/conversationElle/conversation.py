@@ -38,7 +38,7 @@ class ChatbotSessions(Resource):
             return {"error": "error"}, 500
 
 class Messages(Resource):
-    # @jwt_required
+    @jwt_required
     def get(self):
         userId = request.args.get('userId')
         chatbotId = request.args.get('chatbotId')

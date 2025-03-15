@@ -127,11 +127,11 @@ interface SendMessageResponse {
 }
 
 // sendMessage (POST)
-export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, message: string): Promise<SendMessageResponse | null> => {
+export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, userValue: string): Promise<SendMessageResponse | null> => {
   try {
     const response = await axios.post(
       `${ELLE_URL}/chat/messages`,
-      { userId, chatbotId, moduleId, message },
+      { userId, chatbotId, moduleId, userValue },
       {
         headers: { Authorization: `Bearer ${access_token}` }
       }
