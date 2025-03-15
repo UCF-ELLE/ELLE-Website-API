@@ -81,13 +81,6 @@ export default function TalkWithTito() {
     }
   }, [user, userLoading]);
 
-  useEffect(() => {
-    modules?.forEach((module) => {
-      console.log(module);
-      console.log("ID / Name / Language:" + module.moduleID + " " + module.name + " " + module.language);
-    });
-  }, [modules]);
-
   // Handles play button click
   const handlePlayClick = () => {
     if (!isLoading) setPlayClicked(true);
