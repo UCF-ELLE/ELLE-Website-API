@@ -41,7 +41,8 @@ export default function ChatScreen(props: propsInterface) {
     function handleSendMessageClick() {
         //SEND MESSAGE TO BACKEND TODO
         console.log("Sending " + userMessage);
-
+        if(!user || !chatbotId) {console.log("Missing user or chatbotId"); return;}
+        const newMessageResponse = sendMessage(user.jwt, user.userID, chatbotId, props.moduleID, userMessage);
         setUserMessage("");
     }
 

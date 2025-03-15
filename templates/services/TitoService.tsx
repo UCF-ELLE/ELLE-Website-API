@@ -68,14 +68,7 @@ export const fetchModuleTerms = async (access_token: string, moduleID: number): 
 
 interface GetChatBotResponse {
   chatbotId: number;
-  userId?: number;
-  moduleId?: number;
-  totalTimeChatted?: number;
-  wordsUsed?: number;
-  totalWordsForModule?: number;
-  grade?: number;
-  termsUsed?: Record<string, number>;
-  timestamp?: string;
+  termsUsed: number[];
 }
 
 // getChatBot (GET)
@@ -101,13 +94,9 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
 };
 
 interface ChatMessage {
-  id: number;
-  userId: number;
-  chatbotId: number;
-  moduleId: number;
-  source: "user" | "llm";
   value: string;
   timestamp: string;
+  source: "user" | "llm";
 }
 
 type GetMessagesResponse = ChatMessage[];
@@ -133,8 +122,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
 
 interface SendMessageResponse {
   llmValue: string;
-  //termsUsed: string[]; NOT YET IMPLEMENTED
-  wordsUsed: number;
+  termsUsed: number[];
 }
 
 // sendMessage (POST)
