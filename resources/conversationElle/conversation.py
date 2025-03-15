@@ -5,19 +5,23 @@ from .database import *
 # from .llm import *
 
 class ChatbotSessions(Resource):
-    # get an existing chatbot session based on userId and moduleId, if the chatbot session does not exist for a given module, it creates it.
-    # API: POST elleapi/chat/chatbot
-    # @jwt_required
+    @jwt_required
     def post(self):
         data = request.get_json()
         userId = data.get('userId')
         moduleId = data.get('moduleId')
+        termsUsed = data.get('termsUsed')
+        print(termsUsed)
 
         try:
             chatbotSession, statusCode = getChatbotSession(userId, moduleId)
+            chatbotSession = {
+                "chatbotId": chatbotSession.get("chatbotId"),
+                "termsUsed": chatbotSession.get("termsUsed"),
+            }
 
             # various helper funcs imported from /llm/...
-            # syncVocabListWithLLM()
+            # syncVocabListWithLLM(termUsed)
             # userBackground = getUserBackground()
             # userMusicChoice = getUserMusicChoice()
             # response = jsonify({
@@ -34,24 +38,26 @@ class ChatbotSessions(Resource):
             return {"error": "error"}, 500
 
 class Messages(Resource):
-    # retrieves all messages for a given chatbot session 
-    # API: GET elleapi/chat/messages?userId=${userId}&chatbotId=${chatbotId}
-    # @jwt_required
+    @jwt_required
     def get(self):
         userId = request.args.get('userId')
         chatbotId = request.args.get('chatbotId')
 
         try:
             messages, statusCode = getMessages(userId, chatbotId)
+            messages = {
+                "value": messages.get('value'),
+                "source": messages.get('source'),
+                "timestamp": messages.get('timestamp'),
+            }
+
             jsonify(messages)
             return messages, statusCode
         except Exception as error:
             print(f"Error: {str(error)}")
             return {"error": "error"}, 500
 
-    # save a new message in the conversation based on userId and chatbotId
-    # API: POST elleapi/chat/messages
-    # @jwt_required
+    @jwt_required
     def post(self):
         data = request.get_json()  
         userId = data.get('userId')
@@ -61,20 +67,24 @@ class Messages(Resource):
 
         try:
             # We would need to import these from the LLM helper libraries
-            # llmValue = getLLMResponse(value), currently mocking with dummy value below
+            # currently mocking with dummy value below
+            # llmValue = getLLMResponse(value)
             llmValue = "LLM response is currently WIP"
 
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
 
-            # wordsUsed, grammarGrade = processLLMValue() --> This is how we get wordsUsed, grammar grade, etc.
-            wordsUsed = "test1, test2, test3"
+            # termsUsed = array of the termIds
+            # termsUsed = checkTermsUsedLLM(termsUsed)
+            # checkGrammarGrade() -> this is the analytics feedback, needs to upload to DB after.
+            # but the frontend is not getting this information.
+            termsUsed = [1, 2, 3]
 
             statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue)
 
             data = {
                 "llmResponse": llmValue,
-                "wordsUsed": wordsUsed
+                "termsUsed": termsUsed
             }
 
             jsonify(data)
