@@ -87,13 +87,13 @@ export default function ChatScreen(props: propsInterface) {
         loadMessages();
     }, [chatbotId, user, userLoading]);
     
-
+    /*
     //Temporary - assigns usedTerms randomly for visual testing
     useEffect(() => {
         if(terms) {
             setUsedTerms(terms.map((term, index) => (index % 2 == 0 ? true : false)))
         }
-    }, [terms])
+    }, [terms])*/
     
 
     return(
