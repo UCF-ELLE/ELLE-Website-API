@@ -53,15 +53,25 @@ export default function ChatScreen(props: propsInterface) {
         console.log("Sending " + userMessage);
         if(!user || !chatbotId) {console.log("Missing user or chatbotId"); return;}
         const sendMessageResponse = await sendMessage(user.jwt, user.userID, chatbotId, props.moduleID, userMessage);
+        //Makes sure API call is succesful (it returns null if it isn't)
         if(sendMessageResponse) {
+            //Apppends user response to chatMessages
+            const userResponse: ChatMessage = {
+                value: userMessage,
+                timestamp: new Date().toISOString(),
+                source: "user"
+            }
             //Appends llm response to chatMessages
-            const newMessage: ChatMessage = {
-                value: sendMessageResponse.llmValue,
+            const llmMessage: ChatMessage = {
+                value: sendMessageResponse.llmResponse,
                 timestamp: new Date().toISOString(),
                 source: "llm"
             }
-            setChatMessages((prevChatMessages) => [...prevChatMessages, newMessage]);
+            setChatMessages((prevChatMessages) => [...prevChatMessages, userResponse, llmMessage]);
             //TODO: Update usedTerms
+        }
+        else {
+            console.log("Error sending message");
         }
         setUserMessage("");
     }

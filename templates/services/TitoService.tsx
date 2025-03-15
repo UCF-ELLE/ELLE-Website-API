@@ -122,7 +122,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
 };
 
 interface SendMessageResponse {
-  llmValue: string;
+  llmResponse: string;
   termsUsed: string[];
 }
 
