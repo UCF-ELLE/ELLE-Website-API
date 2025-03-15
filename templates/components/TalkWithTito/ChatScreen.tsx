@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
-import {fetchModuleTerms} from "@/services/TitoService";
+import { fetchModuleTerms, getChatbot, getMessages, sendMessage} from "@/services/TitoService";
 import { useUser } from "@/hooks/useAuth";
 
 /* Titos :D */
@@ -15,7 +15,7 @@ import respondingTito from "@/public/static/images/ConversAItionELLE/respondingT
 /* Other assets */
 import background from "@/public/static/images/ConversAItionELLE/Graident Background.png";
 import palmTree from "@/public/static/images/ConversAItionELLE/Palm Tree.png";
-import sendMessage from "@/public/static/images/ConversAItionELLE/send.png";
+import sendMessageIcon from "@/public/static/images/ConversAItionELLE/send.png";
 import VocabList from "./VocabList";
 import Messages from "./Messages"
 
@@ -33,74 +33,59 @@ export default function ChatScreen(props: propsInterface) {
         questionFront: string;
         questionBack: string;
     }
-    const [terms, setTerms] = useState<Term[]>([
-            { termID: 0, questionFront: "Rojo", questionBack: "Red" },
-            { termID: 1, questionFront: "Azul", questionBack: "Blue" },
-            { termID: 2, questionFront: "Amarillo", questionBack: "Yellow" },
-            { termID: 3, questionFront: "Verde", questionBack: "Green" },
-            { termID: 4, questionFront: "Naranja", questionBack: "Orange" },
-            { termID: 5, questionFront: "Morado", questionBack: "Purple" },
-            { termID: 6, questionFront: "Negro", questionBack: "Black" },
-            { termID: 7, questionFront: "Blanco", questionBack: "White" },
-            { termID: 8, questionFront: "Gris", questionBack: "Gray" },
-            { termID: 9, questionFront: "Rosa", questionBack: "Pink" },
-            { termID: 10, questionFront: "Marrón", questionBack: "Brown" },
-            { termID: 11, questionFront: "Violeta", questionBack: "Violet" },
-            { termID: 12, questionFront: "Cielo", questionBack: "Sky" },
-            { termID: 13, questionFront: "Mar", questionBack: "Sea" },
-            { termID: 14, questionFront: "Sol", questionBack: "Sun" },
-            { termID: 15, questionFront: "Luna", questionBack: "Moon" },
-            { termID: 16, questionFront: "Estrella", questionBack: "Star" },
-            { termID: 17, questionFront: "Árbol", questionBack: "Tree" },
-            { termID: 18, questionFront: "Flor", questionBack: "Flower" },
-            { termID: 19, questionFront: "Montaña", questionBack: "Mountain" },
-            { termID: 20, questionFront: "Río", questionBack: "River" },
-            { termID: 21, questionFront: "Lago", questionBack: "Lake" },
-            { termID: 22, questionFront: "Playa", questionBack: "Beach" },
-            { termID: 23, questionFront: "Bosque", questionBack: "Forest" },
-            { termID: 24, questionFront: "Desierto", questionBack: "Desert" },
-            { termID: 25, questionFront: "Ciudad", questionBack: "City" },
-            { termID: 26, questionFront: "País", questionBack: "Country" },
-            { termID: 27, questionFront: "Calle", questionBack: "Street" },
-            { termID: 28, questionFront: "Casa", questionBack: "House" },
-            { termID: 29, questionFront: "Habitación", questionBack: "Room" },
-            { termID: 30, questionFront: "Puerta", questionBack: "Door" },
-            { termID: 31, questionFront: "Ventana", questionBack: "Window" },
-            { termID: 32, questionFront: "Techo", questionBack: "Ceiling" },
-            { termID: 33, questionFront: "Silla", questionBack: "Chair" },
-            { termID: 34, questionFront: "Mesa", questionBack: "Table" },
-            { termID: 35, questionFront: "Cama", questionBack: "Bed" },
-            { termID: 36, questionFront: "Espejo", questionBack: "Mirror" },
-            { termID: 37, questionFront: "Libro", questionBack: "Book" },
-            { termID: 38, questionFront: "Cuaderno", questionBack: "Notebook" },
-            { termID: 39, questionFront: "Lápiz", questionBack: "Pencil" },
-            { termID: 40, questionFront: "Bolígrafo", questionBack: "Pen" }]);
-    const [usedTerms, setUsedTerms] = useState<boolean[]>();
-
+    const [terms, setTerms] = useState<Term[]>([]);
+    const [usedTerms, setUsedTerms] = useState<boolean[]>([]);
     const [userMessage, setUserMessage] = useState("");
+    const [chatbotId, setChatbotId] = useState<number>();
 
     function handleSendMessageClick() {
         //SEND MESSAGE TO BACKEND TODO
         console.log("Sending " + userMessage);
+
         setUserMessage("");
     }
 
-    // Called once when component mounts
-    // Used to initialize terms
+    // Used to initialize terms and chatbot
     useEffect(() => {
-        if(!userLoading && user) {
-            const loadTerms = async () => {
-                const newTerms = await fetchModuleTerms(user?.jwt, props.moduleID);
-                if(newTerms) {
-                    setTerms(newTerms);
-                }
-                else {
-                    console.log("Error fetching terms: newTerms is null");
-                }
+        if(userLoading || !user) return; // Makes typescript happy :D
+        const loadTerms = async () => {
+            const newTerms = await fetchModuleTerms(user.jwt, props.moduleID);
+            if(newTerms) {
+                setTerms(newTerms);
             }
-            loadTerms();
+            else {
+                console.log("Error getting terms");
+            }
         }
+        const loadChatbot = async () => {
+            const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID);
+            if(newChatbot) {
+                setChatbotId(newChatbot.chatbotId);
+                //TODO
+            }
+            else {
+                console.log("Error getting chatbot");
+            }
+        }
+        loadTerms();
+        loadChatbot();
     }, [user, userLoading, props.moduleID]);
+
+    // Used to initialize chat messages
+    useEffect(() => {
+        if(userLoading || !user || !chatbotId) return; // Makes typescript happy :D
+        const loadMessages = async () => {
+            const newMessages = await getMessages(user.jwt, user.userID, chatbotId);
+            if(newMessages) {
+                //TODO
+            }
+            else {
+                console.log("Error getting messages");
+            }
+        }
+        loadMessages();
+    }, [chatbotId, user, userLoading]);
+    
 
     //Temporary - assigns usedTerms randomly for visual testing
     useEffect(() => {
@@ -131,7 +116,7 @@ export default function ChatScreen(props: propsInterface) {
                     onChange={(e) => setUserMessage(e.target.value)}
                 />
                 <button onClick={handleSendMessageClick} className="ml-2 z-20">
-                    <Image src={sendMessage} className="w-full h-full rounded-full" alt="Send message" />
+                    <Image src={sendMessageIcon} className="w-full h-full rounded-full" alt="Send message" />
                 </button>
             </div>
         </div>

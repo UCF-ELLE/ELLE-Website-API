@@ -65,41 +65,29 @@ export const fetchModuleTerms = async (access_token: string, moduleID: number): 
   }
 };
 
-interface ChatbotResponse {
-  chatbotSession: string;
-  userBackground: string;
-  userMusic: string;
+interface GetChatBotResponse {
+  chatbotId: number;
+  userId?: number;
+  moduleId?: number;
+  totalTimeChatted?: number;
+  wordsUsed?: number;
+  totalWordsForModule?: number;
+  grade?: number;
+  termsUsed?: Record<string, number>;
+  timestamp?: string;
 }
 
-export const getChatbotForUser = async (access_token: string, userId: number, moduleId: number): Promise<ChatbotResponse | { chatbotId: number } | null> => {
+// getChatBot (POST)
+export const getChatbot = async (access_token: string, userId: number, moduleId: number): Promise<GetChatBotResponse | null> => {
   try {
-    const response = await axios.get<ChatbotResponse | { chatbotId: number }>(`${ELLE_URL}/chatbot/${userId}/${moduleId}`, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
-
-    return response.data;
-  } catch (error) {
-    handleError(error);
-    return null;
-  }
-};
-
-interface sendUserMessageResponse {
-  llmValue: string;
-  termsUsed: Record<string, any>;
-  wordsUsed: number;
-}
-
-export const sendUserMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, source: "User", value: string): Promise<sendUserMessageResponse | null> => {
-  try {
-    const response = await axios.post<sendUserMessageResponse>(`${ELLE_URL}/chat/messages`, { userId, chatbotId, moduleId, source, value }, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
-
+    const response = await axios.post(
+      `${ELLE_URL}/chatbot`,
+      { userId, moduleId },
+      {
+        headers: { Authorization: `Bearer ${access_token}` }
+      }
+    );
+    console.log("getChatbot response:");
     return response.data;
   } catch (error) {
     handleError(error);
@@ -112,29 +100,52 @@ interface ChatMessage {
   userId: number;
   chatbotId: number;
   moduleId: number;
-  source: string;
+  source: "user" | "llm";
   value: string;
   timestamp: string;
 }
 
-export const getChatMessages = async (access_token: string, userId: number, chatbotId: number): Promise<ChatMessage[] | null> => {
-  try {
-    const response = await axios.get<ChatMessage[]>(`${ELLE_URL}/chat/messages`, {
-      params: {
-        userId,
-        chatbotId,
-      },
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
+type GetMessagesResponse = ChatMessage[];
 
+// getMessages (GET)
+export const getMessages = async (access_token: string, userId: number, chatbotId: number): Promise<GetMessagesResponse | null> => {
+  try {
+    const response = await axios.get(`${ELLE_URL}/chat/messages`, {
+      params: { userId, chatbotId },
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    console.log("getMessages response:");
     return response.data;
   } catch (error) {
     handleError(error);
     return null;
   }
 };
+
+interface SendMessageResponse {
+  llmValue: string;
+  //termsUsed: string[]; NOT YET IMPLEMENTED
+  wordsUsed: number;
+}
+
+// sendMessage (POST)
+export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, message: string): Promise<SendMessageResponse | null> => {
+  try {
+    const response = await axios.post(
+      `${ELLE_URL}/messages`,
+      { userId, chatbotId, moduleId, message },
+      {
+        headers: { Authorization: `Bearer ${access_token}` }
+      }
+    );
+    console.log("sendMessage response:");
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    handleError(error);
+    return null;
+  }
+}
 
 // Utility function for handling errors
 const handleError = (error: unknown): void => {
