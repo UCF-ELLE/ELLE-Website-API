@@ -46,7 +46,7 @@ export default function ChatScreen(props: propsInterface) {
         setUserMessage("");
     }
 
-    // Used to initialize terms and chatbot
+    // Used to initialize terms
     useEffect(() => {
         if(userLoading || !user) return; // Makes typescript happy :D
         const loadTerms = async () => {
@@ -58,6 +58,12 @@ export default function ChatScreen(props: propsInterface) {
                 console.log("Error getting terms");
             }
         }
+        loadTerms();
+    }, [props.moduleID, user, userLoading]);
+
+    //Used to initialize chatbot
+    useEffect(() => {
+        if(userLoading || !user) return; // Makes typescript happy :D
         const loadChatbot = async () => {
             const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
             if(newChatbot) {
@@ -68,9 +74,9 @@ export default function ChatScreen(props: propsInterface) {
                 console.log("Error getting chatbot");
             }
         }
-        loadTerms();
         loadChatbot();
-    }, [user, userLoading, props.moduleID, terms]);
+    }, [props.moduleID, terms, user, user?.jwt, user?.userID, userLoading])
+    
 
     // Used to initialize chat messages
     useEffect(() => {
