@@ -59,7 +59,7 @@ export default function ChatScreen(props: propsInterface) {
             }
         }
         const loadChatbot = async () => {
-            const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID);
+            const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
             if(newChatbot) {
                 setChatbotId(newChatbot.chatbotId);
                 //TODO
@@ -70,7 +70,7 @@ export default function ChatScreen(props: propsInterface) {
         }
         loadTerms();
         loadChatbot();
-    }, [user, userLoading, props.moduleID]);
+    }, [user, userLoading, props.moduleID, terms]);
 
     // Used to initialize chat messages
     useEffect(() => {

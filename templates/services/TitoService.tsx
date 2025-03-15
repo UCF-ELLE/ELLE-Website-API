@@ -71,12 +71,13 @@ interface GetChatBotResponse {
   termsUsed: number[];
 }
 
-// getChatBot (GET)
-export const getChatbot = async (access_token: string, userId: number, moduleId: number): Promise<GetChatBotResponse | null> => {
+// getChatBot (POST)
+// TODO: Implement sending terms for synchronization call
+export const getChatbot = async (access_token: string, userId: number, moduleId: number, terms: Term[]): Promise<GetChatBotResponse | null> => {
   try {
     const response = await axios.post(
       `${ELLE_URL}/chat/chatbot`,
-      { userId, moduleId },
+      { userId, moduleId, terms },
       {
         headers: { 
           Authorization: `Bearer ${access_token}`,
