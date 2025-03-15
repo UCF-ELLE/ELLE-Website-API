@@ -87,6 +87,7 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
       }
     );
     console.log("getChatbot response:");
+    console.log(response.data);
     return response.data;
   } catch (error) {
     handleError(error);
@@ -116,6 +117,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
       }
     );
     console.log("getMessages response:");
+    console.log(response.data);
     return response.data;
   } catch (error) {
     handleError(error);
