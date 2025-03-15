@@ -81,8 +81,9 @@ interface GetChatBotResponse {
 export const getChatbot = async (access_token: string, userId: number, moduleId: number): Promise<GetChatBotResponse | null> => {
   try {
     const response = await axios.get(
-      `${ELLE_URL}/chatbot/${userId}/${moduleId}`,
+      `${ELLE_URL}/chatbot`,
       {
+        params: { userId, moduleId },
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
@@ -111,8 +112,9 @@ type GetMessagesResponse = ChatMessage[];
 export const getMessages = async (access_token: string, userId: number, chatbotId: number): Promise<GetMessagesResponse | null> => {
   try {
     const response = await axios.get(
-      `${ELLE_URL}/chat/messages/${userId}/${chatbotId}`,
+      `${ELLE_URL}/chat/messages`,
       {
+        params: { userId, chatbotId },
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
