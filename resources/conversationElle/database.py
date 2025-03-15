@@ -180,10 +180,8 @@ def updateChatGrade(chatbotId, userId, moduleId, grade):
             conn.close()
 
 # TODO
-# Frontend will have the current "live" timeChatted, so when a user
-# enters exit or save progress, the frontend needs to take the
-# value they initilly had, and add the current new time chatted and send
-# off to us.
+# get the chatbot_session belonging to chatbotId, and take the value from the
+# frontend to then (originalChatbotTime + newChatbotTime) = set totalTimeChatted
 def updateTotalTimeChatted(chatbotId, userId, moduleId, timeChatted):
     try:
         conn = mysql.connect()

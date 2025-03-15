@@ -10,8 +10,7 @@ class ChatbotSessions(Resource):
         data = request.get_json()
         userId = data.get('userId')
         moduleId = data.get('moduleId')
-        termsUsed = data.get('termsUsed')
-        print(termsUsed)
+        terms = data.get('terms')
 
         try:
             chatbotSession, statusCode = getChatbotSession(userId, moduleId)
@@ -21,7 +20,7 @@ class ChatbotSessions(Resource):
             }
 
             # various helper funcs imported from /llm/...
-            # syncVocabListWithLLM(termUsed)
+            # syncVocabListWithLLM(terms)
             # userBackground = getUserBackground()
             # userMusicChoice = getUserMusicChoice()
             # response = jsonify({
@@ -74,7 +73,7 @@ class Messages(Resource):
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
 
-            # termsUsed = array of the termIds
+            # termsUsed = array of strings (of used words)
             # termsUsed = checkTermsUsedLLM(termsUsed)
             # checkGrammarGrade() -> this is the analytics feedback, needs to upload to DB after.
             # but the frontend is not getting this information.

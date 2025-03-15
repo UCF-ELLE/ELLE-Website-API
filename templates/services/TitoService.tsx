@@ -131,7 +131,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
   try {
     const response = await axios.post(
       `${ELLE_URL}/chat/messages`,
-      { userId, chatbotId, moduleId, userValue },
+      { "userId": userId, "chatbotId": chatbotId, "moduleId": moduleId, "userValue": userValue },
       {
         headers: { Authorization: `Bearer ${access_token}` }
       }
