@@ -81,10 +81,14 @@ interface GetChatBotResponse {
 // getChatBot (GET)
 export const getChatbot = async (access_token: string, userId: number, moduleId: number): Promise<GetChatBotResponse | null> => {
   try {
-    const response = await axios.get(
-      `${ELLE_URL}/chatbot/${userId}/${moduleId}`,
+    const response = await axios.post(
+      `${ELLE_URL}/chat/chatbot`,
+      { userId, moduleId },
       {
-        headers: { Authorization: `Bearer ${access_token}` }
+        headers: { 
+          Authorization: `Bearer ${access_token}`,
+          "Content-Type": "application/json"
+        }
       }
     );
     console.log("getChatbot response:");
@@ -137,7 +141,7 @@ interface SendMessageResponse {
 export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, message: string): Promise<SendMessageResponse | null> => {
   try {
     const response = await axios.post(
-      `${ELLE_URL}/messages`,
+      `${ELLE_URL}/chat/messages`,
       { userId, chatbotId, moduleId, message },
       {
         headers: { Authorization: `Bearer ${access_token}` }
