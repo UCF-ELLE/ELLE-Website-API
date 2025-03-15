@@ -38,21 +38,21 @@ class ChatbotSessions(Resource):
             return {"error": "error"}, 500
 
 class Messages(Resource):
-    @jwt_required
+    # @jwt_required
     def get(self):
         userId = request.args.get('userId')
         chatbotId = request.args.get('chatbotId')
 
         try:
             messages, statusCode = getMessages(userId, chatbotId)
-            messages = {
-                "value": messages.get('value'),
-                "source": messages.get('source'),
-                "timestamp": messages.get('timestamp'),
-            }
+            data = [
+                {"source": msg.get('source'), "value": msg.get('value'), 
+                 "timestamp": msg.get('timestamp')}
+                for msg in messages
+            ]
 
-            jsonify(messages)
-            return messages, statusCode
+            jsonify(data)
+            return data, statusCode
         except Exception as error:
             print(f"Error: {str(error)}")
             return {"error": "error"}, 500
