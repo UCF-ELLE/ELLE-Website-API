@@ -1,9 +1,14 @@
 /* Imports */
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from "@/hooks/useAuth";
+import { fetchModuleTerms, getChatbot, getMessages, sendMessage} from "@/services/TitoService";
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
-import { fetchModuleTerms, getChatbot, getMessages, sendMessage} from "@/services/TitoService";
-import { useUser } from "@/hooks/useAuth";
+
+/* Assets */
+import background from "@/public/static/images/ConversAItionELLE/Graident Background.png";
+import palmTree from "@/public/static/images/ConversAItionELLE/Palm Tree.png";
+import sendMessageIcon from "@/public/static/images/ConversAItionELLE/send.png";
 
 /* Titos :D */
 import happyTito from "@/public/static/images/ConversAItionELLE/happyTito.png";
@@ -12,10 +17,7 @@ import confusedTito from "@/public/static/images/ConversAItionELLE/confusedTito.
 import tiredTito from "@/public/static/images/ConversAItionELLE/tiredTito.png";
 import respondingTito from "@/public/static/images/ConversAItionELLE/respondingTito.png";
 
-/* Other assets */
-import background from "@/public/static/images/ConversAItionELLE/Graident Background.png";
-import palmTree from "@/public/static/images/ConversAItionELLE/Palm Tree.png";
-import sendMessageIcon from "@/public/static/images/ConversAItionELLE/send.png";
+/* Components */
 import VocabList from "./VocabList";
 import Messages from "./Messages"
 
@@ -32,17 +34,35 @@ export default function ChatScreen(props: propsInterface) {
         termID: number;
         questionFront: string;
         questionBack: string;
+        used: boolean;
     }
+
+    interface ChatMessage {
+        value: string;
+        timestamp: string;
+        source: "user" | "llm";
+    }
+
     const [terms, setTerms] = useState<Term[]>([]);
-    const [usedTerms, setUsedTerms] = useState<boolean[]>([]);
-    const [userMessage, setUserMessage] = useState("");
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    const [userMessage, setUserMessage] = useState<string>("");
     const [chatbotId, setChatbotId] = useState<number>();
 
-    function handleSendMessageClick() {
-        //SEND MESSAGE TO BACKEND TODO
+    async function handleSendMessageClick() {
+        if(userMessage === "") return;
         console.log("Sending " + userMessage);
         if(!user || !chatbotId) {console.log("Missing user or chatbotId"); return;}
-        const newMessageResponse = sendMessage(user.jwt, user.userID, chatbotId, props.moduleID, userMessage);
+        const sendMessageResponse = await sendMessage(user.jwt, user.userID, chatbotId, props.moduleID, userMessage);
+        if(sendMessageResponse) {
+            //Appends llm response to chatMessages
+            const newMessage: ChatMessage = {
+                value: sendMessageResponse.llmValue,
+                timestamp: new Date().toISOString(),
+                source: "llm"
+            }
+            setChatMessages((prevChatMessages) => [...prevChatMessages, newMessage]);
+            //TODO: Update usedTerms
+        }
         setUserMessage("");
     }
 
@@ -52,7 +72,12 @@ export default function ChatScreen(props: propsInterface) {
         const loadTerms = async () => {
             const newTerms = await fetchModuleTerms(user.jwt, props.moduleID);
             if(newTerms) {
-                setTerms(newTerms);
+                setTerms(newTerms.map(term => ({
+                    termID: term.termID,
+                    questionFront: term.questionFront,
+                    questionBack: term.questionBack,
+                    used: false
+                })));
             }
             else {
                 console.log("Error getting terms");
@@ -68,7 +93,7 @@ export default function ChatScreen(props: propsInterface) {
             const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
             if(newChatbot) {
                 setChatbotId(newChatbot.chatbotId);
-                //TODO
+                //TODO: Set usedTerms
             }
             else {
                 console.log("Error getting chatbot");
@@ -84,7 +109,7 @@ export default function ChatScreen(props: propsInterface) {
         const loadMessages = async () => {
             const newMessages = await getMessages(user.jwt, user.userID, chatbotId);
             if(newMessages) {
-                //TODO
+                setChatMessages(newMessages);
             }
             else {
                 console.log("Error getting messages");
@@ -92,14 +117,6 @@ export default function ChatScreen(props: propsInterface) {
         }
         loadMessages();
     }, [chatbotId, user, userLoading]);
-    
-    /*
-    //Temporary - assigns usedTerms randomly for visual testing
-    useEffect(() => {
-        if(terms) {
-            setUsedTerms(terms.map((term, index) => (index % 2 == 0 ? true : false)))
-        }
-    }, [terms])*/
     
 
     return(
@@ -109,10 +126,11 @@ export default function ChatScreen(props: propsInterface) {
             <Image src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" draggable={false} alt="Decorative palm tree" />
 
             {/*Vocabulary list div*/}
-            <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={usedTerms}/>
+            {/* TODO: Modify+reformat to take in 'terms' */}
+            <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={terms?.map(term => (term.used))}/>
 
             {/*Sent/recieved messages div*/}
-            <Messages />
+            <Messages messages={chatMessages}/>
 
             {/* Chat box div */}
             <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex items-center justify-center p-4">

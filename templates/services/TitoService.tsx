@@ -68,7 +68,7 @@ export const fetchModuleTerms = async (access_token: string, moduleID: number): 
 
 interface GetChatBotResponse {
   chatbotId: number;
-  termsUsed: number[];
+  termsUsed: string[];
 }
 
 // getChatBot (POST)
@@ -123,7 +123,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
 
 interface SendMessageResponse {
   llmValue: string;
-  termsUsed: number[];
+  termsUsed: string[];
 }
 
 // sendMessage (POST)
