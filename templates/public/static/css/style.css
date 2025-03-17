@@ -1480,6 +1480,7 @@ table.statsTable tbody td {
 --------------------------------------------------------------*/
 .animelle-game-container {
     background: url('../images/AnimELLE/backgroundAC.png');
+    overflow-x: auto;
     /* background-repeat: repeat space; */
     /* background-size: ; */
 }
