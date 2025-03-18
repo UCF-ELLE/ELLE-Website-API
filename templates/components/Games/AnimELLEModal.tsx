@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import {
     Button, Modal,
+    ModalBody,
     ModalHeader
 } from "reactstrap"
 
@@ -21,6 +22,7 @@ import { ReactUnityEventParameter } from "react-unity-webgl/distribution/types/r
 import { useUser } from "@/hooks/useAuth";
 
 import { GameContext } from "@/components/Layouts/GameLayout";
+import { relative } from "path";
 
 function App(props: {}) {
     const [modal, setModal] = React.useState(false);
@@ -212,6 +214,8 @@ function App(props: {}) {
     }
 
     function openHandler() {
+        console.log(window.innerHeight);
+
         setUnmountFlag(false);
     }
 
@@ -228,23 +232,35 @@ function App(props: {}) {
                 zIndex={1050}
                 scrollable={false}
                 centered={false}
-                style={{ height: '100%', width: '100%', padding: '0px', top: '0px', position: "absolute" }}
+                style={{
+                    height: '100vh', // Full height of the viewport
+                    width: '100vw',  // Full width of the viewport
+                    padding: 0,      // Remove any padding
+                    top: 0,          // Ensure it starts at the top of the screen
+                    left: 0,         // Ensure it starts at the left of the screen
+                    margin: 0,        // No margin to avoid any default spacing
+                }}
                 onClosed={detachGame}
                 onOpened={openHandler}
                 unmountOnClose={unmountFlag}
             >
-                <ModalHeader toggle={toggle}></ModalHeader>
-                <Unity
-                    unityProvider={unityProvider}
-                    devicePixelRatio={devicePixelRatio}
-                    style={{
-                        width: "100%",
-                        height: "100%",
-                        position: "relative",
-                        top: '0px',
-                        display: isLoaded ? "block" : "none",
-                    }}
-                />
+                <ModalHeader toggle={toggle} style={{ background: 'transparent', border: 'none', padding: '2vh 1vw', position: 'absolute', zIndex: 1050 }}></ModalHeader>
+                <ModalBody className="flex" style={{
+                    padding: 0,      // Remove padding
+                    margin: 0,       // Remove margin
+                }}>
+                    <Unity
+                        unityProvider={unityProvider}
+                        devicePixelRatio={devicePixelRatio}
+                        style={{
+                            height: '100%',  // Fill the entire modal body
+                            width: '100%',   // Fill the entire modal body
+                            position: 'relative', // Ensure it stays in the correct position
+                            top: 0,          // Align to the top of the modal body
+                            display: isLoaded ? 'block' : 'none', // Only display when loaded
+                        }}
+                    />
+                </ModalBody>
                 <div
                     className="webglLoadingStatusBox"
                     style={{ display: isLoaded ? "none" : "block" }}
