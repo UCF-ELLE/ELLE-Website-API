@@ -6,7 +6,8 @@ import React, {
     useRef,
 } from "react";
 import {
-    Button, Modal
+    Button, Modal,
+    ModalHeader
 } from "reactstrap"
 
 import { Unity, useUnityContext } from "react-unity-webgl";
@@ -232,6 +233,7 @@ function App(props: {}) {
                 onOpened={openHandler}
                 unmountOnClose={unmountFlag}
             >
+                <ModalHeader toggle={toggle}></ModalHeader>
                 <Unity
                     unityProvider={unityProvider}
                     devicePixelRatio={devicePixelRatio}
