@@ -1,19 +1,5 @@
 [
     {
-        "anchor": "PastaKerfuffELLE",
-        "link": "/games/pastagame",
-        "external": false,
-        "title": "Pasta Kerfuff-ELLE",
-        "description": "Learn about Applied Linguistics through splitting utterances by their morphemes and beyond!",
-        "altImage": "Pasta Kerfuff-ELLE Image",
-        "teams": [
-            {
-                "name": "Original Senior Design Team",
-                "members": ["Jason Co", "Dylan Engle", "Christine Fossenier", "Michael Miller", "Zander Preston"]
-            }
-        ]
-    },
-    {
         "anchor": "VirtuELLEMentor",
         "link": "/games/virtuellementor",
         "external": false,
@@ -68,6 +54,34 @@
             {
                 "name": "Senior Design Team",
                 "members": ["Annabel Bland", "Tyler Morejon", "Nathan Otis", "Daniel Rodriguez", "Tanner Williams"]
+            }
+        ]
+    },
+    {
+        "anchor": "PastaKerfuffELLE",
+        "link": "/games/pastagame",
+        "external": false,
+        "title": "Pasta Kerfuff-ELLE",
+        "description": "Learn about Applied Linguistics through splitting utterances by their morphemes and beyond!",
+        "altImage": "Pasta Kerfuff-ELLE Image",
+        "teams": [
+            {
+                "name": "Original Senior Design Team",
+                "members": ["Jason Co", "Dylan Engle", "Christine Fossenier", "Michael Miller", "Zander Preston"]
+            }
+        ]
+    },
+    {
+        "anchor": "AudibELLE",
+        "link": "",
+        "external": true,
+        "title": "AudibELLE",
+        "description": "Fulfill customer spoken requests at a spooky convenience store! Contact Dr. Johnson to play!",
+        "altImage": "Audibelle Image",
+        "teams": [
+            {
+                "name": "Senior Design Team",
+                "members": ["Matthew Sand", "Tyler Phung", "Jesus Carballosa Arteaga", "Liam Galloway", "Nathaell Avril Leman"]
             }
         ]
     },
