@@ -46,10 +46,102 @@ interface PropsInterface {
 }
 
 export default function Messages({ messages }: PropsInterface) {
+    const testData: ChatMessage[] = [
+        {
+            value: "Hey, how are you?",
+            timestamp: "2025-03-19T10:15:30Z",
+            source: "user"
+        },
+        {
+            value: "I'm just a chatbot, but I'm here to help! What can I do for you?",
+            timestamp: "2025-03-19T10:15:32Z",
+            source: "llm"
+        },
+        {
+            value: "Can you give me some workout advice?",
+            timestamp: "2025-03-19T10:16:10Z",
+            source: "user"
+        },
+        {
+            value: "Sure! Are you looking for strength training, cardio, or general fitness tips?",
+            timestamp: "2025-03-19T10:16:12Z",
+            source: "llm"
+        },
+        {
+            value: "I'm mainly focused on strength training.",
+            timestamp: "2025-03-19T10:16:30Z",
+            source: "user"
+        },
+        {
+            value: "Great! Progressive overload is key. Try increasing weight or reps gradually over time.",
+            timestamp: "2025-03-19T10:16:35Z",
+            source: "llm"
+        },
+        {
+            value: "Hey, how are you?",
+            timestamp: "2025-03-19T10:15:30Z",
+            source: "user"
+        },
+        {
+            value: "I'm just a chatbot, but I'm here to help! What can I do for you?",
+            timestamp: "2025-03-19T10:15:32Z",
+            source: "llm"
+        },
+        {
+            value: "Can you give me some workout advice?",
+            timestamp: "2025-03-19T10:16:10Z",
+            source: "user"
+        },
+        {
+            value: "Sure! Are you looking for strength training, cardio, or general fitness tips?",
+            timestamp: "2025-03-19T10:16:12Z",
+            source: "llm"
+        },
+        {
+            value: "I'm mainly focused on strength training.",
+            timestamp: "2025-03-19T10:16:30Z",
+            source: "user"
+        },
+        {
+            value: "Great! Progressive overload is key. Try increasing weight or reps gradually over time.",
+            timestamp: "2025-03-19T10:16:35Z",
+            source: "llm"
+        },
+        {
+            value: "Hey, how are you?",
+            timestamp: "2025-03-19T10:15:30Z",
+            source: "user"
+        },
+        {
+            value: "I'm just a chatbot, but I'm here to help! What can I do for you?",
+            timestamp: "2025-03-19T10:15:32Z",
+            source: "llm"
+        },
+        {
+            value: "Can you give me some workout advice?",
+            timestamp: "2025-03-19T10:16:10Z",
+            source: "user"
+        },
+        {
+            value: "Sure! Are you looking for strength training, cardio, or general fitness tips?",
+            timestamp: "2025-03-19T10:16:12Z",
+            source: "llm"
+        },
+        {
+            value: "I'm mainly focused on strength training.",
+            timestamp: "2025-03-19T10:16:30Z",
+            source: "user"
+        },
+        {
+            value: "Great! Progressive overload is key. Try increasing weight or reps gradually over time.",
+            timestamp: "2025-03-19T10:16:35Z",
+            source: "llm"
+        }
+    ];    
     return (
         <div className="w-full h-[85%] absolute top-0 left-0 z-[11]">
-            <div className="absolute w-full h-fit max-h-[82.5%] overflow-auto bottom-0 left-0">
-                {(messages).map((message, index) => (
+            <div className="absolute w-full h-fit max-h-full overflow-auto bottom-0 left-0">
+                {(messages[0] ? messages : testData).map((message, index) => (
                     <Message key={index} message={message} />
                 ))}
             </div>
