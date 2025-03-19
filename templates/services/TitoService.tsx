@@ -69,10 +69,11 @@ export const fetchModuleTerms = async (access_token: string, moduleID: number): 
 interface GetChatBotResponse {
   chatbotId: number;
   termsUsed: string[];
+  userBackground?: string;
+  userMusicChoice?: string;
 }
 
 // getChatBot (POST)
-// TODO: Implement sending terms for synchronization call
 export const getChatbot = async (access_token: string, userId: number, moduleId: number, terms: Term[]): Promise<GetChatBotResponse | null> => {
   try {
     const response = await axios.post(
@@ -121,9 +122,13 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
   }
 };
 
+
+//TODO: Also send terms each time. Represents all vocab terms for a given module
+//terms: string[]
 interface SendMessageResponse {
   llmResponse: string;
   termsUsed: string[];
+  titoConfused?: boolean; //Optional for now
 }
 
 // sendMessage (POST)

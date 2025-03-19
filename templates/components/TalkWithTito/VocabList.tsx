@@ -45,7 +45,7 @@ export default function VocabList({ wordsFront, wordsBack, used }: PropsInterfac
     if (!wordsFront || !wordsBack || !used) return null;
 
     return (
-        <div className="inter-font absolute top-1 right-1 w-fit h-fit flex flex-col items-center">
+        <div className="inter-font absolute top-1 right-[-18em] w-fit h-fit flex flex-col items-center">
             <div className="relative z-20 w-[277px] h-[137px]">
                 <Image src={cloud} className="absolute top-0 left-0" alt="Vocabulary List" />
                 <div className="absolute top-[55%] left-[50%] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap select-none flex flex-col items-center">
