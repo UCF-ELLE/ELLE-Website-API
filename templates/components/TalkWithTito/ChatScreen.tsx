@@ -42,6 +42,7 @@ export default function ChatScreen(props: propsInterface) {
     }
 
     const [terms, setTerms] = useState<Term[]>([]);
+    const [termsLoaded, setTermsLoaded] = useState<boolean>(false);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [userMessage, setUserMessage] = useState<string>("");
     const [chatbotId, setChatbotId] = useState<number>();
@@ -52,14 +53,14 @@ export default function ChatScreen(props: propsInterface) {
         //Return conditions
         if(userMessage === "") return; //Does nothing if textArea empty
         console.log("Sending " + userMessage); //Testing
-        if(!user || !chatbotId) {console.log("Missing user or chatbotId"); return;} //Does nothing if invalid credentials
+        if(!user || !chatbotId || !termsLoaded) {console.log("Missing user or chatbotId or termsLoaded"); return;} //Does nothing if invalid credentials
         
         //Resets Tito state & empties textArea
         setTitoMood("thinking");
         setUserMessage("");
 
         //Calls API
-        const sendMessageResponse = await sendMessage(user.jwt, user.userID, chatbotId, props.moduleID, userMessage);
+        const sendMessageResponse = await sendMessage(user.jwt, user.userID, chatbotId, props.moduleID, userMessage, terms.map(term => term.questionBack));
 
         //Makes sure API call is succesful (it returns null if it isn't)
         if(sendMessageResponse) {
@@ -91,6 +92,7 @@ export default function ChatScreen(props: propsInterface) {
         const loadTerms = async () => {
             const newTerms = await fetchModuleTerms(user.jwt, props.moduleID);
             if(newTerms) {
+                setTermsLoaded(true);
                 setTerms(newTerms.map(term => ({
                     termID: term.termID,
                     questionFront: term.questionFront,
