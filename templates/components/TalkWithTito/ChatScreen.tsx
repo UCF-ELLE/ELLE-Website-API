@@ -79,7 +79,14 @@ export default function ChatScreen(props: propsInterface) {
                 source: "llm"
             }
             setChatMessages((prevChatMessages) => [...prevChatMessages, userResponse, llmMessage]);
-            //TODO: Update usedTerms
+            //Update usedTerms
+            const newTerms: Term[] = terms.map(term => ({
+                termID: term.termID,
+                questionFront: term.questionBack,
+                questionBack: term.questionFront,
+                used: term.used || sendMessageResponse.termsUsed.includes(term.questionBack)
+            }))
+            setTerms(newTerms);
         }
         else {
             console.log("Error sending message");
@@ -114,7 +121,13 @@ export default function ChatScreen(props: propsInterface) {
             const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
             if(newChatbot) {
                 setChatbotId(newChatbot.chatbotId);
-                //TODO: Set usedTerms
+                const newTerms: Term[] = terms.map(term => ({
+                    termID: term.termID,
+                    questionFront: term.questionBack,
+                    questionBack: term.questionFront,
+                    used: newChatbot.termsUsed.includes(term.questionBack)
+                }))
+                setTerms(newTerms);
             }
             else {
                 console.log("Error getting chatbot");
@@ -147,7 +160,6 @@ export default function ChatScreen(props: propsInterface) {
             <Image src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" draggable={false} alt="Decorative palm tree" />
 
             {/*Vocabulary list div*/}
-            {/* TODO: Modify+reformat to take in 'terms' */}
             <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={terms?.map(term => (term.used))}/>
 
             {/*Sent/recieved messages div*/}
