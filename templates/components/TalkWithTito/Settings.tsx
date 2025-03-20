@@ -2,42 +2,54 @@ import React, {useState} from 'react';
 import Image from "next/image";
 import settingsBackground from "@/public/static/images/ConversAItionELLE/SettingsBackground.png";
 import infoIcon from "@/public/static/images/ConversAItionELLE/info.png"
-import ReactHowler from 'react-howler';
-
-interface propsInterface {
-  apply: () => void
-}
+// import ReactHowler from 'react-howler';
 
 // Song List
-const songList = [
-  "/elle/TitoAudios/techno.mp3", // Adjust paths for each song if needed
-  "/elle/TitoAudios/techno.mp3",
-  "/elle/TitoAudios/techno.mp3",
-  "/elle/TitoAudios/techno.mp3",
-  "/elle/TitoAudios/techno.mp3",
-  "/elle/TitoAudios/techno.mp3",
-  "/elle/TitoAudios/techno.mp3",
-  "/elle/TitoAudios/techno.mp3",
-  "/elle/TitoAudios/techno.mp3",
-  "/elle/TitoAudios/techno.mp3"
+const songList = [ 
+  { name: "Ambient Jungle", path: "/elle/TitoAudios/ambient-jungle.mp3" },
+  { name: "Jungle Party", path: "/elle/TitoAudios/jungle-party.mp3" },
+  { name: "Happy Rock", path: "/elle/TitoAudios/happy-rock.mp3" },
+  { name: "Energetic Rock", path: "/elle/TitoAudios/energetic-rock.mp3" },
+  { name: "Pop", path: "/elle/TitoAudios/pop-summer.mp3" },
+  { name: "Techno", path: "/elle/TitoAudios/techno.mp3" },
+  { name: "HipHop", path: "/elle/TitoAudios/hiphop.mp3" },
+  { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3"},
+  { name: "Smooth Jazz", path: "/elle/TitoAudios/jazz-smooth.mp3" },
+  { name: "Lofi", path: "/elle/TitoAudios/lofi-groovy.mp3" }
 ];
 
-export default function ModuleButton(props: propsInterface) {
 
-  function handleApplyClick() {
+interface Song {
+  name: string;
+  path: string;
+}
 
-    props.apply();
+interface propsInterface{
+  isPlaying: boolean[];  // Accepting an array of booleans
+  volume: number;
+  playList: { name: string; path: string }[];
+  onSetPlaylist: (song: Song[]) => void;
+  onApply: () => void;
+  apply: () => void;
+}
+
+
+
+
+export default function Settings(props: propsInterface) {
+  const { isPlaying, volume, playList, onSetPlaylist, onApply} = props;
+
+  const [playlist, setPlaylist] = useState<Song[]>([])
+  
+  const handleApplyClick = () => {
+    onSetPlaylist(playlist);
   }
-  
-  // Music
-  
-  const [isPlaying, setIsPlaying] = useState<boolean[]>(Array(songList.length).fill(false));
 
-  const toggleMusic = (index: number) => {
-    setIsPlaying((prev) =>
-      prev.map((state, i) => (i === index ? !state : state))
-    );
-  };
+  const addToPlaylist = (song: Song) => {
+    if (!playlist.some((s) => s.path === song.path)) {
+      setPlaylist((prev) => [...prev, song]);
+    }
+  }
 
   return (
     <div className="absolute top-0 left-0 w-full h-full bg-[#35353580] z-50">
@@ -55,22 +67,18 @@ export default function ModuleButton(props: propsInterface) {
             <div className="select-none text-3xl p-2 ml-8 w-fit irish-grover">
               Music:
             </div>
-            <div className="p-2 ml-32 w-fit">
+            <div className="p-1 ml-32 w-fit">
               <div className="text-lg">Song List</div>
-              <div className="grid grid-cols-2 gap-x-20 gap-y-1 max-h-[10em]">{/* Songs container */}
-                    {songList.map((path, index) => (
-                        <div key={index} className="flex flex-nowrap">
-                        <input type="checkbox" className="mr-1" checked={isPlaying[index]} onChange={()=>toggleMusic(index)}/>
-                        <ReactHowler
-                          src={path} // use variable name
-                          playing={isPlaying[index]}
-                          loop={true} // Optional: set to true if you want the song to repeat
-                          volume={0.5} // Adjust volume (0 to 1)
-                        />
-                        <div className="w-[5em]">Song {index + 1}</div>
-                        <Image src={infoIcon} alt="Info"/>
-                        </div>
-                    ))}
+              <div className="grid grid-cols-2 gap-x-10 gap-y-1 max-h-[10em]">{/* Songs container */}
+                {songList.map((song, index) => (
+                  <div key={index} className="flex flex-nowrap">
+                    {/* Add preview song code using checked */}
+                  <input type="checkbox" className="mr-1" onChange={()=>addToPlaylist(song)}/>
+                  <div className="w-[5em] whitespace-nowrap">{song.name}</div>
+                  <Image src={infoIcon} alt="Info" className="gap-10"/>
+                </div>
+                  ))}
+                          
               </div>
               <div className="flex flex-nowrap w-full items-center mt-2 justify-between text-lg ">
                 <div className="mx-4">
@@ -95,7 +103,7 @@ export default function ModuleButton(props: propsInterface) {
             </select>
             </div>
           </div>
-          <button className="font-semibold select-none bg-[#997c54] text-4xl p-2 px-4 mt-8 rounded shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover" onClick={handleApplyClick}>
+          <button onClick={handleApplyClick} className="font-semibold select-none bg-[#997c54] text-4xl p-2 px-4 mt-8 rounded shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover">
             Apply
           </button>
         </div>

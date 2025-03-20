@@ -3,6 +3,7 @@
 //React imports
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/hooks/useAuth";
+import ReactHowler from 'react-howler';
 
 // Their CSS files
 import "@/public/static/css/style.css";
@@ -30,6 +31,20 @@ import { fetchModules } from "@/services/TitoService";
 import Image from "next/image";
 import ChatScreen from "@/components/TalkWithTito/ChatScreen";
 
+// Music List
+const songList = [ 
+  { name: "Ambient Jungle", path: "/elle/TitoAudios/ambient-jungle.mp3" },
+  { name: "Jungle Party", path: "/elle/TitoAudios/jungle-party.mp3" },
+  { name: "Happy Rock", path: "/elle/TitoAudios/happy-rock.mp3" },
+  { name: "Energetic Rock", path: "/elle/TitoAudios/energetic-rock.mp3" },
+  { name: "Pop", path: "/elle/TitoAudios/pop-summer.mp3" },
+  { name: "Techno", path: "/elle/TitoAudios/techno.mp3" },
+  { name: "HipHop", path: "/elle/TitoAudios/hiphop.mp3" },
+  { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3"},
+  { name: "Smooth Jazz", path: "/elle/TitoAudios/jazz-smooth.mp3" },
+  { name: "Lofi", path: "/elle/TitoAudios/lofi-groovy.mp3" }
+];
+
 export default function TalkWithTito() {
 
   const titoStatements: string[] = ['Tito is creating a new dish...', 'Tito is freshening up...', 'Tito is taking a nap...'];
@@ -45,6 +60,11 @@ export default function TalkWithTito() {
     moduleID: number;
     name: String;
     language: String;
+  }
+
+  interface Song {
+    name: string;
+    path: string;
   }
 
   const [modules, setModules] = useState<Module[] | null>(
@@ -114,13 +134,68 @@ export default function TalkWithTito() {
 
     return () => clearInterval(interval);
   }, [index]);
+
+
+
+  // Music 
+
+  const [playlist, setPlaylist] = useState<Song[]>([]);
+  const [isPlaying, setIsPlaying] = useState<boolean[]>([]);
+  const [volume, setVolume] = useState(0.1);
+  const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
+  
+  // Function to set playlist from the one set in settings
+  const handlePlaylist = (songs: Song[]) => {
+    setPlaylist(songs);
+    setIsPlaying(new Array(songs.length).fill(false)); // Ensure all songs are paused
+    handlePlayGlobal();
+  };
+  
+  // Starts the playlist at the first song in the list
+  const handlePlayGlobal = () => {
+    if (playlist.length > 0) {
+      setCurrentSongIndex(0);
+      setIsPlaying(new Array(playlist.length).fill(false)); // Pause all songs
+      setIsPlaying((prev) => {
+        const newState = [...prev];
+        newState[0] = true;
+        return newState;
+      });
+    }
+    setSettingsOpen(false)
+  };
+  
+  // Will probably change this functional code as current song index is less applicable after bug fixes
+  const handleNextSong = () => {
+    setCurrentSongIndex((prev) => {
+      const nextIndex = (prev + 1) % playlist.length;
+      setIsPlaying(playlist.map((_, i) => i === nextIndex)); // Only play the next song
+      return nextIndex;
+    });
+  };
   
   return (
     <div className="talkwithtito-body">
+      {playlist.map((song, index) => (
+        <ReactHowler
+          key={song.path}
+          src={song.path}
+          playing={isPlaying[index]} // Ensure only one song plays at a time
+          loop={false}
+          volume={volume}
+          onEnd={handleNextSong}
+        />
+      ))}
       <div className="relative w-full mt-0 mb-8 flex justify-center py-2">
         <button onClick={handleLoading} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
         <div className="relative w-[60%] h-fit border-2 border-black">
-          {settingsOpen && <Settings apply={() => setSettingsOpen(false)} />}
+          {settingsOpen && <Settings
+            isPlaying={isPlaying}
+            volume={volume}
+            playList={playlist}
+            apply={() => setSettingsOpen(false)}
+            onSetPlaylist={handlePlaylist}
+            onApply={handlePlayGlobal}/>}
           {!playClicked ? (
             <>
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
