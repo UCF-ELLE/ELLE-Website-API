@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/hooks/useAuth";
 import ReactHowler from 'react-howler';
+import UserBackground from "@/components/TalkWithTito/UserBackground";
 
 // Their CSS files
 import "@/public/static/css/style.css";
@@ -227,7 +228,7 @@ export default function TalkWithTito() {
                 <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
                 font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover
                 shadow-[0px_4px_4px_rgba(0,0,0,0.3)]">
-                  Welcome, [username]
+                  Welcome, {user?.username ? user.username : "<username>"}
                 </div>
                 <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2" />
                 <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
@@ -238,16 +239,14 @@ export default function TalkWithTito() {
                 :
                 <>
                   <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-                    <ChatScreen moduleID={selectedModule} />
+                    <ChatScreen moduleID={selectedModule}/>
                   </div>
                 </>}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
                 <Image src={chatBackground} alt="Chat Background" className="game-background" />
                 <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between"> {/*Username div (top)*/}
                   <div className="h-[92.5%]">
-                    <div className="w-full h-[9.375%] py-[0.5em] flex justify-center irish-grover md:text-2xl border-b-2 border-white">
-                      [username]
-                    </div>
+                    <UserBackground username={user?.username}/> {/*TODO: Implement userBackground*/}
                     <div className="w-full h-[90.625%] flex flex-col items-center"> {/*Modules div (middle)*/}
                       <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
                       <div className="w-full flex overflow-y-auto flex-col items-center">
