@@ -229,7 +229,7 @@ function App(props: {}) {
         <div style={{
             display: 'block', width: 700, padding: 30
         }}>
-            <Button color="primary" size="lg"
+            <Button style={{ textAlign: "center", backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a" }} size="lg"
                 onClick={mainToggle}>Click Here to Play!</Button>
             <Modal isOpen={mainModal}
                 toggle={mainToggle}
