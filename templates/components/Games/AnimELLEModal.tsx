@@ -25,9 +25,15 @@ import { GameContext } from "@/components/Layouts/GameLayout";
 import { relative } from "path";
 
 function App(props: {}) {
-    const [modal, setModal] = React.useState(false);
+    const [mainModal, setMainModal] = React.useState(false);
+    const [exitModal, setExitModal] = React.useState(false);
 
-    const toggle = () => setModal(!modal);
+    const mainToggle = () => setMainModal(!mainModal);
+    const exitToggle = () => setExitModal(!exitModal);
+    const allToggle = () => {
+        setExitModal(!exitModal);
+        setMainModal(!mainModal);
+    }
 
     const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
@@ -224,9 +230,9 @@ function App(props: {}) {
             display: 'block', width: 700, padding: 30
         }}>
             <Button color="primary" size="lg"
-                onClick={toggle}>Click Here to Play!</Button>
-            <Modal isOpen={modal}
-                toggle={toggle}
+                onClick={mainToggle}>Click Here to Play!</Button>
+            <Modal isOpen={mainModal}
+                toggle={mainToggle}
                 modalTransition={{ timeout: 2000 }}
                 fullscreen={true}
                 zIndex={1050}
@@ -244,7 +250,9 @@ function App(props: {}) {
                 onOpened={openHandler}
                 unmountOnClose={unmountFlag}
             >
-                <ModalHeader toggle={toggle} style={{ background: 'transparent', border: 'none', padding: '2vh 1vw', position: 'absolute', zIndex: 1050 }}></ModalHeader>
+                <ModalHeader style={{ background: 'transparent', border: 'none', padding: '2vh 1vw', position: 'absolute', zIndex: 1050 }}>
+                    <Button style={{ textAlign: "center", backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a" }} size="sm" onClick={exitToggle}>Close Game</Button>
+                </ModalHeader>
                 <ModalBody className="flex" style={{
                     padding: 0,      // Remove padding
                     margin: 0,       // Remove margin
@@ -261,6 +269,20 @@ function App(props: {}) {
                         }}
                     />
                 </ModalBody>
+                <Modal isOpen={exitModal}
+                    toggle={exitToggle}
+                    modalTransition={{ timeout: 2000 }}
+                    scrollable={false}
+                    centered={true}
+                >
+                    <ModalHeader className="fs-4" style={{ backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a", borderStyle: "solid" }}>
+                        Are you sure you&apos;d like to exit?
+                    </ModalHeader>
+                    <ModalBody className="rounded-bottom" style={{ backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a", borderStyle: "solid" }}>
+                        <Button className="rounded shadow fs-5 border-2" style={{ backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a" }} onClick={allToggle}>Confirm</Button>
+                        <Button className="rounded shadow ms-1 fs-5 border-2" style={{ backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a" }} onClick={exitToggle}>Cancel</Button>
+                    </ModalBody>
+                </Modal>
                 <div
                     className="webglLoadingStatusBox"
                     style={{ display: isLoaded ? "none" : "block" }}
