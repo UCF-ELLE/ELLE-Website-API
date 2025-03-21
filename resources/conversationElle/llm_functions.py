@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
-from config import MAX_NEW_TOKENS, TEMPERATURE, TOP_K, TOP_P
-from config import model_path, get_main_prompt, english_prompt, identify_language_prompt, device, music_prompt, vocab_list, background_prompt, background_files, music_files
+from resources.conversationElle.config import MAX_NEW_TOKENS, TEMPERATURE, TOP_K, TOP_P
+from resources.conversationElle.config import model_path, get_main_prompt, english_prompt, identify_language_prompt, music_prompt, background_prompt, background_files, music_files
 import re
 import json
 import sys
