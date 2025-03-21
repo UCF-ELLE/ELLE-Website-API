@@ -116,7 +116,7 @@ export default function ChatScreen(props: propsInterface) {
 
     //Used to initialize chatbot
     useEffect(() => {
-        if(userLoading || !user) return; // Makes typescript happy :D
+        if(userLoading || !user || !termsLoaded) return; // Returns if not ready to execute
         const loadChatbot = async () => {
             const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
             if(newChatbot) {
@@ -134,11 +134,8 @@ export default function ChatScreen(props: propsInterface) {
             }
         }
         loadChatbot();
-    }, [props.moduleID, terms, user, user?.jwt, user?.userID, userLoading])
+    }, [user, userLoading, termsLoaded])
     
-
-    
-
     // Used to initialize chat messages
     useEffect(() => {
 
