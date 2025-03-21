@@ -25,11 +25,8 @@ interface Song {
 }
 
 interface propsInterface{
-  isPlaying: boolean[];  // Accepting an array of booleans
   volume: number;
-  playList: { name: string; path: string }[];
   onSetPlaylist: (song: Song[]) => void;
-  onApply: () => void;
   apply: () => void;
 }
 
@@ -37,7 +34,7 @@ interface propsInterface{
 
 
 export default function Settings(props: propsInterface) {
-  const { isPlaying, volume, playList, onSetPlaylist, onApply} = props;
+  const {volume, onSetPlaylist} = props;
 
   const [playlist, setPlaylist] = useState<Song[]>([])
   
