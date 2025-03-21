@@ -6,7 +6,7 @@ import re
 import json
 import sys
 import os
-import resources.conversationElle.llm_helpers as llm_helpers
+import resources.conversationElle.utils as utils
 import requests
 
 # Defining the API request and response formats.
