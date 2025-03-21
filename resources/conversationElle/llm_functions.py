@@ -1,52 +1,102 @@
-import string
-import config
-from chatServices import handleMessage
+from datetime import datetime
+from pydantic import BaseModel
+from config import MAX_NEW_TOKENS, TEMPERATURE, TOP_K, TOP_P
+from config import model_path, main_prompt, identify_language_prompt, device, music_prompt, vocab_list, background_prompt, background_files, music_files
+import re
+import json
+import sys
+import os
+import resources.conversationElle.llm_helpers as llm_helpers
+import requests
 
-def test_function(text: str) -> str:
-    translations = "Hola, this function was called"
-    return translations.get(text.lower())
+# Defining the API request and response formats.
+class GenerateRequest(BaseModel):
+    user_text: str
+    max_new_tokens: int = MAX_NEW_TOKENS
+    temperature: float = TEMPERATURE
+    top_k: int = TOP_K
+    top_p: float = TOP_P
 
-def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
-    '''
-    This function counts the words used in a given string and stores
-    the number of times each vocabulary word is used using a dictionary
-    data structure.
+class GenerateResponse(BaseModel):
+    generated_text: str
 
-    Parameters:
-        text: String corresponding to the text inputted to the LLM
-        vocab_list: List corresponding to the required vocabulary word list
-        vocab_dict: Dictionary of existing word usage from previous sessions
+def getUserBackground(vocab_list: str):
+    """
+    Returns a filename in the background folder with name that
+    is the most similar to the words in the vocab list.
+    """
+    try:
+        response = handle_message(vocab_list, background_prompt)
+    except Exception as e:
+        return background_files[0]
 
-    Returns:
-        Dictionary in the form: {vocab_word: number of times used}
-    '''
-    # Initialize new dict
-    if vocab_dict == None:
-        vocab_dict = {word: 0 for word in vocab_list}
-    
-    # Case that teacher has added new words
-    if not len(vocab_dict.keys()) == len(vocab_list):
-        for word in vocab_list:
-            if word not in vocab_dict:
-                vocab_dict[word] = 0
-    
-    # Parse string to see if vocab word was used
-    clean_text = ''.join([char for char in text if char not in string.punctuation])
-    for word in clean_text.split(" "):
-        if word in vocab_list:
-            vocab_dict[word] += 1
-    
-    return vocab_dict
+    return response
 
-def grade_grammar(student_input: str):
-    '''
-    This function grades the use of the student's grammar in the chosen language.
-    '''
-    prompt = f"You are being given a sentence from a student. Grade the student's grammar on a scale of 1-10. \
-            The language the student is using is {config.language} Identify and explain any grammatical errors in the text. \
-            Explain your reasoning for the score you give the student. For each error, \
-            provide an example of the correct usage to help the student understand the mistake. Provide your feedback in the \
-            following format: Score: [your score]. Error: [Description of error]. Correction: [Corrected version]. \
-            Explanation: [Why it was wrong and how to fix it]. Here is the student's input: {student_input}"
-    
-    handleMessage(prompt)
+def getUserMusicChoice(vocab_list: str):
+    """
+    Returns a filename in the music folder with name that
+    is the most similar to the words in the vocab list.
+    """
+    try:
+        response = handle_message(vocab_list, music_prompt)
+    except Exception as e:
+        return music_files[0]
+
+    return response
+
+def handle_message(message: str, prompt: str) -> GenerateResponse:
+    """
+    Handles the incoming message and generates a response using the LLM.
+    """
+    # Construct the full prompt
+    full_prompt = f"Instruction: {prompt}\nUser: {message}\nAssistant:"
+    request = GenerateRequest(
+        user_text=full_prompt,
+        max_new_tokens=MAX_NEW_TOKENS,
+        temperature=TEMPERATURE,
+        top_k=TOP_K,
+        top_p=TOP_P
+    )
+
+    try:
+        response = requests.post(model_path, data=request)
+        print(response)
+    except Exception as e:
+        #raise HTTPException(status_code=500, detail="Failed to generate response")
+        print("Error")
+
+    return response
+
+def identify_language(message: str) -> GenerateResponse:
+    """
+    Identifies the language of the user input.
+    """
+    try:
+        response = handle_message(message, identify_language_prompt)
+    except Exception as e:
+        return "english"
+
+    return response
+
+# Root endpoint to test if the server is up
+@app.get("/")
+async def root():
+    return {"message": "Hola soy Tito!"}
+
+'''
+# Endpoint to generate text using the LLM
+@app.post("/generate", response_model=GenerateResponse)
+async def generate_text(request: GenerateRequest):
+    """
+    Generates text based on the user's input using the LLM.
+    """
+    try:
+        user = request.user_text
+
+        response = requests.post(model_path, data=request)
+        print(response)
+
+        return GenerateResponse(response)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+'''
