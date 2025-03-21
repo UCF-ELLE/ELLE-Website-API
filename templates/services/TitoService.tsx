@@ -123,7 +123,6 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
 };
 
 
-//TODO: Also send terms each time. Represents all vocab terms for a given module
 //terms: string[]
 interface SendMessageResponse {
   llmResponse: string;
@@ -132,11 +131,11 @@ interface SendMessageResponse {
 }
 
 // sendMessage (POST)
-export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, userValue: string, terms: string[]): Promise<SendMessageResponse | null> => {
+export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, userValue: string, terms: string[], termsUsed: string[]): Promise<SendMessageResponse | null> => {
   try {
     const response = await axios.post(
       `${ELLE_URL}/chat/messages`,
-      { "userId": userId, "chatbotId": chatbotId, "moduleId": moduleId, "userValue": userValue, "terms": terms },
+      { "userId": userId, "chatbotId": chatbotId, "moduleId": moduleId, "userValue": userValue, "terms": terms , "termsUsed": termsUsed},
       {
         headers: { Authorization: `Bearer ${access_token}` }
       }

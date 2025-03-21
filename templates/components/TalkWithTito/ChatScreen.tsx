@@ -60,7 +60,7 @@ export default function ChatScreen(props: propsInterface) {
         setUserMessage("");
 
         //Calls API
-        const sendMessageResponse = await sendMessage(user.jwt, user.userID, chatbotId, props.moduleID, userMessage, terms.map(term => term.questionBack));
+        const sendMessageResponse = await sendMessage(user.jwt, user.userID, chatbotId, props.moduleID, userMessage, terms.map(term => term.questionBack), terms.filter(term => term.used === true).map(term => term.questionBack));
 
         //Makes sure API call is succesful (it returns null if it isn't)
         if(sendMessageResponse) {
