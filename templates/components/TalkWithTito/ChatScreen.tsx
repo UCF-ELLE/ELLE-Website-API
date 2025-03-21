@@ -22,6 +22,7 @@ import Messages from "./Messages"
 
 interface propsInterface {
     moduleID: number;
+    setUserBackgroundFilepath: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function ChatScreen(props: propsInterface) {
@@ -121,6 +122,9 @@ export default function ChatScreen(props: propsInterface) {
             const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
             if(newChatbot) {
                 setChatbotId(newChatbot.chatbotId);
+                if(newChatbot.userBackground) {
+                    props.setUserBackgroundFilepath(newChatbot.userBackground);
+                }
                 const newTerms: Term[] = terms.map(term => ({
                     termID: term.termID,
                     questionFront: term.questionBack,
