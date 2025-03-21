@@ -23,13 +23,15 @@ class ChatbotSessions(Resource):
             userBackground = getUserBackground(terms)
             userMusicChoice = getUserMusicChoice(terms)
 
+            '''
             response = jsonify({
                 "chatbotSession": chatbotSession,
                 "userBackground": userBackground,
                 "userMusicChoice": userMusicChoice
             })
-
-            return response, statusCode
+            '''
+            jsonify(chatbotSession)
+            return chatbotSession, statusCode
         except Exception as error:
             print(f"Error: {str(error)}")
             return {"error": "error"}, 500
