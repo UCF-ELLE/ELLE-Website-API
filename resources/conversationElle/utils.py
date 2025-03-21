@@ -1,5 +1,4 @@
 import string
-from resources.conversationElle.llm_functions import handle_message
 
 def begin_function(text: str) -> str:
     return "Hello, my name is Tito! What would you like to talk about today? Please make sure to chat in the language your professor assigned!"
@@ -36,17 +35,3 @@ def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
     
     return vocab_dict
 
-json_string = "Score: [your score]. Error: [Description of error]. Correction: [Corrected version]. \
-            Explanation: [Why it was wrong and how to fix it]."
-
-def grade_grammar(student_input: str, language: str):
-    '''
-    This function grades the use of the student's grammar in the chosen language.
-    '''
-    prompt = f"You are being given a sentence from a student. Grade the student's grammar on a scale of 1-10. \
-            The language the student is using is {language}. Identify and explain any grammatical errors in the text. \
-            Explain your reasoning for the score you give the student. For each error, \
-            provide an example of the correct usage to help the student understand the mistake. Provide your feedback in the \
-            following JSON format: {json_string}"
-    
-    handle_message(student_input, prompt)

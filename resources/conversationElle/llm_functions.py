@@ -1,12 +1,11 @@
 from datetime import datetime
 from pydantic import BaseModel
 from resources.conversationElle.config import MAX_NEW_TOKENS, TEMPERATURE, TOP_K, TOP_P
-from resources.conversationElle.config import model_path, get_main_prompt, english_prompt, identify_language_prompt, music_prompt, background_prompt, background_files, music_files
+from resources.conversationElle.config import model_path, get_main_prompt, english_prompt, identify_language_prompt, get_grammar_grading_prompt,  music_prompt, background_prompt, background_files, music_files
 import re
 import json
 import sys
 import os
-from resources.conversationElle.utils import grade_grammar, count_words
 import requests
 
 # Defining the API request and response formats.
@@ -61,7 +60,7 @@ def handle_message(message: str, prompt=None):
         else:
             prompt = get_main_prompt(language)
             response = generate_message(message, prompt)
-            grade = grade_grammar(message, language)
+            grade = generate_message(message, get_grammar_grading_prompt(language))
             return {"generated_text": response, "grammar_grading": grade}
 
 
