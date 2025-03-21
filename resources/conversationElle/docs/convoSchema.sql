@@ -20,7 +20,6 @@ CREATE TABLE `messages` (
     `value` TEXT NOT NULL,
     `metadata` JSON NOT NULL,
     `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (`chatbotId`) REFERENCES `chatbotSessions`(`chatbotId`) ON DELETE CASCADE
-    FOREIGN KEY (`userId`) REFERENCES `user`(`userId`) ON DELETE CASCADE,
+    FOREIGN KEY (`chatbotId`) REFERENCES `chatbot_sessions`(`chatbotId`) ON DELETE CASCADE,
+    FOREIGN KEY (`userId`) REFERENCES `user`(`userId`) ON DELETE CASCADE
 );
-
