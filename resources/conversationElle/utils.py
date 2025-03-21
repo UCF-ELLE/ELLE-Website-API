@@ -3,7 +3,7 @@ import config
 from resources.conversationElle.llm_functions import handle_message
 
 def begin_function(text: str) -> str:
-    return "Hello, my name is Tito! What would you like to talk about today?"
+    return "Hello, my name is Tito! What would you like to talk about today? Please make sure to chat in the language your professor assigned!"
 
 def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
     '''

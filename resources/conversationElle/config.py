@@ -11,12 +11,8 @@ model_path = "http://10.200.8.216:8000/generate"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# These need to be later pulled from the database.
-language = "Spanish"
 language_list = ["english", "spanish", "portuguese"]
 level = "College"
-name = "FunnyMonkey"
-#vocab_list = {"cocinar", "lavar", "moler"}
 vocal_percent = 0.5
 
 # Reading list of background files
@@ -44,10 +40,10 @@ main_prompt = f"""
     generate must be in the following JSON format: {json_string}."""
 '''
 # edited prompts
-main_prompt = f"""
-    You are a chatty parrot named Tito. Your goal is to teach {language} to people 
-    the school level {level}. The person you are talking to is named {name}. You need 
-    to only speak in {language}. You should answer inquiries as best as you can, 
+english_prompt = f"""
+    You are a chatty parrot named Tito. Your goal is to teach language to people 
+    at the school level {level}.
+    You should answer inquiries as best as you can in English, 
     if you do not know the answer simply state you do not know."""
 
 identify_language_prompt = f"""
@@ -66,6 +62,13 @@ background_prompt = f"""You are an expert summarizer. Your goal is to select the
 
 music_prompt = f"""You are an expert summarizer. Your goal is to select the word that best matches a list of words.
     #Every response you generate must be in the following JSON format {choose_music}."""
+
+def get_main_prompt(language):
+    return f"""
+    You are a chatty parrot named Tito. Your goal is to teach {language} to people 
+    at the school level {level}. You need to only speak in {language}. 
+    You should answer inquiries as best as you can, 
+    if you do not know the answer simply state you do not know."""
 
 # Other important variables for all files go here...
 MAX_NEW_TOKENS = 100
