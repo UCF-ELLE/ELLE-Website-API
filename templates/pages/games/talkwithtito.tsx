@@ -241,7 +241,7 @@ export default function TalkWithTito() {
                 <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between"> {/*Username div (top)*/}
                   <div className="h-[92.5%]">
                     <UserBackground username={user?.username}/> {/*TODO: Implement userBackground*/}
-                    <div className="w-full h-[90.625%] flex flex-col items-center"> {/*Modules div (middle)*/}
+                    <div className="w-full h-[71.75%] flex flex-col items-center"> {/*Modules div (middle)*/}
                       <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
                       <div className="w-full flex overflow-y-auto flex-col items-center">
                         {modules?.map((module: Module, index) => (
