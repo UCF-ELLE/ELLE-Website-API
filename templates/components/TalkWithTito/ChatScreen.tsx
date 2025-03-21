@@ -137,13 +137,23 @@ export default function ChatScreen(props: propsInterface) {
     }, [props.moduleID, terms, user, user?.jwt, user?.userID, userLoading])
     
 
+    
+
     // Used to initialize chat messages
     useEffect(() => {
+
+        //Instruction message
+        const instructionMessage: ChatMessage = {
+            value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. View the vocab list on the right for a list of terms which we can chat about. Try to use them each in a sentence atleast once, then they will be crossed off to indicate you've used them correctly.`,
+            timestamp: "",
+            source: "llm"
+        }
+
         if(userLoading || !user || !chatbotId) return; // Makes typescript happy :D
         const loadMessages = async () => {
             const newMessages = await getMessages(user.jwt, user.userID, chatbotId);
             if(newMessages) {
-                setChatMessages(newMessages);
+                setChatMessages([instructionMessage, ...newMessages]);
             }
             else {
                 console.log("Error getting messages");
