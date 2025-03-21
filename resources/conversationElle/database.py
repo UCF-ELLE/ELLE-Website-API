@@ -65,14 +65,15 @@ def insertMessages(userId, chatbotId, moduleId, userValue, llmValue):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
+        metadata = {}
 
         query = """
-        INSERT INTO messages (userId, chatbotId, moduleId, source, value)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO messages (userId, chatbotId, moduleId, source, value, metadata)
+        VALUES (%s, %s, %s, %s, %s, %s)
         """
         messages = [
-            (userId, chatbotId, moduleId, 'user', userValue),
-            (userId, chatbotId, moduleId, 'llm', llmValue),
+            (userId, chatbotId, moduleId, 'user', userValue, json.dumps(metadata)),
+            (userId, chatbotId, moduleId, 'llm', llmValue, json.dumps(metadata)),
         ]
 
         cursor.executemany(query, messages)
@@ -229,31 +230,4 @@ def UpdateTermsUsed(chatbotId, userId, moduleId, termData):
         if conn.open:
             cursor.close()
             conn.close()
-
-# test helper function to replicate what termsUsed looks like (module words the user
-# has used and LLM marked as correct)
-def getTermData(chatbotId, userId, moduleId):
-    termData = {
-        "userId": userId,
-        "moduleId": moduleId,
-        "chatbotId": chatbotId,
-        "termsUsed": [
-            {
-                "termId": 1,
-                "termName": "pans",
-                "termModuleId": moduleId,
-                "moduleName": "kitchen items",
-                "timesUsed": 1
-            },
-            {
-                "termId": 2,
-                "termName": "knife",
-                "termModuleId": moduleId,
-                "moduleName": "kitchen items",
-                "timesUsed": 2
-            }
-        ]
-    }
-    
-    return termData
 

@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/hooks/useAuth";
 import ReactHowler from 'react-howler';
+import UserBackground from "@/components/TalkWithTito/UserBackground";
 
 // Their CSS files
 import "@/public/static/css/style.css";
@@ -32,18 +33,18 @@ import Image from "next/image";
 import ChatScreen from "@/components/TalkWithTito/ChatScreen";
 
 // Music List
-const songList = [ 
-  { name: "Ambient Jungle", path: "/elle/TitoAudios/ambient-jungle.mp3" },
-  { name: "Jungle Party", path: "/elle/TitoAudios/jungle-party.mp3" },
-  { name: "Happy Rock", path: "/elle/TitoAudios/happy-rock.mp3" },
-  { name: "Energetic Rock", path: "/elle/TitoAudios/energetic-rock.mp3" },
-  { name: "Pop", path: "/elle/TitoAudios/pop-summer.mp3" },
-  { name: "Techno", path: "/elle/TitoAudios/techno.mp3" },
-  { name: "HipHop", path: "/elle/TitoAudios/hiphop.mp3" },
-  { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3"},
-  { name: "Smooth Jazz", path: "/elle/TitoAudios/jazz-smooth.mp3" },
-  { name: "Lofi", path: "/elle/TitoAudios/lofi-groovy.mp3" }
-];
+// const songList = [ 
+//   { name: "Ambient Jungle", path: "/elle/TitoAudios/ambient-jungle.mp3" },
+//   { name: "Jungle Party", path: "/elle/TitoAudios/jungle-party.mp3" },
+//   { name: "Happy Rock", path: "/elle/TitoAudios/happy-rock.mp3" },
+//   { name: "Energetic Rock", path: "/elle/TitoAudios/energetic-rock.mp3" },
+//   { name: "Pop", path: "/elle/TitoAudios/pop-summer.mp3" },
+//   { name: "Techno", path: "/elle/TitoAudios/techno.mp3" },
+//   { name: "HipHop", path: "/elle/TitoAudios/hiphop.mp3" },
+//   { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3"},
+//   { name: "Smooth Jazz", path: "/elle/TitoAudios/jazz-smooth.mp3" },
+//   { name: "Lofi", path: "/elle/TitoAudios/lofi-groovy.mp3" }
+// ];
 
 export default function TalkWithTito() {
 
@@ -84,7 +85,9 @@ export default function TalkWithTito() {
 
     //Tito pop in
     setTimeout(() => {
-      setIsLoading(!isLoading);
+      if (user?.userID === 1){
+        setIsLoading(!isLoading);
+      }
       setIsFading(false); // Restore opacity
     }, 700);
 
@@ -97,7 +100,9 @@ export default function TalkWithTito() {
         setModules(modules);
       };
       loadModules();
-      setIsLoading(false);
+      if (user?.userID === 1){
+        setIsLoading(false);
+      }
     }
   }, [user, userLoading]);
 
@@ -140,28 +145,13 @@ export default function TalkWithTito() {
   // Music 
 
   const [playlist, setPlaylist] = useState<Song[]>([]);
-  const [isPlaying, setIsPlaying] = useState<boolean[]>([]);
-  const [volume, setVolume] = useState(0.1);
+  const [volume, setVolume] = useState(0.1); // Set volume to be changeable by user later
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
   
-  // Function to set playlist from the one set in settings
+  // Function to set playlist, start song, and close
   const handlePlaylist = (songs: Song[]) => {
     setPlaylist(songs);
-    setIsPlaying(new Array(songs.length).fill(false)); // Ensure all songs are paused
-    handlePlayGlobal();
-  };
-  
-  // Starts the playlist at the first song in the list
-  const handlePlayGlobal = () => {
-    if (playlist.length > 0) {
-      setCurrentSongIndex(0);
-      setIsPlaying(new Array(playlist.length).fill(false)); // Pause all songs
-      setIsPlaying((prev) => {
-        const newState = [...prev];
-        newState[0] = true;
-        return newState;
-      });
-    }
+    setCurrentSongIndex(0);
     setSettingsOpen(false)
   };
   
@@ -169,7 +159,6 @@ export default function TalkWithTito() {
   const handleNextSong = () => {
     setCurrentSongIndex((prev) => {
       const nextIndex = (prev + 1) % playlist.length;
-      setIsPlaying(playlist.map((_, i) => i === nextIndex)); // Only play the next song
       return nextIndex;
     });
   };
@@ -180,7 +169,7 @@ export default function TalkWithTito() {
         <ReactHowler
           key={song.path}
           src={song.path}
-          playing={isPlaying[index]} // Ensure only one song plays at a time
+          playing={index === currentSongIndex}
           loop={false}
           volume={volume}
           onEnd={handleNextSong}
@@ -190,12 +179,9 @@ export default function TalkWithTito() {
         <button onClick={handleLoading} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
         <div className="relative w-[60%] h-fit border-2 border-black">
           {settingsOpen && <Settings
-            isPlaying={isPlaying}
             volume={volume}
-            playList={playlist}
             apply={() => setSettingsOpen(false)}
-            onSetPlaylist={handlePlaylist}
-            onApply={handlePlayGlobal}/>}
+            onSetPlaylist={handlePlaylist}/>}
           {!playClicked ? (
             <>
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
@@ -236,7 +222,7 @@ export default function TalkWithTito() {
                 <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
                 font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover
                 shadow-[0px_4px_4px_rgba(0,0,0,0.3)]">
-                  Welcome, [username]
+                  Welcome, {user?.username ? user.username : "<username>"}
                 </div>
                 <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2" />
                 <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
@@ -247,16 +233,14 @@ export default function TalkWithTito() {
                 :
                 <>
                   <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-                    <ChatScreen moduleID={selectedModule} />
+                    <ChatScreen moduleID={selectedModule}/>
                   </div>
                 </>}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
                 <Image src={chatBackground} alt="Chat Background" className="game-background" />
                 <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between"> {/*Username div (top)*/}
                   <div className="h-[92.5%]">
-                    <div className="w-full h-[9.375%] py-[0.5em] flex justify-center irish-grover md:text-2xl border-b-2 border-white">
-                      [username]
-                    </div>
+                    <UserBackground username={user?.username}/> {/*TODO: Implement userBackground*/}
                     <div className="w-full h-[90.625%] flex flex-col items-center"> {/*Modules div (middle)*/}
                       <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
                       <div className="w-full flex overflow-y-auto flex-col items-center">

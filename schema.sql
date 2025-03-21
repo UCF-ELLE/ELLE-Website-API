@@ -526,7 +526,48 @@ CREATE TABLE `user_preferences` (
   `vrGloveColor` varchar(15) NOT NULL DEFAULT 'Brown'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
+-- --------------------------------------------------------
+
 --
+-- Table structure for table `messages`
+--
+--
+
+CREATE TABLE `messages` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `userId` INT NOT NULL,
+    `chatbotId` INT NOT NULL,
+    `moduleId` INT NOT NULL,
+    `source` ENUM('llm', 'user') NOT NULL,
+    `value` TEXT NOT NULL,
+    `metadata` JSON NOT NULL,
+    `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`chatbotId`) REFERENCES `chatbot_sessions`(`chatbotId`) ON DELETE CASCADE,
+    FOREIGN KEY (`userId`) REFERENCES `user`(`userId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chatbot_sessions`
+--
+--
+
+CREATE TABLE `chatbot_sessions` (
+    `chatbotId` INT AUTO_INCREMENT PRIMARY KEY,              
+    `userId` INT NOT NULL,
+    `moduleId` INT NOT NULL,                                 
+    `totalTimeChatted` FLOAT NOT NULL, 
+    `wordsUsed` INT NOT NULL DEFAULT 0,                      
+    `totalWordsForModule` INT NOT NULL,                    
+    `grade` FLOAT NOT NULL,  
+    `termsUsed` JSON NOT NULL, 
+    `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`userId`) REFERENCES `user`(`userId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
 -- Indexes for dumped tables
 --
 

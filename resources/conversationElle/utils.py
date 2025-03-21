@@ -1,10 +1,9 @@
 import string
 import config
-from resources.conversationElle.llm_functions import handleMessage
+from resources.conversationElle.llm_functions import handle_message
 
-def test_function(text: str) -> str:
-    translations = "Hola, this function was called"
-    return translations.get(text.lower())
+def begin_function(text: str) -> str:
+    return "Hello, my name is Tito! What would you like to talk about today?"
 
 def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
     '''
@@ -49,4 +48,4 @@ def grade_grammar(student_input: str):
             following format: Score: [your score]. Error: [Description of error]. Correction: [Corrected version]. \
             Explanation: [Why it was wrong and how to fix it]. Here is the student's input: {student_input}"
     
-    handleMessage(prompt)
+    handle_message(prompt)
