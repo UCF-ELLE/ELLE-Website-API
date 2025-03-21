@@ -176,7 +176,8 @@ export default function TalkWithTito() {
         />
       ))}
       <div className="relative w-full mt-0 mb-8 flex justify-center py-2">
-        <button onClick={handleLoading} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />
+        {/*Blue button (isLoading toggle for testing)*/}
+        {/*<button onClick={handleLoading} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />*/}
         <div className="relative w-[60%] h-fit border-2 border-black">
           {settingsOpen && <Settings
             volume={volume}
