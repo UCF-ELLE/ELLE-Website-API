@@ -25,6 +25,7 @@ CREATE TABLE `messages` (
     `moduleId` INT NOT NULL,
     `source` ENUM('llm', 'user') NOT NULL,
     `value` TEXT NOT NULL,
+    `metadata` JSON DEFAULT ('{}'),
     `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`chatbotId`) REFERENCES `chatbotSessions`(`chatbotId`) ON DELETE CASCADE
     FOREIGN KEY (`userId`) REFERENCES `user`(`userId`) ON DELETE CASCADE,
