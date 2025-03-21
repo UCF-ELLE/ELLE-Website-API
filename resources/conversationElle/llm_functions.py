@@ -6,7 +6,7 @@ import re
 import json
 import sys
 import os
-import resources.conversationElle.utils as utils
+from resources.conversationElle.utils import grade_grammar, count_words
 import requests
 
 # Defining the API request and response formats.
@@ -22,22 +22,27 @@ def GenerateRequest(user_text, max_new_tokens=MAX_NEW_TOKENS, temperature=TEMPER
 #class GenerateResponse(BaseModel):
 #    generated_text: str
 
-def identify_language(message: str):
-    """
-    Identifies the language of the user input.
-    """
-    
-    full_prompt = f"Instruction: {identify_language_prompt}\nUser: {message}\nAssistant:"
+def generate_message(message, prompt):
+    full_prompt = f"Instruction: {prompt}\nUser: {message}\nAssistant:"
     request = GenerateRequest(user_text=full_prompt)
 
     try:
         response = requests.post(model_path, data=request)
         print(response)
     except Exception as e:
-        return "english"
+        #raise HTTPException(status_code=500, detail="Failed to generate response")
+        print("Error")
 
     return response
 
+
+def identify_language(message: str):
+    """
+    Identifies the language of the user input.
+    """
+
+    return generate_message(message, identify_language_prompt)
+    
 
 def handle_message(message: str, prompt=None):
     """
@@ -52,20 +57,12 @@ def handle_message(message: str, prompt=None):
 
         if language == "english":
             prompt = english_prompt
+            return generate_message(message, prompt)
         else:
             prompt = get_main_prompt(language)
-
-    full_prompt = f"Instruction: {prompt}\nUser: {message}\nAssistant:"
-    request = GenerateRequest(user_text=full_prompt)
-
-    try:
-        response = requests.post(model_path, data=request)
-        print(response)
-    except Exception as e:
-        #raise HTTPException(status_code=500, detail="Failed to generate response")
-        print("Error")
-
-    return response
+            response = generate_message(message, prompt)
+            grade = grade_grammar(message, language)
+            return {"generated_text": response, "grammar_grading": grade}
 
 
 def getUserBackground(vocab_list: str):
