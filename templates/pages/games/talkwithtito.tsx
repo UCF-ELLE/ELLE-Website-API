@@ -147,21 +147,12 @@ export default function TalkWithTito() {
   // Function to set playlist from the one set in settings
   const handlePlaylist = (songs: Song[]) => {
     setPlaylist(songs);
-    setIsPlaying(new Array(songs.length).fill(false)); // Ensure all songs are paused
-    handlePlayGlobal();
-  };
-  
-  // Starts the playlist at the first song in the list
-  const handlePlayGlobal = () => {
-    if (playlist.length > 0) {
-      setCurrentSongIndex(0);
-      setIsPlaying(new Array(playlist.length).fill(false)); // Pause all songs
-      setIsPlaying((prev) => {
-        const newState = [...prev];
-        newState[0] = true;
-        return newState;
-      });
-    }
+    setIsPlaying(() => {
+      const newState = new Array(playlist.length).fill(false); // Reset state properly
+      if (playlist.length > 0) newState[0] = true; // Start the first song
+      return newState;
+    });
+    setCurrentSongIndex(0);
     setSettingsOpen(false)
   };
   
@@ -180,7 +171,7 @@ export default function TalkWithTito() {
         <ReactHowler
           key={song.path}
           src={song.path}
-          playing={isPlaying[index]} // Ensure only one song plays at a time
+          playing={index === currentSongIndex}
           loop={false}
           volume={volume}
           onEnd={handleNextSong}
