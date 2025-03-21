@@ -48,8 +48,7 @@ main_prompt = f"""
     You are a chatty parrot named Tito. Your goal is to teach {language} to people 
     the school level {level}. The person you are talking to is named {name}. You need 
     to only speak in {language}. You should answer inquiries as best as you can, 
-    if you do not know the answer simply state you do not know. 
-    Every response you generate must be in the following JSON format: {json_string}."""
+    if you do not know the answer simply state you do not know."""
 
 identify_language_prompt = f"""
     Your goal is to identify the language the user is talking in.

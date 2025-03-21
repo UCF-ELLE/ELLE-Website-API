@@ -20,6 +20,32 @@ class GenerateRequest(BaseModel):
 class GenerateResponse(BaseModel):
     generated_text: str
 
+def handle_message(message: str, prompt=None) -> GenerateResponse:
+    """
+    Handles the incoming message and generates a response using the LLM.
+    """
+    # Construct the full prompt
+    if prompt == None:
+        prompt = main_prompt
+
+    full_prompt = f"Instruction: {prompt}\nUser: {message}\nAssistant:"
+    request = GenerateRequest(
+        user_text=full_prompt,
+        max_new_tokens=MAX_NEW_TOKENS,
+        temperature=TEMPERATURE,
+        top_k=TOP_K,
+        top_p=TOP_P
+    )
+
+    try:
+        response = requests.post(model_path, data=request)
+        print(response)
+    except Exception as e:
+        #raise HTTPException(status_code=500, detail="Failed to generate response")
+        print("Error")
+
+    return response
+
 def getUserBackground(vocab_list: str):
     """
     Returns a filename in the background folder with name that
@@ -41,29 +67,6 @@ def getUserMusicChoice(vocab_list: str):
         response = handle_message(vocab_list, music_prompt)
     except Exception as e:
         return music_files[0]
-
-    return response
-
-def handle_message(message: str, prompt: str) -> GenerateResponse:
-    """
-    Handles the incoming message and generates a response using the LLM.
-    """
-    # Construct the full prompt
-    full_prompt = f"Instruction: {prompt}\nUser: {message}\nAssistant:"
-    request = GenerateRequest(
-        user_text=full_prompt,
-        max_new_tokens=MAX_NEW_TOKENS,
-        temperature=TEMPERATURE,
-        top_k=TOP_K,
-        top_p=TOP_P
-    )
-
-    try:
-        response = requests.post(model_path, data=request)
-        print(response)
-    except Exception as e:
-        #raise HTTPException(status_code=500, detail="Failed to generate response")
-        print("Error")
 
     return response
 
