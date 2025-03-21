@@ -268,14 +268,6 @@ function App(props: {}) {
                             display: isLoaded ? 'block' : 'none', // Only display when loaded
                         }}
                     />
-                    <div
-                        className="webglLoadingStatusBox"
-                        style={{ display: isLoaded ? "none" : "block", position: 'absolute', top: '50%', left: '50%' }}
-                    >
-                        <p className="webglLoadingStatusText">
-                            Loading {Math.round(loadingProgression * 100)}%
-                        </p>
-                    </div>
                 </ModalBody>
                 <Modal isOpen={exitModal}
                     toggle={exitToggle}
@@ -291,6 +283,14 @@ function App(props: {}) {
                         <Button className="rounded shadow ms-1 fs-5 border-2" style={{ backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a" }} onClick={exitToggle}>Cancel</Button>
                     </ModalBody>
                 </Modal>
+                <div
+                    className="webglLoadingStatusBox"
+                    style={{ display: isLoaded ? "none" : "block", position: 'absolute', top: '50%', left: '50%' }}
+                >
+                    <p className="webglLoadingStatusText">
+                        Loading {Math.round(loadingProgression * 100)}%
+                    </p>
+                </div>
             </Modal>
         </div >
     );
