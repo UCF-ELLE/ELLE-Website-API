@@ -65,15 +65,15 @@ def insertMessages(userId, chatbotId, moduleId, userValue, llmValue):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-        metadata = {}
+        metadata = json.dumps([])
 
         query = """
         INSERT INTO messages (userId, chatbotId, moduleId, source, value, metadata)
         VALUES (%s, %s, %s, %s, %s, %s)
         """
         messages = [
-            (userId, chatbotId, moduleId, 'user', userValue, json.dumps(metadata)),
-            (userId, chatbotId, moduleId, 'llm', llmValue, json.dumps(metadata)),
+            (userId, chatbotId, moduleId, 'user', userValue, metadata),
+            (userId, chatbotId, moduleId, 'llm', llmValue, metadata),
         ]
 
         cursor.executemany(query, messages)
@@ -133,7 +133,7 @@ def createNewChatbotSession(userId, moduleId):
         total_time_chatted = 0.0
         grade = 0.0
         wordsUsed = 0.0
-        terms_used = {}
+        terms_used = json.dumps([])
         total_words_for_module = 0
         vals = (
             userId,
