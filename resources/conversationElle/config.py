@@ -16,13 +16,13 @@ level = "College"
 vocal_percent = 0.5
 
 # Reading list of background files
-background_directory = "resources/conversationElle/assets/backgrounds"
+background_directory = "./resources/conversationElle/assets/backgrounds"
 background_files = os.listdir(background_directory)
 background_files = [f for f in background_files if os.path.isfile(background_directory+'/'+ f) and not '.py' in f]
 
 # Reading list of music files
 #music_directory = "./assets/music"
-music_directory = "templates/public/TitoAudios"
+music_directory = "./templates/public/TitoAudios"
 music_files = os.listdir(background_directory)
 music_files = [f for f in music_files if os.path.isfile(music_directory+'/'+ f) and not '.py' in f]
 
