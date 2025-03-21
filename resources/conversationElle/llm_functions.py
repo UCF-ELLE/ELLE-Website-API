@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 from config import MAX_NEW_TOKENS, TEMPERATURE, TOP_K, TOP_P
-from config import model_path, main_prompt, identify_language_prompt, device, music_prompt, vocab_list, background_prompt, background_files, music_files
+from config import model_path, main_prompt, english_prompt, identify_language_prompt, device, music_prompt, vocab_list, background_prompt, background_files, music_files
 import re
 import json
 import sys
@@ -26,7 +26,11 @@ def handle_message(message: str, prompt=None) -> GenerateResponse:
     """
     # Construct the full prompt
     if prompt == None:
-        prompt = main_prompt
+        language = identify_language(message)
+        if language == 'english':
+            prompt = english_prompt
+        else:
+            prompt = main_prompt
 
     full_prompt = f"Instruction: {prompt}\nUser: {message}\nAssistant:"
     request = GenerateRequest(
@@ -74,8 +78,19 @@ def identify_language(message: str) -> GenerateResponse:
     """
     Identifies the language of the user input.
     """
+    
+    full_prompt = f"Instruction: {identify_language_prompt}\nUser: {message}\nAssistant:"
+    request = GenerateRequest(
+        user_text=full_prompt,
+        max_new_tokens=MAX_NEW_TOKENS,
+        temperature=TEMPERATURE,
+        top_k=TOP_K,
+        top_p=TOP_P
+    )
+
     try:
-        response = handle_message(message, identify_language_prompt)
+        response = requests.post(model_path, data=request)
+        print(response)
     except Exception as e:
         return "english"
 
