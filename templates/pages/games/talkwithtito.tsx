@@ -55,6 +55,7 @@ export default function TalkWithTito() {
   const [playClicked, setPlayClicked] = useState<boolean>(false);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [userBackgroundFilepath, setUserBackgroundFilepath] = useState<string>("");
   const { user, loading: userLoading } = useUser();
 
   interface Module {
@@ -234,14 +235,14 @@ export default function TalkWithTito() {
                 :
                 <>
                   <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-                    <ChatScreen moduleID={selectedModule}/>
+                    <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath}/>
                   </div>
                 </>}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
                 <Image src={chatBackground} alt="Chat Background" className="game-background" />
                 <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between"> {/*Username div (top)*/}
                   <div className="h-[92.5%]">
-                    <UserBackground username={user?.username}/> {/*TODO: Implement userBackground*/}
+                    <UserBackground username={user?.username} backgroundFilepath={userBackgroundFilepath} /> {/*TODO: Implement userBackground*/}
                     <div className="w-full h-[71.75%] flex flex-col items-center"> {/*Modules div (middle)*/}
                       <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
                       <div className="w-full flex overflow-y-auto flex-col items-center">
