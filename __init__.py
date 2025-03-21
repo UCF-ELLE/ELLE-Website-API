@@ -120,6 +120,14 @@ from resources.mentors import (
 from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALValues
 from resources.animelle import AnimELLESaveData
 from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALValues
+
+from resources.conversationElle.conversation import(
+    ChatbotSessions,
+    Messages, 
+    UpdateChatGrade,
+    UpdateChatTime,
+)
+
 import config
 
 app = Flask(__name__, static_folder="templates/build", static_url_path="/")
@@ -331,6 +339,12 @@ api.add_resource(GetUserItemCSV, API_ENDPOINT_PREFIX + "store/user/items/logged/
 api.add_resource(UpdateALValue, API_ENDPOINT_PREFIX + "adaptivelearning/updatetermvalues")
 api.add_resource(GetSingleALValue, API_ENDPOINT_PREFIX + "adaptivelearning/gettermvalue")
 api.add_resource(GetALValues, API_ENDPOINT_PREFIX + "adaptivelearning/gettermlistvalues")
+
+# Elle Chat endpoints
+api.add_resource(Messages, API_ENDPOINT_PREFIX + "chat/messages")
+api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "chat/chatbot")
+api.add_resource(UpdateChatGrade, API_ENDPOINT_PREFIX + "chat/chatbot/<int:chatbotId>/grade")
+api.add_resource(UpdateChatTime, API_ENDPOINT_PREFIX + "chat/chatbot/<int:chatbotId>/time")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
