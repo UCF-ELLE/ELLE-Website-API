@@ -133,7 +133,7 @@ def createNewChatbotSession(userId, moduleId):
         total_time_chatted = 0.0
         grade = 0.0
         wordsUsed = 0.0
-        terms_used = "[]"  # empty for now
+        terms_used = {}
         total_words_for_module = 0
         vals = (
             userId,

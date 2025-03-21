@@ -2,7 +2,8 @@ from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required
 from .database import * 
-# from .llm import *
+from .llm_functions import *
+from .utils import *
 
 class ChatbotSessions(Resource):
     @jwt_required
@@ -18,20 +19,17 @@ class ChatbotSessions(Resource):
                 "chatbotId": chatbotSession.get("chatbotId"),
                 "termsUsed": chatbotSession.get("termsUsed"),
             }
+            
+            userBackground = getUserBackground(terms)
+            userMusicChoice = getUserMusicChoice(terms)
 
-            # various helper funcs imported from /llm/...
-            # syncVocabListWithLLM(terms)
-            # userBackground = getUserBackground()
-            # userMusicChoice = getUserMusicChoice()
-            # response = jsonify({
-            #     "chatbotSession": chatbotSession,
-            #     "userBackground": userBackground,
-            #     "userMusicChoice": userMusicChoice
-            # })
-            # return response, statusCode
+            response = jsonify({
+                "chatbotSession": chatbotSession,
+                "userBackground": userBackground,
+                "userMusicChoice": userMusicChoice
+            })
 
-            jsonify(chatbotSession)
-            return chatbotSession, statusCode
+            return response, statusCode
         except Exception as error:
             print(f"Error: {str(error)}")
             return {"error": "error"}, 500
@@ -63,21 +61,16 @@ class Messages(Resource):
         chatbotId = data.get('chatbotId')
         moduleId = data.get('moduleId')
         userValue = data.get('userValue')
+        termsUsed = data.get('termsUsed')
 
         try:
-            # We would need to import these from the LLM helper libraries
-            # currently mocking with dummy value below
-            # llmValue = getLLMResponse(value)
-            llmValue = "LLM response is currently WIP"
+            llmValue = handle_message(userValue)
 
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
 
-            # termsUsed = array of strings (of used words)
-            # termsUsed = checkTermsUsedLLM(termsUsed)
-
-            # checkAnalyticsLLM() -> this is the analytics feedback, needs to upload data DB after.
-            termsUsed = ["apple", "blueberry"]
+            # termsUsed = count_words(userValue, termsUsed)
+            termsUsed = []
 
             statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue)
 
