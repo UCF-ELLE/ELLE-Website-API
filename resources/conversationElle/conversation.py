@@ -20,8 +20,10 @@ class ChatbotSessions(Resource):
                 "termsUsed": chatbotSession.get("termsUsed"),
             }
             
-            userBackground = getUserBackground(terms)
-            userMusicChoice = getUserMusicChoice(terms)
+            #userBackground, userMusicChoice = getUserBackgroundandMusic(terms)
+            
+            #print("Background: ", userBackground)
+            #print("Music: ", userMusicChoice)
 
             '''
             response = jsonify({
@@ -67,6 +69,7 @@ class Messages(Resource):
 
         try:
             llmValue = handle_message(userValue)
+            print("LLM output in backend: ", llmValue)
 
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
@@ -80,6 +83,9 @@ class Messages(Resource):
                 "llmResponse": llmValue,
                 "termsUsed": termsUsed
             }
+            
+            print("Data: ", data)
+            print(statusCode)
 
             jsonify(data)
             return data, statusCode
