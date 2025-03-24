@@ -31,6 +31,7 @@ import { fetchModules } from "@/services/TitoService";
 
 import Image from "next/image";
 import ChatScreen from "@/components/TalkWithTito/ChatScreen";
+import AnalyticsMenu from "@/components/TalkWithTito/AnalyticsMenu";
 
 // Music List
 // const songList = [ 
@@ -56,6 +57,7 @@ export default function TalkWithTito() {
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [userBackgroundFilepath, setUserBackgroundFilepath] = useState<string>("");
+  const [analyticsActive, setAnalyticsActive] = useState<boolean>(false);
   const { user, loading: userLoading } = useUser();
 
   interface Module {
@@ -219,6 +221,7 @@ export default function TalkWithTito() {
                 {isLoading ? "Loading..." : "Play!"}
               </div>
             </>) : (<>
+              {analyticsActive && <AnalyticsMenu />}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {!selectedModule ? <>
                 <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
@@ -257,11 +260,12 @@ export default function TalkWithTito() {
                       </div>
                     </div>
                   </div>
-                  <div className="w-full h-[7.5%] flex justify-between items-center irish-grover md:text-2xl border-t-2 border-white"> {/*Exit div (bottom)*/}
-                    <button className="md:text-2xl ml-2 flex items-center py-3" onClick={handleExitClick}>
+                  <div className="w-full h-[7.5%] flex justify-between items-center irish-grover md:text-xl border-t-2 border-white"> {/*Exit div (bottom)*/}
+                    <button className="md:text-xl ml-2 flex items-center py-3" onClick={handleExitClick}>
                       <Image src={logoutIcon} alt="Exit" className="mr-2" />
                       <div className="hidden md:block">Exit Chat</div>
                     </button>
+                    <button onClick={() => setAnalyticsActive(!analyticsActive)}>Analytics📊</button>
                     <Image
                       src={settingsIcon}
                       alt="Settings"

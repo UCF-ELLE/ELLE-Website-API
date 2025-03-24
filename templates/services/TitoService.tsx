@@ -99,7 +99,7 @@ interface ChatMessage {
   value: string;
   timestamp: string;
   source: "user" | "llm";
-  metadata: {
+  metadata?: {
     score?: number;
     error?: string;
     correction?: string;
@@ -133,7 +133,7 @@ interface SendMessageResponse {
   llmResponse: string;
   termsUsed: string[];
   titoConfused?: boolean; //Optional for now
-  metadata: {
+  metadata?: {
     score?: number;
     error?: string;
     correction?: string;
