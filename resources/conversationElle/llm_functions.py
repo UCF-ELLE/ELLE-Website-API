@@ -74,8 +74,9 @@ def handle_message(message: str):
         response = response[response.index("{"):response.index("}")+1]
         response = ast.literal_eval(response)
         print("returned message: ", response)
-    except:
-        return "Sorry, Tito could not understand your message! Please try again."
+    except Exception as e:
+        print(e)
+        return {"response" : "Sorry, Tito could not understand your message! Please try again.", "score": 0}
     
     return response
         
