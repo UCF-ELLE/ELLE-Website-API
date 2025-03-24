@@ -151,7 +151,7 @@ export default function TalkWithTito() {
   // Music 
 
   const [playlist, setPlaylist] = useState<Song[]>([]);
-  const [volume, setVolume] = useState(0.1); // Set volume to be changeable by user later
+  const [volume, setVolume] = useState(0.4); // Set volume to be changeable by user later
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
   
   // Function to set playlist, start song, and close
@@ -309,6 +309,7 @@ export default function TalkWithTito() {
       <div className="info-container">
         <div className="info-box2 inter-font">
           <h1 className="inter-font">Image Credits</h1>
+          <p>Tito Images - Asher Moffitt</p>
           <p>Leaf Image - Josef Mikulcik (Pixabay)</p>
           <p>Palm Trees - Rama Widya (Pixabay)</p>
           <p>Palm Leaves - Clker-Free-Vector-Images (Pixabay)</p>
