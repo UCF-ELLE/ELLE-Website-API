@@ -23,6 +23,8 @@ import Messages from "./Messages"
 interface propsInterface {
     moduleID: number;
     setUserBackgroundFilepath: React.Dispatch<React.SetStateAction<string>>;
+    setTermScore: React.Dispatch<React.SetStateAction<string>>;
+    setAverageScore: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function ChatScreen(props: propsInterface) {
@@ -40,6 +42,12 @@ export default function ChatScreen(props: propsInterface) {
         value: string;
         timestamp: string;
         source: "user" | "llm";
+        metadata?: {
+          score?: number;
+          error?: string;
+          correction?: string;
+          explanation?: string;
+        }
     }
 
     const [terms, setTerms] = useState<Term[]>([]);
@@ -71,13 +79,15 @@ export default function ChatScreen(props: propsInterface) {
             const userResponse: ChatMessage = {
                 value: userMessage,
                 timestamp: new Date().toISOString(),
-                source: "user"
+                source: "user",
+                metadata: sendMessageResponse.metadata
             }
             //Appends llm response to chatMessages
             const llmMessage: ChatMessage = {
                 value: sendMessageResponse.llmResponse,
                 timestamp: new Date().toISOString(),
-                source: "llm"
+                source: "llm",
+                metadata: undefined //LLM Messages don't have metadata
             }
             setChatMessages((prevChatMessages) => [...prevChatMessages, userResponse, llmMessage]);
             //Update usedTerms
@@ -147,7 +157,8 @@ export default function ChatScreen(props: propsInterface) {
         const instructionMessage: ChatMessage = {
             value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. View the vocab list on the right for a list of terms which we can chat about. Try to use them each in a sentence atleast once, then they will be crossed off to indicate you've used them correctly.`,
             timestamp: "",
-            source: "llm"
+            source: "llm",
+            metadata: undefined
         }
 
         if(userLoading || !user || !chatbotId) return; // Makes typescript happy :D
@@ -162,7 +173,184 @@ export default function ChatScreen(props: propsInterface) {
         }
         loadMessages();
     }, [chatbotId, user, userLoading]);
+
+    //Used to update termScore
+    useEffect(() => {
+        const numTerms = terms.length;
+        const numUsedTerms = terms.filter(term => term.used).length;
+        props.setTermScore(numUsedTerms + " / " + numTerms);
+    }, [terms])
+
+    //Used to update averageScore
+    useEffect(() => {
+        const messagesWithScore = chatMessages.filter(message => message.metadata?.score !== undefined);
+        const averageScore = 
+            messagesWithScore.length > 0 ? 
+            messagesWithScore.reduce((sum, msg) => sum + (msg.metadata?.score || 0), 0) / messagesWithScore.length 
+            : 0;
+        props.setAverageScore(averageScore);
+        console.log(averageScore);
+    }, [chatMessages])
     
+    
+    
+    const testMessages: ChatMessage[] = [
+        {
+          value: "What is the capital of France?",
+          timestamp: "2025-03-24T10:00:00Z",
+          source: "user",
+          metadata: {
+            score: 5,
+            correction: "What is the capital of Spain?",
+            explanation: "The user might have intended to ask about Spain."
+          }
+        },
+        {
+          value: "The capital of France is Paris.",
+          timestamp: "2025-03-24T10:00:10Z",
+          source: "llm"
+        },
+        {
+          value: "What are the best exercises for strength training?",
+          timestamp: "2025-03-24T10:01:00Z",
+          source: "user",
+          metadata: {
+            score: 8,
+            error: "Minor grammar mistake",
+            correction: "What are the best exercises for building strength?",
+            explanation: "Adjusted phrasing for clarity."
+          }
+        },
+        {
+          value: "Some great strength training exercises include squats, deadlifts, and bench presses.",
+          timestamp: "2025-03-24T10:01:10Z",
+          source: "llm"
+        },
+        {
+            value: "What is the capital of France?",
+            timestamp: "2025-03-24T10:00:00Z",
+            source: "user",
+            metadata: {
+              score: 5,
+              correction: "What is the capital of Spain?",
+              explanation: "The user might have intended to ask about Spain."
+            }
+          },
+          {
+            value: "The capital of France is Paris.",
+            timestamp: "2025-03-24T10:00:10Z",
+            source: "llm"
+          },
+          {
+            value: "What are the best exercises for strength training?",
+            timestamp: "2025-03-24T10:01:00Z",
+            source: "user",
+            metadata: {
+              score: 8,
+              error: "Minor grammar mistake",
+              correction: "What are the best exercises for building strength?",
+              explanation: "Adjusted phrasing for clarity."
+            }
+          },
+          {
+            value: "Some great strength training exercises include squats, deadlifts, and bench presses.",
+            timestamp: "2025-03-24T10:01:10Z",
+            source: "llm"
+          },
+          {
+            value: "What is the capital of France?",
+            timestamp: "2025-03-24T10:00:00Z",
+            source: "user",
+            metadata: {
+              score: 5,
+              correction: "What is the capital of Spain?",
+              explanation: "The user might have intended to ask about Spain."
+            }
+          },
+          {
+            value: "The capital of France is Paris.",
+            timestamp: "2025-03-24T10:00:10Z",
+            source: "llm"
+          },
+          {
+            value: "What are the best exercises for strength training?",
+            timestamp: "2025-03-24T10:01:00Z",
+            source: "user",
+            metadata: {
+              score: 8,
+              error: "Minor grammar mistake",
+              correction: "What are the best exercises for building strength?",
+              explanation: "Adjusted phrasing for clarity."
+            }
+          },
+          {
+            value: "Some great strength training exercises include squats, deadlifts, and bench presses.",
+            timestamp: "2025-03-24T10:01:10Z",
+            source: "llm"
+          },
+          {
+            value: "What is the capital of France?",
+            timestamp: "2025-03-24T10:00:00Z",
+            source: "user",
+            metadata: {
+              score: 5,
+              correction: "What is the capital of Spain?",
+              explanation: "The user might have intended to ask about Spain."
+            }
+          },
+          {
+            value: "The capital of France is Paris.",
+            timestamp: "2025-03-24T10:00:10Z",
+            source: "llm"
+          },
+          {
+            value: "What are the best exercises for strength training?",
+            timestamp: "2025-03-24T10:01:00Z",
+            source: "user",
+            metadata: {
+              score: 8,
+              error: "Minor grammar mistake",
+              correction: "What are the best exercises for building strength?",
+              explanation: "Adjusted phrasing for clarity."
+            }
+          },
+          {
+            value: "Some great strength training exercises include squats, deadlifts, and bench presses.",
+            timestamp: "2025-03-24T10:01:10Z",
+            source: "llm"
+          },
+          {
+            value: "What is the capital of France?",
+            timestamp: "2025-03-24T10:00:00Z",
+            source: "user",
+            metadata: {
+              score: 5,
+              correction: "What is the capital of Spain?",
+              explanation: "The user might have intended to ask about Spain."
+            }
+          },
+          {
+            value: "The capital of France is Paris.",
+            timestamp: "2025-03-24T10:00:10Z",
+            source: "llm"
+          },
+          {
+            value: "What are the best exercises for strength training?",
+            timestamp: "2025-03-24T10:01:00Z",
+            source: "user",
+            metadata: {
+              score: 8,
+              error: "Minor grammar mistake",
+              correction: "What are the best exercises for building strength?",
+              explanation: "Adjusted phrasing for clarity."
+            }
+          },
+          {
+            value: "Some great strength training exercises include squats, deadlifts, and bench presses.",
+            timestamp: "2025-03-24T10:01:10Z",
+            source: "llm"
+          },
+      ];
 
     return(
         <div className="w-full h-full"> {/*Outer container div*/}
@@ -174,7 +362,7 @@ export default function ChatScreen(props: propsInterface) {
             <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={terms?.map(term => (term.used))}/>
 
             {/*Sent/recieved messages div*/}
-            <Messages messages={chatMessages}/>
+            <Messages messages={chatMessages[0] ? chatMessages : testMessages}/>
 
             {/* Chat box div */}
             <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex">

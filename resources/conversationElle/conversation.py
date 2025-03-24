@@ -47,10 +47,16 @@ class Messages(Resource):
         try:
             messages, statusCode = getMessages(userId, chatbotId)
             data = [
-                {"source": msg.get('source'), "value": msg.get('value'), 
-                 "timestamp": msg.get('timestamp')}
+                {
+                    "source": msg.get('source'), 
+                    "value": msg.get('value'), 
+                    "timestamp": msg.get('timestamp'),
+                    "metadata": msg.get('metadata'),
+                }
                 for msg in messages
             ]
+            
+            print(data)
 
             jsonify(data)
             return data, statusCode
@@ -69,6 +75,7 @@ class Messages(Resource):
 
         try:
             llmValue = handle_message(userValue)
+            
             print("LLM output in backend: ", llmValue)
             
             # response from LLM
@@ -78,16 +85,21 @@ class Messages(Resource):
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
 
-            # termsUsed = count_words(userValue, termsUsed)
-            termsUsed = []
+            # dictionary version with counts
+            termsUsed = count_words(userValue, termsUsed)
+            # convert to list for frontend
+            termsUsedList = vocab_dict_to_list(termsUsed)
+
+            #termsUsed = []
 
             #TODO: try except with statusCode
-            statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue)
+            statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
 
             data = {
                 "llmResponse": llmResponse,
-                "termsUsed": termsUsed,
-                "titoConfused": True if llmScore < 6 else False
+                "termsUsed": termsUsedList,
+                "titoConfused": True if llmScore < 6 else False,
+                #"metadata": metadata
             }
             
             print("Data: ", data)

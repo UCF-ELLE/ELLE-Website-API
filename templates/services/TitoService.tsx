@@ -99,6 +99,12 @@ interface ChatMessage {
   value: string;
   timestamp: string;
   source: "user" | "llm";
+  metadata?: {
+    score?: number;
+    error?: string;
+    correction?: string;
+    explanation?: string;
+  }
 }
 
 type GetMessagesResponse = ChatMessage[];
@@ -123,11 +129,16 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
 };
 
 
-//terms: string[]
 interface SendMessageResponse {
   llmResponse: string;
   termsUsed: string[];
   titoConfused?: boolean; //Optional for now
+  metadata?: {
+    score?: number;
+    error?: string;
+    correction?: string;
+    explanation?: string;
+  }
 }
 
 // sendMessage (POST)
