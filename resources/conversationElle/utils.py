@@ -17,6 +17,10 @@ def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
     Returns:
         Dictionary in the form: {vocab_word: number of times used}
     '''
+    print("In count_words")
+    print("text: ", text)
+    print("vocab_list: ", vocab_list)
+    print("vocab_dict: ", vocab_dict)
     # Initialize new dict
     if vocab_dict == None:
         new_vocab_dict = {word: 0 for word in vocab_list}
@@ -51,6 +55,8 @@ def vocab_dict_to_list(vocab_dict: dict):
     Returns:
         vocab_list: List corresponding to the required vocabulary word list
     '''
+    print("In vocab_dict_to_list")
+    print("vocab_dict: ", vocab_dict)
     vocab_list = []
     for word, value in vocab_dict.items():
         if value > 0:

@@ -56,10 +56,14 @@ class Messages(Resource):
                 for msg in messages
             ]
             
-            print(data)
-
+            #print(data)
+            #for entry in data:
+            #    print(entry.get('metadata'))
+            
             jsonify(data)
+
             return data, statusCode
+            #return data, statusCode
         except Exception as error:
             print(f"Error: {str(error)}")
             return {"error": "error"}, 500
@@ -71,7 +75,8 @@ class Messages(Resource):
         chatbotId = data.get('chatbotId')
         moduleId = data.get('moduleId')
         userValue = data.get('userValue')
-        termsUsed = data.get('termsUsed')
+        termsUsed = data.get('termsUsed') # list of strings of words used
+        terms = data.get('terms') # vocab list list
 
         try:
             llmValue = handle_message(userValue)
@@ -85,19 +90,19 @@ class Messages(Resource):
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
 
-            # dictionary version with counts
             termsUsed = count_words(userValue, termsUsed)
-            # convert to list for frontend
             termsUsedList = vocab_dict_to_list(termsUsed)
-
-            #termsUsed = []
+            print("termsUsed: ", termsUsed)
+            print("termsUsedList: ", termsUsedList)
+            
+            termsUsed = []
 
             #TODO: try except with statusCode
-            statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
+            metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
 
             data = {
                 "llmResponse": llmResponse,
-                "termsUsed": termsUsedList,
+                "termsUsed": termsUsed,
                 "titoConfused": True if llmScore < 6 else False,
                 #"metadata": metadata
             }
