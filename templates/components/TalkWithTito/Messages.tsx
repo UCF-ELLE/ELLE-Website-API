@@ -63,7 +63,7 @@ function Message({ message }: MessageProps) {
                 </div>
 
                 {/*Metadata div*/}
-                {(message.metadata && metadataExpanded && (message.metadata.correction || message.metadata.error || message.metadata.explanation || message.metadata.score)) && <div className="text-sm w-full flex flex-col items-end bg-gray-100 border border-black px-2 py-1 rounded">
+                {(message.metadata && metadataExpanded && fromUser && (message.metadata.correction || message.metadata.error || message.metadata.explanation || message.metadata.score)) && <div className="text-sm w-full flex flex-col items-end bg-gray-100 border border-black px-2 py-1 rounded">
                     {message.metadata.correction && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Correction:</div>
@@ -85,7 +85,7 @@ function Message({ message }: MessageProps) {
                     {message.metadata.score && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Score:</div>
-                            {message.metadata.score}
+                            {message.metadata.score.toFixed(2)}
                         </div>
                     }
                 </div>}
