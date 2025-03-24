@@ -158,6 +158,13 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
+    if(response.data.metadata && typeof response.data.metadata === "string") {
+      try {
+        response.data.metadata = JSON.parse(response.data.metadata);
+      } catch (e) {
+        console.log("Failed to parse metadata for message: " + response.data.metadata);
+      }
+    }
     console.log("sendMessage response:");
     console.log(response.data);
     return response.data;
