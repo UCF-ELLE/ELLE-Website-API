@@ -119,13 +119,11 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
-    if(response.data.metadata && typeof response.data.metadata === "string") {
-      try {
-        response.data.metadata = JSON.parse(response.data.metadata);
-      } catch (e) {
-        console.log("Failed to parse metadata for message: " + response.data.metadata);
+    response.data.forEach((dataItem: ChatMessage) => {
+      if(dataItem && typeof dataItem.metadata === "string") {
+        dataItem.metadata = JSON.parse(dataItem.metadata);
       }
-    }
+    });
     console.log("getMessages response:");
     console.log(response.data);
     return response.data;
