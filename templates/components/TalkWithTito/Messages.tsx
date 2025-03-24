@@ -85,7 +85,7 @@ function Message({ message }: MessageProps) {
                     {message.metadata.score && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Score:</div>
-                            {message.metadata.score.toFixed(2)}
+                            {message.metadata.score}
                         </div>
                     }
                 </div>}
