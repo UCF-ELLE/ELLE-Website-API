@@ -54,7 +54,7 @@ function Message({ message }: MessageProps) {
                     style={{
                         justifyContent: fromUser ? "end" : "start"
                     }}>
-                    {message.metadata && <button className=" " onClick={() => setMetadataExpanded(!metadataExpanded)}>
+                    {(message.metadata && (message.metadata.correction || message.metadata.error || message.metadata.explanation || message.metadata.score)) && <button className=" " onClick={() => setMetadataExpanded(!metadataExpanded)}>
                         <Image src={arrow} alt="Expand metadata" className="h-[50%] w-auto" 
                             style={{transform: !metadataExpanded ? "rotate(180deg)" : "none",}}
                         />
@@ -63,7 +63,7 @@ function Message({ message }: MessageProps) {
                 </div>
 
                 {/*Metadata div*/}
-                {(message.metadata && metadataExpanded) && <div className="text-sm w-full flex flex-col items-end bg-gray-100 border border-black px-2 py-1 rounded">
+                {(message.metadata && metadataExpanded && (message.metadata.correction || message.metadata.error || message.metadata.explanation || message.metadata.score)) && <div className="text-sm w-full flex flex-col items-end bg-gray-100 border border-black px-2 py-1 rounded">
                     {message.metadata.correction && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Correction:</div>

@@ -1,7 +1,7 @@
 interface propsInterface {
-    timeSpent?: string;
-    termsUsed?: string;
-    averageScore?: number;
+    timeSpent: string;
+    termScore: string;
+    averageScore: number;
 }
 
 export default function AnalyticsMenu(props: propsInterface) {
@@ -14,7 +14,7 @@ export default function AnalyticsMenu(props: propsInterface) {
                 <div className="inline-block font-bold">Time Spent:</div> {props.timeSpent ? props.timeSpent : "00d:00h:00m:00s"}
             </div>
             <div className="w-full">
-                <div className="inline-block font-bold">Terms Used:</div> {props.termsUsed ? props.termsUsed : "000/000"}
+                <div className="inline-block font-bold">Terms Used:</div> {props.termScore ? props.termScore : "000/000"}
             </div>
             <div className="w-full">
                 <div className="inline-block font-bold">Average Score:</div> {props.averageScore ? props.averageScore : "0.00"}

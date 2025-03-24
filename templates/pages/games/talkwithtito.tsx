@@ -59,6 +59,9 @@ export default function TalkWithTito() {
   const [userBackgroundFilepath, setUserBackgroundFilepath] = useState<string>("");
   const [analyticsActive, setAnalyticsActive] = useState<boolean>(false);
   const { user, loading: userLoading } = useUser();
+  const [timeSpent, setTimeSpent] = useState<string>("00d:00h:00m:00s");
+  const [termScore, settermScore] = useState<string>("000/000");
+  const [averageScore, setAverageScore] = useState<number>(0.00);
 
   interface Module {
     moduleID: number;
@@ -221,7 +224,7 @@ export default function TalkWithTito() {
                 {isLoading ? "Loading..." : "Play!"}
               </div>
             </>) : (<>
-              {analyticsActive && <AnalyticsMenu />}
+              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore}/>}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {!selectedModule ? <>
                 <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
@@ -238,7 +241,7 @@ export default function TalkWithTito() {
                 :
                 <>
                   <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-                    <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath}/>
+                    <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath} setTermScore={settermScore} setAverageScore={setAverageScore}/>
                   </div>
                 </>}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">

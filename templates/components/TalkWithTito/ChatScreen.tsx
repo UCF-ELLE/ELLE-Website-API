@@ -23,6 +23,8 @@ import Messages from "./Messages"
 interface propsInterface {
     moduleID: number;
     setUserBackgroundFilepath: React.Dispatch<React.SetStateAction<string>>;
+    setTermScore: React.Dispatch<React.SetStateAction<string>>;
+    setAverageScore: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function ChatScreen(props: propsInterface) {
@@ -171,6 +173,26 @@ export default function ChatScreen(props: propsInterface) {
         }
         loadMessages();
     }, [chatbotId, user, userLoading]);
+
+    //Used to update termScore
+    useEffect(() => {
+        const numTerms = terms.length;
+        const numUsedTerms = terms.filter(term => term.used).length;
+        props.setTermScore(numUsedTerms + " / " + numTerms);
+    }, [terms])
+
+    //Used to update averageScore
+    useEffect(() => {
+        const messagesWithScore = chatMessages.filter(message => message.metadata?.score !== undefined);
+        const averageScore = 
+            messagesWithScore.length > 0 ? 
+            messagesWithScore.reduce((sum, msg) => sum + (msg.metadata?.score || 0), 0) / messagesWithScore.length 
+            : 0;
+        props.setAverageScore(averageScore);
+        console.log(averageScore);
+    }, [chatMessages])
+    
+    
     
     const testMessages: ChatMessage[] = [
         {
