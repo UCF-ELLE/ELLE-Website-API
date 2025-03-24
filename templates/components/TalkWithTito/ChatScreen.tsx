@@ -138,7 +138,7 @@ export default function ChatScreen(props: propsInterface) {
             }
         }
         loadChatbot();
-    }, [user, userLoading, termsLoaded])
+    }, [props.moduleID, user, userLoading, termsLoaded])
     
     // Used to initialize chat messages
     useEffect(() => {
