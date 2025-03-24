@@ -47,10 +47,16 @@ class Messages(Resource):
         try:
             messages, statusCode = getMessages(userId, chatbotId)
             data = [
-                {"source": msg.get('source'), "value": msg.get('value'), 
-                 "timestamp": msg.get('timestamp')}
+                {
+                    "source": msg.get('source'), 
+                    "value": msg.get('value'), 
+                    "timestamp": msg.get('timestamp'),
+                    "metadata": msg.get('metadata'),
+                }
                 for msg in messages
             ]
+            
+            print(data)
 
             jsonify(data)
             return data, statusCode
@@ -69,6 +75,7 @@ class Messages(Resource):
 
         try:
             llmValue = handle_message(userValue)
+            
             print("LLM output in backend: ", llmValue)
             
             # response from LLM
@@ -82,12 +89,13 @@ class Messages(Resource):
             termsUsed = []
 
             #TODO: try except with statusCode
-            statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue)
+            metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue)
 
             data = {
                 "llmResponse": llmResponse,
                 "termsUsed": termsUsed,
-                "titoConfused": True if llmScore < 6 else False
+                "titoConfused": True if llmScore < 6 else False,
+                "metadata": metadata
             }
             
             print("Data: ", data)

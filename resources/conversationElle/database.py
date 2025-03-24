@@ -36,7 +36,7 @@ def getMessages(userId, chatbotId):
         cursor = conn.cursor()
 
         query = """
-        SELECT id, userId, chatbotId, moduleId, source, value, timestamp
+        SELECT id, userId, chatbotId, moduleId, source, value, timestamp, metadata
         FROM messages
         WHERE userId = %s AND chatbotId = %s
         """
@@ -94,7 +94,7 @@ def insertMessages(userId, chatbotId, moduleId, userValue, llmValue):
 
         cursor.executemany(query, messages)
         conn.commit()
-        return 200
+        return metadata, 200
 
     except Exception as error:
         conn.rollback()
