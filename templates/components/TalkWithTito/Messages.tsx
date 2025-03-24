@@ -54,7 +54,7 @@ function Message({ message }: MessageProps) {
                     style={{
                         justifyContent: fromUser ? "end" : "start"
                     }}>
-                    {(message.metadata && (message.metadata.correction || message.metadata.error || message.metadata.explanation || message.metadata.score)) && <button className=" " onClick={() => setMetadataExpanded(!metadataExpanded)}>
+                    {(message.metadata && fromUser && (message.metadata.correction || message.metadata.error || message.metadata.explanation || message.metadata.score)) && <button className=" " onClick={() => setMetadataExpanded(!metadataExpanded)}>
                         <Image src={arrow} alt="Expand metadata" className="h-[50%] w-auto" 
                             style={{transform: !metadataExpanded ? "rotate(180deg)" : "none",}}
                         />
