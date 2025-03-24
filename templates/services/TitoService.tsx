@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const ELLE_URL = 'https://chdr.cs.ucf.edu/elleapi';
-//const ELLE_URL = 'https://159.65.232.73/elleapi';
+//const ELLE_URL = 'http://159.65.232.73/elleapi';
 
 interface Module {
   moduleID: number;
@@ -99,6 +99,12 @@ interface ChatMessage {
   value: string;
   timestamp: string;
   source: "user" | "llm";
+  metadata?: {
+    score?: number;
+    error?: string;
+    correction?: string;
+    explanation?: string;
+  }
 }
 
 type GetMessagesResponse = ChatMessage[];
@@ -123,11 +129,16 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
 };
 
 
-//terms: string[]
 interface SendMessageResponse {
   llmResponse: string;
   termsUsed: string[];
   titoConfused?: boolean; //Optional for now
+  metadata?: {
+    score?: number;
+    error?: string;
+    correction?: string;
+    explanation?: string;
+  }
 }
 
 // sendMessage (POST)

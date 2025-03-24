@@ -12,7 +12,7 @@ export default function Settings(props: propsInterface) {
 
     //Loads in image
     useEffect(() => {
-        if(props.backgroundFilepath !== "") return;
+        if(props.backgroundFilepath === "") return;
         const loadBackground = async () => {
             const image = await import(`@/public/static/images/ConversAItionELLE/UserBackgrounds/${props.backgroundFilepath}`);
             setBackgroundImage(image);
