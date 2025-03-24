@@ -63,9 +63,23 @@ def getMessages(userId, chatbotId):
 
 def insertMessages(userId, chatbotId, moduleId, userValue, llmValue):
     try:
+        
+        # parse out response and metadata
+        llmResponse = llmValue["response"]
+        llmValue.pop("response")
+        
+        #llmScore = llmValue["score"]
+        #llmError = llmValue["error"]
+        #llmCorrection = llmValue["correction"]
+        #llmExplanation = llmValue["explanation"]
+        
         conn = mysql.connect()
         cursor = conn.cursor()
-        metadata = json.dumps([])
+        metadata = json.dumps(llmValue)
+        
+        #print("conn: ", conn)
+        #print("cursor: ", cursor)
+        print("metadata: ", metadata)
 
         query = """
         INSERT INTO messages (userId, chatbotId, moduleId, source, value, metadata)
@@ -73,8 +87,10 @@ def insertMessages(userId, chatbotId, moduleId, userValue, llmValue):
         """
         messages = [
             (userId, chatbotId, moduleId, 'user', userValue, metadata),
-            (userId, chatbotId, moduleId, 'llm', llmValue, metadata),
+            (userId, chatbotId, moduleId, 'llm', llmResponse, metadata),
         ]
+        
+        print("messages: ", messages)
 
         cursor.executemany(query, messages)
         conn.commit()
@@ -82,6 +98,7 @@ def insertMessages(userId, chatbotId, moduleId, userValue, llmValue):
 
     except Exception as error:
         conn.rollback()
+        print(error)
         return errorMessage(str(error)), 500
     finally:
         if conn.open:

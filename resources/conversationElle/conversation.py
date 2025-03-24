@@ -20,8 +20,10 @@ class ChatbotSessions(Resource):
                 "termsUsed": chatbotSession.get("termsUsed"),
             }
             
-            userBackground = getUserBackground(terms)
-            userMusicChoice = getUserMusicChoice(terms)
+            #userBackground, userMusicChoice = getUserBackgroundandMusic(terms)
+            
+            #print("Background: ", userBackground)
+            #print("Music: ", userMusicChoice)
 
             '''
             response = jsonify({
@@ -67,6 +69,11 @@ class Messages(Resource):
 
         try:
             llmValue = handle_message(userValue)
+            print("LLM output in backend: ", llmValue)
+            
+            # response from LLM
+            llmResponse = llmValue['response']
+            llmScore = llmValue['score']
 
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
@@ -74,15 +81,20 @@ class Messages(Resource):
             # termsUsed = count_words(userValue, termsUsed)
             termsUsed = []
 
+            #TODO: try except with statusCode
             statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue)
 
             data = {
-                "llmResponse": llmValue,
-                "termsUsed": termsUsed
+                "llmResponse": llmResponse,
+                "termsUsed": termsUsed,
+                "titoConfused": True if llmScore < 6 else False
             }
+            
+            print("Data: ", data)
+            print(statusCode)
 
             jsonify(data)
-            return data, statusCode
+            return data
 
         except Exception as error:
             print(f"Error: {str(error)}")
