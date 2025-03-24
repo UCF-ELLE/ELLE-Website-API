@@ -61,12 +61,13 @@ def getMessages(userId, chatbotId):
             conn.close()
 
 
-def insertMessages(userId, chatbotId, moduleId, userValue, llmValue):
+def insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed):
     try:
         
         # parse out response and metadata
         llmResponse = llmValue["response"]
         llmValue.pop("response")
+        llmValue['termsUsed'] = termsUsed
         
         #llmScore = llmValue["score"]
         #llmError = llmValue["error"]

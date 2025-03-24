@@ -26,7 +26,6 @@ def generate_message(message, prompt):
     full_prompt = f"Instruction: {prompt}\nUser: {message}\nAssistant:"
     request = GenerateRequest(user_text=full_prompt)
     print("request: ", request)
-    print(type(request))
 
     response = requests.post(model_path, json=request)
     response = response.json()
