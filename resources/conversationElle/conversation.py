@@ -75,7 +75,7 @@ class Messages(Resource):
         chatbotId = data.get('chatbotId')
         moduleId = data.get('moduleId')
         userValue = data.get('userValue')
-        termsUsed = data.get('termsUsed') # list of strings of words used
+        #termsUsed = data.get('termsUsed') # list of strings of words used
         terms = data.get('terms') # vocab list list
 
         try:
@@ -90,6 +90,11 @@ class Messages(Resource):
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
 
+            print("userValue: ", userValue)
+            #print("termsUsed: ", termsUsed)
+            print("terms: ", terms)
+            # convert terms list of dictionaries to list
+            # query metadata for existing list of words
             termsUsed = count_words(userValue, termsUsed)
             termsUsedList = vocab_dict_to_list(termsUsed)
             print("termsUsed: ", termsUsed)
