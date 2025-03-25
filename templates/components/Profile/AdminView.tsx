@@ -53,8 +53,11 @@ export default function AdminView(props: AdminViewProps) {
     const [classDetailModalOpen, setClassDetailModalOpen] = useState(false);
     const [tooltipOpen, setTooltipOpen] = useState(false);
     const [activeTab, setActiveTab] = useState(0);
+    const [confirmationModal, setConfirmationModal] = useState(false);
 
     const { user } = useUser();
+
+    const confirmationToggle = () => setConfirmationModal(!confirmationModal);
 
     const getClasses = useCallback(() => {
         axios
@@ -101,9 +104,24 @@ export default function AdminView(props: AdminViewProps) {
                             Edit Class Code
                         </Button>
                     )}{' '}
-                    <Button color='secondary' onClick={() => deleteClass()}>
+                    <Button color='secondary' onClick={confirmationToggle}>
                         Delete Class
                     </Button>
+                    <Modal
+                        isOpen={confirmationModal}
+                        toggle={confirmationToggle}
+                        modalTransition={{ timeout: 2000 }}
+                        scrollable={false}
+                        centered={true}
+                    >
+                        <ModalHeader>
+                            Are you sure you want to delete this this class?
+                        </ModalHeader>
+                        <ModalBody>
+                            <Button color="primary" size="md" onClick={deleteClass}>Yes</Button>
+                            <Button className='ms-2' color="secondary" size="md" onClick={confirmationToggle}>No</Button>
+                        </ModalBody>
+                    </Modal>
                 </ModalFooter>
             </Modal>
         );
@@ -226,6 +244,8 @@ export default function AdminView(props: AdminViewProps) {
     };
 
     const deleteClass = () => {
+        confirmationToggle();
+
         let header = {
             headers: { Authorization: 'Bearer ' + user?.jwt },
             data: { groupID: currentClassDetails.groupID }

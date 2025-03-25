@@ -28,7 +28,7 @@ import GameLayout, { GameContext } from "@/components/Layouts/GameLayout";
 
 import { useUnityContext } from "react-unity-webgl";
 
-import FullScreenModal from "@/components/Games/AnimELLEModal";
+import AnimELLEModal from "@/components/Games/AnimELLEModal";
 
 import { UnityInstance } from "react-unity-webgl/declarations/unity-instance";
 
@@ -46,7 +46,7 @@ export default function AnimELLEGame() {
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <div className="center-contents">
                     <div className="gameContainer">
-                        <FullScreenModal></FullScreenModal>
+                        <AnimELLEModal></AnimELLEModal>
                     </div>
                 </div>
                 {creditsVisibility && (<div id="creditsContainer" className="divContainer">

@@ -24,7 +24,7 @@ import { useUser } from "@/hooks/useAuth";
 import { GameContext } from "@/components/Layouts/GameLayout";
 import { relative } from "path";
 
-function App(props: {}) {
+function AnimELLEModal(props: {}) {
     const [mainModal, setMainModal] = React.useState(false);
     const [exitModal, setExitModal] = React.useState(false);
 
@@ -296,4 +296,4 @@ function App(props: {}) {
     );
 }
 
-export default App;
+export default AnimELLEModal;
