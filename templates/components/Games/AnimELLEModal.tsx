@@ -251,7 +251,7 @@ function AnimELLEModal(props: {}) {
                 unmountOnClose={unmountFlag}
             >
                 <ModalHeader style={{ background: 'transparent', border: 'none', padding: '2vh 1vw', position: 'absolute', zIndex: 1050 }}>
-                    <Button style={{ textAlign: "center", backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a" }} size="sm" onClick={exitToggle}>Close Game</Button>
+                    <Button className="btn-close" onClick={exitToggle}></Button>
                 </ModalHeader>
                 <ModalBody className="flex" style={{
                     padding: 0,      // Remove padding
