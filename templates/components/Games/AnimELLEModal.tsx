@@ -239,8 +239,8 @@ function AnimELLEModal(props: {}) {
                 scrollable={false}
                 centered={false}
                 style={{
-                    height: '100vh', // Full height of the viewport
-                    width: '100vw',  // Full width of the viewport
+                    height: '100dvh', // Full height of the viewport
+                    width: '100dvw',  // Full width of the viewport
                     padding: 0,      // Remove any padding
                     top: 0,          // Ensure it starts at the top of the screen
                     left: 0,         // Ensure it starts at the left of the screen
@@ -261,8 +261,8 @@ function AnimELLEModal(props: {}) {
                         unityProvider={unityProvider}
                         devicePixelRatio={devicePixelRatio}
                         style={{
-                            height: '100%',  // Fill the entire modal body
-                            width: '100%',   // Fill the entire modal body
+                            height: '100dvh',  // Fill the entire modal body
+                            width: '100dvw',   // Fill the entire modal body
                             position: 'relative', // Ensure it stays in the correct position
                             top: 0,          // Align to the top of the modal body
                             display: isLoaded ? 'block' : 'none', // Only display when loaded
