@@ -225,22 +225,24 @@ def updateTotalTimeChatted(chatbotId, userId, moduleId, timeChatted):
             cursor.close()
             conn.close()
 
-# TODO: Still unsure about insert messages --> LLM flow and updating terms used.
-def UpdateTermsUsed(chatbotId, userId, moduleId, termData):
+def getPreviousTermsUsed(userId, chatbotId):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
-
+        
         query = """
-        UPDATE chatbot_sessions 
-        SET termsUsed = %s
-        WHERE userId = %s AND chatbotId = %s AND moduleId = %s
+        SELECT metadata FROM messages
+        WHERE userId = %s AND chatbotId = %s
+        ORDER BY timestamp DESC
+        LIMIT 1
         """
 
-        postToDB(query, (json.dumps(termData), userId, chatbotId, moduleId), conn, cursor)
-        conn.commit()
-        return 200
+        result = get_from_db_as_dict(query, (userId, chatbotId), conn, cursor)
 
+        if result:
+            return json.loads(result[0]["metadata"])  
+
+        return None
     except Exception as error:
         conn.rollback()
         return errorMessage(str(error)), 500

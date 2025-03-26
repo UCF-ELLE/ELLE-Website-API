@@ -101,6 +101,7 @@ class Messages(Resource):
             print("termsUsedList: ", termsUsedList)
             
             termsUsed = []
+            # previousTermsUsed = getPreviousTermsUsed(userId, chatbotId)
 
             #TODO: try except with statusCode
             metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
