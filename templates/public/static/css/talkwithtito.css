@@ -94,6 +94,21 @@
   }
 }
 
+@keyframes Tito-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .pop-animation {
   animation: Tito-pop 0.6s ease-out forwards;
 }
@@ -176,4 +191,13 @@
   font-weight: 500;
   font-style: normal;
   font-size: 0.9vw;
+}
+
+/* Tito Animation - Thinking */
+.tito-thinking {
+  animation: Tito-pulse 2.5s ease forwards infinite;
+}
+
+.tito-typing::placeholder{
+  font-style: italic;
 }

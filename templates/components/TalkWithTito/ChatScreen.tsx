@@ -191,6 +191,51 @@ export default function ChatScreen(props: propsInterface) {
         props.setAverageScore(averageScore);
         console.log(averageScore);
     }, [chatMessages])
+
+    // Placeholder animation
+    const [placeholder, setPlaceholder] = useState<string>("Tito is typing...");
+    let fullPlaceholder = "Tito is typing..."
+
+    useEffect (()=>{
+      const startThinking = () =>{
+        const repeatInterval = setInterval(()=>{
+          setPlaceholder("");
+          let i = 0;
+          const interval = setInterval(()=>{
+            setPlaceholder(()=>fullPlaceholder.substring(0,i));
+            i++
+            if (i >= fullPlaceholder.length) {
+              clearInterval(interval);
+            }
+          }, 150)
+          return () => clearInterval(interval);
+        }, fullPlaceholder.length * 100 + 2000)
+        const handleVisibilityChange = () => {
+          if (document.hidden) {
+            clearInterval(repeatInterval); // Stop the interval when the tab is not visible
+          } else {
+            clearInterval(repeatInterval); // Clear and restart the interval when tab is visible again
+            // You can also resume from the current state instead of resetting here if needed
+            startThinking()
+          }
+          // Add event listener for page visibility
+          document.addEventListener("visibilitychange", handleVisibilityChange);
+        };
+        return () => {
+          clearInterval(repeatInterval);
+          document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+      }
+      if(titoMood === "thinking"){
+        startThinking()
+      }
+  
+    
+        // Cleanup the interval and event listener on component unmount
+       
+      
+      
+    }, [titoMood])
     
     
     
@@ -370,12 +415,13 @@ export default function ChatScreen(props: propsInterface) {
                     <Image 
                     src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : titoMood === "neutral" ? neutralTito : neutralTito} 
                     style={{width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%"}} 
-                    alt={`Tito is ${titoMood}`}/>
+                    alt={`Tito is ${titoMood}`}
+                    className={titoMood === "thinking" ? 'tito-thinking' : ''}/>
                 </div>
                 <div className="w-[85%] flex items-center justify-center z-20">
                     <textarea 
-                        placeholder = {titoMood === "thinking" ? "Tito is thinking..." : "Type here..."}
-                        className="w-[85%] min-h-[3em] h-fit max-h-[7em] bg-white rounded p-1 resize-none overflow-y-auto"
+                        placeholder = {titoMood === "thinking" ? placeholder : "Type here..."}
+                        className={`w-[85%] min-h-[3em] h-fit max-h-[7em] bg-white rounded p-1 resize-none overflow-y-auto ${titoMood === "thinking" ? "tito-typing" :""}`}
                         style={{pointerEvents: titoMood === "thinking" ? "none" : "auto", opacity: titoMood === "thinking" ? 0.75 : 1, fontWeight: titoMood === "thinking" ? "bold" : "normal"}}
                         disabled={titoMood === "thinking"}
                         value={userMessage}
