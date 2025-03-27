@@ -90,21 +90,22 @@ class Messages(Resource):
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
 
-            print("userValue: ", userValue)
+            # print("userValue: ", userValue)
             #print("termsUsed: ", termsUsed)
-            print("terms: ", terms)
+            # print("terms: ", terms)
             # convert terms list of dictionaries to list
             # query metadata for existing list of words
-            termsUsed = count_words(userValue, termsUsed)
-            termsUsedList = vocab_dict_to_list(termsUsed)
-            print("termsUsed: ", termsUsed)
-            print("termsUsedList: ", termsUsedList)
+            # termsUsed = count_words(userValue, termsUsed)
+            # termsUsedList = vocab_dict_to_list(termsUsed)
+            # print("termsUsed: ", termsUsed)
+            # print("termsUsedList: ", termsUsedList)
             
             termsUsed = []
             # previousTermsUsed = getPreviousTermsUsed(userId, chatbotId)
 
             #TODO: try except with statusCode
-            metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
+            # metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
+            statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
 
             data = {
                 "llmResponse": llmResponse,
@@ -113,11 +114,11 @@ class Messages(Resource):
                 #"metadata": metadata
             }
             
-            print("Data: ", data)
-            print(statusCode)
+            # print("Data: ", data)
+            # print(statusCode)
 
             jsonify(data)
-            return data
+            return data, statusCode
 
         except Exception as error:
             print(f"Error: {str(error)}")
