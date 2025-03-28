@@ -23,8 +23,10 @@ import { useUser } from "@/hooks/useAuth";
 
 import { GameContext } from "@/components/Layouts/GameLayout";
 import { relative } from "path";
+import { Router, useRouter } from "next/router";
 
 function AnimELLEModal(props: {}) {
+
     const [mainModal, setMainModal] = React.useState(false);
     const [exitModal, setExitModal] = React.useState(false);
 
@@ -46,6 +48,8 @@ function AnimELLEModal(props: {}) {
     const [UNITY_playerScore, setUNITY_playerScore] = useState(0);
     const userScoreRef = useRef(UNITY_playerScore);
     const [unmountFlag, setUnmountFlag] = useState<boolean>(false);
+
+    const router = useRouter();
 
     // Load Unity WebGL game
     const {
@@ -128,6 +132,19 @@ function AnimELLEModal(props: {}) {
         }
         setDevicePixelRatio(window.devicePixelRatio);
     }, [user, userLoading]);
+
+    // This will run when the user presses the back button and detaches the game
+    useEffect(() => {
+        const handleRouteChange = () => {
+            detachGame();
+        }
+
+        router.events.on('beforeHistoryChange', handleRouteChange);
+
+        return () => {
+            router.events.off('beforeHistoryChange', handleRouteChange);
+        };
+    }, [router, detachGame]);
 
     // Sometimes the Unity window looks blurry on Retina screens. This fixes that.
     // Taken from https://react-unity-webgl.dev/docs/advanced-examples/dynamic-device-pixel-ratio
