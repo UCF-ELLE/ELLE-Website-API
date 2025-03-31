@@ -156,7 +156,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
-    if(response.data.metadata && typeof response.data.metadata === "string") {
+    if(response.data.metadata) {
       try {
         response.data.metadata = JSON.parse(response.data.metadata);
       } catch (e) {
@@ -172,6 +172,57 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
   }
 }
 
+// Increment the time spent interacting with the chatbot
+export const incrementTime = async (access_token: string, userId: number, chatbotId: number, prevTimeChatted: number, newTimeChatted: number): Promise<number | null> => {
+  try {
+    const response = await axios.post(
+      `${ELLE_URL}/chat/chatbot/time`,
+      { userId, chatbotId, prevTimeChatted, newTimeChatted },
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        }
+      }
+    );
+    console.log("incrementTime response:");
+    console.log(response.status);
+    return response.status;
+  } catch (error) {
+    handleError(error);
+    return null;
+  }
+}
+
+
+// exportChat (POST)
+// Expects a CSV file to be downloaded when the chat history is requested.
+export const exportChat = async (access_token: string, userId: number, chatbotId: number): Promise<":)" | ":("> => {
+  try {
+    // Send POST request to Flask API to export chat history
+    const response = await axios.post(
+      `${ELLE_URL}/chat/chatbot/export`,
+      { userId, chatbotId }, // Send necessary data in the body
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+        responseType: 'blob', // Expect a binary response (the CSV file)
+      }
+    );
+    // Create a download link for the CSV file
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a"); // Create temporary invisible anchor element
+    link.href = url;
+    link.setAttribute("download", "chat_history.csv");
+    document.body.appendChild(link);
+    link.click(); // Triggers the download
+    return ":)";
+  } catch (error) {
+    handleError(error);
+    return ":(";
+  }
+};
+
 // Utility function for handling errors
 const handleError = (error: unknown): void => {
   if (axios.isAxiosError(error)) {
@@ -181,4 +232,4 @@ const handleError = (error: unknown): void => {
   } else {
     console.error("Unknown Error:", error);
   }
-};
+}
