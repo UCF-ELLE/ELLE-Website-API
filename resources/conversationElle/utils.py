@@ -54,7 +54,8 @@ def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
             try:
                 new_vocab_dict[word] += 1
             except:
-                new_vocab_dict[word[:len(word)-2]]
+                actual_word = [w for w in new_vocab_dict if word[:len(word)-1] in w][0]
+                new_vocab_dict[actual_word]
     
     return new_vocab_dict
 
