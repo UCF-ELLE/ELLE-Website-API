@@ -99,19 +99,14 @@ class Messages(Resource):
             termsUsed = []
             # previousTermsUsed = getPreviousTermsUsed(userId, chatbotId)
 
-            #TODO: try except with statusCode
-            # metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
             metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
 
             data = {
                 "llmResponse": llmResponse,
                 "termsUsed": termsUsed,
                 "titoConfused": True if llmScore < 6 else False,
-                #"metadata": metadata
+                "metadata": metadata
             }
-            
-            # print("Data: ", data)
-            # print(statusCode)
 
             jsonify(data)
             return data, statusCode
