@@ -96,7 +96,7 @@ class Messages(Resource):
             print("terms: ", terms)
             # convert terms list of dictionaries to list
             # query metadata for existing list of words
-            termsUsed = count_words(userValue, termsUsed)
+            termsUsed = count_words(userValue, terms, termsUsed)
             termsUsedList = vocab_dict_to_list(termsUsed)
             print("termsUsed: ", termsUsed)
             print("termsUsedList: ", termsUsedList)
