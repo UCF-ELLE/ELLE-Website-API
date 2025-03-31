@@ -101,7 +101,7 @@ class Messages(Resource):
 
             #TODO: try except with statusCode
             # metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
-            statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
+            metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
 
             data = {
                 "llmResponse": llmResponse,
