@@ -423,13 +423,9 @@ export default function ChatScreen(props: propsInterface) {
                 </div>
                 <div className="w-[85%] flex items-center justify-center ">
                     <textarea 
-<<<<<<< HEAD
                         placeholder = {titoMood === "thinking" ? "Tito is thinking..." : "Type here..."}
                         className="w-[85%] h-[70%] bg-white rounded p-1 resize-none overflow-y-auto"
-=======
-                        placeholder = {titoMood === "thinking" ? placeholder : "Type here..."}
-                        className={`w-[85%] min-h-[3em] h-fit max-h-[7em] bg-white rounded p-1 resize-none overflow-y-auto ${titoMood === "thinking" ? "tito-typing" :""}`}
->>>>>>> 1ded4e7b9982e27e150f508fe0f023c3241954c4
+
                         style={{pointerEvents: titoMood === "thinking" ? "none" : "auto", opacity: titoMood === "thinking" ? 0.75 : 1, fontWeight: titoMood === "thinking" ? "bold" : "normal"}}
                         disabled={titoMood === "thinking"}
                         value={userMessage}
