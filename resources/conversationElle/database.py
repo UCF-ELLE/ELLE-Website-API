@@ -174,22 +174,21 @@ def createNewChatbotSession(userId, moduleId):
             cursor.close()
             conn.close()
 
-def updateChatGrade(chatbotId, userId, moduleId, grade):
+def updateChatGrade(chatbotId, userId, prevTimeChatted, newTimeChatted):
     try:
         conn = mysql.connect()
         cursor = conn.cursor()
+        finalTime = prevTimeChatted + newTimeChatted
 
-        # TODO: Update query
         query = """
         UPDATE chatbot_sessions 
-        SET termsUsed = %s
-        WHERE userId = %s AND chatbotId = %s AND moduleId = %s
+        SET totalTimeChatted = %s
+        WHERE userId = %s AND chatbotId = %s 
         """
 
-        postToDB(query, conn, cursor)
+        postToDB(query, (finalTime, userId, chatbotId), conn, cursor)
         conn.commit()
         return 200
-
     except Exception as error:
         conn.rollback()
         return errorMessage(str(error)), 500

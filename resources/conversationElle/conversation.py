@@ -1,4 +1,5 @@
-from flask import request, jsonify
+import csv, io
+from flask import Response, request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required
 from .database import * 
@@ -56,14 +57,9 @@ class Messages(Resource):
                 for msg in messages
             ]
             
-            #print(data)
-            #for entry in data:
-            #    print(entry.get('metadata'))
-            
             jsonify(data)
 
             return data, statusCode
-            #return data, statusCode
         except Exception as error:
             print(f"Error: {str(error)}")
             return {"error": "error"}, 500
@@ -90,20 +86,21 @@ class Messages(Resource):
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
 
-            print("userValue: ", userValue)
+            # print("userValue: ", userValue)
             #print("termsUsed: ", termsUsed)
-            print("terms: ", terms)
+            # print("terms: ", terms)
             # convert terms list of dictionaries to list
             # query metadata for existing list of words
-            termsUsed = count_words(userValue, termsUsed)
-            termsUsedList = vocab_dict_to_list(termsUsed)
-            print("termsUsed: ", termsUsed)
-            print("termsUsedList: ", termsUsedList)
+            # termsUsed = count_words(userValue, termsUsed)
+            # termsUsedList = vocab_dict_to_list(termsUsed)
+            # print("termsUsed: ", termsUsed)
+            # print("termsUsedList: ", termsUsedList)
             
             termsUsed = []
             # previousTermsUsed = getPreviousTermsUsed(userId, chatbotId)
 
             #TODO: try except with statusCode
+            # metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
             metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
 
             data = {
@@ -113,31 +110,73 @@ class Messages(Resource):
                 #"metadata": metadata
             }
             
-            print("Data: ", data)
-            print(statusCode)
+            # print("Data: ", data)
+            # print(statusCode)
 
             jsonify(data)
-            return data
+            return data, statusCode
 
         except Exception as error:
             print(f"Error: {str(error)}")
             return {"error": "error"}, 500
 
-# TODO: Remove
-class UpdateChatGrade(Resource):
-    @jwt_required
-    def patch(self, chatbotId):
-        userId = 2
-        moduleId = 3
-        grade = 10
-        res = updateChatGrade(chatbotId, userId, moduleId, grade)
-        return res
-
 class UpdateChatTime(Resource):
-    # TODO: Finish updating query for this one.
     @jwt_required
-    def patch(self, chatbotId):
-        userId = 2
-        moduleId = 3
-        res = updateTotalTimeChatted(chatbotId, userId, moduleId, 10)
-        return res
+    def post(self):
+        data = request.get_json()  
+        userId = data.get('userId')
+        chatbotId = data.get('chatbotId')
+        prevTimeChatted = data.get('prevTimeChatted')
+        newTimeChatted = data.get('newTimeChatted')
+
+        try:
+            statusCode = updateChatGrade(chatbotId, userId, prevTimeChatted, newTimeChatted)
+            return statusCode
+        except Exception as error:
+            print(f"Error: {str(error)}")
+            return {"error": "error"}, 500
+
+class ExportChatHistory(Resource):
+    @jwt_required
+    def post(self):
+        data = request.get_json()  
+        userId = data.get('userId')
+        chatbotId = data.get('chatbotId')
+
+        try:
+            messages, statusCode = getMessages(userId, chatbotId)
+            print(statusCode)
+
+            data = [
+                {
+                    "source": msg.get('source', ''), 
+                    "value": msg.get('value', ''), 
+                    "timestamp": msg.get('timestamp', ''),
+                    "metadata": json.dumps(msg.get('metadata', {}))
+                }
+                for msg in messages
+            ]
+
+            # create an in-memory buffer for csv
+            csv_buffer = io.StringIO()
+            csv_writer = csv.writer(csv_buffer)
+            
+            # write csv header
+            csv_writer.writerow(["timestamp", "user_message", "llm_response", "metadata"])
+            
+            # write the data in
+            for msg in data:
+                csv_writer.writerow([
+                    msg["timestamp"],
+                    msg["user_message"],
+                    msg["llm_response"],
+                    msg["metadata"]  
+                ])
+
+            response = Response(csv_buffer.getvalue(), mimetype="text/csv")
+            response.headers["Content-Disposition"] = "attachment; filename=chat_history.csv"
+
+            return response
+        except Exception as error:
+            print(f"Error: {str(error)}")
+            return {"error": "error"}, 500

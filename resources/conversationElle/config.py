@@ -33,7 +33,7 @@ name of the tool. This must be one of: [test_function], \"tool_input\": # the in
 grammar_response_json_string = """{\"response\": # your response to the message, \"score\": # your score, \"error\": # description of error, \"correction\": # corrected version,
 \"explanation\": # why it was wrong and how to fix it}"""
 
-grammar_json_string = """{\"score\": # your score from 1-10, \"error\": # if there is an error, list one or more from ["Grammar Mistake", "Word Use Mistake", "Spelling Mistake", "Conjugation Mistake"] to descibe the error, \"correction\": # the corrected version, \"explanation\": # why it was wrong and how to fix it}"""
+grammar_json_string = """{\"score\": # your score from 1-10 if the user's message is primarily English score is 0, \"error\": # if there is an error, list one or more from ["Grammar Mistake", "Word Use Mistake", "Spelling Mistake", "Conjugation Mistake"] to descibe the error, \"correction\": # the corrected version, \"explanation\": # why it was wrong and how to fix it}"""
 
 '''
 # original prompt
