@@ -59,9 +59,10 @@ export default function TalkWithTito() {
   const [userBackgroundFilepath, setUserBackgroundFilepath] = useState<string>("");
   const [analyticsActive, setAnalyticsActive] = useState<boolean>(false);
   const { user, loading: userLoading } = useUser();
-  const [timeSpent, setTimeSpent] = useState<string>("00d:00h:00m:00s");
-  const [termScore, settermScore] = useState<string>("000/000");
+  const [timeSpent, setTimeSpent] = useState<string>("Loading...");
+  const [termScore, setTermScore] = useState<string>("Loading...");
   const [averageScore, setAverageScore] = useState<number>(0.00);
+  const [chatbotId, setChatbotId] = useState<number>();
 
   interface Module {
     moduleID: number;
@@ -130,7 +131,13 @@ export default function TalkWithTito() {
     if(moduleId === -1) {
       return;
     }
-    setSelectedModule(selectedModule === moduleId ? null : moduleId);
+    if(selectedModule === moduleId) {
+      setSelectedModule(null);
+      setAnalyticsActive(false);
+    }
+    else {
+      setSelectedModule(moduleId)
+    }
   };
 
   // Cycle through Tito Statements
@@ -233,7 +240,7 @@ export default function TalkWithTito() {
             </>
           ) : (
             <>
-              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} />}
+              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} />}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {!selectedModule ? (
                 <>
@@ -250,7 +257,7 @@ export default function TalkWithTito() {
                 </>
               ) : (
                 <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-                  <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath} setTermScore={settermScore} setAverageScore={setAverageScore} />
+                  <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath} setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} setChatbotId={setChatbotId} />
                 </div>
               )}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
@@ -280,7 +287,7 @@ export default function TalkWithTito() {
                       <Image src={logoutIcon} alt="Exit" className="mr-2" />
                       <div className="hidden md:block">Exit Chat</div>
                     </button>
-                    <button onClick={() => setAnalyticsActive(!analyticsActive)}>Analytics📊</button>
+                    {selectedModule && <button onClick={() => setAnalyticsActive(!analyticsActive)}>Analytics📊</button>}
                     <Image
                       src={settingsIcon}
                       alt="Settings"
