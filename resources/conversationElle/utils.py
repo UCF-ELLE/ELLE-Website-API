@@ -35,12 +35,26 @@ def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
             except:
                 new_vocab_dict[word] = 0
     
+    # In the case that word has multiple forms e.g. rojo/a
+    temp_vocab_list = []
+    for word in vocab_list:
+        if '/' in word:
+            temp_vocab_list.append(word[:word.index('/')])
+            temp_vocab_list.append(word[:word.index('/')-1] + word[word.index('/')+1:])
+        else:
+            temp_vocab_list.append(word)
+
+    print("temp_vocab_list: ", temp_vocab_list)
+    
     # Parse string to see if vocab word was used
     # Appends to counter regardless of punctuation and capitalization
     clean_text = ''.join([char for char in text if char not in string.punctuation])
     for word in clean_text.split(" "):
-        if any(vocab_word.lower() == word.lower() for vocab_word in vocab_list):
-            new_vocab_dict[word] += 1
+        if any(vocab_word.lower() == word.lower() for vocab_word in temp_vocab_list):
+            try:
+                new_vocab_dict[word] += 1
+            except:
+                new_vocab_dict[word[:len(word)-2]]
     
     return new_vocab_dict
 
