@@ -92,7 +92,7 @@ export default function TalkWithTito() {
 
     //Tito pop in
     setTimeout(() => {
-      if (user?.userID === 1){
+      if (user?.userID === 1 || user?.userID === 445){
         setIsLoading(!isLoading);
       }
       setIsFading(false); // Restore opacity
@@ -107,7 +107,7 @@ export default function TalkWithTito() {
         setModules(modules);
       };
       loadModules();
-      if (user?.userID === 1){
+      if (user?.userID === 1 || user?.userID === 445){
         setIsLoading(false);
       }
     }
