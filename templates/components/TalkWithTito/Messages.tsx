@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import arrow from "@/public/static/images/ConversAItionELLE/Arrow.png"
 import Image from "next/image";
 
@@ -14,22 +14,29 @@ interface ChatMessage {
       }
 }
 
-interface MessageProps { message: ChatMessage } // Makes react happy (something about props and typing idk)
+interface MessageProps { message: ChatMessage }
 function Message({ message }: MessageProps) {
 
+    function scoreToRGB(score: number): string {
+        if (score <= 3) {
+            // Red (score 0-3)
+            return "rgb(214, 75, 75)"
+        } else if (score <= 7) {
+            // Yellow (score 4-7)
+            return "rgb(214, 191, 75)"
+        } else {
+            // Green (score 8-10)
+            return "rgb(103, 214, 75)"
+        }
+    }
+
+    const { source, timestamp, value, metadata } = message;
+    
     const [metadataExpanded, setMetadataExpanded] = useState<boolean>(false);
 
-    const fromUser: boolean = message.source === "user";
-    let timeHours: number | null = null;
-    let timeMinutes: number | null = null;
-    let formattedTime: string = "";
-
-    if (message.timestamp !== "") {
-        const timestampObject: Date = new Date(message.timestamp);
-        timeHours = timestampObject.getHours();
-        timeMinutes = timestampObject.getMinutes();
-        formattedTime = `${timeHours % 12 || 12}:${timeMinutes < 10 ? `0${timeMinutes}` : timeMinutes} ${timeHours >= 12 ? "PM" : "AM"}`
-    }
+    const hasMetadata = metadata && (metadata.correction || metadata.error || metadata.explanation || metadata.score);
+    const fromUser: boolean = source === "user"
+    const formattedTime = timestamp ? new Date(timestamp).toLocaleString([], {hour: '2-digit', minute: '2-digit'}) : "";
 
     return (
         <div 
@@ -38,15 +45,15 @@ function Message({ message }: MessageProps) {
                 justifyContent: fromUser ? "end" : "start"
             }}>
             
-            <div className="m-2 flex flex-col">
+            <div className="m-2 flex flex-col items-end">
 
                 {/*Message text div*/}
                 <div
-                    className="p-2 rounded-lg inter-font text-lg"
+                    className="p-2 rounded-lg inter-font text-lg w-fit"
                     style={{
                         backgroundColor: fromUser ? "#FCFFB4" : "#FFC9CE"
                     }}>
-                    {message.value}
+                    {value}
                 </div>
 
                 {/*Message time div / Expand metadata*/}
@@ -54,7 +61,7 @@ function Message({ message }: MessageProps) {
                     style={{
                         justifyContent: fromUser ? "end" : "start"
                     }}>
-                    {(message.metadata && fromUser && (message.metadata.correction || message.metadata.error || message.metadata.explanation || message.metadata.score)) && <button className=" " onClick={() => setMetadataExpanded(!metadataExpanded)}>
+                    {(hasMetadata && fromUser) && <button onClick={() => setMetadataExpanded(!metadataExpanded)}>
                         <Image src={arrow} alt="Expand metadata" className="h-[50%] w-auto" 
                             style={{transform: !metadataExpanded ? "rotate(180deg)" : "none",}}
                         />
@@ -63,29 +70,34 @@ function Message({ message }: MessageProps) {
                 </div>
 
                 {/*Metadata div*/}
-                {(message.metadata && metadataExpanded && fromUser && (message.metadata.correction || message.metadata.error || message.metadata.explanation || message.metadata.score)) && <div className="text-sm w-full flex flex-col items-end bg-gray-100 border border-black px-2 py-1 rounded">
-                    {message.metadata.correction && 
+                {(hasMetadata && metadataExpanded && fromUser) && 
+                <div 
+                    className="text-sm w-full flex flex-col items-start bg-blue-100 border border-black px-2 py-1 rounded"
+                    style={{backgroundColor: metadata.score ? scoreToRGB(metadata.score) : "rgb()"}}
+                    >
+                    
+                    {metadata.correction && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Correction:</div>
-                            {message.metadata.correction}
+                            {metadata.correction}
                         </div>
                     }
-                    {message.metadata.error && 
+                    {metadata.error && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Error:</div>
-                            {message.metadata.error}
+                            {metadata.error}
                         </div>
                     }
-                    {message.metadata.explanation && 
+                    {metadata.explanation && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Explanation:</div>
-                            {message.metadata.explanation}
+                            {metadata.explanation}
                         </div>
                     }
-                    {message.metadata.score && 
+                    {metadata.score && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Score:</div>
-                            {message.metadata.score}
+                            {metadata.score}
                         </div>
                     }
                 </div>}
@@ -100,11 +112,23 @@ interface PropsInterface {
 }
 
 export default function Messages({ messages }: PropsInterface) {
-    const testData: ChatMessage[] = [];
+
+    const messagesContainer = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const container = messagesContainer.current;
+        if (!container) return;
+        container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+        });
+    }, [messages.length]);
+    
+    
     return (
         <div className="w-full h-[85%] absolute top-0 left-0 z-[11]">
-            <div className="absolute w-full h-fit max-h-full overflow-auto bottom-0 left-0">
-                {(messages[0] ? messages : testData).map((message, index) => (
+            <div className="absolute w-full h-fit max-h-full overflow-auto bottom-0 left-0" ref={messagesContainer}>
+                {messages.map((message, index) => (
                     <Message key={index} message={message} />
                 ))}
             </div>
