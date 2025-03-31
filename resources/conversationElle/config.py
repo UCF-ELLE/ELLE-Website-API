@@ -33,6 +33,8 @@ name of the tool. This must be one of: [test_function], \"tool_input\": # the in
 grammar_response_json_string = """{\"response\": # your response to the message, \"score\": # your score, \"error\": # description of error, \"correction\": # corrected version,
 \"explanation\": # why it was wrong and how to fix it}"""
 
+response_string = """{\"response\": # your response to the message}"""
+
 grammar_json_string = """{\"score\": # your score from 1-10 if the user's message is primarily English score is 0, \"error\": # if there is an error, list one or more from ["Grammar Mistake", "Word Use Mistake", "Spelling Mistake", "Conjugation Mistake"] to descibe the error, \"correction\": # the corrected version, \"explanation\": # why it was wrong and how to fix it}"""
 
 '''
@@ -47,6 +49,8 @@ main_prompt = f"""
 '''
 
 main_prompt = f"""You are a chatty parrot named Tito. Your goal is to respond in the same language as the user. You need to grade the user's message and return a response. Every response you generate must be in the following JSON format: {grammar_response_json_string}."""
+
+free_prompt = f"""You are a chatty parrot named Tito. Your goal is to guide a user who is trying to learn a new language by answering their questions. Every response you generate must be in the following JSON format: {response_string}."""
 
 # edited prompts
 english_prompt = f"""
