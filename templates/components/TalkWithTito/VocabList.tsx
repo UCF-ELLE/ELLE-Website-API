@@ -5,7 +5,7 @@ import { useState } from "react";
 
 /* Assets */
 import cloud from "@/public/static/images/ConversAItionELLE/vocab cloud.png";
-import arrow from "@/public/static/images/ConversAItionELLE/Arrow.png"
+import arrow from "@/public/static/images/ConversAItionELLE/Arrow.png";
 
 interface PropsInterface {
     wordsFront: string[] | undefined;
@@ -31,7 +31,7 @@ function WordItem({ wordFront, wordBack, used }: WordItemProps) {
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="break-all select-none text-center w-full"
+            className="break-all select-none text-center w-full transition-all duration-300"
         >
             {isHovered ? wordFront : wordBack}
         </div>
@@ -43,6 +43,15 @@ export default function VocabList({ wordsFront, wordsBack, used }: PropsInterfac
     const [isExpanded, setIsExpanded] = useState(false);
 
     if (!wordsFront || !wordsBack || !used) return null;
+
+    const sortedWords = wordsFront
+        .map((word, index) => ({
+            wordFront: word,
+            wordBack: wordsBack[index] || "",
+            used: used[index],
+            index,
+        }))
+        .sort((a, b) => Number(a.used) - Number(b.used));
 
     return (
         <div className="inter-font absolute top-1 right-[-18em] w-fit h-fit flex flex-col items-center">
@@ -65,24 +74,14 @@ export default function VocabList({ wordsFront, wordsBack, used }: PropsInterfac
 
             {/* Expanding/Collapsing List */}
             <div
-            className={`absolute top-[82px] z-[19] w-[277px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-[55px] mt-1 flex flex-col items-center
-            transition-all duration-300 ease-in-out overflow-hidden
-            ${isExpanded ? 'h-[20em] opacity-100' : 'h-0 opacity-0'}`}
+                className={`absolute top-[82px] z-[19] w-[277px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-[55px] mt-1 flex flex-col items-center transition-all duration-300 ease-in-out overflow-hidden
+                ${isExpanded ? 'h-[20em] opacity-100' : 'h-0 opacity-0'}`}
             >
                 <div className="overflow-auto w-full">
-                    {wordsFront
-                        .map((word, index) => ({
-                            wordFront: word,
-                            wordBack: wordsBack[index] || "",
-                            used: used[index],
-                            index,
-                        }))
-                        .sort((a, b) => Number(a.used) - Number(b.used))
-                        .map(({ wordFront, wordBack, used, index }) => (
-                            <WordItem key={index} wordFront={wordFront} wordBack={wordBack} used={used} />
-                        ))}
+                    {sortedWords.map(({ wordFront, wordBack, used, index }) => (
+                        <WordItem key={index} wordFront={wordFront} wordBack={wordBack} used={used} />
+                    ))}
                 </div>
-                
             </div>
         </div>
     );
