@@ -22,6 +22,8 @@ import Messages from "./Messages"
 
 interface propsInterface {
     moduleID: number;
+    chatbotId?: number;
+    setChatbotId: React.Dispatch<React.SetStateAction<number | undefined>>
     setUserBackgroundFilepath: React.Dispatch<React.SetStateAction<string>>;
     setTermScore: React.Dispatch<React.SetStateAction<string>>;
     setAverageScore: React.Dispatch<React.SetStateAction<number>>;
@@ -54,7 +56,6 @@ export default function ChatScreen(props: propsInterface) {
     const [termsLoaded, setTermsLoaded] = useState<boolean>(false);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [userMessage, setUserMessage] = useState<string>("");
-    const [chatbotId, setChatbotId] = useState<number>();
     const [titoMood, setTitoMood] = useState("neutral");
 
     async function handleSendMessageClick() {
@@ -62,14 +63,14 @@ export default function ChatScreen(props: propsInterface) {
         //Return conditions
         if(userMessage === "") return; //Does nothing if textArea empty
         console.log("Sending " + userMessage); //Testing
-        if(!user || !chatbotId || !termsLoaded) {console.log("Missing user or chatbotId or termsLoaded"); return;} //Does nothing if invalid credentials
+        if(!user || !props.chatbotId || !termsLoaded) {console.log("Missing user or chatbotId or termsLoaded"); return;} //Does nothing if invalid credentials
         
         //Resets Tito state & empties textArea
         setTitoMood("thinking");
         setUserMessage("");
 
         //Calls API
-        const sendMessageResponse = await sendMessage(user.jwt, user.userID, chatbotId, props.moduleID, userMessage, terms.map(term => term.questionBack), terms.filter(term => term.used === true).map(term => term.questionBack));
+        const sendMessageResponse = await sendMessage(user.jwt, user.userID, props.chatbotId, props.moduleID, userMessage, terms.map(term => term.questionBack), terms.filter(term => term.used === true).map(term => term.questionBack));
 
         //Makes sure API call is succesful (it returns null if it isn't)
         if(sendMessageResponse) {
@@ -131,7 +132,7 @@ export default function ChatScreen(props: propsInterface) {
         const loadChatbot = async () => {
             const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
             if(newChatbot) {
-                setChatbotId(newChatbot.chatbotId);
+              props.setChatbotId(newChatbot.chatbotId);
                 if(newChatbot.userBackground) {
                     props.setUserBackgroundFilepath(newChatbot.userBackground);
                 }
@@ -161,9 +162,10 @@ export default function ChatScreen(props: propsInterface) {
             metadata: undefined
         }
 
-        if(userLoading || !user || !chatbotId) return; // Makes typescript happy :D
+        if(userLoading || !user || !props.chatbotId) return;
         const loadMessages = async () => {
-            const newMessages = await getMessages(user.jwt, user.userID, chatbotId);
+          if(!props.chatbotId) return;
+            const newMessages = await getMessages(user.jwt, user.userID, props.chatbotId);
             if(newMessages) {
                 setChatMessages([instructionMessage, ...newMessages]);
             }
@@ -172,10 +174,11 @@ export default function ChatScreen(props: propsInterface) {
             }
         }
         loadMessages();
-    }, [chatbotId, user, userLoading]);
+    }, [props.chatbotId, user, userLoading]);
 
     //Used to update termScore
     useEffect(() => {
+        if(!termsLoaded) return;
         const numTerms = terms.length;
         const numUsedTerms = terms.filter(term => term.used).length;
         props.setTermScore(numUsedTerms + " / " + numTerms);
@@ -410,7 +413,7 @@ export default function ChatScreen(props: propsInterface) {
             <Messages messages={chatMessages[0] ? chatMessages : testMessages}/>
 
             {/* Chat box div */}
-            <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex">
+            <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex z-20">
                 <div className="w-[15%] h-full aspect-square flex items-center justify-center">
                     <Image 
                     src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : titoMood === "neutral" ? neutralTito : neutralTito} 
@@ -418,10 +421,15 @@ export default function ChatScreen(props: propsInterface) {
                     alt={`Tito is ${titoMood}`}
                     className={titoMood === "thinking" ? 'tito-thinking' : ''}/>
                 </div>
-                <div className="w-[85%] flex items-center justify-center z-20">
+                <div className="w-[85%] flex items-center justify-center ">
                     <textarea 
+<<<<<<< HEAD
+                        placeholder = {titoMood === "thinking" ? "Tito is thinking..." : "Type here..."}
+                        className="w-[85%] h-[70%] bg-white rounded p-1 resize-none overflow-y-auto"
+=======
                         placeholder = {titoMood === "thinking" ? placeholder : "Type here..."}
                         className={`w-[85%] min-h-[3em] h-fit max-h-[7em] bg-white rounded p-1 resize-none overflow-y-auto ${titoMood === "thinking" ? "tito-typing" :""}`}
+>>>>>>> 1ded4e7b9982e27e150f508fe0f023c3241954c4
                         style={{pointerEvents: titoMood === "thinking" ? "none" : "auto", opacity: titoMood === "thinking" ? 0.75 : 1, fontWeight: titoMood === "thinking" ? "bold" : "normal"}}
                         disabled={titoMood === "thinking"}
                         value={userMessage}

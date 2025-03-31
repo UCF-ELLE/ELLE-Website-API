@@ -59,9 +59,10 @@ export default function TalkWithTito() {
   const [userBackgroundFilepath, setUserBackgroundFilepath] = useState<string>("");
   const [analyticsActive, setAnalyticsActive] = useState<boolean>(false);
   const { user, loading: userLoading } = useUser();
-  const [timeSpent, setTimeSpent] = useState<string>("00d:00h:00m:00s");
-  const [termScore, settermScore] = useState<string>("000/000");
+  const [timeSpent, setTimeSpent] = useState<string>("Loading...");
+  const [termScore, setTermScore] = useState<string>("Loading...");
   const [averageScore, setAverageScore] = useState<number>(0.00);
+  const [chatbotId, setChatbotId] = useState<number>();
 
   interface Module {
     moduleID: number;
@@ -130,7 +131,13 @@ export default function TalkWithTito() {
     if(moduleId === -1) {
       return;
     }
-    setSelectedModule(selectedModule === moduleId ? null : moduleId);
+    if(selectedModule === moduleId) {
+      setSelectedModule(null);
+      setAnalyticsActive(false);
+    }
+    else {
+      setSelectedModule(moduleId)
+    }
   };
 
   // Cycle through Tito Statements
@@ -185,90 +192,102 @@ export default function TalkWithTito() {
         {/*Blue button (isLoading toggle for testing)*/}
         {/*<button onClick={handleLoading} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />*/}
         <div className="relative w-[60%] h-fit border-2 border-black">
-          {settingsOpen && <Settings
-            volume={volume}
-            apply={() => setSettingsOpen(false)}
-            onSetPlaylist={handlePlaylist}/>}
+          {settingsOpen && (
+            <Settings
+              volume={volume}
+              apply={() => setSettingsOpen(false)}
+              onSetPlaylist={handlePlaylist}
+            />
+          )}
           {!playClicked ? (
             <>
-              <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
+              <Image
+                src={leaf_background}
+                alt="TalkWithTito placeholder"
+                className="game-background"
+              />
               {isLoading ? (
-                <Image src={tito_speak} alt="TalkWithTito placeholder"
-                  className={`tito-overlay transition-opacity duration-700 ${isFading ? "opacity-0" : "opacity-100"}`} />
-
-              ) : (
-                <>
                 <Image
-                    src={happyTito}
-                    alt="Tito is ready"
-                    className={`pop-animation absolute w-[35%] top-[22%] left-[32%] -translate-x-1/2 -translate-y-1/2`}
-                  />
-                </>
+                  src={tito_speak}
+                  alt="TalkWithTito placeholder"
+                  className={`tito-overlay transition-opacity duration-700 ${isFading ? "opacity-0" : "opacity-100"}`}
+                />
+              ) : (
+                <Image
+                  src={happyTito}
+                  alt="Tito is ready"
+                  className="pop-animation absolute w-[35%] top-[22%] left-[32%] -translate-x-1/2 -translate-y-1/2"
+                />
               )}
-              <div className={`absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-2xl 
-              md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 irish-grover rounded-sm 
-              shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
-              ${isFading ? "opacity-0" : "opacity-100"}`}>
+              <div
+                className={`absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-2xl 
+                md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 irish-grover rounded-sm 
+                shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
+                ${isFading ? "opacity-0" : "opacity-100"}`}
+              >
                 {isLoading ? statement : "Talk with Tito"}
-
               </div>
               <div
                 className={`absolute top-[80%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
-                  font-bold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover 
-                  shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
-                  ${!isLoading ? "hover:bg-[#816031] hover:cursor-pointer" : ""}
-                  ${isFading ? "opacity-0" : "opacity-100"}`}
-
+                font-bold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover 
+                shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
+                ${!isLoading ? "hover:bg-[#816031] hover:cursor-pointer" : ""}
+                ${isFading ? "opacity-0" : "opacity-100"}`}
                 onClick={handlePlayClick}
               >
                 {isLoading ? "Loading..." : "Play!"}
               </div>
-            </>) : (<>
-              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore}/>}
+            </>
+          ) : (
+            <>
+              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} />}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
-              {!selectedModule ? <>
-                <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
-                font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover
-                shadow-[0px_4px_4px_rgba(0,0,0,0.3)]">
-                  Welcome, {user?.username ? user.username : "<username>"}
-                </div>
-                <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2" />
-                <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
-                font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover">
-                  Pick a module to get started!
-                </div>
-              </>
-                :
+              {!selectedModule ? (
                 <>
-                  <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-                    <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath} setTermScore={settermScore} setAverageScore={setAverageScore}/>
+                  <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
+                    font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover
+                    shadow-[0px_4px_4px_rgba(0,0,0,0.3)]">
+                    Welcome, {user?.username ? user.username : "<username>"}
                   </div>
-                </>}
+                  <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2" />
+                  <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
+                    font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover">
+                    Pick a module to get started!
+                  </div>
+                </>
+              ) : (
+                <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
+                  <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath} setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} setChatbotId={setChatbotId} />
+                </div>
+              )}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
                 <Image src={chatBackground} alt="Chat Background" className="game-background" />
-                <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between"> {/*Username div (top)*/}
+                <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between">
+                  {/* Username div (top) */}
                   <div className="h-[92.5%]">
-                    <UserBackground username={user?.username} backgroundFilepath={userBackgroundFilepath} /> {/*TODO: Implement userBackground*/}
-                    <div className="w-full h-[71.75%] flex flex-col items-center"> {/*Modules div (middle)*/}
+                    <UserBackground username={user?.username} backgroundFilepath={userBackgroundFilepath} />
+                    <div className="w-full h-[71.75%] flex flex-col items-center">
+                      {/* Modules div (middle) */}
                       <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
                       <div className="w-full flex overflow-y-auto flex-col items-center">
                         {modules?.map((module: Module, index) => (
-                          <ModuleButton 
+                          <ModuleButton
                             key={index}
-                            moduleName={module.name ? module.name : "Null"} 
-                            onClick={() => handleModuleClick(module.moduleID ? module.moduleID : -1)} 
-                            isSelected = {module.moduleID === selectedModule}
+                            moduleName={module.name || "Null"}
+                            onClick={() => handleModuleClick(module.moduleID || -1)}
+                            isSelected={module.moduleID === selectedModule}
                           />
                         ))}
                       </div>
                     </div>
                   </div>
-                  <div className="w-full h-[7.5%] flex justify-between items-center irish-grover md:text-xl border-t-2 border-white"> {/*Exit div (bottom)*/}
+                  <div className="w-full h-[7.5%] flex justify-between items-center irish-grover md:text-xl border-t-2 border-white">
+                    {/* Exit div (bottom) */}
                     <button className="md:text-xl ml-2 flex items-center py-3" onClick={handleExitClick}>
                       <Image src={logoutIcon} alt="Exit" className="mr-2" />
                       <div className="hidden md:block">Exit Chat</div>
                     </button>
-                    <button onClick={() => setAnalyticsActive(!analyticsActive)}>Analytics📊</button>
+                    {selectedModule && <button onClick={() => setAnalyticsActive(!analyticsActive)}>Analytics📊</button>}
                     <Image
                       src={settingsIcon}
                       alt="Settings"
@@ -278,9 +297,10 @@ export default function TalkWithTito() {
                   </div>
                 </div>
               </div>
-            </>)}
+            </>
+          )}
         </div>
-
+  
       </div>
       {/* Information Boxes */}
       <div className="info-container">
@@ -316,5 +336,5 @@ export default function TalkWithTito() {
         </div>
       </div>
     </div>
-  );
+  );  
 }
