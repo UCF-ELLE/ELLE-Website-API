@@ -123,8 +123,8 @@ from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALVal
 
 from resources.conversationElle.conversation import(
     ChatbotSessions,
+    ExportChatHistory,
     Messages, 
-    UpdateChatGrade,
     UpdateChatTime,
 )
 
@@ -343,8 +343,8 @@ api.add_resource(GetALValues, API_ENDPOINT_PREFIX + "adaptivelearning/gettermlis
 # Elle Chat endpoints
 api.add_resource(Messages, API_ENDPOINT_PREFIX + "chat/messages")
 api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "chat/chatbot")
-api.add_resource(UpdateChatGrade, API_ENDPOINT_PREFIX + "chat/chatbot/<int:chatbotId>/grade")
-api.add_resource(UpdateChatTime, API_ENDPOINT_PREFIX + "chat/chatbot/<int:chatbotId>/time")
+api.add_resource(ExportChatHistory, API_ENDPOINT_PREFIX + "chat/chatbot/export")
+api.add_resource(UpdateChatTime, API_ENDPOINT_PREFIX + "chat/chatbot/time")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
