@@ -72,6 +72,11 @@ class Messages(Resource):
         moduleId = data.get('moduleId')
         userValue = data.get('userValue')
         #termsUsed = data.get('termsUsed') # list of strings of words used
+        termsUsed = getPreviousTermsUsed(userId, chatbotId)
+        try:
+            termsUsed = termsUsed['termsUsed']
+        except:
+            termsUsed = []
         terms = data.get('terms') # vocab list list
 
         try:
@@ -86,27 +91,31 @@ class Messages(Resource):
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
 
-            # print("userValue: ", userValue)
-            #print("termsUsed: ", termsUsed)
-            # print("terms: ", terms)
+            print("userValue: ", userValue)
+            print("termsUsed: ", termsUsed)
+            print("terms: ", terms)
             # convert terms list of dictionaries to list
             # query metadata for existing list of words
-            # termsUsed = count_words(userValue, termsUsed)
-            # termsUsedList = vocab_dict_to_list(termsUsed)
-            # print("termsUsed: ", termsUsed)
-            # print("termsUsedList: ", termsUsedList)
+            termsUsed = count_words(userValue, termsUsed)
+            termsUsedList = vocab_dict_to_list(termsUsed)
+            print("termsUsed: ", termsUsed)
+            print("termsUsedList: ", termsUsedList)
             
-            termsUsed = []
-            # previousTermsUsed = getPreviousTermsUsed(userId, chatbotId)
+            #termsUsed = []
 
+            #TODO: try except with statusCode
+            # metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
             metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
 
             data = {
                 "llmResponse": llmResponse,
                 "termsUsed": termsUsed,
                 "titoConfused": True if llmScore < 6 else False,
-                "metadata": metadata
+                #"metadata": metadata
             }
+            
+            # print("Data: ", data)
+            # print(statusCode)
 
             jsonify(data)
             return data, statusCode
@@ -157,14 +166,14 @@ class ExportChatHistory(Resource):
             csv_writer = csv.writer(csv_buffer)
             
             # write csv header
-            csv_writer.writerow(["timestamp", "source", "value", "metadata"])
-
+            csv_writer.writerow(["timestamp", "user_message", "llm_response", "metadata"])
+            
             # write the data in
             for msg in data:
                 csv_writer.writerow([
                     msg["timestamp"],
-                    msg["source"],
-                    msg["value"],
+                    msg["user_message"],
+                    msg["llm_response"],
                     msg["metadata"]  
                 ])
 
