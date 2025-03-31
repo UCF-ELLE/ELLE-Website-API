@@ -365,17 +365,17 @@ export default function ChatScreen(props: propsInterface) {
             <Messages messages={chatMessages[0] ? chatMessages : testMessages}/>
 
             {/* Chat box div */}
-            <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex">
+            <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex z-20">
                 <div className="w-[15%] h-full aspect-square flex items-center justify-center">
                     <Image 
                     src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : titoMood === "neutral" ? neutralTito : neutralTito} 
                     style={{width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%"}} 
                     alt={`Tito is ${titoMood}`}/>
                 </div>
-                <div className="w-[85%] flex items-center justify-center z-20">
+                <div className="w-[85%] flex items-center justify-center ">
                     <textarea 
                         placeholder = {titoMood === "thinking" ? "Tito is thinking..." : "Type here..."}
-                        className="w-[85%] min-h-[3em] h-fit max-h-[7em] bg-white rounded p-1 resize-none overflow-y-auto"
+                        className="w-[85%] h-[70%] bg-white rounded p-1 resize-none overflow-y-auto"
                         style={{pointerEvents: titoMood === "thinking" ? "none" : "auto", opacity: titoMood === "thinking" ? 0.75 : 1, fontWeight: titoMood === "thinking" ? "bold" : "normal"}}
                         disabled={titoMood === "thinking"}
                         value={userMessage}
