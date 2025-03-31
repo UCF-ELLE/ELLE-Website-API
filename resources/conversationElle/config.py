@@ -35,7 +35,7 @@ grammar_response_json_string = """{\"response\": # your response to the message,
 
 response_string = """{\"response\": # your response to the message}"""
 
-grammar_json_string = """{\"score\": # your score from 1-10 if the user's message is primarily English score is 0, \"error\": # if there is an error, list one or more from ["Grammar Mistake", "Word Use Mistake", "Spelling Mistake", "Conjugation Mistake"] to descibe the error, \"correction\": # the corrected version, \"explanation\": # why it was wrong and how to fix it}"""
+grammar_json_string = """{\"score\": # your score from 1-10 or 'None' if the user's message is primarily in English, \"error\": # if there is an error, list one or more from ["Grammar Mistake", "Word Use Mistake", "Spelling Mistake", "Conjugation Mistake"] to descibe the error, \"correction\": # the corrected version, \"explanation\": # why it was wrong and how to fix it}"""
 
 '''
 # original prompt
