@@ -99,19 +99,14 @@ class Messages(Resource):
             termsUsed = []
             # previousTermsUsed = getPreviousTermsUsed(userId, chatbotId)
 
-            #TODO: try except with statusCode
-            # metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
             metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed)
 
             data = {
                 "llmResponse": llmResponse,
                 "termsUsed": termsUsed,
                 "titoConfused": True if llmScore < 6 else False,
-                #"metadata": metadata
+                "metadata": metadata
             }
-            
-            # print("Data: ", data)
-            # print(statusCode)
 
             jsonify(data)
             return data, statusCode
@@ -162,14 +157,14 @@ class ExportChatHistory(Resource):
             csv_writer = csv.writer(csv_buffer)
             
             # write csv header
-            csv_writer.writerow(["timestamp", "user_message", "llm_response", "metadata"])
-            
+            csv_writer.writerow(["timestamp", "source", "value", "metadata"])
+
             # write the data in
             for msg in data:
                 csv_writer.writerow([
                     msg["timestamp"],
-                    msg["user_message"],
-                    msg["llm_response"],
+                    msg["source"],
+                    msg["value"],
                     msg["metadata"]  
                 ])
 
