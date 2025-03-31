@@ -150,36 +150,11 @@ class ExportChatHistory(Resource):
         try:
             messages, statusCode = getMessages(userId, chatbotId)
             print(statusCode)
-
-            data = [
-                {
-                    "source": msg.get('source', ''), 
-                    "value": msg.get('value', ''), 
-                    "timestamp": msg.get('timestamp', ''),
-                    "metadata": json.dumps(msg.get('metadata', {}))
-                }
-                for msg in messages
-            ]
-
-            # create an in-memory buffer for csv
-            csv_buffer = io.StringIO()
-            csv_writer = csv.writer(csv_buffer)
             
-            # write csv header
-            csv_writer.writerow(["timestamp", "user_message", "llm_response", "metadata"])
-            
-            # write the data in
-            for msg in data:
-                csv_writer.writerow([
-                    msg["timestamp"],
-                    msg["user_message"],
-                    msg["llm_response"],
-                    msg["metadata"]  
-                ])
+            csv_content = convert_messages_to_csv(messages)
 
-            response = Response(csv_buffer.getvalue(), mimetype="text/csv")
+            response = Response(csv_content, mimetype="text/csv")
             response.headers["Content-Disposition"] = "attachment; filename=chat_history.csv"
-
             return response
         except Exception as error:
             print(f"Error: {str(error)}")
