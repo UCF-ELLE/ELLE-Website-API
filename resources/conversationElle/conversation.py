@@ -166,14 +166,14 @@ class ExportChatHistory(Resource):
              csv_writer = csv.writer(csv_buffer)
              
              # write csv header
-             csv_writer.writerow(["timestamp", "user_message", "llm_response", "metadata"])
+             csv_writer.writerow(["timestamp", "source", "value", "metadata"])
              
              # write the data in
              for msg in data:
                  csv_writer.writerow([
                      msg["timestamp"],
-                     msg["user_message"],
-                     msg["llm_response"],
+                     msg["source"],
+                     msg["value"],
                      msg["metadata"]  
                  ])
  
