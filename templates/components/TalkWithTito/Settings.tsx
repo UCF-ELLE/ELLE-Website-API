@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import Image from "next/image";
 import settingsBackground from "@/public/static/images/ConversAItionELLE/SettingsBackground.png";
 import infoIcon from "@/public/static/images/ConversAItionELLE/info.png"
-// import ReactHowler from 'react-howler';
 
 // Song List
 const songList = [ 
@@ -58,6 +57,7 @@ export default function Settings(props: propsInterface) {
   const handleShuffle = () => {
     setPlaylist(shuffleArray(songList))
   }
+  
 
   return (
     <div className="absolute top-0 left-0 w-full h-full bg-[#35353580] z-50">

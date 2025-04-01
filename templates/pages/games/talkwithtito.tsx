@@ -21,6 +21,9 @@ import happyTito from "@/public/static/images/ConversAItionELLE/happyTito.png";
 import chatBackground from "@/public/static/images/ConversAItionELLE/chatbackground.png";
 import settingsIcon from "@/public/static/images/ConversAItionELLE/icon-settings.png";
 import logoutIcon from "@/public/static/images/ConversAItionELLE/icon-log-out.png";
+import play_button from "@/public/static/images/ConversAItionELLE/play.png";
+import pause_button from "@/public/static/images/ConversAItionELLE/pause.png";
+import next_button from "@/public/static/images/ConversAItionELLE/next.png";
 
 // Component imports
 import ModuleButton from "@/components/TalkWithTito/ModuleButton";
@@ -34,18 +37,18 @@ import ChatScreen from "@/components/TalkWithTito/ChatScreen";
 import AnalyticsMenu from "@/components/TalkWithTito/AnalyticsMenu";
 
 // Music List
-// const songList = [ 
-//   { name: "Ambient Jungle", path: "/elle/TitoAudios/ambient-jungle.mp3" },
-//   { name: "Jungle Party", path: "/elle/TitoAudios/jungle-party.mp3" },
-//   { name: "Happy Rock", path: "/elle/TitoAudios/happy-rock.mp3" },
-//   { name: "Energetic Rock", path: "/elle/TitoAudios/energetic-rock.mp3" },
-//   { name: "Pop", path: "/elle/TitoAudios/pop-summer.mp3" },
-//   { name: "Techno", path: "/elle/TitoAudios/techno.mp3" },
-//   { name: "HipHop", path: "/elle/TitoAudios/hiphop.mp3" },
-//   { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3"},
-//   { name: "Smooth Jazz", path: "/elle/TitoAudios/jazz-smooth.mp3" },
-//   { name: "Lofi", path: "/elle/TitoAudios/lofi-groovy.mp3" }
-// ];
+const songList = [ 
+  { name: "Ambient Jungle", path: "/elle/TitoAudios/ambient-jungle.mp3" },
+  { name: "Jungle Party", path: "/elle/TitoAudios/jungle-party.mp3" },
+  { name: "Happy Rock", path: "/elle/TitoAudios/happy-rock.mp3" },
+  { name: "Energetic Rock", path: "/elle/TitoAudios/energetic-rock.mp3" },
+  { name: "Pop", path: "/elle/TitoAudios/pop-summer.mp3" },
+  { name: "Techno", path: "/elle/TitoAudios/techno.mp3" },
+  { name: "HipHop", path: "/elle/TitoAudios/hiphop.mp3" },
+  { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3"},
+  { name: "Smooth Jazz", path: "/elle/TitoAudios/jazz-smooth.mp3" },
+  { name: "Lofi", path: "/elle/TitoAudios/lofi-groovy.mp3" }
+];
 
 export default function TalkWithTito() {
 
@@ -160,34 +163,50 @@ export default function TalkWithTito() {
   const [playlist, setPlaylist] = useState<Song[]>([]);
   const [volume, setVolume] = useState(0.4); // Set volume to be changeable by user later
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
-  
+  const [isPlaying, setIsPlaying] = useState(false);
+  const howlerRef = useRef<ReactHowler>(null);
+
+  // Ensure currentSongIndex does not break React
+  const currentSong = playlist[currentSongIndex] || null;
+
   // Function to set playlist, start song, and close
   const handlePlaylist = (songs: Song[]) => {
     setPlaylist(songs);
     setCurrentSongIndex(0);
     setSettingsOpen(false)
+    setIsPlaying(true)
   };
   
-  // Will probably change this functional code as current song index is less applicable after bug fixes
+  // Stops music, sets new song, and restarts music after a second
   const handleNextSong = () => {
+    setIsPlaying(false)
     setCurrentSongIndex((prev) => {
       const nextIndex = (prev + 1) % playlist.length;
       return nextIndex;
     });
+    setTimeout(() => {
+      setIsPlaying(true); // Restart after a short delay
+    }, 100); 
+  };
+
+  // Toggle music playing
+  const togglePlayPause = () => {
+    setIsPlaying((prev) => !prev);
   };
   
   return (
     <div className="talkwithtito-body">
-      {playlist.map((song, index) => (
+     {currentSong && (
         <ReactHowler
-          key={song.path}
-          src={song.path}
-          playing={index === currentSongIndex}
+          key={currentSong.path}
+          src={currentSong.path}
+          playing={isPlaying}
           loop={false}
           volume={volume}
           onEnd={handleNextSong}
+          ref={howlerRef}
         />
-      ))}
+      )}
       <div className="relative w-full mt-0 mb-8 flex justify-center py-2">
         {/*Blue button (isLoading toggle for testing)*/}
         {/*<button onClick={handleLoading} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />*/}
@@ -240,6 +259,14 @@ export default function TalkWithTito() {
             </>
           ) : (
             <>
+              <div className="music-settings">
+                <button onClick={togglePlayPause}>
+                  {isPlaying ? <Image src={pause_button} alt="pause"/>: <Image src={play_button} alt="play"/>}
+                </button>
+                <button onClick={handleNextSong}>
+                  <Image src={next_button} alt="next button"/>
+                </button>
+              </div>
               {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} />}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {!selectedModule ? (
