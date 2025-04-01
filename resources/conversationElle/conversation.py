@@ -143,19 +143,44 @@ class UpdateChatTime(Resource):
 class ExportChatHistory(Resource):
     @jwt_required
     def post(self):
-        data = request.get_json()  
-        userId = data.get('userId')
-        chatbotId = data.get('chatbotId')
-
-        try:
-            messages, statusCode = getMessages(userId, chatbotId)
-            print(statusCode)
-            
-            csv_content = convert_messages_to_csv(messages)
-
-            response = Response(csv_content, mimetype="text/csv")
-            response.headers["Content-Disposition"] = "attachment; filename=chat_history.csv"
-            return response
-        except Exception as error:
-            print(f"Error: {str(error)}")
-            return {"error": "error"}, 500
+         data = request.get_json()  
+         userId = data.get('userId')
+         chatbotId = data.get('chatbotId')
+ 
+         try:
+             messages, statusCode = getMessages(userId, chatbotId)
+             print(statusCode)
+ 
+             data = [
+                 {
+                     "source": msg.get('source', ''), 
+                     "value": msg.get('value', ''), 
+                     "timestamp": msg.get('timestamp', ''),
+                     "metadata": json.dumps(msg.get('metadata', {}))
+                 }
+                 for msg in messages
+             ]
+ 
+             # create an in-memory buffer for csv
+             csv_buffer = io.StringIO()
+             csv_writer = csv.writer(csv_buffer)
+             
+             # write csv header
+             csv_writer.writerow(["timestamp", "user_message", "llm_response", "metadata"])
+             
+             # write the data in
+             for msg in data:
+                 csv_writer.writerow([
+                     msg["timestamp"],
+                     msg["user_message"],
+                     msg["llm_response"],
+                     msg["metadata"]  
+                 ])
+ 
+             response = Response(csv_buffer.getvalue(), mimetype="text/csv")
+             response.headers["Content-Disposition"] = "attachment; filename=chat_history.csv"
+ 
+             return response
+         except Exception as error:
+             print(f"Error: {str(error)}")
+             return {"error": "error"}, 500
