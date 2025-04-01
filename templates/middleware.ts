@@ -8,10 +8,6 @@ export function middleware(request: NextRequest) {
 
     const currentUser = request.cookies.get('currentUser')?.value;
     
-    // Allow public access to /games/
-    if (request.nextUrl.pathname.startsWith('/games')) {
-        return NextResponse.next();
-    }
 
     if (['/login', '/signup'].includes(request.nextUrl.pathname)) {
         if (currentUser) {
@@ -36,5 +32,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/games/:path*', '/login', '/signup', '/profile']
+    matcher: ['/games/:path+', '/login', '/signup', '/profile']
 };

@@ -103,8 +103,8 @@ export default function GameSection({ anchor, link, external, title, description
                                 {MemberColumns}
                                 <p className='cta-text'>{description}</p>
                                 <p style={{ padding: 0, margin: 'auto 0 15px' }}>
-                                    <Link href={!external ? (!user?.jwt ? link : '/login') : link} style={linkStyles}>
-                                        {!external ? (!user?.jwt ? 'Play Here!' : 'Log In to Play') : 'Available Here!'}
+                                    <Link href={!external ? (user?.jwt ? link : '/login') : link} style={linkStyles} scroll={true}>
+                                        {!external ? (user?.jwt ? 'Play Here!' : 'Log In to Play') : 'Available Here!'}
                                     </Link>
                                 </p>
                             </Col>
