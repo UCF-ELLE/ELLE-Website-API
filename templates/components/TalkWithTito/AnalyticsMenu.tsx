@@ -33,7 +33,7 @@ export default function AnalyticsMenu(props: propsInterface) {
                 <div className="inline-block font-bold">Terms Used:</div> {props.termScore}
             </div>
             <div className="w-full">
-                <div className="inline-block font-bold">Average Score:</div> {props.averageScore}
+                <div className="inline-block font-bold">Average Score:</div> {props.averageScore.toFixed(2)}
             </div>
             <div className="w-full">
                 <div className="inline-block font-bold mr-1">Export Chat:</div>
