@@ -106,8 +106,8 @@ export default function ChatScreen(props: propsInterface) {
             //Update usedTerms
             const newTerms: Term[] = terms.map(term => ({
                 termID: term.termID,
-                questionFront: term.questionBack,
-                questionBack: term.questionFront,
+                questionFront: term.questionFront,
+                questionBack: term.questionBack,
                 used: term.used || sendMessageResponse.termsUsed.includes(term.questionBack)
             }))
             setTerms(newTerms);
@@ -150,8 +150,8 @@ export default function ChatScreen(props: propsInterface) {
                 }
                 const newTerms: Term[] = terms.map(term => ({
                     termID: term.termID,
-                    questionFront: term.questionBack,
-                    questionBack: term.questionFront,
+                    questionFront: term.questionFront,
+                    questionBack: term.questionBack,
                     used: newChatbot.termsUsed.includes(term.questionBack)
                 }))
                 setTerms(newTerms);
