@@ -102,7 +102,8 @@ def convert_messages_to_csv(messages, data):
             try:
                 if k == "termsUsed":
                     data[idx][k] = json.dumps(metadata[k])
-                data[idx][k] = metadata[k]
+                else:
+                    data[idx][k] = metadata[k]
             except:
                 data[idx][k] = "NA"
 
