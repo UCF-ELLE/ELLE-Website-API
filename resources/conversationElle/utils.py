@@ -113,11 +113,12 @@ def convert_messages_to_csv(messages, data):
             try:
                 data[idx][k] = metadata[k]
             except:
-                try:
+                if "termsUsed" in metadata:
                     for word, num in metadata["termsUsed"].items():
                         if word == k:
                             data[idx][word] = num
-                except:
+                            break
+                else:
                     data[idx][k] = "NA"
 
     print("new data: ", data)
