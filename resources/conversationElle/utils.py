@@ -109,6 +109,7 @@ def convert_messages_to_csv(messages, data):
     # extracting each key in metadata
     for idx, msg in enumerate(messages):
         metadata = ast.literal_eval(msg["metadata"])
+        print(metadata)
         for k in metadata_keys:
             try:
                 data[idx][k] = metadata[k]
@@ -123,5 +124,5 @@ def convert_messages_to_csv(messages, data):
                 except:
                     data[idx][k] = "NA"
 
-    print("new data: ", data)
+    #print("new data: ", data)
     return data
