@@ -117,6 +117,8 @@ def convert_messages_to_csv(messages, data):
                 if len(metadata) == 0:
                     continue
                 if "termsUsed" in metadata:
+                    if len(metadata["termsUsed"]) == 0:
+                        continue
                     for word, num in metadata["termsUsed"].items():
                         if word == k:
                             data[idx][word] = num
