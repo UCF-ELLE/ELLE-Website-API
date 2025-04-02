@@ -1,5 +1,6 @@
-Call tito from terminal:
+To POST a message to Tito (LLM chatbot) from the terminal use the following command:
 
+```bash
 curl -X POST "http://10.200.8.216:8000/generate" \
 -H "Content-Type: application/json" \
 -d '{
@@ -9,3 +10,4 @@ curl -X POST "http://10.200.8.216:8000/generate" \
     "top_k": 50,
     "top_p": 0.9
 }'
+```
