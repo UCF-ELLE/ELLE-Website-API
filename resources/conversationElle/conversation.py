@@ -122,7 +122,7 @@ class Messages(Resource):
                 "llmResponse": llmResponse,
                 "termsUsed": termsUsedList,
                 "titoConfused": True if llmScore < 6 else False,
-                #"metadata": metadata
+                "metadata": metadata
             }
             
             # print("Data: ", data)
