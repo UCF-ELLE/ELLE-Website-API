@@ -95,6 +95,8 @@ def convert_messages_to_csv(messages, data):
     # get termsUsed
     for idx, msg in enumerate(messages):
         metadata = ast.literal_eval(msg["metadata"])
+        if not type(metadata) == type({}):
+            continue
         if "termsUsed" in metadata.keys():
             for word in metadata["termsUsed"].keys():
                 metadata_keys.append(word)
