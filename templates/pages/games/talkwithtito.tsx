@@ -81,7 +81,7 @@ export default function TalkWithTito() {
   }
 
   const [modules, setModules] = useState<Module[] | null>(
-    /*[{moduleID: 1, name: "Test module", language: "Spanish"}]*/
+    // [{moduleID: 1, name: "Test module", language: "Spanish"}]
   );
 
   const handleLoading = () =>{
@@ -204,6 +204,30 @@ export default function TalkWithTito() {
   const handleMute = () => {
     setVolume(0.0)
   }
+
+  // Font Size
+  const [chatFont, setChatFont] = useState<string>("");
+
+    const handleFontSize = (chatFont:string) => {
+      setChatFont(() => {
+        let newFont = "14px"; // Default value
+    
+        if (chatFont === "small") {
+          newFont = "14px";
+        } else if (chatFont === "medium") {
+          newFont = "18px";
+        } else if (chatFont === "large") {
+          newFont = "20px";
+        } else {
+          newFont = "24px";
+        }
+        return newFont;
+      });
+    }
+
+    useEffect(() => {
+      console.log("Updated chatFont:", chatFont);
+    }, [chatFont]);
   
   return (
     <div className="talkwithtito-body">
@@ -226,6 +250,7 @@ export default function TalkWithTito() {
             <Settings
               apply={() => setSettingsOpen(false)}
               onSetPlaylist={handlePlaylist}
+              onSetFont={handleFontSize}
             />
           )}
           {!playClicked ? (
@@ -308,7 +333,7 @@ export default function TalkWithTito() {
                 </>
               ) : (
                 <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-                  <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath} setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} setChatbotId={setChatbotId} />
+                  <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath} setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} setChatbotId={setChatbotId} chatFontSize={chatFont}/>
                 </div>
               )}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">

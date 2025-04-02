@@ -14,8 +14,8 @@ interface ChatMessage {
       }
 }
 
-interface MessageProps { message: ChatMessage }
-function Message({ message }: MessageProps) {
+interface MessageProps { message: ChatMessage; chatFontSize: string; }
+function Message({ message,chatFontSize }: MessageProps) {
 
     function scoreToRGB(score: number): string {
         if (score <= 3) {
@@ -59,9 +59,10 @@ function Message({ message }: MessageProps) {
 
                 {/*Message text div*/}
                 <div
-                    className="p-2 rounded-lg inter-font text-lg w-fit"
+                    className="p-2 rounded-lg inter-font w-fit"
                     style={{
-                        backgroundColor: fromUser ? "#FCFFB4" : "#FFC9CE"
+                        backgroundColor: fromUser ? "#FCFFB4" : "#FFC9CE",
+                        fontSize: `${chatFontSize}`
                     }}>
                     {value}
                 </div>
@@ -119,9 +120,10 @@ function Message({ message }: MessageProps) {
 
 interface PropsInterface {
     messages: ChatMessage[];
+    chatFontSize: string;
 }
 
-export default function Messages({ messages }: PropsInterface) {
+export default function Messages({ messages, chatFontSize}: PropsInterface) {
 
     const messagesContainer = useRef<HTMLDivElement>(null);
 
@@ -139,7 +141,7 @@ export default function Messages({ messages }: PropsInterface) {
         <div className="w-full h-[85%] absolute top-0 left-0 z-[11]">
             <div className="absolute w-full h-fit max-h-full overflow-auto bottom-0 left-0" ref={messagesContainer}>
                 {messages.map((message, index) => (
-                    <Message key={index} message={message} />
+                    <Message key={index} message={message} chatFontSize={chatFontSize}/>
                 ))}
             </div>
         </div>

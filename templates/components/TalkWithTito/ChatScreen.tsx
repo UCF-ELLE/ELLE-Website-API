@@ -27,6 +27,7 @@ interface propsInterface {
     setUserBackgroundFilepath: React.Dispatch<React.SetStateAction<string>>;
     setTermScore: React.Dispatch<React.SetStateAction<string>>;
     setAverageScore: React.Dispatch<React.SetStateAction<number>>;
+    chatFontSize: string;
 }
 
 export default function ChatScreen(props: propsInterface) {
@@ -422,7 +423,7 @@ export default function ChatScreen(props: propsInterface) {
             <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={terms?.map(term => (term.used))}/>
 
             {/*Sent/recieved messages div*/}
-            <Messages messages={chatMessages[0] ? chatMessages : testMessages}/>
+            <Messages messages={chatMessages[0] ? chatMessages : testMessages} chatFontSize={props.chatFontSize}/>
 
             {/* Chat box div */}
             <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex z-20">

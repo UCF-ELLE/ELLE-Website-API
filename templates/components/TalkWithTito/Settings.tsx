@@ -26,6 +26,7 @@ interface Song {
 interface propsInterface{
   onSetPlaylist: (song: Song[]) => void;
   apply: () => void;
+  onSetFont: (chatFont:string) => void;
 }
 
 // Fisher-Yates shuffle function
@@ -39,12 +40,14 @@ function shuffleArray<T>(playlist: T[]): T[] {
 }
 
 export default function Settings(props: propsInterface) {
-  const {apply, onSetPlaylist} = props;
+  const {apply, onSetPlaylist, onSetFont} = props;
 
   const [playlist, setPlaylist] = useState<Song[]>([])
+  const [chatFont, setChatFont] = useState<string>("small")
   
   const handleApplyClick = () => {
     onSetPlaylist(playlist);
+    onSetFont(chatFont);
   }
 
   const addToPlaylist = (song: Song) => {
@@ -61,9 +64,15 @@ export default function Settings(props: propsInterface) {
     setPlaylist(shuffleArray(songList))
   }
 
-  const handleClose = () =>{
+  const handleClose = () => {
     apply();
   }
+
+  const handleFont = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newFont = event.target.value;
+    setChatFont(newFont);
+  };
+
   
 
   return (
@@ -111,7 +120,7 @@ export default function Settings(props: propsInterface) {
             <div className="w-full flex mt-4">
               <div className="select-none p-2 ml-8 w-fit flex flex-nowrap">
                 <div className="text-xl md:text-3xl font-semibold mr-4 irish-grover">Chat Font Size:</div>
-                <select className="bg-[#EEEEEE] text-[#2D3648] p-2 rounded-md w-64">
+                <select className="bg-[#EEEEEE] text-[#2D3648] p-2 rounded-md w-64" onChange={handleFont}>
                   <option value="small" className="text-sm">Small</option>
                   <option value="medium" className="text-base">Medium</option>
                   <option value="large" className="text-lg">Large</option>
