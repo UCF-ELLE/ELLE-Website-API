@@ -88,34 +88,18 @@ def vocab_dict_to_list(vocab_dict: dict):
             vocab_list.append(word)
     return vocab_list
 
-def convert_messages_to_csv(messages):
+def convert_messages_to_csv(messages, data):
     metadata_keys = {"error", "score", "termsUsed", "correction", "explanation"}
 
-    data = []
-    for msg in messages:
-        metadata = msg.get("metadata", "{}")
-        
-        try:
-            metadata_dict = json.loads(metadata) if isinstance(metadata, str) else metadata
-        except json.JSONDecodeError:
-            metadata_dict = {}
+    # extracting each key in metadata
+    for idx, msg in enumerate(messages):
+        metadata = msg.get('metadata', {})
+        for key in metadata_keys:
+            try:
+                if key == "termsUsed":
+                    data[idx][key] = json.dumps(metadata[key])
+                data[idx][key] = metadata[key]
+            except:
+                data[idx][key] = "NA"
 
-        flattened_metadata = {key: metadata_dict.get(key, "") for key in metadata_keys}
-
-        data.append({
-            "timestamp": msg.get("timestamp", ""),
-            "source": msg.get("source", ""),
-            "value": msg.get("value", ""),
-            **flattened_metadata  
-        })
-
-    csv_buffer = io.StringIO()
-    csv_writer = csv.writer(csv_buffer)
-
-    headers = ["timestamp", "source", "value"] + list(metadata_keys)
-    csv_writer.writerow(headers)
-
-    for msg in data:
-        csv_writer.writerow([msg[col] for col in headers])
-    
-    return csv_buffer.getvalue()
+    return data

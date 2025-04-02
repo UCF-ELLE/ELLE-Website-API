@@ -172,27 +172,23 @@ class ExportChatHistory(Resource):
                  for msg in messages
              ]
 
-             # extracting each key in metadata
-             for idx, msg in enumerate(messages):
-                metadata = msg.get('metadata', {})
-                for key, value in metadata.items():
-                    data[idx][key] = value
- 
+             data = convert_messages_to_csv(messages, data)
+
              # create an in-memory buffer for csv
              csv_buffer = io.StringIO()
              csv_writer = csv.writer(csv_buffer)
+
+             header_row = list(data.keys())
              
              # write csv header
-             csv_writer.writerow(["timestamp", "source", "value", "metadata"])
+             csv_writer.writerow(header_row)
              
              # write the data in
              for msg in data:
-                 csv_writer.writerow([
-                     msg["timestamp"],
-                     msg["source"],
-                     msg["value"],
-                     msg["metadata"]  
-                 ])
+                row = []
+                for key, value in msg.items():
+                    row.append(value)
+                csv_writer.writerow(row)
  
              response = Response(csv_buffer.getvalue(), mimetype="text/csv")
              response.headers["Content-Disposition"] = "attachment; filename=chat_history.csv"

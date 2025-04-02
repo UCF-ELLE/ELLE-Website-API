@@ -67,6 +67,10 @@ def insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed):
         # parse out response and metadata
         llmResponse = llmValue["response"]
         llmValue.pop("response")
+
+        # save llmResponse without terms used for frontend
+        return_metadata = json.dumps(llmValue)
+
         llmValue['termsUsed'] = termsUsed
         
         #llmScore = llmValue["score"]
@@ -95,7 +99,7 @@ def insertMessages(userId, chatbotId, moduleId, userValue, llmValue, termsUsed):
 
         cursor.executemany(query, messages)
         conn.commit()
-        return metadata, 200
+        return return_metadata, 200
 
     except Exception as error:
         conn.rollback()
