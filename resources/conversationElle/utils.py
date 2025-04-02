@@ -122,11 +122,15 @@ def convert_messages_to_csv(messages, data):
                     if len(metadata["termsUsed"]) == 0:
                         data[idx][k] = ' '
                         continue
+                    word_found = False
                     for word, num in metadata["termsUsed"].items():
                         if word == k:
                             print(f"Word {word} found!")
                             data[idx][word] = num
+                            word_found = True
                             break
+                    if word_found:
+                        continue
                     print("Word not found")
                     data[idx][k] = ' '
                 else:
