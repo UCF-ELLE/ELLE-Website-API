@@ -21,11 +21,11 @@ function Message({ message }: MessageProps) {
         if (score <= 3) {
             // Red (score 0-3)
             return "rgb(214, 75, 75)"
-        } else if (score <= 7) {
-            // Yellow (score 4-7)
+        } else if (score <= 6) {
+            // Yellow (score 4-6)
             return "rgb(214, 191, 75)"
         } else {
-            // Green (score 8-10)
+            // Green (score 7-10)
             return "rgb(103, 214, 75)"
         }
     }
@@ -34,9 +34,19 @@ function Message({ message }: MessageProps) {
     
     const [metadataExpanded, setMetadataExpanded] = useState<boolean>(false);
 
-    const hasMetadata = metadata && (metadata.correction || metadata.error || metadata.explanation || metadata.score);
+    const hasMetadata: boolean = metadata !== undefined && (
+        (metadata.correction && metadata.correction.trim().length > 0) ||
+        (metadata.error && metadata.error.trim().length > 0) ||
+        (metadata.explanation && metadata.explanation.trim().length > 0) ||
+        (metadata.score !== undefined)
+    );    
+    
     const fromUser: boolean = source === "user"
-    const formattedTime = timestamp ? new Date(timestamp).toLocaleString([], {hour: '2-digit', minute: '2-digit'}) : "";
+
+    const dateObj = timestamp ? new Date(timestamp) : null;
+    const formattedTime: string = dateObj && !isNaN(dateObj.getTime()) 
+        ? dateObj.toLocaleString([], { hour: '2-digit', minute: '2-digit' }) 
+        : "";
 
     return (
         <div 
@@ -70,31 +80,31 @@ function Message({ message }: MessageProps) {
                 </div>
 
                 {/*Metadata div*/}
-                {(hasMetadata && metadataExpanded && fromUser) && 
+                {(hasMetadata && metadataExpanded && fromUser && metadata !== undefined) && 
                 <div 
                     className="text-sm w-full flex flex-col items-start bg-blue-100 border border-black px-2 py-1 rounded"
-                    style={{backgroundColor: metadata.score ? scoreToRGB(metadata.score) : "rgb()"}}
+                    style={{backgroundColor: metadata.score !== undefined ? scoreToRGB(metadata.score) : "transparent"}}
                     >
                     
-                    {metadata.correction && 
+                    {metadata.correction !== undefined && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Correction:</div>
                             {metadata.correction}
                         </div>
                     }
-                    {metadata.error && 
+                    {metadata.error !== undefined && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Error:</div>
                             {metadata.error}
                         </div>
                     }
-                    {metadata.explanation && 
+                    {metadata.explanation !== undefined && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Explanation:</div>
                             {metadata.explanation}
                         </div>
                     }
-                    {metadata.score && 
+                    {metadata.score !== undefined && 
                         <div className="flex flex-row">
                             <div className="font-bold mr-1">Score:</div>
                             {metadata.score}
