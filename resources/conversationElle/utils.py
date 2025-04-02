@@ -91,6 +91,10 @@ def vocab_dict_to_list(vocab_dict: dict):
 def convert_messages_to_csv(messages, data):
     metadata_keys = {"error", "score", "termsUsed", "correction", "explanation"}
 
+    print("messages: ", messages)
+
+    print("data: ", data)
+
     # extracting each key in metadata
     for idx, msg in enumerate(messages):
         metadata = msg.get('metadata', {})
@@ -102,4 +106,5 @@ def convert_messages_to_csv(messages, data):
             except:
                 data[idx][key] = "NA"
 
+    print("new data: ", data)
     return data
