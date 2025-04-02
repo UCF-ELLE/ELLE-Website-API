@@ -76,10 +76,10 @@ interface GetChatBotResponse {
 // getChatBot (POST)
 export const getChatbot = async (access_token: string, userId: number, moduleId: number, terms: Term[]): Promise<GetChatBotResponse | null> => {
   try {
-    const tempTerms = terms.map(term => term.questionFront);
+    const tempTerms = terms.map(term => term.questionBack);
     const response = await axios.post(
       `${ELLE_URL}/chat/chatbot`,
-      { userId, moduleId, tempTerms },
+      { "userId": userId, "moduleId": moduleId, "terms": tempTerms },
       {
         headers: { 
           Authorization: `Bearer ${access_token}`,
