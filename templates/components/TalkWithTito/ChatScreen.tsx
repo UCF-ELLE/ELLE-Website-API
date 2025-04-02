@@ -69,6 +69,15 @@ export default function ChatScreen(props: propsInterface) {
         setTitoMood("thinking");
         setUserMessage("");
 
+        //Temporarily appends userMessage (no metadata yet bcs no LLM response)        
+        const tempUserChatMessage: ChatMessage = {
+          value: userMessage,
+          timestamp: new Date().toISOString(),
+          source: "user",
+          metadata: undefined
+        }
+        setChatMessages((prevChatMessages) => [...prevChatMessages, tempUserChatMessage]);
+
         //Calls API
         const sendMessageResponse = await sendMessage(user.jwt, user.userID, props.chatbotId, props.moduleID, userMessage, terms.map(term => term.questionBack), terms.filter(term => term.used === true).map(term => term.questionBack));
 
@@ -90,7 +99,10 @@ export default function ChatScreen(props: propsInterface) {
                 source: "llm",
                 metadata: undefined //LLM Messages don't have metadata
             }
-            setChatMessages((prevChatMessages) => [...prevChatMessages, userResponse, llmMessage]);
+
+            //Updates ChatMessages array, removing temprorary user message
+            setChatMessages((prevChatMessages) => [...prevChatMessages.slice(0, -1), userResponse, llmMessage]);
+
             //Update usedTerms
             const newTerms: Term[] = terms.map(term => ({
                 termID: term.termID,
