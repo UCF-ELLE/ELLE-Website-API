@@ -16,9 +16,13 @@ class ChatbotSessions(Resource):
 
         try:
             chatbotSession, statusCode = getChatbotSession(userId, moduleId)
+            chatbotId = chatbotSession.get("chatbotId")
+            termsUsed = getPreviousTermsUsed(userId, chatbotId) 
+            termsUsedList = vocab_dict_to_list(termsUsed)
+
             chatbotSession = {
                 "chatbotId": chatbotSession.get("chatbotId"),
-                "termsUsed": chatbotSession.get("termsUsed"),
+                "termsUsed": termsUsedList
             }
             
             #userBackground, userMusicChoice = getUserBackgroundandMusic(terms)
