@@ -115,19 +115,20 @@ def convert_messages_to_csv(messages, data):
                 data[idx][k] = metadata[k]
             except:
                 if len(metadata) == 0:
-                    data[idx][k] = 'NA'
+                    data[idx][k] = ' '
                     continue
-                if "termsUsed" in metadata:
+                if "termsUsed" in metadata.keys():
+                    print(metadata["termsUsed"])
                     if len(metadata["termsUsed"]) == 0:
-                        data[idx][k] = 'NA'
+                        data[idx][k] = ' '
                         continue
                     for word, num in metadata["termsUsed"].items():
                         if word == k:
                             data[idx][word] = num
                             break
-                    data[idx][k] = 'NA'
+                    data[idx][k] = ' '
                 else:
-                    data[idx][k] = 'NA'
+                    data[idx][k] = ' '
 
     #print("new data: ", data)
     return data
