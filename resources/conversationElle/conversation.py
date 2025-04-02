@@ -161,16 +161,22 @@ class ExportChatHistory(Resource):
          try:
              messages, statusCode = getMessages(userId, chatbotId)
              print(statusCode)
- 
+
              data = [
                  {
                      "source": msg.get('source', ''), 
                      "value": msg.get('value', ''), 
                      "timestamp": msg.get('timestamp', ''),
-                     "metadata": json.dumps(msg.get('metadata', {}))
+                     #"metadata": json.dumps(msg.get('metadata', {}))
                  }
                  for msg in messages
              ]
+
+             # extracting each key in metadata
+             for idx, msg in enumerate(messages):
+                metadata = msg.get('metadata', {})
+                for key, value in metadata.items():
+                    data[idx][key] = value
  
              # create an in-memory buffer for csv
              csv_buffer = io.StringIO()
