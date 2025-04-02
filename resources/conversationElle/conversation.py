@@ -179,7 +179,7 @@ class ExportChatHistory(Resource):
              csv_buffer = io.StringIO()
              csv_writer = csv.writer(csv_buffer)
 
-             header_row = list(data[0].keys())
+             header_row = list(data[len(data)-1].keys())
              
              # write csv header
              csv_writer.writerow(header_row)
