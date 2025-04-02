@@ -74,9 +74,12 @@ interface GetChatBotResponse {
 }
 
 // getChatBot (POST)
+// Should send english terms
 export const getChatbot = async (access_token: string, userId: number, moduleId: number, terms: Term[]): Promise<GetChatBotResponse | null> => {
   try {
     const tempTerms = terms.map(term => term.questionBack);
+    console.log("getChabot sending:");
+    console.log(tempTerms);
     const response = await axios.post(
       `${ELLE_URL}/chat/chatbot`,
       { "userId": userId, "moduleId": moduleId, "terms": tempTerms },
@@ -148,7 +151,10 @@ interface SendMessageResponse {
 }
 
 // sendMessage (POST)
+// Should send spanish terms
 export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, userValue: string, terms: string[], termsUsed: string[]): Promise<SendMessageResponse | null> => {
+  console.log("sendMessage sending:");
+  console.log(terms);
   try {
     const response = await axios.post(
       `${ELLE_URL}/chat/messages`,
