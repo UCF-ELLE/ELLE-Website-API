@@ -98,6 +98,8 @@ def convert_messages_to_csv(messages, data):
             metadata = ast.literal_eval(msg["metadata"])
             if "termsUsed" in metadata.keys():
                 for word in metadata["termsUsed"].keys():
+                    if word in metadata_keys:
+                        continue
                     metadata_keys.append(word)
         except:
             continue
