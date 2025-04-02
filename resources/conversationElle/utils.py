@@ -102,7 +102,8 @@ def convert_messages_to_csv(messages, data):
         for k in metadata_keys:
             try:
                 if k == "termsUsed":
-                    data[idx][k] = json.dumps(metadata[k])
+                    for word, num in ast.literal_eval(metadata[k]).items():
+                        data[idx][f"Used {word}"] = num
                 else:
                     data[idx][k] = metadata[k]
             except:
