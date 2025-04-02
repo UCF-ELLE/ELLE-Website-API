@@ -17,9 +17,13 @@ class ChatbotSessions(Resource):
         try:
             chatbotSession, statusCode = getChatbotSession(userId, moduleId)
             chatbotId = chatbotSession.get("chatbotId")
-            termsUsed = getPreviousTermsUsed(userId, chatbotId) 
-            termsUsedList = vocab_dict_to_list(termsUsed)
+            termsUsed = getPreviousTermsUsed(userId, chatbotId)
+            try:
+                termsUsed = termsUsed['termsUsed']
+            except:
+                termsUsed = []
 
+            termsUsedList = vocab_dict_to_list(termsUsed)
             chatbotSession = {
                 "chatbotId": chatbotSession.get("chatbotId"),
                 "termsUsed": termsUsedList
