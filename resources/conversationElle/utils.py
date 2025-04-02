@@ -89,7 +89,7 @@ def vocab_dict_to_list(vocab_dict: dict):
     return vocab_list
 
 def convert_messages_to_csv(messages, data):
-    metadata_keys = {"error", "score", "termsUsed", "correction", "explanation"}
+    metadata_keys = ["error", "score", "termsUsed", "correction", "explanation"]
 
     print("messages: ", messages)
 
