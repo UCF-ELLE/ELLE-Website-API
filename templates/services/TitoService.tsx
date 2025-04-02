@@ -76,7 +76,7 @@ interface GetChatBotResponse {
 // getChatBot (POST)
 export const getChatbot = async (access_token: string, userId: number, moduleId: number, terms: Term[]): Promise<GetChatBotResponse | null> => {
   try {
-    const tempTerms = terms.map(term => term.questionBack);
+    const tempTerms = terms.map(term => term.questionFront);
     const response = await axios.post(
       `${ELLE_URL}/chat/chatbot`,
       { userId, moduleId, tempTerms },
