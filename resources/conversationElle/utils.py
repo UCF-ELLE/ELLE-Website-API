@@ -125,6 +125,7 @@ def convert_messages_to_csv(messages, data):
                         if word == k:
                             data[idx][word] = num
                             break
+                    data[idx][k] = 'NA'
                 else:
                     data[idx][k] = 'NA'
 
