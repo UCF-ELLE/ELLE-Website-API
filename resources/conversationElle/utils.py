@@ -102,9 +102,7 @@ def convert_messages_to_csv(messages, data):
         except:
             continue
 
-    print("messages: ", messages)
-
-    print("data: ", data)
+    print("metadata_keys: ", metadata_keys)
 
     # extracting each key in metadata
     for idx, msg in enumerate(messages):
@@ -117,6 +115,8 @@ def convert_messages_to_csv(messages, data):
                 else:
                     data[idx][k] = metadata[k]
             except:
+                if k == "termsUsed":
+                    continue
                 data[idx][k] = "NA"
 
     print("new data: ", data)
