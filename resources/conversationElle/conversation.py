@@ -179,7 +179,7 @@ class ExportChatHistory(Resource):
              csv_buffer = io.StringIO()
              csv_writer = csv.writer(csv_buffer)
 
-             header_row = list(data.keys())
+             header_row = list(data[0].keys())
              
              # write csv header
              csv_writer.writerow(header_row)
@@ -187,7 +187,6 @@ class ExportChatHistory(Resource):
              # write the data in
              for msg in data:
                 row = []
-                print("msg: ", msg)
                 for key, value in msg.items():
                     row.append(value)
                 csv_writer.writerow(row)
