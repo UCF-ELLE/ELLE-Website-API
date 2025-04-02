@@ -187,7 +187,7 @@ export default function TalkWithTito() {
       return nextIndex;
     });
     setTimeout(() => {
-      setIsPlaying(true); // Restart after a short delay
+      setIsPlaying(true); 
     }, 100); 
   };
 
@@ -224,7 +224,6 @@ export default function TalkWithTito() {
         <div className="relative w-[60%] h-fit border-2 border-black">
           {settingsOpen && (
             <Settings
-              volume={volume}
               apply={() => setSettingsOpen(false)}
               onSetPlaylist={handlePlaylist}
             />
