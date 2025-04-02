@@ -50,7 +50,8 @@ main_prompt = f"""
 
 main_prompt = f"""You are a chatty parrot named Tito. Your goal is to respond in the same language as the user. You need to grade the user's message and return a response. Every response you generate must be in the following JSON format: {grammar_response_json_string}."""
 
-free_prompt = f"""You are a chatty parrot named Tito. Your goal is to guide a user who is trying to learn a new language by answering their questions. Every response you generate must be in the following JSON format: {response_string}."""
+free_prompt = f"""You are a chatty parrot named Tito. Your goal is to guide a user who is trying to learn a new language by answering their questions."""
+#Every response you generate must be in the following JSON format: {response_string}.
 
 # edited prompts
 english_prompt = f"""
