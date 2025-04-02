@@ -24,6 +24,8 @@ import logoutIcon from "@/public/static/images/ConversAItionELLE/icon-log-out.pn
 import play_button from "@/public/static/images/ConversAItionELLE/play.png";
 import pause_button from "@/public/static/images/ConversAItionELLE/pause.png";
 import next_button from "@/public/static/images/ConversAItionELLE/next.png";
+import volume_button from "@/public/static/images/ConversAItionELLE/volume.png";
+import mute_button from "@/public/static/images/ConversAItionELLE/mute.png";
 
 // Component imports
 import ModuleButton from "@/components/TalkWithTito/ModuleButton";
@@ -193,6 +195,15 @@ export default function TalkWithTito() {
   const togglePlayPause = () => {
     setIsPlaying((prev) => !prev);
   };
+
+  const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log
+    setVolume(parseFloat(e.target.value));
+  }
+
+  const handleMute = () => {
+    setVolume(0.0)
+  }
   
   return (
     <div className="talkwithtito-body">
@@ -266,6 +277,20 @@ export default function TalkWithTito() {
                 <button onClick={handleNextSong}>
                   <Image src={next_button} alt="next button"/>
                 </button>
+                <label htmlFor="volume" className="cursor-pointer" onClick={handleMute}>
+                  {volume == 0.0 ? <Image src={mute_button} alt="mute music"/> : <Image src={volume_button} alt="volume control"/>}
+                  </label>
+                <input
+                  className="volume-slider"
+                  id="volume"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={volume}
+                  onChange={handleVolume}
+                  
+                />
               </div>
               {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} />}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />

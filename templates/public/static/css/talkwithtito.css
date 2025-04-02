@@ -137,6 +137,33 @@
   z-index: 50;
 }
 
+.volume-slider{
+  display: none; /* Hide by default */
+  position: absolute;
+  top: 25%;
+  left: 100%;
+  width: 150px;
+  opacity: 0;
+  
+}
+
+.volume-slider:hover{
+  display: inline; /* Show when hovering over the label */
+  opacity: 1;
+  animation: Tito-music 0.5s ease-in-out;
+}
+
+@keyframes Tito-music {
+  0% {
+    width: 0;
+    opacity: 0;
+  }
+  100% {
+    width: 150;
+    opacity: 1;
+  }
+}
+
 /* Info Boxes (Probably want to do vw at with media query for mobile) */
 
 .info-container{
