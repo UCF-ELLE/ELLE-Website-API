@@ -104,35 +104,45 @@ def convert_messages_to_csv(messages, data):
         except:
             continue
 
-    print("metadata_keys: ", metadata_keys)
+    #print("metadata_keys: ", metadata_keys)
 
     # extracting each key in metadata
     for idx, msg in enumerate(messages):
         metadata = ast.literal_eval(msg["metadata"])
-        print(metadata)
+        #print(metadata)
         for k in metadata_keys:
             try:
                 data[idx][k] = metadata[k]
+            
             except:
+                # no metadata or empty
                 if len(metadata) == 0:
                     data[idx][k] = ' '
                     continue
+                    
+                # metadata contains termsUsed
                 if "termsUsed" in metadata.keys():
-                    print(metadata["termsUsed"])
+                    #print(metadata["termsUsed"])
+
+                    # termsUsed is empty list
                     if len(metadata["termsUsed"]) == 0:
                         data[idx][k] = ' '
                         continue
+                    
+                    # termsUsed is a dictionary, search for word
                     word_found = False
                     for word, num in metadata["termsUsed"].items():
                         if word == k:
-                            print(f"Word {word} found!")
+                            #print(f"Word {word} found!")
                             data[idx][word] = num
                             word_found = True
                             break
                     if word_found:
                         continue
-                    print("Word not found")
+                    #print("Word not found")
                     data[idx][k] = ' '
+                
+                # metadata does not have termsUsed
                 else:
                     data[idx][k] = ' '
 
