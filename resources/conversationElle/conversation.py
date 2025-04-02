@@ -20,10 +20,10 @@ class ChatbotSessions(Resource):
             termsUsed = getPreviousTermsUsed(userId, chatbotId)
             try:
                 termsUsed = termsUsed['termsUsed']
+                termsUsedList = vocab_dict_to_list(termsUsed)
             except:
-                termsUsed = []
+                termsUsedList = []
 
-            termsUsedList = vocab_dict_to_list(termsUsed)
             chatbotSession = {
                 "chatbotId": chatbotSession.get("chatbotId"),
                 "termsUsed": termsUsedList
@@ -105,7 +105,10 @@ class Messages(Resource):
             # convert terms list of dictionaries to list
             # query metadata for existing list of words
             termsUsed = count_words(userValue, terms, termsUsed)
-            termsUsedList = vocab_dict_to_list(termsUsed)
+            try:
+                termsUsedList = vocab_dict_to_list(termsUsed)
+            except:
+                termsUsedList = []
             print("termsUsed: ", termsUsed)
             print("termsUsedList: ", termsUsedList)
             
