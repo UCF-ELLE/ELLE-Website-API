@@ -5,7 +5,9 @@ export function middleware(request: NextRequest) {
     if (request.nextUrl.pathname.startsWith('/elleapi') || request.nextUrl.pathname.startsWith('/_next')) {
         return NextResponse.next();
     }
+
     const currentUser = request.cookies.get('currentUser')?.value;
+    
 
     if (['/login', '/signup'].includes(request.nextUrl.pathname)) {
         if (currentUser) {
@@ -15,6 +17,7 @@ export function middleware(request: NextRequest) {
         }
         return NextResponse.next();
     }
+
     if (!currentUser || Date.now() > JSON.parse(currentUser).expiredAt) {
         const url = request.nextUrl.clone();
         url.pathname = '/login';

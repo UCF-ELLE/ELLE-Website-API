@@ -1,3 +1,6 @@
+import json
+import csv
+import io
 import string
 
 def begin_function(text: str) -> str:
@@ -49,9 +52,12 @@ def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
     # Parse string to see if vocab word was used
     # Appends to counter regardless of punctuation and capitalization
     clean_text = ''.join([char for char in text if char not in string.punctuation])
+    if len(clean_text) <= 1:
+        return new_vocab_dict
     for word in clean_text.split(" "):
         if any(vocab_word.lower() == word.lower() for vocab_word in temp_vocab_list):
             print("Found word: ", word)
+            
             try:
                 actual_word = [w for w in new_vocab_dict if word.lower() == w][0]
                 print("actual_word: ", actual_word)
@@ -81,3 +87,35 @@ def vocab_dict_to_list(vocab_dict: dict):
         if value > 0:
             vocab_list.append(word)
     return vocab_list
+
+def convert_messages_to_csv(messages):
+    metadata_keys = {"error", "score", "termsUsed", "correction", "explanation"}
+
+    data = []
+    for msg in messages:
+        metadata = msg.get("metadata", "{}")
+        
+        try:
+            metadata_dict = json.loads(metadata) if isinstance(metadata, str) else metadata
+        except json.JSONDecodeError:
+            metadata_dict = {}
+
+        flattened_metadata = {key: metadata_dict.get(key, "") for key in metadata_keys}
+
+        data.append({
+            "timestamp": msg.get("timestamp", ""),
+            "source": msg.get("source", ""),
+            "value": msg.get("value", ""),
+            **flattened_metadata  
+        })
+
+    csv_buffer = io.StringIO()
+    csv_writer = csv.writer(csv_buffer)
+
+    headers = ["timestamp", "source", "value"] + list(metadata_keys)
+    csv_writer.writerow(headers)
+
+    for msg in data:
+        csv_writer.writerow([msg[col] for col in headers])
+    
+    return csv_buffer.getvalue()

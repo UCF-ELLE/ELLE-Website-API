@@ -12,6 +12,7 @@
         "axios": "^1.6.0",
         "axios-hooks": "^5.0.1",
         "chart.js": "^4.4.0",
+        "howler": "^2.2.4",
         "js-cookie": "^3.0.5",
         "jwt-decode": "^4.0.0",
         "mic-recorder-to-mp3": "^2.2.2",
@@ -33,6 +34,7 @@
     },
     "devDependencies": {
         "@types/bootstrap": "^5.2.9",
+        "@types/howler": "^2.2.12",
         "@types/js-cookie": "^3.0.6",
         "@types/node": "^20",
         "@types/react": "^18",
