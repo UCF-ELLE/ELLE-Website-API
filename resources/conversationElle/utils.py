@@ -1,3 +1,4 @@
+import ast
 import json
 import csv
 import io
@@ -97,7 +98,7 @@ def convert_messages_to_csv(messages, data):
 
     # extracting each key in metadata
     for idx, msg in enumerate(messages):
-        metadata = msg["metadata"]
+        metadata = ast.literal_eval(msg["metadata"])
         for k in metadata_keys:
             try:
                 if k == "termsUsed":
