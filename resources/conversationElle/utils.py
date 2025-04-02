@@ -90,6 +90,19 @@ def vocab_dict_to_list(vocab_dict: dict):
     return vocab_list
 
 def convert_messages_to_csv(messages, data):
+    '''
+    This function updates a list of dictionaries in the format specific for csv creation.
+
+    Parameters:
+        messages: List of dictionary-like strings containing message metadata
+        [{"error": ..., "score": ..., "correction": ..., "explanation": ..., "termsUsed": {term1: number, term2: ...}}]
+        data: List of disctionaries with the same size as messages containing important message information
+        [{"source": ..., "value": ..., "timestamp": ...}]
+
+    Returns:
+        data: Updated list combining input data with messages fields (each term in termsUsed has a field)
+        [{"source": ..., "value": ..., "timestamp": ..., "error": ..., "score": ..., "correction": ..., "explanation": ..., "term1: ..., ...}]
+    '''
     metadata_keys = ["error", "score", "correction", "explanation"]
 
     # get termsUsed
