@@ -90,7 +90,7 @@ def vocab_dict_to_list(vocab_dict: dict):
     return vocab_list
 
 def convert_messages_to_csv(messages, data):
-    metadata_keys = ["error", "score", "correction", "explanation", "termsUsed"]
+    metadata_keys = ["error", "score", "correction", "explanation"]
 
     # get termsUsed
     for idx, msg in enumerate(messages):
@@ -111,18 +111,14 @@ def convert_messages_to_csv(messages, data):
         metadata = ast.literal_eval(msg["metadata"])
         for k in metadata_keys:
             try:
-                if k == "termsUsed":
-                    for word, num in metadata[k].items():
-                        print("word: ", word, " num: ", num)
-                        data[idx][word] = num
-                else:
-                    if k in data[idx]:
-                        continue
-                    data[idx][k] = metadata[k]
+                data[idx][k] = metadata[k]
             except:
-                if k == "termsUsed":
-                    continue
-                data[idx][k] = "NA"
+                try:
+                    for word, num in metadata["termsUsed"].items():
+                        if word == k:
+                            data[idx][word] = num
+                except:
+                    data[idx][k] = "NA"
 
     print("new data: ", data)
     return data
