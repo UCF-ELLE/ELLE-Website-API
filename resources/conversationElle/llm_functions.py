@@ -32,7 +32,7 @@ def generate_message(message, prompt):
     
     return response
 
-
+# Not used since LLM generation speed is slow
 def identify_language(message: str):
     """
     Identifies the language of the user input.
