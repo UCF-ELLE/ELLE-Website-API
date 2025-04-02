@@ -97,14 +97,14 @@ def convert_messages_to_csv(messages, data):
 
     # extracting each key in metadata
     for idx, msg in enumerate(messages):
-        metadata = msg.get('metadata', {})
-        for key in metadata_keys:
+        metadata = msg["metadata"]
+        for k in metadata_keys:
             try:
-                if key == "termsUsed":
-                    data[idx][key] = json.dumps(metadata[key])
-                data[idx][key] = metadata[key]
+                if k == "termsUsed":
+                    data[idx][k] = json.dumps(metadata[k])
+                data[idx][k] = metadata[k]
             except:
-                data[idx][key] = "NA"
+                data[idx][k] = "NA"
 
     print("new data: ", data)
     return data
