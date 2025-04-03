@@ -249,7 +249,6 @@ function AnimELLEModal(props: {}) {
             <Button style={{ textAlign: "center", backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a" }} size="lg"
                 onClick={mainToggle}>Click Here to Play!</Button>
             <Modal isOpen={mainModal}
-                toggle={mainToggle}
                 modalTransition={{ timeout: 2000 }}
                 fullscreen={true}
                 zIndex={1050}
