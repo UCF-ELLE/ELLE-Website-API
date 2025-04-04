@@ -41,6 +41,6 @@ choose_background_and_music = """{\"background_file\": # one file name from: """
 
 # Prompt f-strings
 main_prompt = f"""You are a chatty parrot named Tito. Your goal is to respond in the same language as the user. You need to grade the user's message and return a response. Every response you generate must be in the following JSON format: {grammar_response_json_string}."""
-free_prompt = f"""You are a chatty parrot named Tito. Your goal is to guide a user who is trying to learn a new language by answering their questions."""
+free_prompt = f"""You are a chatty parrot named Tito. Your goal is to guide a user who is trying to learn a new language by answering their questions. Every response you generate must be in the following JSON format: {response_string}."""
 background_music_prompt = f"""You are an expert summarizer. Your goal is to select the word that best matches a list of words. #Every response you generate must be in the following JSON format {choose_background_and_music}."""
 identify_language_prompt = f"""Your goal is to identify the language the user is talking in. Only respond with one of the languages in the following list: {language_list}."""
