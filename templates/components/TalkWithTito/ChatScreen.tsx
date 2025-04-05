@@ -70,7 +70,7 @@ export default function ChatScreen(props: propsInterface) {
         setTitoMood("thinking");
         setUserMessage("");
 
-        //Temporarily appends userMessage (no metadata yet bcs no LLM response)        
+        //Temporarily appends userMessage (no metadata yet bcs no LLM response)
         const tempUserChatMessage: ChatMessage = {
           value: userMessage,
           timestamp: new Date().toISOString(),
@@ -153,7 +153,7 @@ export default function ChatScreen(props: propsInterface) {
                     termID: term.termID,
                     questionFront: term.questionFront,
                     questionBack: term.questionBack,
-                    used: newChatbot.termsUsed.includes(term.questionBack)
+                    used: newChatbot.termsUsed.includes(term.questionFront)
                 }))
                 setTerms(newTerms);
             }
