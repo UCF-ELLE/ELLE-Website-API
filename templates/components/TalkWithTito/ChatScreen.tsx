@@ -183,7 +183,7 @@ export default function ChatScreen(props: propsInterface) {
         }
         :
         {
-          value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. Welcome to free talk, here you can ask questions or talk about whatever you like.`,
+          value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. Welcome to free chat, here you can ask questions or talk about whatever you like.`,
             timestamp: "",
             source: "llm",
             metadata: undefined
