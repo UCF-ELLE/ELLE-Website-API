@@ -264,7 +264,7 @@ export default function ChatScreen(props: propsInterface) {
     //Testing timeChatted endpoint
     function handleTestClick() {
       console.log("Test Click!");
-      if(!user || !props.chatbotId || !prevTimeChatted) return;
+      if(user === undefined || props.chatbotId === undefined || prevTimeChatted === undefined) return;
       console.log("prevTimeChatted: " + prevTimeChatted);
       incrementTime(user.jwt, user.userID, props.chatbotId, prevTimeChatted, 1);
     }
