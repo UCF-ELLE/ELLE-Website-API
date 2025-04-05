@@ -120,7 +120,7 @@ export default function ChatScreen(props: propsInterface) {
 
     // Used to initialize terms
     useEffect(() => {
-        if(userLoading || !user) return; // Makes typescript happy :D
+        if(userLoading || !user || props.moduleID === -1) return;
         const loadTerms = async () => {
             const newTerms = await fetchModuleTerms(user.jwt, props.moduleID);
             if(newTerms) {

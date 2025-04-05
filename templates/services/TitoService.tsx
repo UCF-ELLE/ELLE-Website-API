@@ -140,7 +140,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
 interface SendMessageResponse {
   llmResponse: string;
   termsUsed: string[];
-  titoConfused?: boolean; //Optional for now
+  titoConfused?: boolean;
   metadata?: {
     score?: number;
     error?: string;
