@@ -19,6 +19,7 @@ class ChatbotSessions(Resource):
             chatbotSession, statusCode = getChatbotSession(userId, moduleId)
             chatbotId = chatbotSession.get("chatbotId")
             termsUsed = getPreviousTermsUsed(userId, chatbotId)
+
             try:
                 termsUsed = termsUsed['termsUsed']
                 termsUsedList = vocab_dict_to_list(termsUsed)
@@ -27,7 +28,8 @@ class ChatbotSessions(Resource):
 
             chatbotSession = {
                 "chatbotId": chatbotSession.get("chatbotId"),
-                "termsUsed": termsUsedList
+                "termsUsed": termsUsedList,
+                "totalTimeChatted": chatbotSession.get("totalTimeChatted")
             }
             
             #userBackground, userMusicChoice = getUserBackgroundandMusic(terms)
@@ -96,7 +98,8 @@ class Messages(Resource):
                 metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, None)
     
                 data = {
-                    "llmResponse": llmValue['response']
+                    "llmResponse": llmValue['response'],
+                    "termsUsed": []
                 }
                 
                 jsonify(data)
