@@ -109,7 +109,7 @@ export default function ChatScreen(props: propsInterface) {
                 termID: term.termID,
                 questionFront: term.questionFront,
                 questionBack: term.questionBack,
-                used: term.used || sendMessageResponse.termsUsed.includes(term.questionBack)
+                used: term.used || sendMessageResponse.termsUsed.includes(term.questionFront)
             }))
             setTerms(newTerms);
         }
@@ -205,7 +205,6 @@ export default function ChatScreen(props: propsInterface) {
             messagesWithScore.reduce((sum, msg) => sum + (msg.metadata?.score || 0), 0) / messagesWithScore.length 
             : 0;
         props.setAverageScore(averageScore);
-        console.log(averageScore);
     }, [chatMessages])
 
     // Placeholder animation
