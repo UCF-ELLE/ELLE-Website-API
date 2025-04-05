@@ -2,6 +2,7 @@ import csv, io
 from flask import Response, request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required
+from .config import free_prompt
 from .database import * 
 from .llm_functions import *
 from .utils import *
@@ -85,9 +86,22 @@ class Messages(Resource):
             termsUsed = termsUsed['termsUsed']
         except:
             termsUsed = []
-        terms = data.get('terms') # vocab list list
+        terms = data.get('terms') # vocab list list  
 
         try:
+            # Free chat
+            if moduleId == -1:
+                llmValue = generate_message(userValue, free_prompt)
+
+                metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, None)
+    
+                data = {
+                    "llmResponse": llmValue['response']
+                }
+                
+                jsonify(data)
+                return data, statusCode
+            
             llmValue = handle_message(userValue)
             
             print("LLM output in backend: ", llmValue)
@@ -173,7 +187,6 @@ class ExportChatHistory(Resource):
              ]
 
              data = convert_messages_to_csv(messages, data)
-             print("data after conversion: ", data)
 
              # create an in-memory buffer for csv
              csv_buffer = io.StringIO()

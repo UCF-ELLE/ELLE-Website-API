@@ -90,24 +90,74 @@ def vocab_dict_to_list(vocab_dict: dict):
     return vocab_list
 
 def convert_messages_to_csv(messages, data):
-    metadata_keys = ["error", "score", "termsUsed", "correction", "explanation"]
+    '''
+    This function updates a list of dictionaries in the format specific for csv creation.
 
-    print("messages: ", messages)
+    Parameters:
+        messages: List of dictionary-like strings containing message metadata
+        [{"error": ..., "score": ..., "correction": ..., "explanation": ..., "termsUsed": {term1: number, term2: ...}}]
+        data: List of disctionaries with the same size as messages containing important message information
+        [{"source": ..., "value": ..., "timestamp": ...}]
 
-    print("data: ", data)
+    Returns:
+        data: Updated list combining input data with messages fields (each term in termsUsed has a field)
+        [{"source": ..., "value": ..., "timestamp": ..., "error": ..., "score": ..., "correction": ..., "explanation": ..., "term1: ..., ...}]
+    '''
+    metadata_keys = ["error", "score", "correction", "explanation"]
+
+    # get termsUsed
+    for idx, msg in enumerate(messages):
+        try:
+            metadata = ast.literal_eval(msg["metadata"])
+            if "termsUsed" in metadata.keys():
+                for word in metadata["termsUsed"].keys():
+                    if word in metadata_keys:
+                        continue
+                    metadata_keys.append(word)
+        except:
+            continue
+
+    #print("metadata_keys: ", metadata_keys)
 
     # extracting each key in metadata
     for idx, msg in enumerate(messages):
         metadata = ast.literal_eval(msg["metadata"])
+        #print(metadata)
         for k in metadata_keys:
             try:
-                if k == "termsUsed":
-                    for word, num in metadata[k].items():
-                        data[idx][word] = num
-                else:
-                    data[idx][k] = metadata[k]
+                data[idx][k] = metadata[k]
+            
             except:
-                data[idx][k] = "NA"
+                # no metadata or empty
+                if len(metadata) == 0:
+                    data[idx][k] = ' '
+                    continue
+                    
+                # metadata contains termsUsed
+                if "termsUsed" in metadata.keys():
+                    #print(metadata["termsUsed"])
 
-    print("new data: ", data)
+                    # termsUsed is empty list
+                    if len(metadata["termsUsed"]) == 0:
+                        data[idx][k] = ' '
+                        continue
+                    
+                    # termsUsed is a dictionary, search for word
+                    word_found = False
+                    for word, num in metadata["termsUsed"].items():
+                        if word == k:
+                            #print(f"Word {word} found!")
+                            data[idx][word] = num
+                            word_found = True
+                            break
+                    if word_found:
+                        continue
+                    #print("Word not found")
+                    data[idx][k] = ' '
+                
+                # metadata does not have termsUsed
+                else:
+                    data[idx][k] = ' '
+
+    #print("new data: ", data)
     return data
