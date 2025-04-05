@@ -6,6 +6,7 @@ interface propsInterface {
     termScore: string;
     averageScore: number;
     chatbotId?: number;
+    isFreeTalk: boolean;
 }
 
 
@@ -29,12 +30,14 @@ export default function AnalyticsMenu(props: propsInterface) {
             <div className="w-full">
                 <div className="inline-block font-bold">Time Spent:</div> {props.timeSpent}
             </div>
+            {!props.isFreeTalk && 
             <div className="w-full">
                 <div className="inline-block font-bold">Terms Used:</div> {props.termScore}
-            </div>
+            </div>}
+            {!props.isFreeTalk && 
             <div className="w-full">
                 <div className="inline-block font-bold">Average Score:</div> {props.averageScore.toFixed(2)}
-            </div>
+            </div>}
             <div className="w-full">
                 <div className="inline-block font-bold mr-1">Export Chat:</div>
                 {(user && props.chatbotId) ?

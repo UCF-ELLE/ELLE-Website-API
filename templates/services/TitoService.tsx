@@ -71,6 +71,7 @@ interface GetChatBotResponse {
   termsUsed: string[];
   userBackground?: string;
   userMusicChoice?: string;
+  totalTimeChatted: number;
 }
 
 // getChatBot (POST)
