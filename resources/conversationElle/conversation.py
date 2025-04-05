@@ -95,7 +95,7 @@ class Messages(Resource):
             if moduleId == -1:
                 llmValue = generate_message(userValue, free_prompt)
 
-                metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, None)
+                metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, {})
     
                 data = {
                     "llmResponse": llmValue['response'],
