@@ -307,7 +307,7 @@ export default function TalkWithTito() {
                   
                 />
               </div>
-              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} />}
+              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} isFreeTalk={selectedModule === -1} />}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {!selectedModule ? (
                 <>
@@ -335,7 +335,7 @@ export default function TalkWithTito() {
                     <UserBackground username={user?.username} backgroundFilepath={userBackgroundFilepath} />
                     <div className="w-full h-[71.75%] flex flex-col items-center">
                       {/* Modules div (middle) */}
-                      <ModuleButton key={-1} moduleName={"Free Talk"} onClick={() => handleModuleClick(-1)} isSelected={selectedModule === -1} />
+                      <ModuleButton key={-1} moduleName={"Free Chat"} onClick={() => handleModuleClick(-1)} isSelected={selectedModule === -1} />
                       <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
                       <div className="w-full flex overflow-y-auto flex-col items-center">
                         {modules?.map((module: Module, index) => (

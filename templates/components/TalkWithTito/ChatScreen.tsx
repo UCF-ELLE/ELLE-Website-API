@@ -183,7 +183,7 @@ export default function ChatScreen(props: propsInterface) {
         }
         :
         {
-          value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. Welcome to free talk, here you can ask questions or talk about whatever you like.`,
+          value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. Welcome to free chat, here you can ask questions or talk about whatever you like.`,
             timestamp: "",
             source: "llm",
             metadata: undefined
@@ -264,7 +264,7 @@ export default function ChatScreen(props: propsInterface) {
     //Testing timeChatted endpoint
     function handleTestClick() {
       console.log("Test Click!");
-      if(!user || !props.chatbotId || !prevTimeChatted) return;
+      if(user === undefined || props.chatbotId === undefined || prevTimeChatted === undefined) return;
       console.log("prevTimeChatted: " + prevTimeChatted);
       incrementTime(user.jwt, user.userID, props.chatbotId, prevTimeChatted, 1);
     }
