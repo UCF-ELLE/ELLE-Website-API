@@ -89,7 +89,7 @@ export default function ChatScreen(props: propsInterface) {
             //Apppends user response to chatMessages
             const userResponse: ChatMessage = {
                 value: userMessage,
-                timestamp: new Date().toISOString(),
+                timestamp: tempUserChatMessage.timestamp,
                 source: "user",
                 metadata: sendMessageResponse.metadata
             }
