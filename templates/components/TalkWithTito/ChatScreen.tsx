@@ -120,7 +120,12 @@ export default function ChatScreen(props: propsInterface) {
 
     // Used to initialize terms
     useEffect(() => {
-        if(userLoading || !user || props.moduleID === -1) return;
+        if(props.moduleID === -1) {
+          setTermsLoaded(true);
+          setTerms([]);
+          return;
+        }
+        if(userLoading || !user) return;
         const loadTerms = async () => {
             const newTerms = await fetchModuleTerms(user.jwt, props.moduleID);
             if(newTerms) {
@@ -168,8 +173,15 @@ export default function ChatScreen(props: propsInterface) {
     useEffect(() => {
 
         //Instruction message
-        const instructionMessage: ChatMessage = {
+        const instructionMessage: ChatMessage = props.moduleID !== -1 ? {
             value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. View the vocab list on the right for a list of terms which we can chat about. Try to use them each in a sentence atleast once, then they will be crossed off to indicate you've used them correctly.`,
+            timestamp: "",
+            source: "llm",
+            metadata: undefined
+        }
+        :
+        {
+          value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. Welcome to free talk, here you can ask questions or talk about whatever you like.`,
             timestamp: "",
             source: "llm",
             metadata: undefined
