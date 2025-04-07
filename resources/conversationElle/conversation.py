@@ -26,12 +26,6 @@ class ChatbotSessions(Resource):
             except:
                 termsUsedList = []
 
-            chatbotSession = {
-                "chatbotId": chatbotSession.get("chatbotId"),
-                "termsUsed": termsUsedList,
-                "totalTimeChatted": chatbotSession.get("totalTimeChatted")
-            }
-
             # If not free chat, choose user background and music
             if moduleId != -1:
                 userBackground, userMusicChoice = getUserBackgroundandMusic(terms)
@@ -40,11 +34,13 @@ class ChatbotSessions(Resource):
                 print("Music: ", userMusicChoice)
 
             
-            response = jsonify({
-                "chatbotSession": chatbotSession,
+            chatbotSession = {
+                "chatbotId": chatbotSession.get("chatbotId"),
+                "termsUsed": termsUsedList,
+                "totalTimeChatted": chatbotSession.get("totalTimeChatted")
                 "userBackground": userBackground,
                 "userMusicChoice": userMusicChoice
-            })
+            }
             
             #jsonify(chatbotSession)
             return chatbotSession, statusCode
