@@ -11,6 +11,7 @@ import MillenIElleImage from '@/public/static/images/milleniimage.png';
 import PastaGameImage from '@/public/static/images/pastakerfuffle.png';
 import SpinNSpellImage from '@/public/static/images/spinnspellBlocks.png';
 import AudibELLEImage from '@/public/static/images/audibelle.png';
+import TalkWithTitoImage from '@/public/static/images/titoChatbot.png'
 
 import GameSectionJSON from '@/public/static/json/gameSections.json';
 
@@ -55,6 +56,8 @@ export default function Games() {
                 return MillenIElleImage;
             case 'AudibELLE':
                 return AudibELLEImage;
+            case 'TalkWithTito':
+                return TalkWithTitoImage;
             default:
                 return CardGameImage;
         }
