@@ -99,11 +99,13 @@ class Messages(Resource):
                 if "response" not in llmValue:
                     llmValue['response'] = "Sorry, Tito could not understand your message! Please try again."
 
+                llmResponse = llmValue['response']
+                
                 metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, {})
                 print("statusCode", statusCode)
     
                 data = {
-                    "llmResponse": llmValue['response'],
+                    "llmResponse": llmResponse,
                     "termsUsed": []
                 }
                 
