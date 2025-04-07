@@ -96,6 +96,8 @@ class Messages(Resource):
             if moduleId == -1:
                 llmValue = generate_message(userValue, free_prompt)
                 print("llmValue: ", llmValue)
+                if "response" not in llmValue:
+                    llmValue['response'] = "Sorry, Tito could not understand your message! Please try again."
 
                 metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, {})
                 print("statusCode", statusCode)
