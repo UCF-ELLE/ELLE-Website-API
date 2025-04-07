@@ -37,7 +37,7 @@ class ChatbotSessions(Resource):
             chatbotSession = {
                 "chatbotId": chatbotSession.get("chatbotId"),
                 "termsUsed": termsUsedList,
-                "totalTimeChatted": chatbotSession.get("totalTimeChatted")
+                "totalTimeChatted": chatbotSession.get("totalTimeChatted"),
                 "userBackground": userBackground,
                 "userMusicChoice": userMusicChoice
             }
