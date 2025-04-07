@@ -62,9 +62,9 @@ export default function ChatScreen(props: propsInterface) {
     const [prevTimeChatted, setPrevTimeChatted] = useState<number | undefined>();
 
     // Current USE Effect
-    useEffect(()=>{
-      props.setUserMusicFilepath("pop-summer.mp3"); 
-    },[])
+    // useEffect(()=>{
+    //   props.setUserMusicFilepath("pop-summer.mp3"); 
+    // },[])
 
     async function handleSendMessageClick() {
 
@@ -160,10 +160,12 @@ export default function ChatScreen(props: propsInterface) {
               props.setChatbotId(newChatbot.chatbotId);
               setPrevTimeChatted(newChatbot.totalTimeChatted);
               if(newChatbot.userBackground) {
+                  console.log("Received LLM Background")
                   props.setUserBackgroundFilepath(newChatbot.userBackground);
               }
               // Add User Music from chatbot
               if(newChatbot.userMusicChoice) {
+                console.log("Received Music Background")
                 props.setUserMusicFilepath(newChatbot.userMusicChoice);
               }
               const newTerms: Term[] = terms.map(term => ({
