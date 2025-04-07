@@ -22,7 +22,6 @@ import { ReactUnityEventParameter } from "react-unity-webgl/distribution/types/r
 import { useUser } from "@/hooks/useAuth";
 
 import { GameContext } from "@/components/Layouts/GameLayout";
-import { relative } from "path";
 import { Router, useRouter } from "next/router";
 
 function AnimELLEModal(props: {}) {
@@ -180,6 +179,7 @@ function AnimELLEModal(props: {}) {
         }
     }, [UNITY_playerScore, UNITY_sessionID, user?.jwt]);
 
+    // Async function that unloads game
     async function unloadUnityGame() {
         await unload();
     }
@@ -225,6 +225,7 @@ function AnimELLEModal(props: {}) {
         }
     }, [isLoaded, userLoading, user?.jwt, sendMessage]);
 
+    // Async function that will detach the game's files from the frontend and end the player's session
     async function detachGame() {
         if (UNITY_userIsPlayingGame) {
             // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically

@@ -66,6 +66,7 @@ export default function AnimELLEGame() {
                                 <p className="names">Connor Price</p>
                             </div>
                         </div>{" "}
+                        <br/>
                         {/*<!--row--> */}
                         <div className="row">
                             <div className="column">
@@ -75,6 +76,20 @@ export default function AnimELLEGame() {
                             <div className="column">
                                 <p className="names">Robert Bereiter</p>
                                 <p className="names">Arwin Nimityongskul</p>
+                            </div>
+                        </div>{" "}
+                        <br/>
+                        <div className="row">
+                            <div className="column">
+                                <p className="names">Ashton Williams</p>
+                                <p className="names">Dylan Benson</p>
+                                <p className="names">Anna MacInnis</p>
+                                <p className="names">Zachary Kappitt</p>
+                            </div>
+                            <div className="column">
+                                <p className="names">Reef Holdinga</p>
+                                <p className="names">Muhadeseh Ayoubi</p>
+                                <p className="names">Keeghan Saches</p>
                             </div>
                         </div>{" "}
                         <div className="row">
