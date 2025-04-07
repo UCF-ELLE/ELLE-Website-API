@@ -112,7 +112,8 @@ class Messages(Resource):
                 }
                 
                 jsonify(data)
-                return data, statusCode
+                return data, 200
+                #return data, statusCode
             
             llmValue = handle_message(userValue)
             
