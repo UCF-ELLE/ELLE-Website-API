@@ -31,20 +31,22 @@ class ChatbotSessions(Resource):
                 "termsUsed": termsUsedList,
                 "totalTimeChatted": chatbotSession.get("totalTimeChatted")
             }
-            
-            #userBackground, userMusicChoice = getUserBackgroundandMusic(terms)
-            
-            #print("Background: ", userBackground)
-            #print("Music: ", userMusicChoice)
 
-            '''
+            # If not free chat, choose user background and music
+            if moduleId != -1:
+                userBackground, userMusicChoice = getUserBackgroundandMusic(terms)
+            
+                print("Background: ", userBackground)
+                print("Music: ", userMusicChoice)
+
+            
             response = jsonify({
                 "chatbotSession": chatbotSession,
                 "userBackground": userBackground,
                 "userMusicChoice": userMusicChoice
             })
-            '''
-            jsonify(chatbotSession)
+            
+            #jsonify(chatbotSession)
             return chatbotSession, statusCode
         except Exception as error:
             print(f"Error: {str(error)}")
