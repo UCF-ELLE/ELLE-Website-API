@@ -62,6 +62,9 @@ export default function TalkWithTito() {
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [userBackgroundFilepath, setUserBackgroundFilepath] = useState<string>("");
+  const [userMusicFilepath, setUserMusicFilepath] = useState<string>("");
+  const [AIChoice, setAIChoice] = useState<boolean>(false)
+  const [userChatFont, setUserChatFont] = useState<string>("");
   const [analyticsActive, setAnalyticsActive] = useState<boolean>(false);
   const { user, loading: userLoading } = useUser();
   const [timeSpent, setTimeSpent] = useState<string>("Loading...");
@@ -164,11 +167,23 @@ export default function TalkWithTito() {
 
   // Function to set playlist, start song, and close
   const handlePlaylist = (songs: Song[]) => {
-    setPlaylist(songs);
-    setCurrentSongIndex(0);
-    setSettingsOpen(false)
-    setIsPlaying(true)
+    if(AIChoice){
+      handleAIMusic()
+      setIsPlaying(true);
+      setSettingsOpen(false);
+    }
+    else{
+      setPlaylist(songs);
+      setSettingsOpen(false)
+      setIsPlaying(true)
+    }
   };
+
+  useEffect(() => {
+    if (playlist.length > 0 && currentSongIndex >= 0 && isPlaying) {
+      setIsPlaying(true); // Ensure playback starts once the song and playlist are updated
+    }
+  }, [playlist, currentSongIndex]);
   
   // Stops music, sets new song, and restarts music after a second
   const handleNextSong = () => {
@@ -188,7 +203,6 @@ export default function TalkWithTito() {
   };
 
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log
     setVolume(parseFloat(e.target.value));
   }
 
@@ -201,6 +215,7 @@ export default function TalkWithTito() {
 
     const handleFontSize = (chatFont:string) => {
       setChatFont(() => {
+        setUserChatFont(chatFont)
         let newFont = "14px"; // Default value
     
         if (chatFont === "small") {
@@ -216,9 +231,22 @@ export default function TalkWithTito() {
       });
     }
 
-    useEffect(() => {
-      console.log("Updated chatFont:", chatFont);
-    }, [chatFont]);
+    // Handle music chosen by Tito
+    const handleAIMusic = () => {
+      console.log("AI called")
+      const titoChoice = "/elle/TitoAudios/" + userMusicFilepath
+      console.log(titoChoice)
+      const songChoice = songList.filter((song) => titoChoice.includes(song.path));
+      const songIndex = songList.findIndex((song) => song.path === titoChoice);
+      console.log(songIndex)
+      console.log(songChoice);
+      setPlaylist(songChoice);
+    }
+
+    // useEffect(()=>{
+    //   console.log(AIChoice)
+    //   console.log(userMusicFilepath)
+    // },[userMusicFilepath])
   
   return (
     <div className="talkwithtito-body">
@@ -235,13 +263,17 @@ export default function TalkWithTito() {
       )}
       <div className="relative w-full mt-0 mb-8 flex justify-center py-2">
         {/*Blue button (isLoading toggle for testing)*/}
-        {/*<button onClick={handleLoading} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" />*/}
+        {/* <button onClick={handleTransition} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" /> */}
         <div className="relative w-[60%] h-fit border-2 border-black">
           {settingsOpen && (
             <Settings
               apply={() => setSettingsOpen(false)}
               onSetPlaylist={handlePlaylist}
               onSetFont={handleFontSize}
+              onSetAIChoice={setAIChoice}
+              parentPlaylist = {playlist} 
+              parentFont = {userChatFont}
+              titoMusicChoice={AIChoice}
             />
           )}
           {!playClicked ? (
@@ -324,7 +356,7 @@ export default function TalkWithTito() {
                 </>
               ) : (
                 <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-                  <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath} setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} setChatbotId={setChatbotId} chatFontSize={chatFont}/>
+                  <ChatScreen moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath} setUserMusicFilepath={setUserMusicFilepath} setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} setChatbotId={setChatbotId} chatFontSize={chatFont}/>
                 </div>
               )}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">

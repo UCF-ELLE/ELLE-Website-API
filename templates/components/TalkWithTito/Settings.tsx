@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Image from "next/image";
 import settingsBackground from "@/public/static/images/ConversAItionELLE/SettingsBackground.png";
-import infoIcon from "@/public/static/images/ConversAItionELLE/info.png"
+// import infoIcon from "@/public/static/images/ConversAItionELLE/info.png"
 
 // Song List
 const songList = [ 
@@ -27,6 +27,10 @@ interface propsInterface{
   onSetPlaylist: (song: Song[]) => void;
   apply: () => void;
   onSetFont: (chatFont:string) => void;
+  onSetAIChoice: (AIChoice:boolean) => void;
+  titoMusicChoice: boolean;
+  parentPlaylist: Song[];
+  parentFont: string;
 }
 
 // Fisher-Yates shuffle function
@@ -40,17 +44,17 @@ function shuffleArray<T>(playlist: T[]): T[] {
 }
 
 export default function Settings(props: propsInterface) {
-  const {apply, onSetPlaylist, onSetFont} = props;
+  const {apply, onSetPlaylist, onSetFont, onSetAIChoice, parentPlaylist, parentFont, titoMusicChoice} = props;
 
   const [playlist, setPlaylist] = useState<Song[]>([])
-  const [chatFont, setChatFont] = useState<string>("small")
+  const [chatFont, setChatFont] = useState<string>("medium")
   
   const handleApplyClick = () => {
     onSetPlaylist(playlist);
     onSetFont(chatFont);
   }
 
-  const addToPlaylist = (song: Song) => {
+  const togglePlaylist = (song: Song) => {
       setPlaylist((prev) => {
         const isAlreadySelected = prev.some((s) => s.path === song.path);
         // Remove if already selected, Add of not selected
@@ -64,6 +68,7 @@ export default function Settings(props: propsInterface) {
     setPlaylist(shuffleArray(songList))
   }
 
+
   const handleClose = () => {
     apply();
   }
@@ -73,7 +78,24 @@ export default function Settings(props: propsInterface) {
     setChatFont(newFont);
   };
 
-  
+  const handleAIChoice = () => {
+    onSetAIChoice(!titoMusicChoice);
+    
+  }
+
+  useEffect (() => {
+    setPlaylist(parentPlaylist)
+  },[parentPlaylist])
+
+  useEffect(() => {
+    setChatFont(parentFont);
+  }, [parentFont]);
+
+  // useEffect(() => {
+  //   console.log(titoMusicChoice)
+  // }, [titoMusicChoice]);
+
+
 
   return (
     <div className="absolute top-0 left-0 w-full h-full bg-[#35353580] z-50">
@@ -97,10 +119,13 @@ export default function Settings(props: propsInterface) {
               <div className="grid grid-cols-2 gap-x-4 md:gap-x-10 gap-y-1 max-h-[10em]">{/* Songs container */}
                 {songList.map((song, index) => (
                   <div key={index} className="flex flex-nowrap">
-                    {/* Add preview song code using checked */}
-                  <input type="checkbox" className="mr-1" onChange={()=>addToPlaylist(song)}/>
+                  <input 
+                    type="checkbox" 
+                    className="mr-1" 
+                    checked={playlist.some((s) => s.path === song.path)} 
+                    onChange={()=>togglePlaylist(song)}
+                    />
                   <div className="w-[5em] whitespace-nowrap">{song.name}</div>
-                  {/* <Image src={infoIcon} alt="Info" className="gap-10"/> */}
                 </div>
                   ))}
                           
@@ -111,7 +136,7 @@ export default function Settings(props: propsInterface) {
                   Shuffle All
                 </div>
                 <div className="mx-4">
-                  <input type="checkbox" className="mr-1" />
+                  <input type="checkbox" className="mr-1" checked={titoMusicChoice} onChange={()=>handleAIChoice()}/>
                   AI Choice
                 </div>
               </div>
@@ -120,7 +145,7 @@ export default function Settings(props: propsInterface) {
             <div className="w-full flex mt-4">
               <div className="select-none p-2 ml-8 w-fit flex flex-nowrap">
                 <div className="text-xl md:text-3xl font-semibold mr-4 irish-grover">Chat Font Size:</div>
-                <select className="bg-[#EEEEEE] text-[#2D3648] p-2 rounded-md w-64" onChange={handleFont}>
+                <select className="bg-[#EEEEEE] text-[#2D3648] p-2 rounded-md w-64" value={chatFont} onChange={handleFont}>
                   <option value="small" className="text-sm">Small</option>
                   <option value="medium" className="text-base">Medium</option>
                   <option value="large" className="text-lg">Large</option>
