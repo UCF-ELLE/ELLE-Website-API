@@ -94,15 +94,17 @@ class Messages(Resource):
         try:
             # Free chat
             if moduleId == -1:
-                llmValue = handle_message(userValue, free_prompt)
-                print("llmValue: ", llmValue)
-                if "response" not in llmValue:
-                    llmValue['response'] = "Sorry, Tito could not understand your message! Please try again."
+                #llmValue = handle_message(userValue, free_prompt)
+                #print("llmValue: ", llmValue)
+                # debugging
+                llmValue = {}
+                #if "response" not in llmValue:
+                llmValue['response'] = "Sorry, Tito could not understand your message! Please try again."
 
                 llmResponse = llmValue['response']
                 
-                metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, {})
-                print("statusCode", statusCode)
+                #metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, {})
+                #print("statusCode", statusCode)
     
                 data = {
                     "llmResponse": llmResponse,
