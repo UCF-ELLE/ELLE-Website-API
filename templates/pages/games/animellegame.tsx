@@ -28,7 +28,7 @@ import GameLayout, { GameContext } from "@/components/Layouts/GameLayout";
 
 import { useUnityContext } from "react-unity-webgl";
 
-import FullScreenModal from "@/components/Games/AnimELLEModal";
+import AnimELLEModal from "@/components/Games/AnimELLEModal";
 
 import { UnityInstance } from "react-unity-webgl/declarations/unity-instance";
 
@@ -46,7 +46,7 @@ export default function AnimELLEGame() {
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <div className="center-contents">
                     <div className="gameContainer">
-                        <FullScreenModal></FullScreenModal>
+                        <AnimELLEModal></AnimELLEModal>
                     </div>
                 </div>
                 {creditsVisibility && (<div id="creditsContainer" className="divContainer">
@@ -66,6 +66,7 @@ export default function AnimELLEGame() {
                                 <p className="names">Connor Price</p>
                             </div>
                         </div>{" "}
+                        <br/>
                         {/*<!--row--> */}
                         <div className="row">
                             <div className="column">
@@ -75,6 +76,20 @@ export default function AnimELLEGame() {
                             <div className="column">
                                 <p className="names">Robert Bereiter</p>
                                 <p className="names">Arwin Nimityongskul</p>
+                            </div>
+                        </div>{" "}
+                        <br/>
+                        <div className="row">
+                            <div className="column">
+                                <p className="names">Ashton Williams</p>
+                                <p className="names">Dylan Benson</p>
+                                <p className="names">Anna MacInnis</p>
+                                <p className="names">Zachary Kappitt</p>
+                            </div>
+                            <div className="column">
+                                <p className="names">Reef Holdinga</p>
+                                <p className="names">Muhadeseh Ayoubi</p>
+                                <p className="names">Keeghan Saches</p>
                             </div>
                         </div>{" "}
                         <div className="row">
