@@ -82,20 +82,23 @@ class Messages(Resource):
         chatbotId = data.get('chatbotId')
         moduleId = data.get('moduleId')
         userValue = data.get('userValue')
+        terms = data.get('terms') # vocab list list
         #termsUsed = data.get('termsUsed') # list of strings of words used
+        
         termsUsed = getPreviousTermsUsed(userId, chatbotId)
         try:
             termsUsed = termsUsed['termsUsed']
         except:
             termsUsed = []
-        terms = data.get('terms') # vocab list list  
-
+          
         try:
             # Free chat
             if moduleId == -1:
                 llmValue = generate_message(userValue, free_prompt)
+                print("llmValue: ", llmValue)
 
                 metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, {})
+                print("statusCode", statusCode)
     
                 data = {
                     "llmResponse": llmValue['response'],
