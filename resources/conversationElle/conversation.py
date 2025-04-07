@@ -27,19 +27,21 @@ class ChatbotSessions(Resource):
                 termsUsedList = []
 
             # If not free chat, choose user background and music
+            '''
             if moduleId != -1:
                 userBackground, userMusicChoice = getUserBackgroundandMusic(terms)
             
                 print("Background: ", userBackground)
                 print("Music: ", userMusicChoice)
+            '''
 
             
             chatbotSession = {
                 "chatbotId": chatbotSession.get("chatbotId"),
                 "termsUsed": termsUsedList,
-                "totalTimeChatted": chatbotSession.get("totalTimeChatted"),
-                "userBackground": userBackground,
-                "userMusicChoice": userMusicChoice
+                "totalTimeChatted": chatbotSession.get("totalTimeChatted")
+                #"userBackground": userBackground,
+                #"userMusicChoice": userMusicChoice
             }
             
             #jsonify(chatbotSession)
