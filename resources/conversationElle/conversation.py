@@ -26,25 +26,25 @@ class ChatbotSessions(Resource):
             except:
                 termsUsedList = []
 
+            # If not free chat, choose user background and music
+            '''
+            if moduleId != -1:
+                userBackground, userMusicChoice = getUserBackgroundandMusic(terms)
+            
+                print("Background: ", userBackground)
+                print("Music: ", userMusicChoice)
+            '''
+
+            
             chatbotSession = {
                 "chatbotId": chatbotSession.get("chatbotId"),
                 "termsUsed": termsUsedList,
                 "totalTimeChatted": chatbotSession.get("totalTimeChatted")
+                #"userBackground": userBackground,
+                #"userMusicChoice": userMusicChoice
             }
             
-            #userBackground, userMusicChoice = getUserBackgroundandMusic(terms)
-            
-            #print("Background: ", userBackground)
-            #print("Music: ", userMusicChoice)
-
-            '''
-            response = jsonify({
-                "chatbotSession": chatbotSession,
-                "userBackground": userBackground,
-                "userMusicChoice": userMusicChoice
-            })
-            '''
-            jsonify(chatbotSession)
+            #jsonify(chatbotSession)
             return chatbotSession, statusCode
         except Exception as error:
             print(f"Error: {str(error)}")
@@ -82,23 +82,30 @@ class Messages(Resource):
         chatbotId = data.get('chatbotId')
         moduleId = data.get('moduleId')
         userValue = data.get('userValue')
+        terms = data.get('terms') # vocab list list
         #termsUsed = data.get('termsUsed') # list of strings of words used
+        
         termsUsed = getPreviousTermsUsed(userId, chatbotId)
         try:
             termsUsed = termsUsed['termsUsed']
         except:
             termsUsed = []
-        terms = data.get('terms') # vocab list list  
-
+          
         try:
             # Free chat
             if moduleId == -1:
-                llmValue = generate_message(userValue, free_prompt)
+                llmValue = handle_message(userValue, free_prompt)
+                print("llmValue: ", llmValue)
+                if "response" not in llmValue:
+                    llmValue['response'] = "Sorry, Tito could not understand your message! Please try again."
 
+                llmResponse = llmValue['response']
+                
                 metadata, statusCode = insertMessages(userId, chatbotId, moduleId, userValue, llmValue, {})
+                print("statusCode", statusCode)
     
                 data = {
-                    "llmResponse": llmValue['response'],
+                    "llmResponse": llmResponse,
                     "termsUsed": []
                 }
                 

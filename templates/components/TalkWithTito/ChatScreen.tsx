@@ -25,6 +25,7 @@ interface propsInterface {
     chatbotId?: number;
     setChatbotId: React.Dispatch<React.SetStateAction<number | undefined>>
     setUserBackgroundFilepath: React.Dispatch<React.SetStateAction<string>>;
+    setUserMusicFilepath: React.Dispatch<React.SetStateAction<string>>;
     setTermScore: React.Dispatch<React.SetStateAction<string>>;
     setAverageScore: React.Dispatch<React.SetStateAction<number>>;
     chatFontSize: string;
@@ -59,6 +60,11 @@ export default function ChatScreen(props: propsInterface) {
     const [userMessage, setUserMessage] = useState<string>("");
     const [titoMood, setTitoMood] = useState("neutral");
     const [prevTimeChatted, setPrevTimeChatted] = useState<number | undefined>();
+
+    // Current USE Effect
+    // useEffect(()=>{
+    //   props.setUserMusicFilepath("pop-summer.mp3"); 
+    // },[])
 
     async function handleSendMessageClick() {
 
@@ -121,6 +127,8 @@ export default function ChatScreen(props: propsInterface) {
 
     // Used to initialize terms
     useEffect(() => {
+        setTermsLoaded(false);
+        
         if(props.moduleID === -1) {
           setTermsLoaded(true);
           setTerms([]);
@@ -154,7 +162,13 @@ export default function ChatScreen(props: propsInterface) {
               props.setChatbotId(newChatbot.chatbotId);
               setPrevTimeChatted(newChatbot.totalTimeChatted);
               if(newChatbot.userBackground) {
+                  console.log("Received LLM Background")
                   props.setUserBackgroundFilepath(newChatbot.userBackground);
+              }
+              // Add User Music from chatbot
+              if(newChatbot.userMusicChoice) {
+                console.log("Received Music Background")
+                props.setUserMusicFilepath(newChatbot.userMusicChoice);
               }
               const newTerms: Term[] = terms.map(term => ({
                   termID: term.termID,
@@ -192,13 +206,13 @@ export default function ChatScreen(props: propsInterface) {
         if(userLoading || !user || !props.chatbotId) return;
         const loadMessages = async () => {
           if(!props.chatbotId) return;
-            const newMessages = await getMessages(user.jwt, user.userID, props.chatbotId);
-            if(newMessages) {
-                setChatMessages([instructionMessage, ...newMessages]);
-            }
-            else {
-                console.log("Error getting messages");
-            }
+          const newMessages = await getMessages(user.jwt, user.userID, props.chatbotId);
+          if(newMessages) {
+              setChatMessages([instructionMessage, ...newMessages]);
+          }
+          else {
+              console.log("Error getting messages");
+          }
         }
         loadMessages();
     }, [props.chatbotId, user, userLoading]);
@@ -266,12 +280,13 @@ export default function ChatScreen(props: propsInterface) {
       console.log("Test Click!");
       if(user === undefined || props.chatbotId === undefined || prevTimeChatted === undefined) return;
       console.log("prevTimeChatted: " + prevTimeChatted);
-      incrementTime(user.jwt, user.userID, props.chatbotId, prevTimeChatted, 1);
+      incrementTime(user.jwt, user.userID, props.chatbotId, prevTimeChatted, 1); //200 status code is success
     }
 
     useEffect(() => {
       console.log("prevTimeChatted: " + prevTimeChatted);
     }, [prevTimeChatted])
+
     
 
 

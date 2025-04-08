@@ -39,19 +39,21 @@ def identify_language(message: str):
     """
     return generate_message(message, identify_language_prompt)
 
-def handle_message(message: str):
+def handle_message(message: str, prompt=None):
     """
     Handles the incoming message and generates a response using the LLM.
     """
     try:
-        response = generate_message(message, main_prompt)
+        if prompt == None:
+            prompt = main_prompt
+        response = generate_message(message, prompt)
         response = response["Assistant"]
         response = response[response.index("{"):response.index("}")+1]
         response = ast.literal_eval(response)
         #print("returned message: ", response)
     except Exception as e:
         print(e)
-        return {"response" : "Sorry, Tito could not understand your message! Please try again.", "score": 0}
+        return {"response" : "Sorry, Tito could not understand your message! Please try again.", "score": 10}
     
     return response
         
