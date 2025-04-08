@@ -194,13 +194,13 @@ export default function ChatScreen(props: propsInterface) {
         if(userLoading || !user || !props.chatbotId) return;
         const loadMessages = async () => {
           if(!props.chatbotId) return;
-            const newMessages = await getMessages(user.jwt, user.userID, props.chatbotId);
-            if(newMessages) {
-                setChatMessages([instructionMessage, ...newMessages]);
-            }
-            else {
-                console.log("Error getting messages");
-            }
+          const newMessages = await getMessages(user.jwt, user.userID, props.chatbotId);
+          if(newMessages) {
+              setChatMessages([instructionMessage, ...newMessages]);
+          }
+          else {
+              console.log("Error getting messages");
+          }
         }
         loadMessages();
     }, [props.chatbotId, user, userLoading]);
