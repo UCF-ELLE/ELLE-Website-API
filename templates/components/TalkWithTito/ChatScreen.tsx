@@ -121,6 +121,8 @@ export default function ChatScreen(props: propsInterface) {
 
     // Used to initialize terms
     useEffect(() => {
+        setTermsLoaded(false);
+        
         if(props.moduleID === -1) {
           setTermsLoaded(true);
           setTerms([]);
@@ -266,7 +268,7 @@ export default function ChatScreen(props: propsInterface) {
       console.log("Test Click!");
       if(user === undefined || props.chatbotId === undefined || prevTimeChatted === undefined) return;
       console.log("prevTimeChatted: " + prevTimeChatted);
-      incrementTime(user.jwt, user.userID, props.chatbotId, prevTimeChatted, 1);
+      incrementTime(user.jwt, user.userID, props.chatbotId, prevTimeChatted, 1); //200 status code is success
     }
 
     useEffect(() => {
