@@ -134,8 +134,6 @@ export default function ClassDetailsComponent(props: ClassDetailsProps) {
                     })}
                 </tbody>
             </table>
-            
-            
         </>
     );
 }

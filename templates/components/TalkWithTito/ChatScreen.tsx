@@ -25,6 +25,7 @@ interface propsInterface {
     chatbotId?: number;
     setChatbotId: React.Dispatch<React.SetStateAction<number | undefined>>
     setUserBackgroundFilepath: React.Dispatch<React.SetStateAction<string>>;
+    setUserMusicFilepath: React.Dispatch<React.SetStateAction<string>>;
     setTermScore: React.Dispatch<React.SetStateAction<string>>;
     setAverageScore: React.Dispatch<React.SetStateAction<number>>;
     chatFontSize: string;
@@ -59,6 +60,11 @@ export default function ChatScreen(props: propsInterface) {
     const [userMessage, setUserMessage] = useState<string>("");
     const [titoMood, setTitoMood] = useState("neutral");
     const [prevTimeChatted, setPrevTimeChatted] = useState<number | undefined>();
+
+    // Current USE Effect
+    // useEffect(()=>{
+    //   props.setUserMusicFilepath("pop-summer.mp3"); 
+    // },[])
 
     async function handleSendMessageClick() {
 
@@ -156,7 +162,13 @@ export default function ChatScreen(props: propsInterface) {
               props.setChatbotId(newChatbot.chatbotId);
               setPrevTimeChatted(newChatbot.totalTimeChatted);
               if(newChatbot.userBackground) {
+                  console.log("Received LLM Background")
                   props.setUserBackgroundFilepath(newChatbot.userBackground);
+              }
+              // Add User Music from chatbot
+              if(newChatbot.userMusicChoice) {
+                console.log("Received Music Background")
+                props.setUserMusicFilepath(newChatbot.userMusicChoice);
               }
               const newTerms: Term[] = terms.map(term => ({
                   termID: term.termID,
@@ -274,6 +286,7 @@ export default function ChatScreen(props: propsInterface) {
     useEffect(() => {
       console.log("prevTimeChatted: " + prevTimeChatted);
     }, [prevTimeChatted])
+
     
 
 

@@ -6,7 +6,9 @@ import React, {
     useRef,
 } from "react";
 import {
-    Button, Modal
+    Button, Modal,
+    ModalBody,
+    ModalHeader
 } from "reactstrap"
 
 import { Unity, useUnityContext } from "react-unity-webgl";
@@ -20,11 +22,19 @@ import { ReactUnityEventParameter } from "react-unity-webgl/distribution/types/r
 import { useUser } from "@/hooks/useAuth";
 
 import { GameContext } from "@/components/Layouts/GameLayout";
+import { Router, useRouter } from "next/router";
 
-function App(props: {}) {
-    const [modal, setModal] = React.useState(false);
+function AnimELLEModal(props: {}) {
 
-    const toggle = () => setModal(!modal);
+    const [mainModal, setMainModal] = React.useState(false);
+    const [exitModal, setExitModal] = React.useState(false);
+
+    const mainToggle = () => setMainModal(!mainModal);
+    const exitToggle = () => setExitModal(!exitModal);
+    const allToggle = () => {
+        setExitModal(!exitModal);
+        setMainModal(!mainModal);
+    }
 
     const { user, loading: userLoading } = useUser();
     const [permission, setPermission] = useState(user?.permissionGroup);
@@ -37,6 +47,8 @@ function App(props: {}) {
     const [UNITY_playerScore, setUNITY_playerScore] = useState(0);
     const userScoreRef = useRef(UNITY_playerScore);
     const [unmountFlag, setUnmountFlag] = useState<boolean>(false);
+
+    const router = useRouter();
 
     // Load Unity WebGL game
     const {
@@ -120,6 +132,19 @@ function App(props: {}) {
         setDevicePixelRatio(window.devicePixelRatio);
     }, [user, userLoading]);
 
+    // This will run when the user presses the back button and detaches the game
+    useEffect(() => {
+        const handleRouteChange = () => {
+            detachGame();
+        }
+
+        router.events.on('beforeHistoryChange', handleRouteChange);
+
+        return () => {
+            router.events.off('beforeHistoryChange', handleRouteChange);
+        };
+    }, [router, detachGame]);
+
     // Sometimes the Unity window looks blurry on Retina screens. This fixes that.
     // Taken from https://react-unity-webgl.dev/docs/advanced-examples/dynamic-device-pixel-ratio
     const [devicePixelRatio, setDevicePixelRatio] = useState<number>();
@@ -154,6 +179,7 @@ function App(props: {}) {
         }
     }, [UNITY_playerScore, UNITY_sessionID, user?.jwt]);
 
+    // Async function that unloads game
     async function unloadUnityGame() {
         await unload();
     }
@@ -199,6 +225,7 @@ function App(props: {}) {
         }
     }, [isLoaded, userLoading, user?.jwt, sendMessage]);
 
+    // Async function that will detach the game's files from the frontend and end the player's session
     async function detachGame() {
         if (UNITY_userIsPlayingGame) {
             // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
@@ -211,6 +238,8 @@ function App(props: {}) {
     }
 
     function openHandler() {
+        console.log(window.innerHeight);
+
         setUnmountFlag(false);
     }
 
@@ -218,42 +247,70 @@ function App(props: {}) {
         <div style={{
             display: 'block', width: 700, padding: 30
         }}>
-            <Button color="primary" size="lg"
-                onClick={toggle}>Click Here to Play!</Button>
-            <Modal isOpen={modal}
-                toggle={toggle}
+            <Button style={{ textAlign: "center", backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a" }} size="lg"
+                onClick={mainToggle}>Click Here to Play!</Button>
+            <Modal isOpen={mainModal}
                 modalTransition={{ timeout: 2000 }}
                 fullscreen={true}
                 zIndex={1050}
                 scrollable={false}
                 centered={false}
-                style={{ height: '100%', width: '100%', padding: '0px', top: '0px', position: "absolute" }}
+                style={{
+                    height: '100dvh', // Full height of the viewport
+                    width: '100dvw',  // Full width of the viewport
+                    padding: 0,      // Remove any padding
+                    top: 0,          // Ensure it starts at the top of the screen
+                    left: 0,         // Ensure it starts at the left of the screen
+                    margin: 0,        // No margin to avoid any default spacing
+                }}
                 onClosed={detachGame}
                 onOpened={openHandler}
                 unmountOnClose={unmountFlag}
             >
-                <Unity
-                    unityProvider={unityProvider}
-                    devicePixelRatio={devicePixelRatio}
-                    style={{
-                        width: "100%",
-                        height: "100%",
-                        position: "relative",
-                        top: '0px',
-                        display: isLoaded ? "block" : "none",
-                    }}
-                />
-                <div
-                    className="webglLoadingStatusBox"
-                    style={{ display: isLoaded ? "none" : "block" }}
+                <ModalHeader style={{ background: 'transparent', border: 'none', padding: '2vh 1vw', position: 'absolute', zIndex: 1050 }}>
+                    <Button className="btn-close" onClick={exitToggle}></Button>
+                </ModalHeader>
+                <ModalBody className="flex" style={{
+                    padding: 0,      // Remove padding
+                    margin: 0,       // Remove margin
+                }}>
+                    <Unity
+                        unityProvider={unityProvider}
+                        devicePixelRatio={devicePixelRatio}
+                        style={{
+                            height: '100dvh',  // Fill the entire modal body
+                            width: '100dvw',   // Fill the entire modal body
+                            position: 'relative', // Ensure it stays in the correct position
+                            top: 0,          // Align to the top of the modal body
+                            display: isLoaded ? 'block' : 'none', // Only display when loaded
+                        }}
+                    />
+                    <div
+                        className="webglLoadingStatusBox"
+                        style={{ display: isLoaded ? "none" : "block" }}
+                    >
+                        <p className="webglLoadingStatusText">
+                            Loading {Math.round(loadingProgression * 100)}%
+                        </p>
+                    </div>
+                </ModalBody>
+                <Modal isOpen={exitModal}
+                    toggle={exitToggle}
+                    modalTransition={{ timeout: 2000 }}
+                    scrollable={false}
+                    centered={true}
                 >
-                    <p className="webglLoadingStatusText">
-                        Loading {Math.round(loadingProgression * 100)}%
-                    </p>
-                </div>
+                    <ModalHeader className="fs-4" style={{ backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a", borderStyle: "solid" }}>
+                        Are you sure you&apos;d like to exit?
+                    </ModalHeader>
+                    <ModalBody className="rounded-bottom" style={{ backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a", borderStyle: "solid" }}>
+                        <Button className="rounded shadow fs-5 border-2" style={{ backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a" }} onClick={allToggle}>Confirm</Button>
+                        <Button className="rounded shadow ms-1 fs-5 border-2" style={{ backgroundColor: "#e7cfa5", color: "#a87935", borderColor: "#ad795a" }} onClick={exitToggle}>Cancel</Button>
+                    </ModalBody>
+                </Modal>
             </Modal>
         </div >
     );
 }
 
-export default App;
+export default AnimELLEModal;
