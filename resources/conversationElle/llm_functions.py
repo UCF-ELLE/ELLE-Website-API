@@ -53,7 +53,7 @@ def handle_message(message: str, prompt=None):
         #print("returned message: ", response)
     except Exception as e:
         print(e)
-        return {"response" : "Sorry, Tito could not understand your message! Please try again.", "score": 10}
+        return {"response" : "Sorry, Tito could not understand your message! Please try again."}
     
     return response
         
