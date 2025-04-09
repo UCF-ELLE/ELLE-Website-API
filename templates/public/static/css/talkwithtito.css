@@ -188,7 +188,7 @@
 }
 
 .info-box2{
-  width: 25%;
+  width: 30%;
   box-sizing: border-box;
   background-color: #997c54;
   color: white;
@@ -196,6 +196,15 @@
   border: 2px solid #604e34;
   border-radius: 20px;
   box-shadow: 2px 2px 4px #604e34;
+}
+
+.info-box2 a{
+  text-decoration: none;
+  color: inherit;
+}
+
+.info-box2 a:hover{
+  color: rgb(122, 233, 122);
 }
 
 /* Font Styling */

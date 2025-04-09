@@ -46,7 +46,7 @@ const songList = [
   { name: "Energetic Rock", path: "/elle/TitoAudios/energetic-rock.mp3" },
   { name: "Pop", path: "/elle/TitoAudios/pop-summer.mp3" },
   { name: "Techno", path: "/elle/TitoAudios/techno.mp3" },
-  { name: "HipHop", path: "/elle/TitoAudios/hiphop.mp3" },
+  { name: "Hip Hop", path: "/elle/TitoAudios/hiphop.mp3" },
   { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3"},
   { name: "Smooth Jazz", path: "/elle/TitoAudios/jazz-smooth.mp3" },
   { name: "Lofi", path: "/elle/TitoAudios/lofi-groovy.mp3" }
@@ -71,6 +71,7 @@ export default function TalkWithTito() {
   const [termScore, setTermScore] = useState<string>("Loading...");
   const [averageScore, setAverageScore] = useState<number>(0.00);
   const [chatbotId, setChatbotId] = useState<number>();
+  const [open, setOpen] = useState(false);
 
   interface Module {
     moduleID: number;
@@ -247,6 +248,19 @@ export default function TalkWithTito() {
     //   console.log(AIChoice)
     //   console.log(userMusicFilepath)
     // },[userMusicFilepath])
+
+    // Music Credit dropdown
+    const [triangle, setTriangle] = useState("▼")
+    const toggleDropdown = () => {
+      setOpen(!open);
+      if (!open){
+        setTriangle("▲")
+      }
+      else{
+        setTriangle("▼")
+      }
+      
+    }
   
   return (
     <div className="talkwithtito-body">
@@ -432,10 +446,27 @@ export default function TalkWithTito() {
       <div className="info-container">
         <div className="info-box2 inter-font">
           <h1 className="inter-font">Image Credits</h1>
-          <p>Tito Images - Asher Moffitt</p>
-          <p>Leaf Image - Josef Mikulcik (Pixabay)</p>
-          <p>Palm Trees - Rama Widya (Pixabay)</p>
-          <p>Palm Leaves - Clker-Free-Vector-Images (Pixabay)</p>
+          <p>Tito Character Images - Asher Moffitt</p>
+          <p><a href="https://pixabay.com/vectors/leaves-foliage-tree-nature-autumn-6824098/">Leaf Image - Josef Mikulcik (Pixabay)</a></p>
+          <p><a href="https://pixabay.com/vectors/coconut-palm-tree-coconut-tree-tree-7751862/">Palm Trees - Rama Widya (Pixabay)</a></p>
+          <p><a href="https://pixabay.com/vectors/palm-leaves-palm-frond-palm-tree-32531/">Palm Leaves - Clker-Free-Vector-Images (Pixabay)</a></p>
+          <div className="text-center">
+            <button className="text-2xl p-2" onClick={toggleDropdown}>Music Credits (Pixabay) {triangle}</button>
+          </div>
+          {open && (
+            <div>
+              <p>Ambient Jungle - <a href="https://pixabay.com/music/beats-ambient-jungle-quotambient-junglequot-by-storm-223660/">"Ambient Jungle" by Storm_Library</a></p>
+              <p>Jungle Party - <a href="https://pixabay.com/music/afrobeat-jungle-party-156395/">Jungle Party by NoodlezStudios</a></p>
+              <p>Happy Rock - <a href="https://pixabay.com/music/rock-happy-rock-308526/">Happy Rock by DmitryTaras</a></p>
+              <p>Energetic Rock - <a href="https://pixabay.com/music/rock-energetic-sports-rock-music-311923/">Jungle Party by NoodlezStudios</a></p>
+              <p>Pop - <a href="https://pixabay.com/music/upbeat-summer-pop-party-312159/">Summer Pop Party by EvgeniaCh</a></p>
+              <p>Techno - <a href="https://pixabay.com/music/house-tech-house-model-student-16442/">Tech House-Model Student by AntipodeanWriter</a></p>
+              <p>Hip Hop - <a href="https://pixabay.com/music/beats-sad-soul-chasing-a-feeling-185750/">Sad Soul (Chasing a Feeling) by AlexGrohl</a></p>
+              <p>R&B - <a href="https://pixabay.com/music/beats-smoke-143172/">Smoke by SoulProdMusic</a></p>
+              <p>Smooth Jazz - <a href="https://pixabay.com/music/smooth-jazz-guitar-jazz-2-311537/">Guitar jazz 2 by Surprising_Media</a></p>
+              <p>Lofi - <a href="https://pixabay.com/music/beautiful-plays-lofi-vibes-113884/">Lofi Vibes by chill_background</a></p>
+            </div>
+          )}
         </div>
       </div>
     </div>

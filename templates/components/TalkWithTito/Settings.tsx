@@ -11,7 +11,7 @@ const songList = [
   { name: "Energetic Rock", path: "/elle/TitoAudios/energetic-rock.mp3" },
   { name: "Pop", path: "/elle/TitoAudios/pop-summer.mp3" },
   { name: "Techno", path: "/elle/TitoAudios/techno.mp3" },
-  { name: "HipHop", path: "/elle/TitoAudios/hiphop.mp3" },
+  { name: "Hip Hop", path: "/elle/TitoAudios/hiphop.mp3" },
   { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3"},
   { name: "Smooth Jazz", path: "/elle/TitoAudios/jazz-smooth.mp3" },
   { name: "Lofi", path: "/elle/TitoAudios/lofi-groovy.mp3" }

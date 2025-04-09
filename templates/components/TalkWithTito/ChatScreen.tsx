@@ -248,7 +248,7 @@ export default function ChatScreen(props: propsInterface) {
 
         //Instruction message
         const instructionMessage: ChatMessage = props.moduleID !== -1 ? {
-            value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. View the vocab list on the right for a list of terms which we can chat about. Try to use them each in a sentence atleast once, then they will be crossed off to indicate you've used them correctly.`,
+            value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. View the vocab list on the right for a list of terms which we can chat about. Try to use them each in a sentence at least once, then they will be crossed off to indicate you've used them correctly.`,
             timestamp: "",
             source: "llm",
             metadata: undefined
