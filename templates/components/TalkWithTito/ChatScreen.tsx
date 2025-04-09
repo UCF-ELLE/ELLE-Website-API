@@ -317,7 +317,7 @@ export default function ChatScreen(props: propsInterface) {
 
     //Initializes timeChatted
     useEffect(() => {
-      if(!prevTimeChatted) return;
+      if(prevTimeChatted === undefined) return;
       setTimeChatted(Math.round((prevTimeChatted*3600))); //Translates incoming time from backend to seconds from hrs
     }, [prevTimeChatted]);
 
