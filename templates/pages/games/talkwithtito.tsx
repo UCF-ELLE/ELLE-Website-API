@@ -455,7 +455,7 @@ export default function TalkWithTito() {
           </div>
           {open && (
             <div>
-              <p>Ambient Jungle - <a href="https://pixabay.com/music/beats-ambient-jungle-quotambient-junglequot-by-storm-223660/">"Ambient Jungle" by Storm_Library</a></p>
+              <p>Ambient Jungle - <a href="https://pixabay.com/music/beats-ambient-jungle-quotambient-junglequot-by-storm-223660/">Ambient Jungle by Storm_Library</a></p>
               <p>Jungle Party - <a href="https://pixabay.com/music/afrobeat-jungle-party-156395/">Jungle Party by NoodlezStudios</a></p>
               <p>Happy Rock - <a href="https://pixabay.com/music/rock-happy-rock-308526/">Happy Rock by DmitryTaras</a></p>
               <p>Energetic Rock - <a href="https://pixabay.com/music/rock-energetic-sports-rock-music-311923/">Jungle Party by NoodlezStudios</a></p>
