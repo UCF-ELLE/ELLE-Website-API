@@ -60,7 +60,7 @@ export default function ChatScreen(props: propsInterface) {
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [userMessage, setUserMessage] = useState<string>("");
     const [titoMood, setTitoMood] = useState("neutral");
-    const [prevTimeChatted, setPrevTimeChatted] = useState<number | undefined>(5);
+    const [prevTimeChatted, setPrevTimeChatted] = useState<number | undefined>(undefined);
     const [timeChatted, setTimeChatted] = useState<number | undefined>(undefined);
 
     async function handleSendMessageClick() {
@@ -309,11 +309,6 @@ export default function ChatScreen(props: propsInterface) {
         startThinking()
       }
     }, [titoMood]);
-
-    //Test button
-    function handleTestClick() {
-
-    }
 
     //Initializes timeChatted
     useEffect(() => {
