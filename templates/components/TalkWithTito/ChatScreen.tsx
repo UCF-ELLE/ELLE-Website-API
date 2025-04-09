@@ -179,9 +179,9 @@ export default function ChatScreen(props: propsInterface) {
     }, [timeChatted]);
     
     //Test prints timeChatted
-    useEffect(() => {
-      console.log("timeChatted: " + timeChatted);
-    }, [timeChatted]);
+    // useEffect(() => {
+    //   console.log("timeChatted: " + timeChatted);
+    // }, [timeChatted]);
 
     // Used to initialize terms
     useEffect(() => {

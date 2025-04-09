@@ -338,7 +338,7 @@ export default function TalkWithTito() {
                 <button onClick={handleNextSong}>
                   <Image src={next_button} alt="next button"/>
                 </button>
-                <label htmlFor="volume" className="cursor-pointer" onClick={handleMute}>
+                <label htmlFor="volume" style={{ paddingLeft: "1px" }} className="cursor-pointer" onClick={handleMute}>
                   {volume == 0.0 ? <Image src={mute_button} alt="mute music"/> : <Image src={volume_button} alt="volume control"/>}
                   </label>
                 <input
