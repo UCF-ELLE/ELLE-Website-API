@@ -60,11 +60,11 @@ def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
             print("Found word: ", word)
             
             try:
-                actual_word = [w for w in new_vocab_dict if word.lower() == w][0]
+                actual_word = [w for w in new_vocab_dict if word.lower() == w.lower()][0]
                 print("actual_word: ", actual_word)
                 new_vocab_dict[word] += 1
             except:
-                actual_word = [w for w in new_vocab_dict if word[:len(word)-1] in w][0]
+                actual_word = [w for w in new_vocab_dict if word[:len(word)-1].lower() in w.lower()][0]
                 print("actual_word: ", actual_word)
                 new_vocab_dict[actual_word] += 1
     
