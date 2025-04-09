@@ -60,7 +60,6 @@ export default function ChatScreen(props: propsInterface) {
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [userMessage, setUserMessage] = useState<string>("");
     const [titoMood, setTitoMood] = useState("neutral");
-    const [prevTimeChatted, setPrevTimeChatted] = useState<number | undefined>(undefined);
     const [timeChatted, setTimeChatted] = useState<number | undefined>(undefined);
 
     async function handleSendMessageClick() {
@@ -122,11 +121,11 @@ export default function ChatScreen(props: propsInterface) {
     //Sends new timeChatted to backend
     async function saveTime() {
 
-      if(user === undefined || props.chatbotId === undefined || prevTimeChatted === undefined || timeChatted === undefined) return; //Returns early if any data is missing
+      if(user === undefined || props.chatbotId === undefined || timeChatted === undefined) return; //Returns early if any data is missing
 
-      console.log(`Calling: incrementTime(${user.jwt}, ${user.userID}, ${props.chatbotId}, ${prevTimeChatted}, ${timeChatted / 3600 - prevTimeChatted});`);
+      console.log("Attempting to update timeSpent");
 
-      const result = await incrementTime(user.jwt, user.userID, props.chatbotId, prevTimeChatted, timeChatted / 3600 - prevTimeChatted);
+      const result = await incrementTime(user.jwt, user.userID, props.chatbotId, 0, timeChatted / 3600);
 
       if(result === 200) {
         console.log("Success updating timeSpent");
@@ -147,7 +146,7 @@ export default function ChatScreen(props: propsInterface) {
       return () => {
         clearInterval(interval);
       };
-    }, [props.moduleID])
+    }, [props.moduleID]);
 
     //Attempts to Trigger saveTime when user leaves page
     //May be unreliable due to page unloads not always supporting async operations
@@ -159,7 +158,30 @@ export default function ChatScreen(props: propsInterface) {
       return () => {
         window.removeEventListener("beforeunload", handleBeforeUnload);
       }
-    }, [])
+    }, []);
+
+    //Increments timeChatted each second
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setTimeChatted((prev) => (prev !== undefined ? prev+1 : prev));
+      }, 1000);
+      return () => clearInterval(interval);
+    }, []);
+
+    //Sets timeSpent for outer analytics page (converts from seconds to hr,min,sec)
+    useEffect(() => {
+      if(timeChatted === undefined) return;
+      props.setTimeSpent(
+        `${Math.floor(timeChatted / 3600)}h ` +
+        `${Math.floor((timeChatted % 3600) / 60)}m ` +
+        `${Math.floor(timeChatted % 60)}s`
+      );
+    }, [timeChatted]);
+    
+    //Test prints timeChatted
+    useEffect(() => {
+      console.log("timeChatted: " + timeChatted);
+    }, [timeChatted]);
 
     // Used to initialize terms
     useEffect(() => {
@@ -196,7 +218,7 @@ export default function ChatScreen(props: propsInterface) {
             const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
             if(newChatbot) {
               props.setChatbotId(newChatbot.chatbotId);
-              setPrevTimeChatted(newChatbot.totalTimeChatted);
+              setTimeChatted(newChatbot.totalTimeChatted * 3600);
               if(newChatbot.userBackground) {
                   console.log("Received LLM Background: " + newChatbot.userBackground)
                   props.setUserBackgroundFilepath(newChatbot.userBackground);
@@ -309,40 +331,6 @@ export default function ChatScreen(props: propsInterface) {
         startThinking()
       }
     }, [titoMood]);
-
-    //Initializes timeChatted
-    useEffect(() => {
-      if(prevTimeChatted === undefined) return;
-      setTimeChatted(Math.round((prevTimeChatted*3600))); //Translates incoming time from backend to seconds from hrs
-    }, [prevTimeChatted]);
-
-    //Increments timeChatted each second
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setTimeChatted((prev) => (prev !== undefined ? prev+1 : prev));
-      }, 1000);
-      return () => clearInterval(interval);
-    }, []);
-
-    //Sets timeSpent for outer analytics page (converts from seconds to hr,min,sec)
-    useEffect(() => {
-      if(timeChatted === undefined) return;
-      props.setTimeSpent(
-        `${Math.floor(timeChatted / 3600)}h ` +
-        `${Math.floor((timeChatted % 3600) / 60)}m ` +
-        `${Math.floor(timeChatted % 60)}s`
-      );
-    }, [timeChatted]);
-    
-    //Test prints timeChatted
-    useEffect(() => {
-      console.log("timeChatted: " + timeChatted);
-    }, [timeChatted]);
-
-    //Test prints prevTimeChatted
-    useEffect(() => {
-      console.log("prevTimeChatted: " + prevTimeChatted);
-    }, [prevTimeChatted]);
 
 
     return(
