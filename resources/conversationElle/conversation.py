@@ -118,7 +118,11 @@ class Messages(Resource):
             
             # response from LLM
             llmResponse = llmValue['response']
-            llmScore = llmValue['score']
+           
+            if score not in llmValue:
+                llmScore = 0
+            else:
+                llmScore = llmValue['score']
 
             if not llmValue:
                 return jsonify({"error": "Failed to generate LLM response"}), 500
