@@ -28,50 +28,44 @@ interface propsInterface {
     setUserMusicFilepath: React.Dispatch<React.SetStateAction<string>>;
     setTermScore: React.Dispatch<React.SetStateAction<string>>;
     setAverageScore: React.Dispatch<React.SetStateAction<number>>;
+    setTimeSpent: React.Dispatch<React.SetStateAction<string>>;
     chatFontSize: string;
+}
+
+interface Term {
+  termID: number;
+  questionFront: string;
+  questionBack: string;
+  used: boolean;
+}
+
+interface ChatMessage {
+  value: string;
+  timestamp: string;
+  source: "user" | "llm";
+  metadata?: {
+    score?: number;
+    error?: string;
+    correction?: string;
+    explanation?: string;
+  }
 }
 
 export default function ChatScreen(props: propsInterface) {
 
     const { user, loading: userLoading } = useUser();
 
-    interface Term {
-        termID: number;
-        questionFront: string;
-        questionBack: string;
-        used: boolean;
-    }
-
-    interface ChatMessage {
-        value: string;
-        timestamp: string;
-        source: "user" | "llm";
-        metadata?: {
-          score?: number;
-          error?: string;
-          correction?: string;
-          explanation?: string;
-        }
-    }
-
     const [terms, setTerms] = useState<Term[]>([]);
     const [termsLoaded, setTermsLoaded] = useState<boolean>(false);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [userMessage, setUserMessage] = useState<string>("");
     const [titoMood, setTitoMood] = useState("neutral");
-    const [prevTimeChatted, setPrevTimeChatted] = useState<number | undefined>();
-
-    // Current USE Effect
-    // useEffect(()=>{
-    //   props.setUserMusicFilepath("pop-summer.mp3"); 
-    // },[])
+    const [prevTimeChatted, setPrevTimeChatted] = useState<number | undefined>(5);
+    const [timeChatted, setTimeChatted] = useState<number | undefined>(undefined);
 
     async function handleSendMessageClick() {
 
-        //Return conditions
-        if(userMessage === "") return; //Does nothing if textArea empty
-        console.log("Sending " + userMessage); //Testing
-        if(!user || !props.chatbotId || !termsLoaded) {console.log("Missing user or chatbotId or termsLoaded"); return;} //Does nothing if invalid credentials
+        if(userMessage === "" || user === undefined || props.chatbotId === undefined || !termsLoaded) return; //Does nothing if empty textarea or invalid credentials
         
         //Resets Tito state & empties textArea
         setTitoMood("thinking");
@@ -125,6 +119,48 @@ export default function ChatScreen(props: propsInterface) {
         }
     }
 
+    //Sends new timeChatted to backend
+    async function saveTime() {
+
+      if(user === undefined || props.chatbotId === undefined || prevTimeChatted === undefined || timeChatted === undefined) return; //Returns early if any data is missing
+
+      console.log(`Calling: incrementTime(${user.jwt}, ${user.userID}, ${props.chatbotId}, ${prevTimeChatted}, ${timeChatted / 3600 - prevTimeChatted});`);
+
+      const result = await incrementTime(user.jwt, user.userID, props.chatbotId, prevTimeChatted, timeChatted / 3600 - prevTimeChatted);
+
+      if(result === 200) {
+        console.log("Success updating timeSpent");
+      }
+      else {
+        console.log("Failed updating timeSpent")
+      }
+
+    }
+
+    //Triggers saveTime when selecting new module OR every minute
+    //Placed before other useEffect blocks to prevent dependencies from clashing
+    useEffect(() => {
+      saveTime(); //Calls on useEffect triggering
+      const interval = setInterval(() => {
+        saveTime(); //Calls each minute thereafter
+      }, 60000);
+      return () => {
+        clearInterval(interval);
+      };
+    }, [props.moduleID])
+
+    //Attempts to Trigger saveTime when user leaves page
+    //May be unreliable due to page unloads not always supporting async operations
+    useEffect(() => {
+      const handleBeforeUnload = async (event: BeforeUnloadEvent) => {
+        saveTime();
+      };
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      }
+    }, [])
+
     // Used to initialize terms
     useEffect(() => {
         setTermsLoaded(false);
@@ -162,12 +198,12 @@ export default function ChatScreen(props: propsInterface) {
               props.setChatbotId(newChatbot.chatbotId);
               setPrevTimeChatted(newChatbot.totalTimeChatted);
               if(newChatbot.userBackground) {
-                  console.log("Received LLM Background")
+                  console.log("Received LLM Background: " + newChatbot.userBackground)
                   props.setUserBackgroundFilepath(newChatbot.userBackground);
               }
               // Add User Music from chatbot
               if(newChatbot.userMusicChoice) {
-                console.log("Received Music Background")
+                console.log("Received Music Background: " + newChatbot.userMusicChoice)
                 props.setUserMusicFilepath(newChatbot.userMusicChoice);
               }
               const newTerms: Term[] = terms.map(term => ({
@@ -274,20 +310,44 @@ export default function ChatScreen(props: propsInterface) {
       }
     }, [titoMood]);
 
-
-    //Testing timeChatted endpoint
+    //Test button
     function handleTestClick() {
-      console.log("Test Click!");
-      if(user === undefined || props.chatbotId === undefined || prevTimeChatted === undefined) return;
-      console.log("prevTimeChatted: " + prevTimeChatted);
-      incrementTime(user.jwt, user.userID, props.chatbotId, prevTimeChatted, 1); //200 status code is success
+
     }
 
+    //Initializes timeChatted
+    useEffect(() => {
+      if(!prevTimeChatted) return;
+      setTimeChatted(Math.round((prevTimeChatted*3600))); //Translates incoming time from backend to seconds from hrs
+    }, [prevTimeChatted]);
+
+    //Increments timeChatted each second
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setTimeChatted((prev) => (prev !== undefined ? prev+1 : prev));
+      }, 1000);
+      return () => clearInterval(interval);
+    }, []);
+
+    //Sets timeSpent for outer analytics page (converts from seconds to hr,min,sec)
+    useEffect(() => {
+      if(timeChatted === undefined) return;
+      props.setTimeSpent(
+        `${Math.floor(timeChatted / 3600)}h ` +
+        `${Math.floor((timeChatted % 3600) / 60)}m ` +
+        `${Math.floor(timeChatted % 60)}s`
+      );
+    }, [timeChatted]);
+    
+    //Test prints timeChatted
+    useEffect(() => {
+      console.log("timeChatted: " + timeChatted);
+    }, [timeChatted]);
+
+    //Test prints prevTimeChatted
     useEffect(() => {
       console.log("prevTimeChatted: " + prevTimeChatted);
-    }, [prevTimeChatted])
-
-    
+    }, [prevTimeChatted]);
 
 
     return(
@@ -295,7 +355,7 @@ export default function ChatScreen(props: propsInterface) {
 
             <Image src={background} className="w-full absolute top-0 left-0" alt="Background"/>
             <Image src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" draggable={false} alt="Decorative palm tree" />
-            <button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>
+            {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
 
             {/*Vocabulary list div*/}
             {props.moduleID !== -1 && <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={terms?.map(term => (term.used))}/>}
