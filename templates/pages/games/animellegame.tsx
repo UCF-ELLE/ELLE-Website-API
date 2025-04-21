@@ -6,17 +6,12 @@ Converted from class-based to functional component in Spring 2023.
 import React, {
     useEffect,
     useState,
-    useCallback,
-    useContext,
-    useRef,
 } from "react";
 import "@/public/static/css/style.css";
 import "@/lib/font-awesome/css/font-awesome.min.css";
 import "@/lib/owlcarousel/assets/owl.carousel.min.css";
 import "@/lib/ionicons/css/ionicons.min.css";
 
-import { ReactUnityEventParameter } from "react-unity-webgl/distribution/types/react-unity-event-parameters";
-import { useUser } from "@/hooks/useAuth";
 import Image from "next/image";
 
 import logo from "@/public/static/images/AnimELLE/logo0309.svg";
