@@ -1,0 +1,11 @@
+templates/services/TitoService
+// const ELLE_URL = 'https://chdr.cs.ucf.edu/elleapi';
+
+resources/conversationElle/
+    config.py
+    ecosystem.config.js
+    loading_qwen.py
+
+model_path = "http://127.0.0.1:8000/generate"
+
+

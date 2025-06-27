@@ -43,15 +43,15 @@ async def generate(data: dict):
         generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
         
         # # Return in JSON format
-        # response = {}
-        # gen_list = generated_text.split("\n")
-        # for item in gen_list:
-        #     dict_key = item[:item.index(":")]
-        #     dict_value = item[item.index(":")+2:]
-        #     response[dict_key] = dict_value
-        # print(response)
-        # return response
-        return {"output": generated_text}
+        response = {}
+        gen_list = generated_text.split("\n")
+        for item in gen_list:
+            dict_key = item[:item.index(":")]
+            dict_value = item[item.index(":")+2:]
+            response[dict_key] = dict_value
+        print(response)
+        return response
+        # return {"output": generated_text}
 
     
     except Exception as e:

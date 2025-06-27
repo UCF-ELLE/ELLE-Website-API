@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-const ELLE_URL = 'https://chdr.cs.ucf.edu/elleapi';
+// const ELLE_URL = 'https://chdr.cs.ucf.edu/elleapi';
 //const ELLE_URL = 'http://159.65.232.73/elleapi';
+const ELLE_URL = 'http://127.0.0.1:5050/elleapi';
+
 
 interface Module {
   moduleID: number;
