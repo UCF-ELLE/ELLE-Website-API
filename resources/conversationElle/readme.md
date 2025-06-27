@@ -23,7 +23,7 @@ pm2 start ecosystem.config.js
 To POST a message to Tito (LLM chatbot) from TERMINAL use the following command. (Testing purposes only)
 
 ```bash
-curl -X POST "http://10.200.8.216:8000/generate" \
+curl -X POST "http://127.0.0.1:8000/generate" \
 -H "Content-Type: application/json" \
 -d '{
     "user_text": "Hola, tito!",

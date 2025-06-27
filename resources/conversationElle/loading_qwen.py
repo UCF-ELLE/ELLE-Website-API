@@ -10,7 +10,9 @@ curr_path = os.path.abspath(__file__)
 curr_dir = os.path.dirname(curr_path)
 par_dir = str(Path(curr_dir).parent)
 os.chdir(par_dir)
-model_path = os.path.join(par_dir, "Qwen-3B")
+# model_path = os.path.join(par_dir, "Qwen-3B")
+model_path = "Qwen/Qwen3-4B"
+
 
 # Variables important for accessing the LLM.
 app = FastAPI()
@@ -31,6 +33,7 @@ async def generate(data: dict):
         with torch.no_grad():
             outputs = model.generate(
                 inputs["input_ids"], 
+                attention_mask=inputs["attention_mask"],
                 max_new_tokens = data["max_new_tokens"],
                 temperature = data["temperature"],
                 top_k = data["top_k"],
@@ -39,15 +42,17 @@ async def generate(data: dict):
         
         generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
         
-        # Return in JSON format
-        response = {}
-        gen_list = generated_text.split("\n")
-        for item in gen_list:
-            dict_key = item[:item.index(":")]
-            dict_value = item[item.index(":")+2:]
-            response[dict_key] = dict_value
-        print(response)
-        return response
+        # # Return in JSON format
+        # response = {}
+        # gen_list = generated_text.split("\n")
+        # for item in gen_list:
+        #     dict_key = item[:item.index(":")]
+        #     dict_value = item[item.index(":")+2:]
+        #     response[dict_key] = dict_value
+        # print(response)
+        # return response
+        return {"output": generated_text}
+
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -55,4 +60,4 @@ async def generate(data: dict):
 # For calling the llm in the terminal using: python3 loading_qwen.py
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="10.200.8.216", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
