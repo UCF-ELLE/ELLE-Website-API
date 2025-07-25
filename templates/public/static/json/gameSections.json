@@ -26,6 +26,20 @@
         ]
     },
     {
+        "anchor": "BELLEtro",
+        "link": "/games/belletro",
+        "external": false,
+        "title": "BELLEtro",
+        "description": "BELLEtro is an Applied Linguistics learning game that combines Poker and deck-building. Employ strategy and knowledge of phonemes to beat the final round!",
+        "altImage": "BELLEtro Game Image",
+        "teams": [
+            {
+                "name": "Original Senior Design Team",
+                "members": ["Zacharia Alaoui", "Fredrick Bouloute", "Robert Morris", "Van Phan", "Andy Van"]
+            }
+        ]
+    },
+    {
         "anchor": "AnimELLE",
         "link": "/games/animellegame",
         "external": false,
