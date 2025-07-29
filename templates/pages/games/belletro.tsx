@@ -221,7 +221,15 @@ export default function BELLEtro() {
                 <br />
                 <div className='center-contents'>
                 	<p><u>bELLEtro Video Tutorial</u></p>
-                	<iframe width="560" height="315" src="https://www.youtube.com/embed/PQaprWOV1_g?si=jZxR2udcLZlnv3ei" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                	<iframe
+  						width="560"
+  						height="315"
+  						src="https://www.youtube.com/embed/PQaprWOV1_g?si=jZxR2udcLZlnv3ei"
+  						title="YouTube video player"
+  						frameBorder="0"
+  						allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+  						referrerPolicy="strict-origin-when-cross-origin"
+					/>
                 </div>
             </div>
             <br />
