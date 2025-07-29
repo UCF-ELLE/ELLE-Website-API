@@ -216,6 +216,13 @@ export default function BELLEtro() {
                 <Button onClick={handleOnClickFullscreen} style={{ visibility: isLoaded ? 'visible' : 'hidden' }}>
                     Fullscreen
                 </Button>
+                <br />
+                <br />
+                <br />
+                <div className='center-contents'>
+                	<p><u>bELLEtro Video Tutorial</u></p>
+                	<iframe width="560" height="315" src="https://www.youtube.com/embed/PQaprWOV1_g?si=jZxR2udcLZlnv3ei" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                </div>
             </div>
             <br />
             <br />
