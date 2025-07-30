@@ -108,6 +108,34 @@
         ]
     },
     {
+        "anchor": "XELLEnt",
+        "link": "https://drive.google.com/file/d/1l_iHykLjG70CLf53xWgMFyMo517OFgkz/view?usp=sharing",
+        "external": true,
+        "title": "VR Games",
+        "description": "Have access to all the VR ELLE games on your laptop",
+        "altImage": "HELLE's Kitchen Image",
+        "teams": [
+            {
+                "name": "Senior Design Team",
+                "members": ["Nicole Drewry", "Robert Marrero", "Trong Pham", "Dan Moscho"]
+            }
+        ]
+    },
+    {
+        "anchor": "XELLEnt2",
+        "link": "",
+        "external": true,
+        "title": "VR Games",
+        "description": "Work together with your parter to solve the puzzles and escape",
+        "altImage": "HELLE's Kitchen Image",
+        "teams": [
+            {
+                "name": "Senior Design Team",
+                "members": ["Nicole Drewry", "Robert Marrero", "Trong Pham", "Dan Moscho"]
+            }
+        ]
+    },
+    {
         "anchor": "AudibELLE",
         "link": "",
         "external": true,
