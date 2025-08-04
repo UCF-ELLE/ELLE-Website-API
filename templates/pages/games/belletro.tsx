@@ -28,6 +28,8 @@ export default function BELLEtro() {
     const sessionIDRef = useRef(UNITY_sessionID);
     const [UNITY_currentAnte, setUNITY_currentAnte] = useState(0);
     const userScoreRef = useRef(UNITY_currentAnte);
+    const [UNITY_mostFrequentHand, setUNITY_mostFrequentHand] = useState(0);
+    const mostFrequentHandRef = useRef(UNITY_mostFrequentHand);
 
     // Load Unity WebGL game
     const { unityProvider, requestFullscreen, isLoaded, sendMessage, loadingProgression, addEventListener, removeEventListener, unload } =
@@ -59,7 +61,8 @@ export default function BELLEtro() {
         userPlayingGameRef.current = UNITY_userIsPlayingGame;
         sessionIDRef.current = UNITY_sessionID;
         userScoreRef.current = UNITY_currentAnte;   //  Uses the ante the player left on as the score
-    }, [UNITY_currentAnte, UNITY_sessionID, UNITY_userIsPlayingGame]);
+        mostFrequentHandRef.current = UNITY_mostFrequentHand;
+    }, [UNITY_currentAnte, UNITY_sessionID, UNITY_userIsPlayingGame, UNITY_mostFrequentHand]);
 
     const UNITY_setSessionID = useCallback((sessionID: ReactUnityEventParameter) => {
         setUNITY_sessionID(sessionID as string);
@@ -67,19 +70,24 @@ export default function BELLEtro() {
     const UNITY_setCurrentAnte = useCallback((score: ReactUnityEventParameter) => {
         setUNITY_currentAnte(score as number);
     }, []);
+    const UNITY_setMostFrequentHand = useCallback((mostFrequentHand: ReactUnityEventParameter) => {
+        setUNITY_mostFrequentHand(mostFrequentHand as number);
+    }, []);
 
     // Taken from https://react-unity-webgl.dev/docs/api/event-system
     useEffect(() => {
         addEventListener('setUserIsPlayingGame', UNITY_setUserIsPlayingGame);
         addEventListener('setSessionID', UNITY_setSessionID);
         addEventListener('setCurrentAnte', UNITY_setCurrentAnte);
+        addEventListener('setMostFrequentHand', UNITY_setMostFrequentHand);
         return () => {
             console.log('Removing event listeners...');
             removeEventListener('setUserIsPlayingGame', UNITY_setUserIsPlayingGame);
             removeEventListener('setSessionID', UNITY_setSessionID);
             removeEventListener('setCurrentAnte', UNITY_setCurrentAnte);
+            removeEventListener('setMostFrequentHand', UNITY_setMostFrequentHand);
         };
-    }, [addEventListener, removeEventListener, UNITY_setUserIsPlayingGame, UNITY_setSessionID, UNITY_setCurrentAnte]);
+    }, [addEventListener, removeEventListener, UNITY_setUserIsPlayingGame, UNITY_setSessionID, UNITY_setCurrentAnte, UNITY_setMostFrequentHand]);
 
     // This runs only ONCE, when the component renders for the first time
     useEffect(() => {
@@ -135,6 +143,32 @@ export default function BELLEtro() {
         }
     }, [UNITY_currentAnte, UNITY_sessionID, user]);
 
+    const sendQuestionInfo = useCallback(async () => {
+        // Only run it if the user is currently in the middle of a session
+        if (sessionIDRef.current || UNITY_sessionID) {
+            // Get current time
+            console.log('Sent most frequently played hand after tab close');
+
+            let handID = mostFrequentHandRef.current || UNITY_mostFrequentHand;
+            handID = handID + 2114;
+
+            // Have to use xhr because Axios's async property fails to do the API call when the browser closes
+            let xhr = new XMLHttpRequest();
+            //  For actual server use
+            xhr.open('POST', '/elleapi/loggedanswer', false);
+            //xhr.open('POST', 'https://chdr.cs.ucf.edu/elleapi/endsession', false);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + user?.jwt);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            let data = JSON.stringify({
+                questionID: userScoreRef.current || UNITY_currentAnte,
+                termID: handID,
+                sessionID: sessionIDRef.current || UNITY_sessionID,
+                correct: 1
+            });
+            xhr.send(data);
+        }
+    }, [UNITY_mostFrequentHand, UNITY_currentAnte, UNITY_sessionID, user]);
+
     async function unloadUnityGame() {
         await unload();
     }
@@ -146,14 +180,17 @@ export default function BELLEtro() {
          * Solution: since the Unity game didn't get to end the session, call the /endsession endpoint using React
          */
         window.addEventListener('beforeunload', openWarningDialog);
+        window.addEventListener('unload', sendQuestionInfo);
         window.addEventListener('unload', endOngoingSession);
         // router.events.on('routeChangeStart', handleEarlyNavigation);
         return () => {
             if (isLoaded) {
+                sendQuestionInfo();
                 endOngoingSession();
                 unloadUnityGame();
             }
             window.removeEventListener('beforeunload', openWarningDialog);
+            window.addEventListener('unload', sendQuestionInfo);
             window.removeEventListener('unload', endOngoingSession);
             // router.events.off('routeChangeStart', handleEarlyNavigation);
         };
