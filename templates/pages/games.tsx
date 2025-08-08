@@ -13,6 +13,7 @@ import SpinNSpellImage from '@/public/static/images/spinnspellBlocks.png';
 import AudibELLEImage from '@/public/static/images/audibelle.png';
 import TalkWithTitoImage from '@/public/static/images/titoChatbot.png'
 import BELLEtroImage from '@/public/static/images/gambeller.png';
+import DesktopHubImage from '@/public/static/images/desktophub.png';
 
 import GameSectionJSON from '@/public/static/json/gameSections.json';
 
@@ -61,6 +62,8 @@ export default function Games() {
                 return TalkWithTitoImage;
             case 'BELLEtro':
                 return BELLEtroImage;
+            case 'DesktopHub':
+                return DesktopHubImage;
             default:
                 return CardGameImage;
         }

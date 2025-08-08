@@ -108,12 +108,12 @@
         ]
     },
     {
-        "anchor": "XELLEnt",
-        "link": "https://drive.google.com/file/d/1l_iHykLjG70CLf53xWgMFyMo517OFgkz/view?usp=sharing",
+        "anchor": "DesktopHub",
+        "link": "/static/pdfs/game1.pdf",
         "external": true,
-        "title": "VR Games",
-        "description": "Have access to all the VR ELLE games on your laptop",
-        "altImage": "HELLE's Kitchen Image",
+        "title": "Elle Desktop Hub",
+        "description": "Have access to all the VR ELLE games on your desktop!",
+        "altImage": "Desktop Hub Image",
         "teams": [
             {
                 "name": "Senior Design Team",
