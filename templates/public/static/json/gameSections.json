@@ -22,6 +22,24 @@
             {
                 "name": "Version 3.5 + Mouthf-ELLE Senior Design Team",
                 "members": ["Jason Co", "Dylan Engle", "Christine Fossenier", "Michael Miller", "Zander Preston"]
+            },
+            {
+                "name": "Version 4 Senior Design Team",
+                "members": ["Zacharia Alaoui", "Fredrick Bouloute", "Robert Morris", "Van Phan", "Andy Van"]
+            }
+        ]
+    },
+    {
+        "anchor": "BELLEtro",
+        "link": "/games/belletro",
+        "external": false,
+        "title": "bELLEtro",
+        "description": "bELLEtro is an Applied Linguistics learning game that combines Poker and deck-building. Employ strategy and knowledge of phonemes to beat the final round!",
+        "altImage": "bELLEtro Game Image",
+        "teams": [
+            {
+                "name": "Original Senior Design Team",
+                "members": ["Zacharia Alaoui", "Fredrick Bouloute", "Robert Morris", "Van Phan", "Andy Van"]
             }
         ]
     },
@@ -86,6 +104,34 @@
             {
                 "name": "Original Senior Design Team",
                 "members": ["Jason Co", "Dylan Engle", "Christine Fossenier", "Michael Miller", "Zander Preston"]
+            }
+        ]
+    },
+    {
+        "anchor": "DesktopHub",
+        "link": "/static/pdfs/game1.pdf",
+        "external": true,
+        "title": "Elle Desktop Hub",
+        "description": "Have access to all the VR ELLE games on your desktop!",
+        "altImage": "Desktop Hub Image",
+        "teams": [
+            {
+                "name": "Senior Design Team",
+                "members": ["Robert Marrero", "Trong Pham", "Daniel Moshovetis","Nicole Drewry"]
+            }
+        ]
+    },
+    {
+        "anchor": "XELLEnt2",
+        "link": "",
+        "external": true,
+        "title": "VR Games",
+        "description": "Work together with your parter to solve the puzzles and escape",
+        "altImage": "HELLE's Kitchen Image",
+        "teams": [
+            {
+                "name": "Senior Design Team",
+                "members": ["Robert Marrero", "Trong Pham", "Daniel Moshovetis","Nicole Drewry"]
             }
         ]
     },
