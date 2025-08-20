@@ -1,55 +1,57 @@
 #### TODO: Consider /elleapi/chat/messages VS ellapi/messages for all APIs
 #### Still a WIP
 
+#### Considering /elleapi/twt/... for the api, less vague
+#### /elleapi/tools/... for grammar tools & tokenizer for potential future use, locked for now?
+
 ### 1. **API Overview**
    - **Purpose**: A brief description of what the API does.
    - **Base URL**: URL endpoint for the API.
 ---
 
-### 2. **POST /elleapi/chat/messages**
-- **Purpose**: Saves a users message to the chatbot
+### 2. **POST /elleapi/twt/session/send-message**
+- **OLD PATH**: /elleapi/chat/messages
+- **Purpose**: Sends a user's message from the current session to the chatbot
 - **Request body** (JSON):
   ```json
   {
-    "userId":    int,        // User's ID
-    "chatbotId": int,        // Chatbot ID
-    "moduleId":  int,        // Module ID  
-    "source":    string,     // User || LLM
-    "value":     string,     // content
+    "userId":       int,         // User's ID
+    "chatbotSID":   int,         // Chatbot Session ID
+    "moduleId":     int,         // Currently Selected Module ID  
+    "userMessage":  string,      // The text message sent by 
   }
   ```
 
 - **Response** (JSON):
   ```json
   { 
-    "llmValue":  String  # What the LLM responded,
-    "termsUsed": JSON    # Terms the LLM deemed successful(for the used word counter) * see note
-    "wordUsed":  int     # Numer of vocab/terms successfully used 
+    "llmResponse":  String  # What the LLM responded,
+    "statusCode":   int     # Success or error?  
   }
   ```
 - **Notes**:
-    - We need to decide how the API is gonna send back the following:
+    - API process:
         1. User sends a message
-        2. Backend process the message, calls the LLM.
+        2. Backend process the message, calls the LLM. (checks for free talk or module-based chat)
         3. The LLM process the user message
-        4. The LLM calls the grammar function, grades the users grammar.
-        5. The LLM calls the word counting function
-        6. Once the backend gets all of this data back, do we send it back
-           to the frontend via the POST /chat/message endpoint? Or should the
-           frontend call a seperate end point to get termsUsed? Seems easier to
-           just send it back in this endpoint since we'll have it availiable.
+        4. The LLM calls the grammar function, grades the users grammar. LanguageTools
+        5. The LLM calls the word counting function for terms used that are part of this module. spaCy + DB
+        6. Once the backend gets all of this data back, send to front end
 
 - **Error codes**:
   - `400`: Bad Request (e.g., missing required fields)
   - `500`: Internal Server Error (e.g., database failure)
+  - `xxx`: TBD
 ---
 
-### 3. **GET /elleapi/chat/messages**
+### 3. **GET /elleapi/twt/session/fetch-messages**
 
+- **OLD PATH**: /elleapi/chat/messages
 - **Purpose**: Retrieve a list of chat messages for a user or chatbot.
 - **Query parameters**:
   - `userId`: (required) ID of the user to fetch messages for.
-  - `chatbotId`: (required) ID of the chatbot to filter messages.
+  - `chatbotSID`: (required) ID of the chatbot to filter messages.
+  - `TO BE DECIDED`: **Extra parameters?**
 
 - **Response** (JSON):
   ```json
@@ -58,7 +60,7 @@
       {
         "id": 1,
         "userId": 101,
-        "chatbotId": 10,
+        "chatbotSID": 10,
         "moduleId": 2,
         "source": "user",
         "value": "Hello, chatbot!",
@@ -67,7 +69,7 @@
       {
         "id": 2,
         "userId": 101,
-        "chatbotId": 10,
+        "chatbotSID": 10,
         "moduleId": 2,
         "source": "llm",
         "value": "Hello! How can I assist you today?",
@@ -81,12 +83,16 @@
 - **Error codes**:
   - `404`: Not Found (e.g., no messages found for the given user or chatbot)
   - `500`: Internal Server Error
+  - `TO BE DECIDED`: **Extra parameters?**
 
 ---
 
-### 5. **GET /elleapi/chatbot/{userId}{moduleId}**
+### 5. **GET /elleapi/twt/session/fetch-session-messages**
 
-- **Purpose**: Get the chatbot for a specific user.
+- **OLD PATH**: /elleapi/chatbot/{userId}{moduleId}
+- **Probably ignore the URL params**
+
+- **Purpose**: Get the chatbot session for a specific user.
 - **URL parameters**:
   - `userId`: (required) The user ID for which to fetch the chatbot.
   - `moduleId`: (required) The moduleID for the the chatbot session
@@ -95,7 +101,7 @@
   ```json
   {
     {
-      "chatbotId": 123,
+      "chatbotSID": 123,
       "userId": 456,
       "moduleId": 789,
       "totalTimeChatted": 15.5,
@@ -111,7 +117,7 @@
 
   {
     {
-      "chatbotId": 123
+      "chatbotSID": 123
     }
   }
   ```
@@ -120,12 +126,14 @@
   - `500`: Internal Server Error
 
 ---
-### 6. **PATCH /elleapi/chat/chatbot/{chatbotId}/time**
+### 6. **POST /elleapi/twt/session/update-time**
+
+- **OLD URL**: PATCH /elleapi/chat/chatbot/{chatbotSID}/time
 - **Purpose**: Update the total time a user has chatted.
 - **Request body** (JSON):
   ```json
   {
-    "chatbotId": int,              # ID of the user
+    "chatbotSID": int,              # ID of the user
     "timeChatted": float,          # New time chatted for session 
   }
   ```
@@ -143,85 +151,33 @@
 
 ---
 
-### 7. **PATCH /elleapi/chat/chatbot/{chatbotId}/grade**
 
-- **Purpose**: Update the grade for a user.
+
+### SAMPLE. **POST /elleapi/twt/...**
+- **Purpose**: Sends a user's message from the current session to the chatbot
 - **Request body** (JSON):
   ```json
   {
-    "user_id": "string",       // ID of the user
-    "grade": "number"          // The grade to be updated
+    "id_1":       data_type,          // notes A
+    // ...
+    "id_N":       data_type,          // notes Z 
   }
   ```
 
 - **Response** (JSON):
   ```json
-  {
-    "status": "success",
-    "message": "Grade updated successfully"
+  { 
+    "id_1":       data_type,          // notes A
+    // ...
+    "id_N":       data_type,          // notes Z 
   }
   ```
+- **Notes**:
+    - process:
+        1. ...
 
 - **Error codes**:
-  - `400`: Bad Request
-  - `500`: Internal Server Error
-
+  - `400`: Bad Request (e.g., missing required fields)
+  - `500`: Internal Server Error (e.g., database failure)
+  - `xxx`: TBD
 ---
-### TBD/In Progress
-### 8. **GET /elleapi/chat/wordsUsed**
-
-- **Purpose**: Retrieve a JSON object of words used in chats.
-- **Response** (JSON):
-  ```json
-  {
-    "status": "success",
-    "words_used": {
-      "word1": 10, // Word usage count
-      "word2": 5
-    }
-  }
-  ```
-
-- **Error codes**:
-  - `500`: Internal Server Error
-
----
-### TODO/In Progress
-### 9. **GET /elleapi/chat/incorrect-word**
-
-- **Purpose**: Report a word used incorrectly.
-- **Request body** (JSON):
-  ```json
-  {
-  }
-  ```
-
-- **Response** (JSON):
-  ```json
-  {
-  }
-  ```
-
-- **Error codes**:
-  - `400`: Bad Request
-  - `500`: Internal Server Error
-
----
-
-### 10. **GET /elleapi/chat/word-analytics**
-
-- **Purpose**: Retrieve word analytics (e.g. correctness, timesUsed, etc).
-- **Response** (JSON):
-  ```json
-  {
-    "status": "success",
-    "word_analytics": {}
-  }
-  ```
-
-- **Error codes**:
-  - `500`: Internal Server Error
-
----
-
-

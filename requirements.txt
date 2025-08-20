@@ -59,6 +59,8 @@ random-username==1.0.2
 redis==3.5.3
 requests==2.24.0
 six==1.14.0
+spacy==3.8.7
+spacy_lookups_data==1.0.5
 sympy==1.14.0
 toml==0.10.1
 torch==2.7.1
