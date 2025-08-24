@@ -129,18 +129,19 @@ DROP TABLE IF EXISTS `chatbot_sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `chatbot_sessions` (
-  `chatbotId` int(11) NOT NULL AUTO_INCREMENT,
-  `userId` int(11) NOT NULL,
-  `moduleId` int(11) NOT NULL,
-  `totalTimeChatted` float NOT NULL,
+  `chatbotSID` int(11) NOT NULL AUTO_INCREMENT,
+  `userID` int(11) NOT NULL,
+  `moduleID` int(11) NOT NULL,
+  `totalTimeChatted` float NOT NULL DEFAULT 0,
   `wordsUsed` int(11) NOT NULL DEFAULT 0,
-  `totalWordsForModule` int(11) NOT NULL,
-  `grade` float NOT NULL,
-  `termsUsed` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`termsUsed`)),
-  `timestamp` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`chatbotId`),
-  KEY `userId` (`userId`),
-  CONSTRAINT `chatbot_sessions_ibfk_1` FOREIGN KEY (`userId`) REFERENCES `user` (`userID`) ON DELETE CASCADE
+  `moduleWordsUsed` int(11) NOT NULL DEFAULT 0,
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  `grammarPerformanceRating` float(4) NOT NULL DEFAULT 0,
+  `activeSession` boolean NOT NULL DEFAULT 0,
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
+  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`),
+  PRIMARY KEY (`chatbotSID`),
+  KEY `userID` (`userID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -255,6 +256,7 @@ CREATE TABLE `group` (
   `groupID` int(11) NOT NULL AUTO_INCREMENT,
   `groupName` varchar(50) NOT NULL,
   `groupCode` varchar(10) NOT NULL,
+  `status` enum('active','archived') DEFAULT 'active', -- for TWT, maybe for other classes
   PRIMARY KEY (`groupID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -567,20 +569,23 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `messages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+-- The messeges sent between user and LLM
+-- trigger on insert, update chatbot session performance async and related
 CREATE TABLE `messages` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `userId` int(11) NOT NULL,
-  `chatbotId` int(11) NOT NULL,
-  `moduleId` int(11) NOT NULL,
+  `messageID` int(11) NOT NULL AUTO_INCREMENT,
+  `userID` int(11) NOT NULL,
+  `chatbotSID` int(11) NOT NULL,
+  `moduleID` int(11) NOT NULL,
   `source` enum('llm','user') NOT NULL,
-  `value` text NOT NULL,
-  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`metadata`)),
-  `timestamp` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `chatbotId` (`chatbotId`),
-  KEY `userId` (`userId`),
-  CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`chatbotId`) REFERENCES `chatbot_sessions` (`chatbotId`) ON DELETE CASCADE,
-  CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`userId`) REFERENCES `user` (`userID`) ON DELETE CASCADE
+  `message` text NOT NULL,
+  `timestamp` timestamp NULL DEFAULT current_timestamp(), -- When message was sent
+  `isVoiceMessage` boolean NOT NULL DEFAULT 0, -- if voice message, fetches audio for review
+  `grammarRating` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously, NULL means score unavailable
+  PRIMARY KEY (`messageID`),
+  KEY `chatbotSID` (`chatbotSID`),
+  KEY `userID` (`userID`),
+  CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
+  CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -598,8 +603,7 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `module`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
+-- 
 CREATE TABLE `module` (
   `moduleID` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(250) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL,
@@ -879,6 +883,8 @@ LOCK TABLES `tag` WRITE;
 /*!40000 ALTER TABLE `tag` ENABLE KEYS */;
 UNLOCK TABLES;
 
+
+
 --
 -- Table structure for table `term`
 --
@@ -911,6 +917,77 @@ LOCK TABLES `term` WRITE;
 /*!40000 ALTER TABLE `term` DISABLE KEYS */;
 /*!40000 ALTER TABLE `term` ENABLE KEYS */;
 UNLOCK TABLES;
+
+DROP TABLE IF EXISTS `tito_generated_module`;
+-- temp hold new modules
+-- trigger to export to `module` table then repopulate tito_module
+-- Only stores a reference to `module`s created via AI
+CREATE TABLE `tito_generated_module` (
+  `moduleID` int(11) NOT NULL, -- module assigned to this class
+  `proffesorID` int(11) NOT NULL, -- professor of this class
+  `modulePrompt` text DEFAULT NULL, -- extra instructions for AI
+  FOREIGN KEY(`proffesorID`) REFERENCES `user` (`userID`),
+  PRIMARY KEY(`proffesorID`, `moduleID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+
+DROP TABLE IF EXISTS `tito_module`;
+-- on module deletion delete tito_module too & relevant
+-- maybe allow dragging of modules to reorder on front end
+-- class ID tied to a professor user
+CREATE TABLE `tito_module` (
+  `moduleID` int(11) NOT NULL,
+  `classID` int(11) NOT NULL,
+  `sequenceID` int(2) NOT NULL, -- chronological order in the unit
+  `titoPrompt` text DEFAULT NULL, -- extra instructions given to the chatbot for the module, can be used to prevent extraneous materials
+  `startDate` DATE DEFAULT NULL, -- default is today/day of creation
+  `endDate` DATE DEFAULT NULL, -- default is end of semesterFOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
+  FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`),
+  PRIMARY KEY(`moduleID`, `classID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+DROP TABLE IF EXISTS `tito_module_progress`;
+-- create a trigger to auto update on a term insert/update
+-- contains overall progress on the current module for a student
+CREATE TABLE `tito_module_progress` (
+  `termID` int(11) NOT NULL,
+  `proiciencyRate` float(4) DEFAULT 0.0, -- xxx.x% expected
+  `moduleID` int(11) NOT NULL,
+  `studentID` int(11) NOT NULL,
+  `completedTutorial` boolean NOT NULL DEFAULT 0, -- becomes 1 after tito intro scene finishes
+  FOREIGN KEY(`termID`) REFERENCES `term` (`termID`),
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
+  FOREIGN KEY(`studentID`) REFERENCES `user` (`userID`),
+  PRIMARY KEY(`moduleID`,`studentID`) -- expects searches to be all modules in practice by student
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+DROP TABLE IF EXISTS `tito_term_progress`;
+-- user progress on a term
+CREATE TABLE `tito_term_progress` (
+  `moduleID` int(11) NOT NULL,
+  `termID`  int(11) NOT NULL,
+  `userID` int(11) NOT NULL,
+  `proficiencyScore` float(4) NOT NULL DEFAULT 0.0, -- expect xxx.x%
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
+  FOREIGN KEY(`termID`) REFERENCES `term` (`termID`),
+  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`),
+  PRIMARY KEY(`userID`,`moduleID`,`termID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+DROP TABLE IF EXISTS `tito_voice_message`;
+-- Contains file path to audio message
+CREATE TABLE `tito_voice_message` (
+  `userID` int(11) NOT NULL,
+  `messageID` int(11) NOT NULL,
+  `voiceID` int(11) NOT NULL AUTO_INCREMENT,
+  `filePath` VARCHAR(255) NOT NULL, -- relative path for audio access
+  `chatbotSID` int(11) NOT NULL,
+  PRIMARY KEY (`voiceID`),
+  FOREIGN KEY (`userID`)  REFERENCES `user` (`userID`),
+  FOREIGN KEY (`messageID`)  REFERENCES `messages` (`messageID`),
+  FOREIGN KEY (`chatbotSID`)  REFERENCES `chatbot_sessions` (`chatbotSID`),
+  KEY `idx_session_user` (`chatbotSID`, `userID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 --
 -- Table structure for table `tokens`
@@ -1032,3 +1109,13 @@ UNLOCK TABLES;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
 -- Dump completed on 2025-06-27 15:20:23
+
+-- ///////////////////////////////////////////////////////////
+
+
+
+--modified --modified --modified --modified
+
+
+
+

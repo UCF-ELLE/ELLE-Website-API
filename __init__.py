@@ -123,9 +123,9 @@ from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALVal
 
 from resources.conversationElle.conversation import(
     ChatbotSessions,
-    ExportChatHistory,
+    TitoAccess,
     Messages, 
-    UpdateChatTime,
+    Classes,
 )
 
 import config
@@ -340,11 +340,18 @@ api.add_resource(UpdateALValue, API_ENDPOINT_PREFIX + "adaptivelearning/updatete
 api.add_resource(GetSingleALValue, API_ENDPOINT_PREFIX + "adaptivelearning/gettermvalue")
 api.add_resource(GetALValues, API_ENDPOINT_PREFIX + "adaptivelearning/gettermlistvalues")
 
-# Elle Chat endpoints
-api.add_resource(Messages, API_ENDPOINT_PREFIX + "chat/messages")
-api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "chat/chatbot")
-api.add_resource(ExportChatHistory, API_ENDPOINT_PREFIX + "chat/chatbot/export")
-api.add_resource(UpdateChatTime, API_ENDPOINT_PREFIX + "chat/chatbot/time")
+# ConversAItionELLE endpoints (Talking with Tito)
+# api.add_resource(Messages, API_ENDPOINT_PREFIX + "chat/messages")
+# api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "chat/chatbot")
+# api.add_resource(ExportChatHiwstory, API_ENDPOINT_PREFIX + "chat/chatbot/export")
+# api.add_resource(UpdateChatTime, API_ENDPOINT_PREFIX + "chat/chatbot/time")
+api.add_resource(TitoAccess, API_ENDPOINT_PREFIX + "twt/session/access")
+# api.add_resource(ModuleSelected, API_ENDPOINT_PREFIX + "twt/session/")
+api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "twt/session/create")
+api.add_resource(Messages, API_ENDPOINT_PREFIX + "twt/session/messages")
+api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
+
+# 127.0.0.1:5050/elleapi/twt/session/access
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)

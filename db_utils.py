@@ -1,6 +1,13 @@
 from flaskext.mysql import MySQL
 from db import mysql
 
+# SQL returns rows of tuples 
+# e.g. result =   [
+#                     (var_1, var_2, var_3,... var_N),
+#                     (var_1, var_2, var_3,... var_N),
+#                     ...
+#                     (var_1, var_2, var_3,... var_N),
+#                 ]
 
 def get_one_from_db(query, vals=None):
     conn = mysql.connect()

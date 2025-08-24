@@ -102,12 +102,12 @@ CREATE TABLE `chatbot_sessions` (
   `chatbotSID` int(11) NOT NULL AUTO_INCREMENT,
   `userID` int(11) NOT NULL,
   `moduleID` int(11) NOT NULL,
-  `totalTimeChatted` float NOT NULL,
+  `totalTimeChatted` float NOT NULL DEFAULT 0,
   `wordsUsed` int(11) NOT NULL DEFAULT 0,
-  `moduleWordsUsed` int(11) NOT NULL,
-  `termsUsed` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`termsUsed`)),
-  `timestamp` timestamp NULL DEFAULT current_timestamp(),
+  `moduleWordsUsed` int(11) NOT NULL DEFAULT 0,
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   `grammarPerformanceRating` float(4) NOT NULL DEFAULT 0,
+  `activeSession` boolean NOT NULL DEFAULT 0,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
   FOREIGN KEY(`userID`) REFERENCES `user` (`userID`),
   PRIMARY KEY (`chatbotSID`),
@@ -125,12 +125,11 @@ CREATE TABLE `messages` (
   `source` enum('llm','user') NOT NULL,
   `message` text NOT NULL,
   `timestamp` timestamp NULL DEFAULT current_timestamp(), -- When message was sent
-  `isVoiceMessage` TINYINT(1) DEFAULT 0, -- if voice message, fetches audio for review
-  `grammarRating` float(4) DEFAULT NULL, -- xxx.x%, calculated later asynchronously, NULL means score unavailable
-  PRIMARY KEY (`chatbotSID`, `messageID`),
+  `isVoiceMessage` boolean NOT NULL DEFAULT 0, -- if voice message, fetches audio for review
+  `grammarRating` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously, NULL means score unavailable
+  PRIMARY KEY (`messageID`),
   KEY `chatbotSID` (`chatbotSID`),
   KEY `userID` (`userID`),
-  KEY `messageID` (`messageID`),
   CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
   CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -211,3 +210,39 @@ CREATE TABLE `tito_generated_module` (
 -- -- select questionID FROM module_question where (module_question.moduleID = SOME_ID)
 -- with result you have all terms linked to module
 -- -- select termID FROM term WHERE questionID(results) = answer.questionID 
+
+
+
+-- OLD STUFF
+
+-- DROP TABLE IF EXISTS `tito_unit`; -- sequence ID is an issue, organized in assigned_unit
+-- CREATE TABLE `tito_unit` (
+--   `professorID` int(11) NOT NULL,
+--   `unitID` int(11) NOT NULL,
+--   `uName` text DEFAULT 'unnamed unit',
+--   `languageID` char(2) NOT NULL,
+--   `isPrivate` TINYINT(1) DEFAULT 1, -- maybe use an enum (public, select_sharing, private)
+--   FOREIGN KEY(`professorID`) REFERENCES `user` (`userID`), -- add constraint professorID must be a 'pf' user
+--   PRIMARY KEY(`unitID`)
+  
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- DROP TABLE IF EXISTS `tito_unit_access`; -- allows other professors to use the units
+-- CREATE TABLE `tito_unit_access` (
+--   `professorID` int(11) NOT NULL,
+--   `unitID` int(11) NOT NULL,
+--   FOREIGN KEY(`professorID`) REFERENCES `user` (`userID`),
+--   FOREIGN KEY(`unitID`) REFERENCES `tito_unit` (`unitID`),
+--   PRIMARY KEY(`professorID`,`unitID`) -- a composite key
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- DROP TABLE IF EXISTS `tito_assigned_modules`; -- for students to receive unit to do work on
+-- CREATE TABLE `tito_assigned_modules` (
+--   `classID` int(11) NOT NULL,
+--   `moduleID` int(11) NOT NULL,
+--   `startDate` DATE NOT NULL, -- default is today/day of creation
+--   `endDate` DATE NOT NULL, -- default is end of semester
+--   FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`),
+--   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
+--   PRIMARY KEY(`classID`,`moduleID`)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;

@@ -17,7 +17,7 @@
   {
     "userId":       int,         // User's ID
     "chatbotSID":   int,         // Chatbot Session ID
-    "moduleId":     int,         // Currently Selected Module ID  
+    "moduleID":     int,         // Currently Selected Module ID  
     "userMessage":  string,      // The text message sent by 
   }
   ```
@@ -44,36 +44,46 @@
   - `xxx`: TBD
 ---
 
-### 3. **GET /elleapi/twt/session/fetch-messages**
+### 3. **POST /elleapi/twt/session/fetch-messages**
 
 - **OLD PATH**: /elleapi/chat/messages
-- **Purpose**: Retrieve a list of chat messages for a user or chatbot.
+- **Purpose**: Retrieve a list of chat messages for a user or chatbot to load in the chat history.
+- **Note**: We can keep a counter for each message that way we dont need unique message IDs
 - **Query parameters**:
   - `userId`: (required) ID of the user to fetch messages for.
   - `chatbotSID`: (required) ID of the chatbot to filter messages.
   - `TO BE DECIDED`: **Extra parameters?**
+
+- **Request body** (JSON):
+  ```json
+  {
+    "jwt":        string,
+    "userID":     int,
+    "moduleID":   int,
+    "classID":    int,
+    "chatbotSID": int,
+  }
+  ```
 
 - **Response** (JSON):
   ```json
   {
     [
       {
-        "id": 1,
-        "userId": 101,
-        "chatbotSID": 10,
-        "moduleId": 2,
+        "messageID": 1,
+        "moduleID": 2,
         "source": "user",
         "value": "Hello, chatbot!",
-        "timestamp": "2025-02-20T14:30:00"
+        "timestamp": "2025-02-20T14:30:00",
+        "voiceMessage": "{voiceMessageID} ",
       },
       {
-        "id": 2,
-        "userId": 101,
-        "chatbotSID": 10,
-        "moduleId": 2,
+        "messageID": 2,
+        "moduleID": 2,
         "source": "llm",
         "value": "Hello! How can I assist you today?",
-        "timestamp": "2025-02-20T14:30:05"
+        "timestamp": "2025-02-20T14:30:05",
+        "voiceMessage": null,
       },
      ...
     ]
@@ -87,15 +97,24 @@
 
 ---
 
-### 5. **GET /elleapi/twt/session/fetch-session-messages**
+### 5. **POST /elleapi/twt/session/fetch-session-messages**
 
-- **OLD PATH**: /elleapi/chatbot/{userId}{moduleId}
+- **OLD PATH**: /elleapi/chatbot/{userId}{moduleID}
 - **Probably ignore the URL params**
 
-- **Purpose**: Get the chatbot session for a specific user.
+- **Purpose**: Get the chatbot session for a specific user, logging purposes and history viewing.
 - **URL parameters**:
   - `userId`: (required) The user ID for which to fetch the chatbot.
-  - `moduleId`: (required) The moduleID for the the chatbot session
+  - `moduleID`: (required) The moduleID for the the chatbot session
+
+- **Request body** (JSON):
+  ```json
+  {
+    "jwt":        string,
+    "userID":     int,
+    "chatbotSID": int,
+  }
+  ```
 
 - **Response** (JSON):
   ```json
@@ -103,13 +122,12 @@
     {
       "chatbotSID": 123,
       "userId": 456,
-      "moduleId": 789,
+      "moduleID": 789,
       "totalTimeChatted": 15.5,
       "wordsUsed": 1200,
-      "totalWordsForModule": 5000,
-      "grade": 85.7,
-      "termsUsed": {"term1": 10, "term2": 5},
-      "timestamp": "2025-02-20T14:30:00"
+      "moduleWordsUsed": 5000,
+      "timestamp": "2025-02-20T14:30:00",
+      "grade": 85.7
     }
   }
 
@@ -117,7 +135,7 @@
 
   {
     {
-      "chatbotSID": 123
+      "chatbotSID": -1
     }
   }
   ```
