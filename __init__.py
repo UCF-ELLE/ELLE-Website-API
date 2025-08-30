@@ -126,6 +126,8 @@ from resources.conversationElle.conversation import(
     TitoAccess,
     Messages, 
     Classes,
+    ModuleTerms,
+    UploadAudio,
 )
 
 import config
@@ -151,6 +153,9 @@ app.config["MAIL_USERNAME"] = config.SMTP_USERNAME
 app.config["MAIL_PASSWORD"] = config.SMTP_PASSWORD
 app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USE_SSL"] = False
+
+# Used to restrict file size limits via API requests
+# app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024  # 8 MB
 
 mysql.init_app(app)
 api = Api(app)
@@ -350,6 +355,8 @@ api.add_resource(TitoAccess, API_ENDPOINT_PREFIX + "twt/session/access")
 api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "twt/session/create")
 api.add_resource(Messages, API_ENDPOINT_PREFIX + "twt/session/messages")
 api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
+api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
+api.add_resource(UploadAudio, API_ENDPOINT_PREFIX + "twt/session/sendaudio")
 
 # 127.0.0.1:5050/elleapi/twt/session/access
 

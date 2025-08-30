@@ -155,6 +155,7 @@ CREATE TABLE `tito_term_progress` (
   `termID`  int(11) NOT NULL,
   `userID` int(11) NOT NULL,
   `proficiencyScore` float(4) NOT NULL DEFAULT 0.0, -- expect xxx.x%
+  `timesUsed` int NOT NULL DEFAULT 0,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
   FOREIGN KEY(`termID`) REFERENCES `term` (`termID`),
   FOREIGN KEY(`userID`) REFERENCES `user` (`userID`),
