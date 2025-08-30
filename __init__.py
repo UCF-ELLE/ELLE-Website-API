@@ -127,7 +127,7 @@ from resources.conversationElle.conversation import(
     Messages, 
     Classes,
     ModuleTerms,
-    UploadAudio,
+    UserAudio,
 )
 
 import config
@@ -356,7 +356,7 @@ api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "twt/session/create")
 api.add_resource(Messages, API_ENDPOINT_PREFIX + "twt/session/messages")
 api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
-api.add_resource(UploadAudio, API_ENDPOINT_PREFIX + "twt/session/sendaudio")
+api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/sendaudio")
 
 # 127.0.0.1:5050/elleapi/twt/session/access
 

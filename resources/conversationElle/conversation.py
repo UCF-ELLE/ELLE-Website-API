@@ -1,5 +1,5 @@
 import csv, io
-from flask import Response, request, jsonify
+from flask import Response, request, jsonify, send_file
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt_claims
 # from .config import free_prompt
@@ -44,21 +44,18 @@ class TitoAccess(Resource):
 # Unsure if needed as an API
 class ModuleTerms(Resource):
     @jwt_required
-    def post(self):
+    def get(self):
         '''
             Fetches all terms associated to a given moduleID
             TODO: error handling when moduleID doesnt exist
         '''
-        data = request.get_json()
-
-        if data is None:
-            return create_response(False, message="data not read", status_code=201) 
-
-        module_id = data.get('moduleID')
+        module_id = request.args.get('moduleID')
+        if not module_id:
+            return create_response(False, message="improper moduleID given.", status_code=403)
 
         return create_response(True, message=f"Retrieved module terms from module {module_id}", data=getModuleTerms(module_id))
 
-class UploadAudio(Resource):
+class UserAudio(Resource):
     @jwt_required
     def post(self):
         '''
@@ -86,7 +83,7 @@ class UploadAudio(Resource):
 
         # Save the file
         filename = f"{class_id}_{user_id}_{message_id}.webm"
-        filename = secure_filename(audio_file.filename)
+        filename = secure_filename(filename)
         if not filename:
             return create_response(False, message="Failed to upload. Error in creating filename.", status_code=500)
         
@@ -100,13 +97,41 @@ class UploadAudio(Resource):
         except Exception as e:
             return create_response(False, message=f"Failed to save audio file: {str(e)}", status_code=500)
 
-        voice_message_id = storeVoiceMessage(user_id, message_id, filename, chatbot_sid)
+        storeVoiceMessage(user_id, message_id, filename, chatbot_sid)
 
-        if not voice_message_id:
-            return create_response(False, message="Failed to store voice message.", status_code=500) 
+        # if not voice_message_id:
+        #     return create_response(False, message="Failed to store voice message.", status_code=500) 
 
         return create_response(True, message="Audio message uploaded successfully.")
 
+    @jwt_required
+    def get(self):
+        '''
+            Returns a single audio file of name {classID}_{userID}_{messageID}
+            Expects ?classID={id_here2}&messageID={id_here3}"
+
+            TODO: check if user is allowed to make the request
+        '''
+        user_id = get_jwt_identity() 
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
+
+        if user_permission != 'st':
+            create_response(False, message="User is not a student.", status_code=403)
+
+        class_id = request.args.get('classID')
+        message_id = request.args.get('messageID')
+
+        if not class_id or not message_id:
+            return create_response(False, message="Missing required query parameters.", status_code=400)
+
+        filename = getVoiceMessage(user_id, message_id)
+
+        file_path = os.path.join(RELATIVE_UPLOAD_PATH, str(class_id), str(user_id), filename)
+        if not os.path.exists(file_path):
+            return create_response(False, message="File does not exist.", status_code=404)
+
+        return send_file(file_path, mimetype="audio/webm")
 
 # # User selects a module to chat with Tito, returns chat history in order
 # class ModuleSelected(Resource):
@@ -174,7 +199,7 @@ class Messages(Resource):
         
         updateTotalTimeChatted(session_id)
 
-        return create_response(True, message="Message sent.", resumeMessaging=True, messageID=getMessageID(user_id, module_id, session_id), titoResponse="To be implemented.")
+        return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=getMessageID(user_id, module_id, session_id), titoResponse="To be implemented.")
 
     # TODO:
     # Organize JSON response

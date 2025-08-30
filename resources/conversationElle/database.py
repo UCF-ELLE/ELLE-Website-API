@@ -255,6 +255,21 @@ def getPreviousTermsUsed(userId, chatbotSID):
             conn.close()
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ================================================
 #
 # conversaitionelle pt 2
@@ -307,7 +322,7 @@ def getActiveTitoUserGroups(userId):
 #         "source": a_value, 
 #         "message": a_value, 
 #         "timestamp": a_value, 
-#         "isVoiceMessage": a_value
+#         "voiceID": a_value
 #     }
 def loadModuleChatHistory(userID, moduleID):
     query = """
@@ -325,12 +340,12 @@ def loadModuleChatHistory(userID, moduleID):
             "messageID": row[0],
             "source": row[1],
             "message": row[2],
-            "timestamp": row[3],
+            "timestamp": row[3].isoformat() if row[3] else None,
             "isVoiceMessage": row[4]
         }
         messages.append(message)
 
-    return jsonify(messages)
+    return messages
 
 # Revoke any existing instances of chatbot sessions &
 # Create new session for user
@@ -373,7 +388,7 @@ def checkChatbotSessionStatus(userID, moduleID, chatbotSID):
 
     return True
 
-def newMessage(userID, moduleID, chatbotSID, message, isVoiceMessage):
+def newMessage(userID, moduleID, chatbotSID, message, isVM):
     # Check for valid chatbot session
     is_valid_session = checkChatbotSessionStatus(userID, moduleID, chatbotSID)
     if not is_valid_session:
@@ -384,7 +399,7 @@ def newMessage(userID, moduleID, chatbotSID, message, isVoiceMessage):
         VALUES (%s, %s, %s, 'user', %s, %s);
     """
 
-    postToDB(query, (userID, chatbotSID, moduleID, message, isVoiceMessage))
+    postToDB(query, (userID, chatbotSID, moduleID, message, isVM))
 
     return True
 
@@ -415,3 +430,70 @@ def getProfessorClasses(userID):
         group_ids.append(gID[0])
 
     return group_ids
+
+
+# Returns pairs of termIDs with the term for a given module
+def getModuleTerms(module_id):
+    query = '''
+        SELECT DISTINCT t.termID, t.front
+        FROM module_question mq
+        JOIN answer a ON mq.questionID = a.questionID
+        JOIN term t ON a.termID = t.termID
+        WHERE mq.moduleID = %s;
+    '''
+
+    result = getFromDB(query, (module_id,))
+
+    # terms = []
+
+    # # (termID, term)
+    # for term in result:
+    #     terms.append((term[0],term[1]))
+
+    return result
+
+def getMessageID(userID, moduleID, chatbotSID):
+    query = """
+            SELECT messageID
+            FROM `messages`
+            WHERE userID = %s AND moduleID = %s AND chatbotSID = %s
+            ORDER BY timestamp DESC LIMIT 1;
+        """
+    result = getFromDB(query, (userID, moduleID, chatbotSID))
+    if result:
+        return result[0][0]  # Return the latest messageID
+    return None
+
+def storeVoiceMessage(userID, messageID, filename, chatbotSID):
+    query = """
+        INSERT INTO `tito_voice_message` (userID, messageID, filename, chatbotSID)
+        VALUES (%s, %s, %s, %s);
+    """
+    
+    postToDB(query, (userID, messageID, filename, chatbotSID))
+
+def getVoiceMessage(userID, messageID):
+    query = """
+        SELECT filename
+        FROM `tito_voice_message` t
+        WHERE t.userID = %s AND t.messageID = %s;
+    """
+
+    result = getFromDB(query, (userID, messageID))
+    if result:
+        return result[0][0]
+    return []
+
+def create_response(success, message=None, data=None, status_code=200, **extra_json_fields):
+    response = {
+        "status": "success" if success else "error",
+        "message": message if message else "",
+        "data": {} if data is None else data
+    }
+
+    # Add any additional key-value pairs (from extra_fields) to the response
+    if extra_json_fields:
+        response.update(extra_json_fields)
+
+    return response, status_code
+

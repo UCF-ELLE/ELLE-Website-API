@@ -562,6 +562,10 @@ LOCK TABLES `mentor_responses` WRITE;
 /*!40000 ALTER TABLE `mentor_responses` ENABLE KEYS */;
 UNLOCK TABLES;
 
+
+
+
+
 --
 -- Table structure for table `messages`
 --
@@ -579,7 +583,7 @@ CREATE TABLE `messages` (
   `source` enum('llm','user') NOT NULL,
   `message` text NOT NULL,
   `timestamp` timestamp NULL DEFAULT current_timestamp(), -- When message was sent
-  `isVoiceMessage` boolean NOT NULL DEFAULT 0, -- if voice message, fetches audio for review
+  `isVoiceMessage` boolean NOT NULL DEFAULT 0, 
   `grammarRating` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously, NULL means score unavailable
   PRIMARY KEY (`messageID`),
   KEY `chatbotSID` (`chatbotSID`),
@@ -978,15 +982,17 @@ DROP TABLE IF EXISTS `tito_voice_message`;
 -- Contains file path to audio message
 CREATE TABLE `tito_voice_message` (
   `userID` int(11) NOT NULL,
-  `messageID` int(11) NOT NULL,
-  `voiceID` int(11) NOT NULL AUTO_INCREMENT,
-  `filePath` VARCHAR(255) NOT NULL, -- relative path for audio access
+  `voiceID` int(11) AUTO_INCREMENT,
+  `filename` VARCHAR(255) NOT NULL, -- relative path for audio access
   `chatbotSID` int(11) NOT NULL,
+  `messageID` int(11) NOT NULL,
   PRIMARY KEY (`voiceID`),
   FOREIGN KEY (`userID`)  REFERENCES `user` (`userID`),
-  FOREIGN KEY (`messageID`)  REFERENCES `messages` (`messageID`),
+  FOREIGN KEY (`messageID`) REFERENCES `messages` (`messageID`),
   FOREIGN KEY (`chatbotSID`)  REFERENCES `chatbot_sessions` (`chatbotSID`),
-  KEY `idx_session_user` (`chatbotSID`, `userID`)
+  KEY `idx_session_user` (`chatbotSID`, `userID`),
+  KEY `idx_voice_message` (`userID`, `messageID`),
+  UNIQUE (`userID`, `messageID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 --

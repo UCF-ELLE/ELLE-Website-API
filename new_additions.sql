@@ -166,12 +166,17 @@ CREATE TABLE `tito_term_progress` (
 -- Contains file path to audio message
 CREATE TABLE `tito_voice_message` (
   `userID` int(11) NOT NULL,
+  `voiceID` int(11) AUTO_INCREMENT,
+  `filename` VARCHAR(255) NOT NULL, -- relative path for audio access
+  `chatbotSID` int(11) NOT NULL,
   `messageID` int(11) NOT NULL,
-  `filePath` VARCHAR(255) NOT NULL, -- relative path for audio access
-  PRIMARY KEY (`messageID`),
+  PRIMARY KEY (`voiceID`),
   FOREIGN KEY (`userID`)  REFERENCES `user` (`userID`),
-  FOREIGN KEY (`messageID`)  REFERENCES `messages` (`messageID`),
-  KEY `userID` (`userID`) --quickly search for specific users
+  FOREIGN KEY (`messageID`) REFERENCES `messages` (`messageID`),
+  FOREIGN KEY (`chatbotSID`)  REFERENCES `chatbot_sessions` (`chatbotSID`),
+  KEY `idx_session_user` (`chatbotSID`, `userID`),
+  KEY `idx_voice_message` (`userID`, `messageID`),
+  UNIQUE (`userID`, `messageID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 
