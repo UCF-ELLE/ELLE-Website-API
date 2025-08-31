@@ -1,32 +1,117 @@
-#### TODO: Consider /elleapi/chat/messages VS ellapi/messages for all APIs
-#### Still a WIP
-
 #### Considering /elleapi/twt/... for the api, less vague
 #### /elleapi/tools/... for grammar tools & tokenizer for potential future use, locked for now?
 
-### 1. **API Overview**
+### General notes on API documentation:
+---
+#### > GET: 
+- calls should NOT cause any changes no matter how many times it is called
+- Uses query parameters or path parameters:
+```
+  ?userID=123&classID=456
+
+  /path/to/api/{id}
+```
+<ul>
+  <ul>
+    <li>Where query parameters initialize using a `?` then followed by key-value pairings {key-value}</li>
+    <li>Combine many parameters using an `&` after each pair of key-value pairs</li>
+      <ul>
+        <li>What is primarily used by us</li>
+        <li> /path/to/api<b>?key_1=val_1&key_2=val_2&...</b></li>
+      </ul>
+  </ul>
+</ul>
+
+#### > POST:
+- POST calls are for when you cause any change in the backened
+- Nothing else to say...
+
+## > Creating Responses
+- API responses uses the `create_response()` method found in `database.py` to streamline reponses instead of manually making the JSON format every time
+
+Parameters of the `create_response()` method
+```python
+def create_response(
+                    success=True,              # status = success or error, unsure how useful this is tbh
+                    message=None,         # information about the transaction
+                    data=None,            # information retrieved and to be parsed
+                    status_code=200,      # explanatory
+                    **extra_json_fields   # accepts an arbitrary amount key=value pairs for extra information
+                  ):
+
+```
+
+**Error codes**:
+  - `400`: Bad Request (e.g., missing required fields)
+  - `500`: Internal Server Error (e.g., database failure)
+  - `xxx`: TBD
+
+# ALL API CALLS HERE REQUIRE A JWT TOKEN 
+
+## **API Overview**
    - **Purpose**: A brief description of what the API does.
-   - **Base URL**: URL endpoint for the API.
+   - **Base URLs**: URL endpoint for the API `/elleapi/twt/` for core functionality and `/elleapi/tools/` for a multi-purpose shared API library
+   - **General Notes**: ALL API endpoints **REQUIRE** a jwt_token: primarily for security AND then for ease of access to `user_id` and `user_permission` which are encoded in the JWT
 ---
 
-### 2. **POST /elleapi/twt/session/send-message**
-- **OLD PATH**: /elleapi/chat/messages
-- **Purpose**: Sends a user's message from the current session to the chatbot
+### 1. **GET /elleapi/twt/session/access**
+- Purpose: Users requests permission from the server to access TWT.
+- URL Parameters:
+```
+  None
+```
+- Returns:
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": [],               // Returns a single int in a list, which is the chatbotSessionID
+  "status_code": int
+}
+```
+
+---
+
+### 2. **POST /elleapi/twt/session/create**
+- **Purpose**: Creates a chatbot session to allow the user to send messages to Tito
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+  "moduleID": int
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": int,
+  "status_code": int
+}
+```
+---
+
+### 3. **POST /elleapi/twt/session/messages**
+- **Purpose**: Sends a single user message from the current session to the chatbot and returns the messageID
 - **Request body** (JSON):
   ```json
   {
-    "userId":       int,         // User's ID
-    "chatbotSID":   int,         // Chatbot Session ID
-    "moduleID":     int,         // Currently Selected Module ID  
-    "userMessage":  string,      // The text message sent by 
+    "chatbotSID": int,          // Permission "token"
+    "moduleID": int,            // The currently selected module  
+    "message": string,          // The user's message 
+    "isVoiceMessage": boolean   // if user will send an audio file after
   }
   ```
 
 - **Response** (JSON):
   ```json
-  { 
-    "llmResponse":  String  # What the LLM responded,
-    "statusCode":   int     # Success or error?  
+  {
+    "success": true or false,
+    "message": "text",
+    "data": [string],           // the message the user sent
+    "status_code": int,
+    "resumeMessaging": boolean, // allows user to send another message (from the front end)
+    "messageID": int,
+    "titoResponse": text        // Tito's response to user message
   }
   ```
 - **Notes**:
@@ -34,48 +119,106 @@
         1. User sends a message
         2. Backend process the message, calls the LLM. (checks for free talk or module-based chat)
         3. The LLM process the user message
-        4. The LLM calls the grammar function, grades the users grammar. LanguageTools
-        5. The LLM calls the word counting function for terms used that are part of this module. spaCy + DB
-        6. Once the backend gets all of this data back, send to front end
+        4. The LLM calls the word counting function for terms used that are part of this module. spaCy + DB
+        5. Once the backend gets all of this data back, send to front end
+        6. Asynchronously grades the users grammar. LanguageTools
 
-- **Error codes**:
-  - `400`: Bad Request (e.g., missing required fields)
-  - `500`: Internal Server Error (e.g., database failure)
-  - `xxx`: TBD
 ---
 
-### 3. **POST /elleapi/twt/session/fetch-messages**
+### 444. **POST /elleapi/twt/session/create**
+- **Purpose**: 
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
 
-- **OLD PATH**: /elleapi/chat/messages
-- **Purpose**: Retrieve a list of chat messages for a user or chatbot to load in the chat history.
-- **Note**: We can keep a counter for each message that way we dont need unique message IDs
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": int[],
+  "status_code": int
+}
+```
+
+---
+
+### 444. **POST /elleapi/twt/session/create**
+- **Purpose**: 
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": int[],
+  "status_code": int
+}
+```
+
+---
+
+### 444. **POST /elleapi/twt/session/create**
+- **Purpose**: 
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": int[],
+  "status_code": int
+}
+```
+
+---
+
+### 444. **POST /elleapi/twt/session/create**
+- **Purpose**: 
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": int[],
+  "status_code": int
+}
+```
+
+
+### 3. **GET twt/session/messages?moduleID={#}**
+- **Purpose**: Retrieve a list of chat messages for a user's chat history on a given moduleID.
+- **Note**: We can keep a counter for each message that way we dont need unique message IDs (???)
 - **Query parameters**:
-  - `userId`: (required) ID of the user to fetch messages for.
-  - `chatbotSID`: (required) ID of the chatbot to filter messages.
-  - `TO BE DECIDED`: **Extra parameters?**
-
-- **Request body** (JSON):
-  ```json
-  {
-    "jwt":        string,
-    "userID":     int,
-    "moduleID":   int,
-    "classID":    int,
-    "chatbotSID": int,
-  }
-  ```
+  - `moduleID` = `int`.
 
 - **Response** (JSON):
   ```json
   {
-    [
+    "success": true or false,
+    "message": "text",
+    "data": [
       {
         "messageID": 1,
         "moduleID": 2,
         "source": "user",
         "value": "Hello, chatbot!",
         "timestamp": "2025-02-20T14:30:00",
-        "voiceMessage": "{voiceMessageID} ",
+        "voiceMessage": true,
       },
       {
         "messageID": 2,
@@ -83,10 +226,12 @@
         "source": "llm",
         "value": "Hello! How can I assist you today?",
         "timestamp": "2025-02-20T14:30:05",
-        "voiceMessage": null,
+        "voiceMessage": false,
       },
      ...
-    ]
+    ],
+    "status_code": int
+    
   }
   ```
 
