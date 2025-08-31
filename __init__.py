@@ -348,7 +348,7 @@ api.add_resource(GetALValues, API_ENDPOINT_PREFIX + "adaptivelearning/gettermlis
 # ConversAItionELLE endpoints (Talking with Tito)
 # api.add_resource(Messages, API_ENDPOINT_PREFIX + "chat/messages")
 # api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "chat/chatbot")
-# api.add_resource(ExportChatHiwstory, API_ENDPOINT_PREFIX + "chat/chatbot/export")
+# api.add_resource(ExportChatHistory, API_ENDPOINT_PREFIX + "chat/chatbot/export")
 # api.add_resource(UpdateChatTime, API_ENDPOINT_PREFIX + "chat/chatbot/time")
 api.add_resource(TitoAccess, API_ENDPOINT_PREFIX + "twt/session/access")
 # api.add_resource(ModuleSelected, API_ENDPOINT_PREFIX + "twt/session/")
@@ -356,7 +356,7 @@ api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "twt/session/create")
 api.add_resource(Messages, API_ENDPOINT_PREFIX + "twt/session/messages")
 api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
-api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/sendaudio")
+api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
 
 # 127.0.0.1:5050/elleapi/twt/session/access
 

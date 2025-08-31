@@ -30,16 +30,15 @@
 - API responses uses the `create_response()` method found in `database.py` to streamline reponses instead of manually making the JSON format every time
 
 Parameters of the `create_response()` method
-```python
-def create_response(
-                    success=True,              # status = success or error, unsure how useful this is tbh
+  ```python
+  def create_response(
+                    success=True,         # status = success or error, unsure how useful this is tbh
                     message=None,         # information about the transaction
-                    data=None,            # information retrieved and to be parsed
-                    status_code=200,      # explanatory
+                    data=None,            # information retrieved and to be parsed                    
+                    status_code=200       # server status response (200 = OK)
                     **extra_json_fields   # accepts an arbitrary amount key=value pairs for extra information
                   ):
-
-```
+  ```
 
 **Error codes**:
   - `400`: Bad Request (e.g., missing required fields)
@@ -56,19 +55,18 @@ def create_response(
 
 ### 1. **GET /elleapi/twt/session/access**
 - Purpose: Users requests permission from the server to access TWT.
-- URL Parameters:
-```
-  None
-```
+- Query Parameters:
+  ```
+    None
+  ```
 - Returns:
-```JSON
-{
-  "success": true or false,
-  "message": "text",
-  "data": [],               // Returns a single int in a list, which is the chatbotSessionID
-  "status_code": int
-}
-```
+  ```JSON
+  {
+    "success": true or false,
+    "message": "text",
+    "data": int[]               // Returns a list of valid module ids that the user is enrolled in
+  }
+  ```
 
 ---
 
@@ -76,18 +74,17 @@ def create_response(
 - **Purpose**: Creates a chatbot session to allow the user to send messages to Tito
 - **Notes**: 
 - **Request body** (JSON)
-```JSON
-  "moduleID": int
-```
+  ```JSON
+    "moduleID": int
+  ```
 - **Response**
-```JSON
-{
-  "success": true or false,
-  "message": "text",
-  "data": int,
-  "status_code": int
-}
-```
+  ```JSON
+  {
+    "success": true or false,
+    "message": "text",
+    "data": [int],            // returns a single int inside a list, the users chatbot session id
+  }
+  ```
 ---
 
 ### 3. **POST /elleapi/twt/session/messages**
@@ -107,10 +104,9 @@ def create_response(
   {
     "success": true or false,
     "message": "text",
-    "data": [string],           // the message the user sent
-    "status_code": int,
+    "data": [string],           // the message the user sent (single string)
     "resumeMessaging": boolean, // allows user to send another message (from the front end)
-    "messageID": int,
+    "messageID": int,           // insertion of new message returns id for the message sent, used in tandem with voice messages 
     "titoResponse": text        // Tito's response to user message
   }
   ```
@@ -125,87 +121,14 @@ def create_response(
 
 ---
 
-### 444. **POST /elleapi/twt/session/create**
-- **Purpose**: 
-- **Notes**: 
-- **Request body** (JSON)
-```JSON
-
-```
-- **Response**
-```JSON
-{
-  "success": true or false,
-  "message": "text",
-  "data": int[],
-  "status_code": int
-}
-```
-
----
-
-### 444. **POST /elleapi/twt/session/create**
-- **Purpose**: 
-- **Notes**: 
-- **Request body** (JSON)
-```JSON
-
-```
-- **Response**
-```JSON
-{
-  "success": true or false,
-  "message": "text",
-  "data": int[],
-  "status_code": int
-}
-```
-
----
-
-### 444. **POST /elleapi/twt/session/create**
-- **Purpose**: 
-- **Notes**: 
-- **Request body** (JSON)
-```JSON
-
-```
-- **Response**
-```JSON
-{
-  "success": true or false,
-  "message": "text",
-  "data": int[],
-  "status_code": int
-}
-```
-
----
-
-### 444. **POST /elleapi/twt/session/create**
-- **Purpose**: 
-- **Notes**: 
-- **Request body** (JSON)
-```JSON
-
-```
-- **Response**
-```JSON
-{
-  "success": true or false,
-  "message": "text",
-  "data": int[],
-  "status_code": int
-}
-```
-
-
-### 3. **GET twt/session/messages?moduleID={#}**
+### 4. **GET twt/session/messages?moduleID={#}**
 - **Purpose**: Retrieve a list of chat messages for a user's chat history on a given moduleID.
 - **Note**: We can keep a counter for each message that way we dont need unique message IDs (???)
 - **Query parameters**:
-  - `moduleID` = `int`.
-
+  ```JSON
+  ?
+  moduleID={int} // where int is the ID for a tito_module
+  ```
 - **Response** (JSON):
   ```json
   {
@@ -229,88 +152,123 @@ def create_response(
         "voiceMessage": false,
       },
      ...
-    ],
-    "status_code": int
-    
+    ],    
   }
   ```
-
-- **Error codes**:
-  - `404`: Not Found (e.g., no messages found for the given user or chatbot)
-  - `500`: Internal Server Error
-  - `TO BE DECIDED`: **Extra parameters?**
 
 ---
 
-### 5. **POST /elleapi/twt/session/fetch-session-messages**
-
-- **OLD PATH**: /elleapi/chatbot/{userId}{moduleID}
-- **Probably ignore the URL params**
-
-- **Purpose**: Get the chatbot session for a specific user, logging purposes and history viewing.
-- **URL parameters**:
-  - `userId`: (required) The user ID for which to fetch the chatbot.
-  - `moduleID`: (required) The moduleID for the the chatbot session
-
-- **Request body** (JSON):
-  ```json
-  {
-    "jwt":        string,
-    "userID":     int,
-    "chatbotSID": int,
-  }
-  ```
-
-- **Response** (JSON):
-  ```json
-  {
-    {
-      "chatbotSID": 123,
-      "userId": 456,
-      "moduleID": 789,
-      "totalTimeChatted": 15.5,
-      "wordsUsed": 1200,
-      "moduleWordsUsed": 5000,
-      "timestamp": "2025-02-20T14:30:00",
-      "grade": 85.7
-    }
-  }
-
-  If the chatbot session did not exist:
-
-  {
-    {
-      "chatbotSID": -1
-    }
-  }
-  ```
-
-- **Error codes**:
-  - `500`: Internal Server Error
+### 5. **POST /elleapi/twt/session/audio**
+- **Purpose**: Uploads a recorded user voice message associated to a message to the server
+- **Notes**: File saved with filename pattern -> `{classID}_{userID}_{messageID}.webm`
+- **Request body** (JSON)
+```JSON
+{
+  "messageID": int,
+  "chatbotSID": int,
+  "classID": int,
+  "audio": file
+}
+```
+- **Response**
+```JSON
+{
+  "success": false,
+  "message": "text",
+  "data": []         // no data returned
+}
+```
 
 ---
-### 6. **POST /elleapi/twt/session/update-time**
 
-- **OLD URL**: PATCH /elleapi/chat/chatbot/{chatbotSID}/time
-- **Purpose**: Update the total time a user has chatted.
-- **Request body** (JSON):
-  ```json
-  {
-    "chatbotSID": int,              # ID of the user
-    "timeChatted": float,          # New time chatted for session 
-  }
-  ```
+### 6. **GET /elleapi/twt/session/audio**
+- **Purpose**: Returns a single audio file from the user.
+- **Notes**: File returns file with filename pattern -> `{classID}_{userID}_{messageID}.webm`
+- **Note**: 2 expected return behaviors `status=200`(ok, file received) && `status != 200` (error, no file received)
+- **Query Parameters**: (JSON)
+```JSON
+    ?
+    classID={int}   // user's class
+    &
+    messageID={int} // message associated to voice message
+```
 
-- **Response** (JSON):
-  ```json
-  {
-    "status": "success",
-  }
-  ```
+- **Response:**
 
-- **Error codes**:
-  - `400`: Bad Request (e.g., missing fields)
-  - `500`: Internal Server Error
+### success, no JSON
+```JSON
+response header
+{
+  status=200
+  Content-Type: audio/webm  
+}
+```
+### OR failed to retrieve file, yes JSON
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": []               // no data returned
+}
+```
+
+---
+
+### 7. **GET /elleapi/twt/module/terms**
+- **Purpose**: 
+- **Notes**: 
+- **Query Parameters**
+```JSON
+  ?
+  moduleID={int}
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": [(tuple_1, tuple_2)]            // A list of pairs of tuples are returned (tuple_1 = `termID`, tuple_2 = `front`) 
+                                          // front is the table `term`'s word in the foreign language (the target word to be used)
+```
+
+---
+
+## FOR PROFESSORS
+
+
+### 8. **POST /elleapi/twt/professor/classes**
+- **Purpose**: Retrieves a list of all classes owned by professor (maybe only tito-enrolled classes?)
+- **Notes**: 
+- **Query Parameters** 
+```JSON
+  NONE
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": int[]               // returns a list of class ids owned by user (the prof)
+```
+
+---
+
+
+
+### 444. **POST /elleapi/twt/session/create**
+- **Purpose**: 
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": int[],
+```
 
 ---
 
