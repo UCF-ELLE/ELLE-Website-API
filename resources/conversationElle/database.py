@@ -484,9 +484,9 @@ def getVoiceMessage(userID, messageID):
         return result[0][0]
     return []
 
-def create_response(success, message=None, data=None, status_code=200, **extra_json_fields):
+def create_response(success=True, message=None, data=None, status_code=200, **extra_json_fields):
     response = {
-        "status": "success" if success else "error",
+        "success": success,
         "message": message if message else "",
         "data": {} if data is None else data
     }
