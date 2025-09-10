@@ -86,8 +86,27 @@ class Messages(Resource):
 
         # TODO:
         # Update module words used =>
-        # Send message to tito
         # Async grammar evaluation
+
+        # Sends a message to tito with safety check
+        try:
+            try:
+                safety_check = detect_innapropriate_language(message)
+                if safety_check.get('is_appropriate', False):
+                    tito_response_data = {'response': "I can't respond to that type of message. Let's keep the conversation educational and appropriate"}
+                else:
+                    tito_response_data = handle_message(message)
+            except Exception as saftey_error:
+                print(f"Safety check failed: {safety_error}")
+                tito_response_data = handle_message(message)
+            
+            tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
+
+        except Exception as error:
+            print(f"Error communicating with Tito: {error}")
+            tito_response = "Sorry, there is a bit of trouble. Please try again!"
+            tito_response_data = {"response": tito_response}
+
         
         updateTotalTimeChatted(session_id)
 
