@@ -61,6 +61,9 @@ export default function ChatScreen(props: propsInterface) {
     const [userMessage, setUserMessage] = useState<string>("");
     const [titoMood, setTitoMood] = useState("neutral");
     const [timeChatted, setTimeChatted] = useState<number | undefined>(undefined);
+    // --- TTS state + helpers ---
+    const [ttsSupported, setTtsSupported] = useState(false);
+    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
     async function handleSendMessageClick() {
 
@@ -135,6 +138,17 @@ export default function ChatScreen(props: propsInterface) {
       }
 
     }
+
+    useEffect(() => {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+      setTtsSupported(true);
+      const synth = window.speechSynthesis;
+
+      const loadVoices = () => setVoices(synth.getVoices());
+      loadVoices();
+      synth.addEventListener("voiceschanged", loadVoices);
+      return () => synth.removeEventListener("voiceschanged", loadVoices);
+    }, []);
 
     //Triggers saveTime when selecting new module OR every minute
     //Placed before other useEffect blocks to prevent dependencies from clashing
@@ -332,6 +346,20 @@ export default function ChatScreen(props: propsInterface) {
       }
     }, [titoMood]);
 
+    function speak(text: string, opts?: { rate?: number; pitch?: number; lang?: string }) {
+      if (!ttsSupported || !text?.trim()) return;
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = opts?.rate ?? 1;
+      u.pitch = opts?.pitch ?? 1;
+      if (opts?.lang) {
+        u.lang = opts.lang;
+        const v = voices.find(v => v.lang?.toLowerCase().startsWith(opts.lang!.toLowerCase()));
+        if (v) u.voice = v;
+      }
+      window.speechSynthesis.cancel(); // stop anything already speaking
+      window.speechSynthesis.speak(u);
+    }
+
 
     return(
         <div className="w-full h-full"> {/*Outer container div*/}
@@ -365,6 +393,19 @@ export default function ChatScreen(props: propsInterface) {
                         value={userMessage}
                         onChange={(e) => setUserMessage(e.target.value)}
                     />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Read the latest LLM message; if none, read what's in the textbox
+                        const lastLLM = [...chatMessages].reverse().find(m => m.source === "llm");
+                        speak(lastLLM?.value ?? userMessage);
+                      }}
+                      className="ml-2 flex items-center justify-center w-12 h-12 rounded-full bg-white/80 hover:bg-white transition disabled:opacity-50"
+                      disabled={!ttsSupported}
+                      title={ttsSupported ? "Read last reply" : "Text-to-speech not supported"}
+                    >
+                      <span className="text-xl">🎤</span>
+                    </button>
                     <button onClick={handleSendMessageClick} className="ml-2">
                         <Image src={sendMessageIcon} className="w-full h-full rounded-full" alt="Send message" />
                     </button>
