@@ -54,17 +54,18 @@ Parameters of the `create_response()` method
 ---
 
 ### 1. **GET /elleapi/twt/session/access**
-- Purpose: Users requests permission from the server to access TWT.
-- Query Parameters:
+- **Purpose**: Users requests permission from the server to access TWT.
+- **Notes**: Client should store the class -> ID pairs locally for ease of access later on.
+- **Query Parameters**:
   ```
     None
   ```
-- Returns:
+- **Returns**:
   ```JSON
   {
     "success": true or false,
     "message": "text",
-    "data": int[]               // Returns a list of valid module ids that the user is enrolled in
+    "data": []    // Returns a list of tuples -> [(classID, [(moduleID, sequenceOrderofModule)]]
   }
   ```
 
@@ -72,17 +73,18 @@ Parameters of the `create_response()` method
 
 ### 2. **POST /elleapi/twt/session/create**
 - **Purpose**: Creates a chatbot session to allow the user to send messages to Tito
-- **Notes**: 
+- **Notes**: Must create a NEW session any time user loads modules for a new CLASS OR selects a new module
 - **Request body** (JSON)
   ```JSON
-    "moduleID": int
+    "moduleID": int,
+    "classID": int
   ```
 - **Response**
   ```JSON
   {
-    "success": true or false,
-    "message": "text",
-    "data": [int],            // returns a single int inside a list, the users chatbot session id
+    "success": bool,
+    "message": string,
+    "data": int,            // returns a single int inside a list, the users chatbot session id
   }
   ```
 ---

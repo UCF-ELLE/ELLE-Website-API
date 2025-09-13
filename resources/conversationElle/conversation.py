@@ -3,14 +3,13 @@ from flask import Response, request, jsonify, send_file
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt_claims
 # from .config import free_prompt
+from config import USER_VOICE_FOLDER
 from .database import * 
+from .spacy_service import add_message as queue_msg
 from werkzeug.utils import secure_filename
 import os
 # from .llm_functions import *
 # from .utils import *
-
-# Relative to the FLASK START POINT!!!
-RELATIVE_UPLOAD_PATH = 'user_audio_files/'
 
 
 # Check if user can access TWT (Must be enrolled in an active class AND assigned a Tito Module)
@@ -21,21 +20,40 @@ class TitoAccess(Resource):
             Requires server permission to be able to use Talking with Tito (TWT)
                 - Only student users may use TWT currently for simplicity of management
                 - Returns active, tito-enabled, groups/classes where student is enrolled in 
+            
+            TODO: WIP
+                get all classes assigned to user, create a dict with classID as key, then for each key,
+                    fetch all tito-module-ids and save as a list 
+            TODO: Error Handling
         '''
         try:
             user_id = get_jwt_identity()
             claims = get_jwt_claims()
             user_permission = claims.get("permission")
 
-            if user_permission != "st":
+            if user_permission != 'st':
                 return create_response(False, message="User is not a student.", status_code=403)
-                
-            group_ids, status_code = getActiveTitoUserGroups(user_id)
+            class_ids = getClasses(user_id, user_permission)
 
-            if status_code != 200:
-                return create_response(False, message="Error fetching user groups", status_code=status_code)
+            if not class_ids:
+                return create_response(success=False, message="User is not enrolled in any classes.", status_code=403)
+            
+            tito_modules = []
+            is_valid_user = False
+            counter = 0
+            for class_id in class_ids:
+                res = getTitoModules(class_id)
+                if res:
+                    is_valid_user = True
+                tito_modules.append((class_id[0], res))
 
-            return create_response(True if group_ids else False, data=group_ids) 
+            # group_ids, status_code = getActiveTitoUserGroups(user_id)
+
+            # if status_code != 200:
+                # return create_response(False, message="Error fetching user groups", status_code=status_code)
+            if not is_valid_user:
+                create_response(message="User not enrolled in valid tito_modules.", status_code=403)
+            return create_response(True, data=tito_modules) 
 
         except Exception as e:
             print(f"Error occurred: {e} when trying to access TitoAccess @ conversationelle")
@@ -59,7 +77,10 @@ class ChatbotSessions(Resource):
 
         data = request.get_json()
         module_id = data.get("moduleID") # the module selected by user
-
+        class_id = data.get("classID")
+        
+        if not isTitoModule(class_id, module_id):
+            return create_response(False, message="Chatbot session failed to be created.", status_code=403)
         return create_response(True, message="Chatbot session created.", data=createNewChatbotSession(user_id, module_id))
 
 # Ability to send messages should block until receiving back a response
@@ -81,36 +102,44 @@ class Messages(Resource):
         is_vm = data.get('isVoiceMessage') 
 
         # Attempts to add message to DB, no error, success
-        if not newMessage(user_id, module_id, session_id, message, is_vm):
+        new_msg = newUserMessage(user_id, module_id, session_id, message, is_vm)
+        if not new_msg:
             return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
 
+        updateTotalTimeChatted(session_id)
+        
         # TODO:
         # Update module words used =>
         # Async grammar evaluation
 
         # Sends a message to tito with safety check
-        try:
-            try:
-                safety_check = detect_innapropriate_language(message)
-                if safety_check.get('is_appropriate', False):
-                    tito_response_data = {'response': "I can't respond to that type of message. Let's keep the conversation educational and appropriate"}
-                else:
-                    tito_response_data = handle_message(message)
-            except Exception as saftey_error:
-                print(f"Safety check failed: {safety_error}")
-                tito_response_data = handle_message(message)
+        # tito_response = ''
+        # try:
+        #     try:
+        #         safety_check = detect_innapropriate_language(message)
+        #         if safety_check.get('is_appropriate', False):
+        #             tito_response_data = {'response': "I can't respond to that type of message. Let's keep the conversation educational and appropriate"}
+        #         else:
+        #             tito_response_data = handle_message(message)
+        #     except Exception as safety_error:
+        #         print(f"Safety check failed: {safety_error}")
+        #         tito_response_data = handle_message(message)
             
-            tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
+        #     tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
+            
+        #     # TODO: Verify data
+        #     newTitoMessage(user_id, session_id, tito_response_data)
 
-        except Exception as error:
-            print(f"Error communicating with Tito: {error}")
-            tito_response = "Sorry, there is a bit of trouble. Please try again!"
-            tito_response_data = {"response": tito_response}
+        # except Exception as error:
+        #     print(f"Error communicating with Tito: {error}")
+        #     tito_response = "Sorry, there is a bit of trouble. Please try again!"
+        #     tito_response_data = {"response": tito_response}
 
-        
-        updateTotalTimeChatted(session_id)
+        if True: # a successful llm message insert
+            return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg, titoResponse="To be implemented.")
+        else: 
+            return
 
-        return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=getMessageID(user_id, module_id, session_id), titoResponse="To be implemented.")
 
     # TODO:
     # Organize JSON response
@@ -165,7 +194,7 @@ class UserAudio(Resource):
         if not filename:
             return create_response(False, message="Failed to upload. Error in creating filename.", status_code=500)
         
-        user_path = os.path.join(RELATIVE_UPLOAD_PATH, str(class_id), str(user_id))
+        user_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(user_id))
         if not os.path.exists(user_path):
             os.makedirs(user_path) 
 
@@ -175,7 +204,7 @@ class UserAudio(Resource):
         except Exception as e:
             return create_response(False, message=f"Failed to save audio file: {str(e)}", status_code=500)
 
-        storeVoiceMessage(user_id, message_id, filename, chatbot_sid)
+        is_stored = storeVoiceMessage(user_id, message_id, filename, chatbot_sid)
 
         # TODO: Create a way to test if file actually written, maybe search up the file and see if not NONE
         # if not voice_message_id:
@@ -205,8 +234,10 @@ class UserAudio(Resource):
             return create_response(False, message="Missing required query parameters.", status_code=400)
 
         filename = getVoiceMessage(user_id, message_id)
+        if not filename:
+            return create_response(False, message="File not found", status_code=503)
 
-        file_path = os.path.join(RELATIVE_UPLOAD_PATH, str(class_id), str(user_id), filename)
+        file_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(user_id), filename)
         if not os.path.exists(file_path):
             return create_response(False, message="File does not exist.", status_code=404)
 
@@ -252,10 +283,19 @@ class Classes(Resource):
         user_permission = claims.get("permission")
 
         if user_permission == 'pf':
-            return create_response(True, data=getProfessorClasses(user_id))
+            return create_response(True, data=getClasses(user_id, 'pf'))
         else:
             return create_response(False, message="User is not a professor.", status_code=403)
  
+# TODO: this
+class TitoModule(Resource):
+    @jwt_required
+    def post(self):
+        '''
+            makes changes to a module's status on being a tito_module or not
+        '''
+
+        return False
 
 # Deprecated for now, unused?
 # class ExportChatHistory(Resource):

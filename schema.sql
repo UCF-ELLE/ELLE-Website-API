@@ -576,11 +576,11 @@ DROP TABLE IF EXISTS `messages`;
 -- The messeges sent between user and LLM
 -- trigger on insert, update chatbot session performance async and related
 CREATE TABLE `messages` (
-  `messageID` int(11) NOT NULL AUTO_INCREMENT,
-  `userID` int(11) NOT NULL,
-  `chatbotSID` int(11) NOT NULL,
-  `moduleID` int(11) NOT NULL,
-  `source` enum('llm','user') NOT NULL,
+  `messageID` int(4) NOT NULL AUTO_INCREMENT,
+  `userID` int(4) NOT NULL,
+  `chatbotSID` int(4) NOT NULL,
+  `moduleID` int(4) NOT NULL,
+  `source` ENUM('llm','user') NOT NULL,
   `message` text NOT NULL,
   `timestamp` timestamp NULL DEFAULT current_timestamp(), -- When message was sent
   `isVoiceMessage` boolean NOT NULL DEFAULT 0, 
@@ -588,6 +588,7 @@ CREATE TABLE `messages` (
   PRIMARY KEY (`messageID`),
   KEY `chatbotSID` (`chatbotSID`),
   KEY `userID` (`userID`),
+  FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`), 
   CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
   CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -935,6 +936,11 @@ CREATE TABLE `tito_generated_module` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 
+-- loop through all distinct messages with a unique (userID, moduleID) pair 
+-- create entry only for 1 unique module/class pair using the messages table.
+-- to find the classid (aka groupID), you must use a query using `group_module` to get the classID (groupID) associated to `group_user` user's classID (groupID) using the userID from the message's userID and the moduleID columns 
+
+
 DROP TABLE IF EXISTS `tito_module`;
 -- on module deletion delete tito_module too & relevant
 -- maybe allow dragging of modules to reorder on front end
@@ -942,24 +948,25 @@ DROP TABLE IF EXISTS `tito_module`;
 CREATE TABLE `tito_module` (
   `moduleID` int(11) NOT NULL,
   `classID` int(11) NOT NULL,
-  `sequenceID` int(2) NOT NULL, -- chronological order in the unit
+  `sequenceID` int(2) NOT NULL DEFAULT 0, -- chronological order in the unit
   `titoPrompt` text DEFAULT NULL, -- extra instructions given to the chatbot for the module, can be used to prevent extraneous materials
   `startDate` DATE DEFAULT NULL, -- default is today/day of creation
-  `endDate` DATE DEFAULT NULL, -- default is end of semesterFOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
+  `endDate` DATE DEFAULT NULL, -- default is end of semester
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
   FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`),
-  PRIMARY KEY(`moduleID`, `classID`)
+  PRIMARY KEY(`classID`, `moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 DROP TABLE IF EXISTS `tito_module_progress`;
 -- create a trigger to auto update on a term insert/update
 -- contains overall progress on the current module for a student
+-- ISSUE: LACKS A CLASS ID TO PREVENT OVERLAP
 CREATE TABLE `tito_module_progress` (
-  `termID` int(11) NOT NULL,
-  `proiciencyRate` float(4) DEFAULT 0.0, -- xxx.x% expected
+  `proficiencyRate` float(4) DEFAULT 0.0, -- xxx.x% overall progress
   `moduleID` int(11) NOT NULL,
   `studentID` int(11) NOT NULL,
   `completedTutorial` boolean NOT NULL DEFAULT 0, -- becomes 1 after tito intro scene finishes
-  FOREIGN KEY(`termID`) REFERENCES `term` (`termID`),
+  `totalTermsUsed` int (5) NOT NULL Default 0,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
   FOREIGN KEY(`studentID`) REFERENCES `user` (`userID`),
   PRIMARY KEY(`moduleID`,`studentID`) -- expects searches to be all modules in practice by student
@@ -972,6 +979,7 @@ CREATE TABLE `tito_term_progress` (
   `termID`  int(11) NOT NULL,
   `userID` int(11) NOT NULL,
   `proficiencyScore` float(4) NOT NULL DEFAULT 0.0, -- expect xxx.x%
+  `timesUsedSuccessfully` int(4) NOT NULL DEFAULT 0,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
   FOREIGN KEY(`termID`) REFERENCES `term` (`termID`),
   FOREIGN KEY(`userID`) REFERENCES `user` (`userID`),
@@ -1115,12 +1123,6 @@ UNLOCK TABLES;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
 -- Dump completed on 2025-06-27 15:20:23
-
--- ///////////////////////////////////////////////////////////
-
-
-
---modified --modified --modified --modified
 
 
 

@@ -63,8 +63,6 @@ def get_or_create_language_tool(language_tool):
             return tool_cache.get('en-US') # Fallsback to english
 
 
-
-
 def generate_message(message, prompt):
     """
     Sends API request to the running llama.cpp server.
@@ -81,17 +79,17 @@ def generate_message(message, prompt):
         
         # llama.cpp returns response in "content" field
         if "content" in response_data:
-            return {"Assistant": response_data["content"]}
+            return response_data["content"]
         else:
             # Fallback for different response formats
-            return {"Assistant": str(response_data)}
+            return str(response_data)
             
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
-        return {"Assistant": "Sorry, I'm having trouble connecting to the language model."}
+        return "Sorry, I'm having trouble connecting to the language model."
     except json.JSONDecodeError as e:
         print(f"JSON decode error: {e}")
-        return {"Assistant": "Sorry, I received an invalid response from the language model."}
+        return "Sorry, I received an invalid response from the language model."
 
 
 def assess_grammar(message: str, target_language: str = None):
@@ -174,8 +172,8 @@ def handle_message(message: str, prompt=None):
     try:
         if prompt == None:
             prompt = main_prompt
+
         response = generate_message(message, prompt)
-        response = response["Assistant"]
         response = response[response.index("{"):response.index("}")+1]
         response = ast.literal_eval(response)
         #print("returned message: ", response)

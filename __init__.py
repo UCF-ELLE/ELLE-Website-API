@@ -121,6 +121,12 @@ from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALVal
 from resources.animelle import AnimELLESaveData
 from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALValues
 
+
+
+import config
+
+# Comment out if NOT using TWT or tools from
+# ConversationELLE / Talking With Tito Imports
 from resources.conversationElle.conversation import(
     ChatbotSessions,
     TitoAccess,
@@ -129,8 +135,11 @@ from resources.conversationElle.conversation import(
     ModuleTerms,
     UserAudio,
 )
-
-import config
+import threading
+from resources.conversationElle.spacy_service import(
+    spacy_service,
+)
+# End ConversationELLE
 
 app = Flask(__name__, static_folder="templates/build", static_url_path="/")
 CORS(app)
@@ -357,6 +366,16 @@ api.add_resource(Messages, API_ENDPOINT_PREFIX + "twt/session/messages")
 api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
 api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
+
+
+# =====================================
+# Extra stuff comment out if not used
+# =====================================
+
+# spaCy lemmatizer worker initializer
+# threading.Thread(target=spacy_service, daemon=True).start()
+
+# =====================================
 
 # 127.0.0.1:5050/elleapi/twt/session/access
 

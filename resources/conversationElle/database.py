@@ -5,178 +5,9 @@ from exceptions_util import *
 from datetime import datetime
 import json
 
-# slightly modified helper from the original getFromDB: this one turns rows into dictionary
-def get_from_db_as_dict(query, vals=None, providedConn=None, providedCursor=None):
-    if providedConn is None:
-        conn = mysql.connect()
-    elif providedConn:
-        conn = providedConn
-    if providedCursor is None:
-        cursor = conn.cursor()
-    elif providedCursor:
-        cursor = providedCursor
 
-    cursor.execute(query, vals) if vals else cursor.execute(query)
-    
-    result = []
-    columns = [col[0] for col in cursor.description]  # get column names from cursor
-    
-    for row in cursor:
-        result.append(dict(zip(columns, row)))  # convert each row to a dictionary
-    
-    if providedConn is None:
-        conn.commit()
-        conn.close()
-    
-    return result
+db = DBHelper(mysql)
 
-def getMessages(userId, chatbotSID):
-    try:
-        conn = mysql.connect()
-        cursor = conn.cursor()
-
-        query = """
-        SELECT id, userId, chatbotSID, moduleId, source, value, timestamp, metadata
-        FROM messages
-        WHERE userId = %s AND chatbotSID = %s
-        """
-
-        result = get_from_db_as_dict(query, (userId, chatbotSID), conn, cursor)
-
-        # Conver the pyton datetime obj to regular iso format
-        # TODO: See if there is a way to get rid of this -> If not, maybe make it a helper func.
-        messages = []
-        for entry in result:
-            entry['timestamp'] = entry['timestamp'].isoformat()
-            messages.append(entry)
-
-        return messages, 200
-
-    except Exception as error:
-        conn.rollback()
-        return errorMessage(str(error)), 500
-    finally:
-        if conn.open:
-            cursor.close()
-            conn.close()
-
-
-def insertMessages(userId, chatbotSID, moduleId, userValue, llmValue, termsUsed):
-    try:
-        
-        # parse out response and metadata
-        llmResponse = llmValue["response"]
-        llmValue.pop("response")
-
-        # save llmResponse without terms used for frontend
-        return_metadata = json.dumps(llmValue)
-
-        llmValue['termsUsed'] = termsUsed
-        
-        #llmScore = llmValue["score"]
-        #llmError = llmValue["error"]
-        #llmCorrection = llmValue["correction"]
-        #llmExplanation = llmValue["explanation"]
-        
-        conn = mysql.connect()
-        cursor = conn.cursor()
-        metadata = json.dumps(llmValue)
-        
-        #print("conn: ", conn)
-        #print("cursor: ", cursor)
-        print("metadata: ", metadata)
-
-        query = """
-        INSERT INTO messages (userId, chatbotSID, moduleId, source, value, metadata)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        messages = [
-            (userId, chatbotSID, moduleId, 'user', userValue, metadata),
-            (userId, chatbotSID, moduleId, 'llm', llmResponse, metadata),
-        ]
-        
-        print("messages: ", messages)
-
-        cursor.executemany(query, messages)
-        conn.commit()
-        return return_metadata, 200
-
-    except Exception as error:
-        conn.rollback()
-        print(error)
-        return errorMessage(str(error)), 500
-    finally:
-        if conn.open:
-            cursor.close()
-            conn.close()
-
-def getChatbotSession(userId, moduleId):
-    try:
-        conn = mysql.connect()
-        cursor = conn.cursor()
-
-        query = """
-        SELECT * FROM chatbot_sessions
-        WHERE userId = %s AND moduleId = %s
-        LIMIT 1;
-        """
-
-        result = get_from_db_as_dict(query, (userId, moduleId), conn, cursor)
-
-        if result:
-            chatbotSession = result[0]
-            chatbotSession['timestamp'] = chatbotSession['timestamp'].isoformat()
-            return chatbotSession, 200
-
-        newChatbotSession = createNewChatbotSession(userId, moduleId)
-        return newChatbotSession, 200
-
-    except Exception as error:
-        conn.rollback()
-        return errorMessage(str(error)), 500
-    finally:
-        if conn and conn.open:
-            cursor.close()
-            conn.close()
-
-""" create a new chatbot session if one does not exist """
-def createNewChatbotSession(userId, moduleId):
-    try:
-        conn = mysql.connect()
-        cursor = conn.cursor()
-
-        query = """
-        INSERT INTO chatbot_sessions
-        (userId, moduleId, totalTimeChatted, wordsUsed, totalWordsForModule, grade, termsUsed)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
-
-        # Change to camel case
-        total_time_chatted = 0.0
-        grade = 0.0
-        wordsUsed = 0.0
-        terms_used = json.dumps([])
-        total_words_for_module = 0
-        vals = (
-            userId,
-            moduleId,
-            total_time_chatted,
-            wordsUsed,
-            total_words_for_module,
-            grade,
-            terms_used
-        )
-
-        postToDB(query, vals, conn, cursor)
-        conn.commit()
-        return {'chatbotSID': cursor.lastrowid}
-    except Exception as error:
-        conn.rollback()
-        return errorMessage(str(error)), 500
-    finally:
-        if conn.open:
-            cursor.close()
-            conn.close()
 
 # Updates how long a user has been chatting in the current session
 def updateTotalTimeChatted(chatbotSID):
@@ -201,74 +32,6 @@ def updateTotalTimeChatted(chatbotSID):
             cursor.close()
             conn.close()
 
-# TODO
-# get the chatbot_session belonging to chatbotSID, and take the value from the
-# frontend to then (originalChatbotTime + newChatbotTime) = set totalTimeChatted
-def updateChatGrade(chatbotSID, userId, moduleId, timeChatted):
-    try:
-        conn = mysql.connect()
-        cursor = conn.cursor()
-
-        # TODO: Update query to use time. this is stale.
-        query = """
-        UPDATE chatbot_sessions 
-        SET termsUsed = %s
-        WHERE userId = %s AND chatbotSID = %s AND moduleId = %s
-        """
-
-        postToDB(query, conn, cursor)
-        conn.commit()
-        return 200
-
-    except Exception as error:
-        conn.rollback()
-        return errorMessage(str(error)), 500
-    finally:
-        if conn.open:
-            cursor.close()
-            conn.close()
-
-def getPreviousTermsUsed(userId, chatbotSID):
-    try:
-        conn = mysql.connect()
-        cursor = conn.cursor()
-        
-        query = """
-        SELECT metadata FROM messages
-        WHERE userId = %s AND chatbotSID = %s
-        ORDER BY timestamp DESC
-        LIMIT 1
-        """
-
-        result = get_from_db_as_dict(query, (userId, chatbotSID), conn, cursor)
-
-        if result:
-            return json.loads(result[0]["metadata"])  
-
-        return None
-    except Exception as error:
-        conn.rollback()
-        return errorMessage(str(error)), 500
-    finally:
-        if conn.open:
-            cursor.close()
-            conn.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # ================================================
 #
@@ -277,41 +40,42 @@ def getPreviousTermsUsed(userId, chatbotSID):
 # ================================================
 
 # Returns the groupIDs of all active groups that the user belongs to
-def getActiveTitoUserGroups(userId):
-    try:
-        # conn = mysql.connect()
-        # cursor = conn.cursor()
+# DEPRECATED
+# def getActiveTitoUserGroups(userId: int):
+#     try:
+#         # conn = mysql.connect()
+#         # cursor = conn.cursor()
 
-        # Given a userID, see if the user is in an active group, store all groupIDs that are active
-        # Should be faster on larger datasets, but may be negligent or slower in smaller cases
-        query = """
-            SELECT DISTINCT g.groupID
-            FROM `group` g
-            JOIN (
-                SELECT gu.groupID
-                FROM `group_user` gu
-                WHERE gu.userID = %s
-            ) AS gu ON g.groupID = gu.groupID
-            JOIN `tito_module` tm ON g.groupID = tm.classID
-            WHERE g.status = 'active';
-        """
+#         # Given a userID, see if the user is in an active group, store all groupIDs that are active
+#         # Should be faster on larger datasets, but may be negligent or slower in smaller cases
+#         query = """
+#             SELECT DISTINCT g.groupID
+#             FROM `group` g
+#             JOIN (
+#                 SELECT gu.groupID
+#                 FROM `group_user` gu
+#                 WHERE gu.userID = %s
+#             ) AS gu ON g.groupID = gu.groupID
+#             JOIN `tito_module` tm ON g.groupID = tm.classID
+#             WHERE g.status = 'active';
+#         """
 
-        result = getFromDB(query, (userId,))
+#         result = getFromDB(query, (userId,))
         
-        group_ids = []
-        if result:
-            for row in result:
-                group_ids.append(row[0])
+#         group_ids = []
+#         if result:
+#             for row in result:
+#                 group_ids.append(row[0])
 
-        return group_ids, 200
+#         return group_ids, 200
 
-    except Exception as error:
-        # conn.rollback()
-        return errorMessage(str(error)), 500
-    # finally:
-    #     if conn.open:
-    #         cursor.close()
-    #         conn.close()
+#     except Exception as error:
+#         # conn.rollback()
+#         return errorMessage(str(error)), 500
+#     # finally:
+#     #     if conn.open:
+#     #         cursor.close()
+#     #         conn.close()
 
 
 # TODO:
@@ -324,7 +88,7 @@ def getActiveTitoUserGroups(userId):
 #         "timestamp": a_value, 
 #         "voiceID": a_value
 #     }
-def loadModuleChatHistory(userID, moduleID):
+def loadModuleChatHistory(userID: int, moduleID: int):
     query = """
             SELECT m.messageID, m.source, m.message, m.timestamp, m.isVoiceMessage
             FROM `messages` m
@@ -332,7 +96,7 @@ def loadModuleChatHistory(userID, moduleID):
             ORDER BY m.messageID ASC;
         """
 
-    result = getFromDB(query, (userID, moduleID))
+    result = db.get(query, (userID, moduleID))
 
     messages = []
     for row in result:
@@ -349,49 +113,49 @@ def loadModuleChatHistory(userID, moduleID):
 
 # Revoke any existing instances of chatbot sessions &
 # Create new session for user
-def createNewChatbotSession(userID, moduleID):
-    conn = mysql.connect()
-    cursor = conn.cursor()
-
+def createNewChatbotSession(userID: int, moduleID: int):
     query_revoke_prev_sessions = """
             UPDATE `chatbot_sessions`
             SET activeSession = 0
             WHERE userID = %s;
         """
+    res = db.post(query_revoke_prev_sessions, (userID,))
+    print(f"Num of sessions revoked: {res.get(1)}")
 
-    cursor.execute(query_revoke_prev_sessions, (userID,))
+    # cursor.execute(query_revoke_prev_sessions, (userID,))
 
     query_insert_new_session = """
             INSERT INTO `chatbot_sessions` (userID, moduleID, activeSession)
             VALUES (%s, %s, 1);
         """
-    cursor.execute(query_insert_new_session, (userID, moduleID))
-    chatbot_sid = cursor.lastrowid
 
-    conn.commit()
-    conn.close()
+    res = db.post(query_insert_new_session, (userID, moduleID))
+    # cursor.execute(query_insert_new_session, (userID, moduleID))
+    # chatbot_sid = cursor.lastrowid
 
-    return chatbot_sid
+    # conn.commit()
+    # conn.close()
+
+    return res["lastrowid"]
 
 # Self-explanatory (F = inactive sesh, T = active sesh)
-def checkChatbotSessionStatus(userID, moduleID, chatbotSID):
+def checkChatbotSessionStatus(userID: int, moduleID: int, chatbotSID: int):
     query = """
             SELECT activeSession
             FROM chatbot_sessions
             WHERE userID = %s AND moduleID = %s AND chatbotSID = %s;
         """
 
-    result = getFromDB(query, (userID, moduleID, chatbotSID))
+    result = db.get(query, (userID, moduleID, chatbotSID), fetchOne=True)
 
-    if not result or result[0][0] == 0:
+    if not result:
         return False
 
     return True
 
-def newMessage(userID, moduleID, chatbotSID, message, isVM):
+def newUserMessage(userID: int, moduleID: int, chatbotSID: int, message: str, isVM: bool):
     # Check for valid chatbot session
-    is_valid_session = checkChatbotSessionStatus(userID, moduleID, chatbotSID)
-    if not is_valid_session:
+    if not checkChatbotSessionStatus(userID, moduleID, chatbotSID):
         return False
 
     query = """
@@ -399,41 +163,77 @@ def newMessage(userID, moduleID, chatbotSID, message, isVM):
         VALUES (%s, %s, %s, 'user', %s, %s);
     """
 
-    postToDB(query, (userID, chatbotSID, moduleID, message, isVM))
+    result = db.post(query, (userID, chatbotSID, moduleID, message, isVM))
+    if result.get("rowcount") == 0:
+        return 0
+    return result.get("lastrowid")
 
-    return True
 
+def newTitoMessage(userID: int, chatbotSID: int, message: str):
+    is_valid_session = checkChatbotSessionStatus(userID, moduleID, chatbotSID)
+    if not is_valid_session:
+        return False
 
-def messageTito(userID, chatbotSID, message):
+    query = """
+        INSERT INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage)
+        VALUES (%s, %s, %s, 'llm', %s, 0);
+    """
+
+    res = db.post(query, (userID, chatbotSID, moduleID, message, isVM))
+    if not res:
+        return False
+
+    return False if not res.get("rowcount") else True
+
+def evaluateGrammar(userID: int, chatbotSID: int, message: str):
     return False
 
-def evaluateGrammar(userID, chatbotSID, message):
+
+def checkTermsUsed(userID: int, moduleID: int, chatbotSID: int, message: str):
     return False
 
-
-def checkTermsUsed(userID, moduleID, chatbotSID, message):
-    return False
-
-# Returns a list of group_ids (classes) owned by this prof
-def getProfessorClasses(userID):
+# Returns a list of group_ids assigned to a user
+# st == all enrolled classes
+# pf == all owned classes
+def getClasses(userID: int, authority: str):
     query = '''
         SELECT gu.groupID
         FROM group_user gu
-        WHERE gu.userID = %s AND gu.accessLevel = 'pf';
+        WHERE gu.userID = %s AND gu.accessLevel = %s;
     '''
 
-    result = getFromDB(query, (userID,))
+    return db.get(query, (userID, authority))
+    
 
-    group_ids = []
+# Returns a list of tuples (tito_module_id, orderingID) for a given class
+def getTitoModules(classID: int):
+    query = '''
+        SELECT moduleID, sequenceID
+        FROM tito_module
+        WHERE classID = %s;
+    '''
 
-    for gID in result:
-        group_ids.append(gID[0])
+    return db.get(query, (classID,))
 
-    return group_ids
+def isTitoModule(classID: int, moduleID: int):
+    query = '''
+        SELECT moduleID
+        FROM tito_module
+        WHERE classID = %s AND moduleID = %s;
+    '''
 
+    res = db.get(query, (classID, moduleID), fetchOne=True)
+    if isNoneOrZero(res):
+        return False
+    return True if moduleID == res else False
+
+def isNoneOrZero(result):
+    if not result:
+        return True
+    return False
 
 # Returns pairs of termIDs with the term for a given module
-def getModuleTerms(module_id):
+def getModuleTerms(module_id: int):
     query = '''
         SELECT DISTINCT t.termID, t.front
         FROM module_question mq
@@ -442,51 +242,54 @@ def getModuleTerms(module_id):
         WHERE mq.moduleID = %s;
     '''
 
-    result = getFromDB(query, (module_id,))
+    return db.get(query, (module_id,))
 
-    # terms = []
+def getModuleLanguage(module_id: int):
+    query = '''
+        SELECT language
+        FROM term
+        WHERE moduleID = %s
+        LIMIT 1;
+    '''
 
-    # # (termID, term)
-    # for term in result:
-    #     terms.append((term[0],term[1]))
+    return db.get(query, (module_id,))
 
-    return result
-
-def getMessageID(userID, moduleID, chatbotSID):
+def getMessageID(userID: int, moduleID: int, chatbotSID: int):
     query = """
             SELECT messageID
             FROM `messages`
             WHERE userID = %s AND moduleID = %s AND chatbotSID = %s
             ORDER BY timestamp DESC LIMIT 1;
         """
-    result = getFromDB(query, (userID, moduleID, chatbotSID))
-    if result:
-        return result[0][0]  # Return the latest messageID
-    return None
+    result = db.get(query, (userID, moduleID, chatbotSID))
+    if isNoneOrZero(result):
+        return False
+    return True
 
-def storeVoiceMessage(userID, messageID, filename, chatbotSID):
+def storeVoiceMessage(userID: int, messageID: int, filename: str, chatbotSID: int):
     query = """
         INSERT INTO `tito_voice_message` (userID, messageID, filename, chatbotSID)
         VALUES (%s, %s, %s, %s);
     """
     
-    postToDB(query, (userID, messageID, filename, chatbotSID))
+    res = db.post(query, (userID, messageID, filename, chatbotSID))
+    return False if not res or res.get("rowcount") < 1 else True
 
-def getVoiceMessage(userID, messageID):
+def getVoiceMessage(userID: int, messageID: int):
     query = """
         SELECT filename
         FROM `tito_voice_message` t
         WHERE t.userID = %s AND t.messageID = %s;
     """
 
-    result = getFromDB(query, (userID, messageID))
+    result = db.get(query, (userID, messageID), fetchOne=True)
     if result:
-        return result[0][0]
-    return []
+        return result
+    return None
 
 def create_response(success=True, message=None, data=None, status_code=200, **extra_json_fields):
     response = {
-        "success": success,
+        "success": False if None or False else True,
         "message": message if message else "",
         "data": {} if data is None else data
     }
@@ -496,4 +299,13 @@ def create_response(success=True, message=None, data=None, status_code=200, **ex
         response.update(extra_json_fields)
 
     return response, status_code
+
+def update_words_used(term_count_dict: {int, int}, user_id: int, module_id: int):
+    for term_id, count in term_count_dict:
+        query = """
+            UPDATE `tito_term_progress`
+            SET `timesUsedSuccessfully` = `timesUsedSuccessfully` + %s
+            WHERE `userID` = %s AND `moduleID` = %s AND `termID` = %s;
+        """
+        _row_ct, _last_row_id = db.post(query, (count, user_id, module_id, term_id))
 
