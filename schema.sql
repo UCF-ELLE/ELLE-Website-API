@@ -583,7 +583,8 @@ CREATE TABLE `messages` (
   `source` ENUM('llm','user') NOT NULL,
   `message` text NOT NULL,
   `timestamp` timestamp NULL DEFAULT current_timestamp(), -- When message was sent
-  `isVoiceMessage` boolean NOT NULL DEFAULT 0, 
+  `isVoiceMessage` boolean NOT NULL DEFAULT 0,
+  `keyWordsUsed` int(4) NOT NULL DEFAULT 0,
   `grammarRating` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously, NULL means score unavailable
   PRIMARY KEY (`messageID`),
   KEY `chatbotSID` (`chatbotSID`),

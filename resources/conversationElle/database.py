@@ -219,13 +219,13 @@ def isTitoModule(classID: int, moduleID: int):
     query = '''
         SELECT moduleID
         FROM tito_module
-        WHERE classID = %s AND moduleID = %s;
+        WHERE classID = %s AND moduleID = %s
+        LIMIT 1;
     '''
 
     res = db.get(query, (classID, moduleID), fetchOne=True)
-    if isNoneOrZero(res):
-        return False
-    return True if moduleID == res else False
+    print(res)
+    return res is not None
 
 def isNoneOrZero(result):
     if not result:
@@ -246,13 +246,15 @@ def getModuleTerms(module_id: int):
 
 def getModuleLanguage(module_id: int):
     query = '''
-        SELECT language
-        FROM term
-        WHERE moduleID = %s
+        SELECT t.language
+        FROM module_question mq
+        JOIN answer a ON mq.questionID = a.questionID
+        JOIN term t ON a.termID = t.termID
+        WHERE mq.moduleID = %s
         LIMIT 1;
     '''
 
-    return db.get(query, (module_id,))
+    return db.get(query, (module_id,), fetchOne=True)
 
 def getMessageID(userID: int, moduleID: int, chatbotSID: int):
     query = """
@@ -289,7 +291,7 @@ def getVoiceMessage(userID: int, messageID: int):
 
 def create_response(success=True, message=None, data=None, status_code=200, **extra_json_fields):
     response = {
-        "success": False if None or False else True,
+        "success": success,
         "message": message if message else "",
         "data": {} if data is None else data
     }
@@ -300,12 +302,47 @@ def create_response(success=True, message=None, data=None, status_code=200, **ex
 
     return response, status_code
 
-def update_words_used(term_count_dict: {int, int}, user_id: int, module_id: int):
-    for term_id, count in term_count_dict:
-        query = """
-            UPDATE `tito_term_progress`
-            SET `timesUsedSuccessfully` = `timesUsedSuccessfully` + %s
-            WHERE `userID` = %s AND `moduleID` = %s AND `termID` = %s;
-        """
-        _row_ct, _last_row_id = db.post(query, (count, user_id, module_id, term_id))
+def update_words_used(term_count_dict: dict, user_id: int, module_id: int):
+    if isNoneOrZero(term_count_dict):
+        return
+    
+    term_ids = list(term_count_dict.keys())
+
+    # Build CASE statement
+    case_statements = " ".join(
+        f"WHEN {tid} THEN {count}" for tid, count in term_count_dict.items()
+    )
+
+    query = f'''
+        UPDATE `tito_term_progress`
+        SET `timesUsedSuccessfully` = `timesUsedSuccessfully` + CASE `termID`
+            {case_statements}
+            ELSE 0
+        END
+        WHERE `userID` = %s AND `moduleID` = %s
+          AND `termID` IN ({",".join(["%s"] * len(term_ids))});
+    '''
+
+    params = [user_id, module_id] + term_ids
+    res = db.post(query, params)
+
+
+    # terms_used = 0
+    # for term_id, count in term_count_dict.items():
+    #     query = '''
+    #         UPDATE `tito_term_progress`
+    #         SET `timesUsedSuccessfully` = `timesUsedSuccessfully` + %s
+    #         WHERE `userID` = %s AND `moduleID` = %s AND `termID` = %s;
+    #     '''
+    #     db.post(query, (count, user_id, module_id, term_id))
+    #     terms_used += count
+
+def update_message_key_term_count(count: int, messageID: int):
+    query = '''
+        UPDATE `messages` 
+        SET `keyWordsUsed` = `keyWordsUsed` + %s
+        WHERE `messageID` = %s;
+    '''
+
+    res = db.post(query, (count, messageID))
 

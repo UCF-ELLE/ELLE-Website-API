@@ -373,7 +373,7 @@ api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
 # =====================================
 
 # spaCy lemmatizer worker initializer
-# threading.Thread(target=spacy_service, daemon=True).start()
+threading.Thread(target=spacy_service, daemon=True).start()
 
 # =====================================
 
