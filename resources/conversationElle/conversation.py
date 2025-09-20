@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt_claims
 # from .config import free_prompt
 from config import USER_VOICE_FOLDER
 from .database import * 
-from .spacy_service import add_message as queue_msg
+from .spacy_service import add_message
 from werkzeug.utils import secure_filename
 import os
 # from .llm_functions import *
@@ -80,7 +80,7 @@ class ChatbotSessions(Resource):
         class_id = data.get("classID")
         
         if not isTitoModule(class_id, module_id):
-            return create_response(False, message="Chatbot session failed to be created.", status_code=403)
+            return create_response(success=False, message="Chatbot session failed to be created.", status_code=403)
         return create_response(True, message="Chatbot session created.", data=createNewChatbotSession(user_id, module_id))
 
 # Ability to send messages should block until receiving back a response
@@ -101,13 +101,16 @@ class Messages(Resource):
         message = data.get('message') 
         is_vm = data.get('isVoiceMessage') 
 
-        # Attempts to add message to DB, no error, success
-        new_msg = newUserMessage(user_id, module_id, session_id, message, is_vm)
-        if not new_msg:
+        # Attempts to add message to DB, no error, success returns msg_id
+        new_msg_id = newUserMessage(user_id, module_id, session_id, message, is_vm)
+        if not new_msg_id:
             return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
 
         updateTotalTimeChatted(session_id)
-        
+
+        # Send to spacy service to parse key terms
+        add_message(message, module_id, user_id, new_msg_id)
+
         # TODO:
         # Update module words used =>
         # Async grammar evaluation
@@ -136,7 +139,7 @@ class Messages(Resource):
         #     tito_response_data = {"response": tito_response}
 
         if True: # a successful llm message insert
-            return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg, titoResponse="To be implemented.")
+            return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id, titoResponse="To be implemented.")
         else: 
             return
 
@@ -249,8 +252,10 @@ class ModuleTerms(Resource):
     @jwt_required
     def get(self):
         '''
+            "twt/module/terms"
             Fetches all terms associated to a given moduleID
             TODO: error handling when moduleID doesnt exist
+            TODO: ensure only enrolled people can access modules
         '''
         module_id = request.args.get('moduleID')
         if not module_id:

@@ -135,6 +135,7 @@ from resources.conversationElle.conversation import(
     ModuleTerms,
     UserAudio,
 )
+import os
 import threading
 from resources.conversationElle.spacy_service import(
     spacy_service,
@@ -368,12 +369,9 @@ api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
 api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
 
 
-# =====================================
-# Extra stuff comment out if not used
-# =====================================
 
-# spaCy lemmatizer worker initializer
-threading.Thread(target=spacy_service, daemon=True).start()
+
+
 
 # =====================================
 
@@ -381,3 +379,11 @@ threading.Thread(target=spacy_service, daemon=True).start()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
+
+    # =====================================
+    # Extra stuff below, please comment out if not used
+    # =====================================
+
+    # spaCy lemmatizer worker initializer (prevents duplicate inits when in debug mode)
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        threading.Thread(target=spacy_service, daemon=True).start()

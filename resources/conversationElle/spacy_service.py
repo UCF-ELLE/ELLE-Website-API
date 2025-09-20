@@ -1,25 +1,42 @@
 import spacy
-from spacy import util, Language
+from spacy import Language
+
 import queue
 import threading
-import time
-from collections import Counter
+from collections import defaultdict
+import re
+
+import ahocorasick
 from .database import *
 
-'''
-    This is a SINGLE-THREADED background process to lemmatize singles messages at a time 
-        and may also compare those tokens to key-terms from a module's associated terms.
 
-    All that is required to awaken this process is to add a message to the queue, 
+
+'''
+    This is a SINGLE-THREADED background process to lemmatize single messages at a time 
+        via a Queue and matches those tokens against a module's key terms/phrases using
+        Aho-Corasick algorithm and matching only the longest match if there are overlaps.
+
+    All that is required to awaken this process is to add a message to the queue via add_message(), 
         the process shall sleep once finished
 
     NOTE: Caching language models (pre-loading) vs Lazy-loading
-        Currently using lazy-loading, but consider pre-loading if enough resources exists 
+        Currently using lazy-loading, but consider pre-loading if enough resources (RAM) exists 
             AND/OR the Tito service has a lot of varied traffic with different languages in the future
 '''
 
+# NOTE: DOWNLOADING spacy LANGUAGE SUPPORT examples
+# python -m spacy download en_core_web_sm
+# python -m spacy download fr_core_news_sm
+# python -m spacy download es_core_news_sm
+
+# Set to True when trying to debug the chronological ordering of events
+DEBUG_TRACING_FLAG = False
+# Set to True when you want to view useful debugging info on all processes here 
+SYSTEM_LOGGING_FLAG = False
+
+
 # TODO: predownload spacy language models on ELLE server
-# Map 2-letter codes to spaCy model names
+# Map 2-letter language codes to spaCy model names, also found in the `terms`.`language` column
 SPACY_MODELS = {
     "en": "en_core_web_sm",
     "es": "es_core_news_sm",
@@ -30,17 +47,19 @@ SPACY_MODELS = {
 }
 
 DEFAULT_LANGUAGE_CODE = "en" # english
-# current_language_model = SPACY_MODELS[DEFAULT_LANGUAGE_CODE] # "en_core_web_sm", currently unused
+CURRENT_LANGUAGE = DEFAULT_LANGUAGE_CODE
 
-nlp = spacy.load(SPACY_MODELS[DEFAULT_LANGUAGE_CODE])
+NLP = spacy.load(SPACY_MODELS[DEFAULT_LANGUAGE_CODE]) # init spacy nlp w/ defaulted lang
+MESSAGE_QUEUE = queue.Queue() # Messages to be parsed
+MODULE_AUTOMATA = {} # module_id -> automata
 
-current_language = DEFAULT_LANGUAGE_CODE
-current_module_id = 0
-current_key_terms = []  # list of tuples: (term_str, term_id)
-current_key_terms_lemmatized = [] # same as above, but lemmatized
+CURRENT_MODULE_ID = 0 # module_id starts @ 1
+CURRENT_KEY_TERM_PHRASES = []  # list of tuples: (term_id, term_str)
+CURRENT_KEY_TERM_PHRASES_LEMMATIZED = [] # same as above, but lemmatized
 
-# Holds the messages to be parsed
-message_queue = queue.Queue()
+
+
+
 
 
 
@@ -48,28 +67,42 @@ def add_message(message: str, module_id: int, user_id: int, message_id: int):
     '''
         Push a (message, module_id, user_id, message_id) tuple into the queue.
     '''
-    message_queue.put((message, module_id, user_id, message_id))
-    print(f"[QUEUE] Added message for user {user_id} to process for key terms")
+    if DEBUG_TRACING_FLAG:
+        print("[CHRONOLOGY] VARIABLE: Running add_message()")
+
+    try:
+        MESSAGE_QUEUE.put((message, module_id, user_id, message_id))
+    except Exception as e:
+        print(f"[ERROR] Failed to add message {message_id} to queue: Error: {e}")
+
+    if SYSTEM_LOGGING_FLAG:
+        print(f"[QUEUE] Added message for user {user_id} to process for key terms")
 
 def load_language(lang_code: str):
     '''
         Loads another spaCy model for the given language code ONLY IF its is currently NOT loaded.
             Falls back to English if unsupported.
     '''
-    global current_language, nlp
+    if DEBUG_TRACING_FLAG:
+        print("[CHRONOLOGY] 3: loading nlp model language @ load_language()")
 
-    # model_name = SPACY_MODELS[lang_code]
+    global CURRENT_LANGUAGE, NLP
 
-    if lang_code != current_language:
+    if lang_code != CURRENT_LANGUAGE:
         try:
-            print(f"[INFO] Trying to load spaCy model '{SPACY_MODELS[lang_code]}' for language '{lang_code}'")
-            nlp = spacy.load(SPACY_MODELS[lang_code])
-            current_language = lang_code
-            print(f"[INFO] Loaded spaCy model '{SPACY_MODELS[lang_code]}' for language '{lang_code}'")
+            if SYSTEM_LOGGING_FLAG:
+                print(f"[INFO] Trying to load spaCy model '{SPACY_MODELS[lang_code]}' for language '{lang_code}'")
+            
+            NLP = spacy.load(SPACY_MODELS[lang_code])
+            CURRENT_LANGUAGE = lang_code
+
+            if SYSTEM_LOGGING_FLAG:
+                print(f"[INFO] NLP in use {NLP}")
+                print(f"[INFO] Loaded spaCy model '{SPACY_MODELS[lang_code]}' for language '{lang_code}'")
         except OSError:
             print(f"[WARN] Failed while loading model '{SPACY_MODELS[lang_code]}'.Falling back to '{DEFAULT_LANGUAGE_CODE}'. \n{e}")
-            nlp = spacy.load(SPACY_MODELS[DEFAULT_LANGUAGE_CODE])
-            current_language = DEFAULT_LANGUAGE_CODE
+            NLP = spacy.load(SPACY_MODELS[DEFAULT_LANGUAGE_CODE])
+            CURRENT_LANGUAGE = DEFAULT_LANGUAGE_CODE
 
 def process_message(message: str, module_id: int, user_id: int, message_id: int):
     '''
@@ -79,112 +112,202 @@ def process_message(message: str, module_id: int, user_id: int, message_id: int)
         3. Run spaCy on new key-terms and messages
         4. Match key terms to messages
     '''
-    global current_module_id, current_key_terms, current_key_terms_lemmatized
-    print(f"[INFO] Loaded method: process_message")
+    if DEBUG_TRACING_FLAG:
+        print("[CHRONOLOGY] 2: Processing message at process_message()")
+
+    global CURRENT_MODULE_ID, CURRENT_KEY_TERM_PHRASES, CURRENT_KEY_TERM_PHRASES_LEMMATIZED
+    if SYSTEM_LOGGING_FLAG:
+        print(f"[INFO] Loaded method: process_message")
 
     update_key_term_flag = False
 
     # 1. Ensure module is set, should run on the first time since module_id=0 DNE
-    if module_id != current_module_id:
+    if module_id != CURRENT_MODULE_ID:
         update_key_term_flag = True
 
-        print(f"[INFO] Loading language {getModuleLanguage(module_id)[0]}")
+        if SYSTEM_LOGGING_FLAG:
+            print(f"[INFO] Loading language {getModuleLanguage(module_id)[0]}")
 
         # 2. Ensures right language model is set up
         load_language(getModuleLanguage(module_id)[0])
-        print(f"[INFO] Loaded language {getModuleLanguage(module_id)[0]}")
+        if SYSTEM_LOGGING_FLAG:
+            print(f"[INFO] Loaded language {getModuleLanguage(module_id)[0]}")
 
 
-        current_key_terms = getModuleTerms(module_id)
-        current_module_id = module_id
-        print(f"[INFO] Loaded key terms for module {module_id}")
-        print(f"[INFO] Terms loaded: \n{current_key_terms}")
+        CURRENT_KEY_TERM_PHRASES = getModuleTerms(module_id)
+        CURRENT_MODULE_ID = module_id
+        if SYSTEM_LOGGING_FLAG:
+            print(f"[INFO] Loaded key terms for module {module_id}")
+            print(f"[INFO] Terms loaded: \n{CURRENT_KEY_TERM_PHRASES}")
 
     # 3. spaCy parsing
-    doc = nlp(message)
-    print(f"[INFO] Lemmatizing message")
+    doc = NLP(message)
+    if SYSTEM_LOGGING_FLAG:
+        print(f"[INFO] Lemmatizing message")
 
     lemmas = [token.lemma_.lower() for token in doc]
-    print(f"[INFO] lemmatized: \n{lemmas}")
+    if SYSTEM_LOGGING_FLAG:
+        print(f"[INFO] lemmatized: \n{lemmas}")
 
 
     # 3.1 lemmatize new key terms if new module
-    # TODO: figure out how to lemmatize the list of lists
-    print(f"[INFO] Updating key terms:")
+    if SYSTEM_LOGGING_FLAG:
+        print(f"[INFO] Updating key terms:")
 
-    if update_key_term_flag or not current_key_terms_lemmatized:
-        current_key_terms_lemmatized = lemmatize_terms(current_key_terms, nlp)
+    if update_key_term_flag or not CURRENT_KEY_TERM_PHRASES_LEMMATIZED:
+        CURRENT_KEY_TERM_PHRASES_LEMMATIZED = lemmatize_terms(CURRENT_KEY_TERM_PHRASES, NLP)
         update_key_term_flag = False
-        print(f"[INFO] Key terms lemmatized: \n{current_key_terms_lemmatized}")
+        if SYSTEM_LOGGING_FLAG:
+            print(f"[INFO] Key terms lemmatized: \n{CURRENT_KEY_TERM_PHRASES_LEMMATIZED}")
 
     # 4. Find matches and update in the DB
-    print(f"[INFO] Updating key terms matches:")
-    matches = find_used_key_terms(current_key_terms_lemmatized, lemmas, message_id)
+    if SYSTEM_LOGGING_FLAG:
+        print(f"[INFO] Updating key terms matches:")
+    matches = find_used_key_terms(CURRENT_KEY_TERM_PHRASES_LEMMATIZED, lemmas, message_id)
 
     return matches
-    # print(f"[RESULT] Message='{message}' → Matches={matches}")
 
-def lemmatize_terms(terms: [str], nlp: Language):
+def clean_term_phrase(term_phrase: str):
+    '''
+    Clean up raw term words/phrases:
+      - Trim word endings like "naranjo/a" -> "naranjo"
+      - Leave spaced slashes ("apples / oranges") untouched
+      - Convert isolated "/word" -> ""
+    '''
+    # Handle things like "naranjo/a" to ret naranjo
+    term_phrase = re.sub(r"(\w+)/\w+\b", r"\1", term_phrase)
+
+    # Handle cases like "/word" -> ""
+    term_phrase = re.sub(r"(^|\s)/\w+\b", r"\1", term_phrase)
+
+    return term_phrase.strip()
+
+def lemmatize_terms(terms: (int, str), nlp: Language):
     '''
         terms: list of [id, term]
         returns: list of (id, lemmatized_term)
     '''
+    if DEBUG_TRACING_FLAG:
+        print("[CHRONOLOGY] 4: Lemmatizing key terms/phrases at lemmatize_terms()")
+
     lemmatized = []
     for term_id, term_phrase in terms:
-        doc = nlp(term_phrase) # May be a single word or a phrase
+        sanitized = clean_term_phrase(term_phrase)
+
+        # May be a single word or a phrase
         # when a term is a phrase/multi-word term -> "w1 w2 w3..."
+        doc = nlp(sanitized) 
+        
         lemma = " ".join([token.lemma_.lower() for token in doc])
+        if SYSTEM_LOGGING_FLAG:
+            print(f"lemma (sanitized): ({lemma}), original phrase: ({term_phrase})")
         lemmatized.append((term_id, lemma))
     return lemmatized
 
-
-def find_used_key_terms(key_terms_lemmatized, lemmas: [str], message_id: int):
+def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], message_id: int):
     '''
-        Match lemmas against known key terms.
+        Match lemmas against known key terms/phrases, finding the longest, non-overlapping matches
+        - key_terms_lemmatized: [(term_id, lemmatized term/phrase)]
+        - lemmas: lemmatized tokens of the user's message
+
         Returns dict: term_id -> times_found
     '''
+    if DEBUG_TRACING_FLAG:
+        print("[CHRONOLOGY] 5: Finding matched used terms/phrases at find_used_key_terms()")
 
-    lemma_counts = Counter(lemmas)
-    words_found = {}
-    count = 0
+    global CURRENT_MODULE_ID
 
-    # TODO: Implement variable length support for messages that use PHRASE LENGTH keyterms
-    # Currently checks for individual keyterms
-    for term_id, term_lemma in key_terms_lemmatized:
-        if term_lemma in lemma_counts:
-            words_found[term_id] = lemma_counts[term_lemma]
-            count += lemma_counts[term_lemma]
+    A = get_automaton_for_module(CURRENT_MODULE_ID, key_terms_lemmatized)
+    text = " ".join(lemmas).strip()
+    if not text:
+        update_message_key_term_count(0, message_id)
+        return {}
 
-    print(f"[INFO] Updating key term counts: {count}")
+    # Find all (start,end) indexes for matched term/phrases
+    matches = []
+    for end_index, (term_id, term_phrase) in A.iter(text):
+        start_index = end_index - len(term_phrase) + 1
+        matches.append((start_index, end_index, term_id, term_phrase))
 
-    update_message_key_term_count(count, message_id)
-    return words_found
+    # prefer the longest matches first, then earlier start
+    matches.sort(key=lambda x: (-(x[1] - x[0] + 1), x[0]))
 
+    occupied = set()
+    words_found = defaultdict(int)
+    total_count = 0
 
+    # Match UNIQUE matches
+    for start, end, term_id, term_phrase in matches:
+        overlap = False
+        for pos in range(start, end + 1):
+            if pos in occupied:
+                overlap = True
+                break
+        if overlap:
+            continue
+
+        for pos in range(start, end + 1):
+            occupied.add(pos)
+
+        words_found[term_id] += 1
+        total_count += 1
+        
+        if SYSTEM_LOGGING_FLAG:
+            print(f"Matched '{term_phrase}' (id={term_id}) at pos {start}-{end}")
+
+    update_message_key_term_count(total_count, message_id)
+    return dict(words_found)
+
+def get_automaton_for_module(module_id: int, key_terms_lemmatized: [(int, str)]):
+    '''
+        Returns a cached automaton for the module, or builds it if it doesn't aready exist.
+    '''
+    if DEBUG_TRACING_FLAG:
+        print("[CHRONOLOGY] 6: Fetching/Updating automatons @ get_automaton_for_module()")
+
+    if module_id in MODULE_AUTOMATA:
+        return MODULE_AUTOMATA[module_id]
+
+    A = ahocorasick.Automaton()
+    for term_id, term_phrase in key_terms_lemmatized:
+        A.add_word(term_phrase, (term_id, term_phrase))
+
+    A.make_automaton()
+    MODULE_AUTOMATA[module_id] = A
+    return A
 
 def spacy_service():
     '''
         Core service to handle message parsing while there are messages to parse in the Queue.
         Sleeps when Queue is empty.
     '''
+    if DEBUG_TRACING_FLAG or SYSTEM_LOGGING_FLAG:
+        print("[START] Waking up spacy_service()")
     while True:
-        message, module_id, user_id, message_id = message_queue.get()
+        message, module_id, user_id, message_id = MESSAGE_QUEUE.get()
+        if SYSTEM_LOGGING_FLAG:
+            print(f"[INFO] started processing message {message_id}")
+        
 
         try:
+            if DEBUG_TRACING_FLAG:
+                print("[CHRONOLOGY] 1: Beginning to process message")
+
             matches = process_message(message, module_id, user_id, message_id)
+            
+            if SYSTEM_LOGGING_FLAG:
+                print(f"[INFO] printing matches: {matches}")
+            if DEBUG_TRACING_FLAG:
+                print("[CHRONOLOGY] END OF MESSAGE PROCESSING: Updating used key terms/phrases @ update_words_used()")
             update_words_used(matches, user_id, module_id)
         except Exception as e:
             print(f"[ERROR] Failure occurred while trying to process message: {e}")
         finally:
-            message_queue.task_done()
+            MESSAGE_QUEUE.task_done()
 
+print("STARTING SPACY SERVICE")
 threading.Thread(target=spacy_service, daemon=True).start()
 
 
 
-# # DOWNLOADING spacy LANGUAGE SUPPORT
-# # python -m spacy download en_core_web_sm
-# # en_core_web_trf
-# # python -m spacy download fr_core_news_sm
-# # python -m spacy download es_core_news_sm
 
