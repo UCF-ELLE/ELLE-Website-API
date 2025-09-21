@@ -121,6 +121,33 @@ export default function ChatScreen(props: propsInterface) {
         }
     }
 
+    // --- TTS language selection ---
+    const SUPPORTED_LANGS = [
+      { code: "en-US", label: "English", short: "EN" },
+      { code: "es-ES", label: "Español", short: "ES" },
+      { code: "fr-FR", label: "Français", short: "FR" },
+      { code: "pt-BR", label: "Português", short: "PT" },
+    ];
+
+    const [ttsLang, setTtsLang] = useState<string>(() => {
+      if (typeof window !== "undefined") {
+        return localStorage.getItem("ttsLang") ?? "en-US";
+      }
+      return "en-US";
+    });
+
+    useEffect(() => {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ttsLang", ttsLang);
+      }
+    }, [ttsLang]);
+
+    function cycleLang() {
+      const i = SUPPORTED_LANGS.findIndex(l => l.code === ttsLang);
+      const next = SUPPORTED_LANGS[(i + 1) % SUPPORTED_LANGS.length];
+      setTtsLang(next.code);
+    }
+
     //Sends new timeChatted to backend
     async function saveTime() {
 
@@ -348,18 +375,19 @@ export default function ChatScreen(props: propsInterface) {
 
     function speak(text: string, opts?: { rate?: number; pitch?: number; lang?: string }) {
       if (!ttsSupported || !text?.trim()) return;
+      const lang = opts?.lang ?? ttsLang;
+
       const u = new SpeechSynthesisUtterance(text);
       u.rate = opts?.rate ?? 1;
       u.pitch = opts?.pitch ?? 1;
-      if (opts?.lang) {
-        u.lang = opts.lang;
-        const v = voices.find(v => v.lang?.toLowerCase().startsWith(opts.lang!.toLowerCase()));
-        if (v) u.voice = v;
-      }
-      window.speechSynthesis.cancel(); // stop anything already speaking
+      u.lang = lang;
+
+      const v = voices.find(v => v.lang?.toLowerCase().startsWith(lang.toLowerCase()));
+      if (v) u.voice = v;
+
+      window.speechSynthesis.cancel();
       window.speechSynthesis.speak(u);
     }
-
 
     return(
         <div className="w-full h-full"> {/*Outer container div*/}
@@ -406,9 +434,19 @@ export default function ChatScreen(props: propsInterface) {
                     >
                       <span className="text-xl">🎤</span>
                     </button>
+                    {/* Language cycle (appears below the TTS button) */}
+                      <button
+                        type="button"
+                        onClick={cycleLang}
+                        className="ml-2 flex items-center justify-center w-12 h-12 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium"
+                        title={`Change TTS language (${SUPPORTED_LANGS.find(l => l.code === ttsLang)?.label})`}
+                      >
+                        🌐 {SUPPORTED_LANGS.find(l => l.code === ttsLang)?.short}
+                      </button>
                     <button onClick={handleSendMessageClick} className="ml-2">
                         <Image src={sendMessageIcon} className="w-full h-full rounded-full" alt="Send message" />
                     </button>
+                      
                 </div>
             </div>
         </div>
