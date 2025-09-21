@@ -38,12 +38,10 @@ class TitoAccess(Resource):
                                     ...
                                     (module_id_N, sequence_id_z),
                                 ]
-
-
+                            ),
                         ]
             TODO: Error Handling
         '''
-        
         try:
             user_perms = get_jwt_claims().get("permission")
             if not validate_user(permission_claim=user_perms, req_student_perm=True):

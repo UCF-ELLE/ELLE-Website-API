@@ -140,6 +140,9 @@ import threading
 from resources.conversationElle.spacy_service import(
     spacy_service,
 )
+from resources.conversationElle.database import(
+    create_response
+)
 # End ConversationELLE
 
 app = Flask(__name__, static_folder="templates/build", static_url_path="/")
@@ -182,6 +185,14 @@ def unauthorized(self):
 @app.errorhandler(404)
 def page_not_found(e):
     return send_from_directory("pages", "404.html")
+
+
+# Handles server-wide error handling if try-catch not implemented somewhere
+# Error handling should still be implemented by devs 
+@app.errorhandler(Exception)
+def on_exception_has_occurred(e):
+    print(f"[API-ERROR] An error has occurred while trying to access an API endpoint. error: {e}")
+    return create_response(False, message="An error has been caught. Valve, please fix.", status_code=500, error=str(e))
 
 
 # Given a complex object, this returns the permission group

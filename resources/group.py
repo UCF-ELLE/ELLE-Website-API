@@ -6,6 +6,7 @@ from flaskext.mysql import MySQL
 from db import mysql
 from db_utils import *
 from utils import *
+from datetime import datetime, timedelta
 from exceptions_util import *
 import os
 import string
@@ -48,8 +49,9 @@ class Group(Resource):
                 if gc_results:
                     raise CustomException("groupCode already exists", 400)
 
-                query = "INSERT INTO `group` (`groupName`, `groupCode`) VALUES (%s, %s)"
-                postToDB(query, (data['groupName'], group_code), conn, cursor)
+                expiration_date = datetime.now() + timedelta(days=365)
+                query = "INSERT INTO `group` (`groupName`, `groupCode`, `expirationDate`) VALUES (%s, %s, %s)"
+                postToDB(query, (data['groupName'], group_code, expiration_date), conn, cursor)
 
                 g_query = "SELECT `groupID` FROM `group` WHERE `groupName`= %s"
                 g_results = getFromDB(g_query, data['groupName'], conn, cursor)

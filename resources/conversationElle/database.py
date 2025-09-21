@@ -29,55 +29,6 @@ def updateTotalTimeChatted(chatbotSID):
 #
 # ================================================
 
-# Returns the groupIDs of all active groups that the user belongs to
-# DEPRECATED
-# def getActiveTitoUserGroups(userId: int):
-#     try:
-#         # conn = mysql.connect()
-#         # cursor = conn.cursor()
-
-#         # Given a userID, see if the user is in an active group, store all groupIDs that are active
-#         # Should be faster on larger datasets, but may be negligent or slower in smaller cases
-#         query = """
-#             SELECT DISTINCT g.groupID
-#             FROM `group` g
-#             JOIN (
-#                 SELECT gu.groupID
-#                 FROM `group_user` gu
-#                 WHERE gu.userID = %s
-#             ) AS gu ON g.groupID = gu.groupID
-#             JOIN `tito_module` tm ON g.groupID = tm.classID
-#             WHERE g.status = 'active';
-#         """
-
-#         result = getFromDB(query, (userId,))
-        
-#         group_ids = []
-#         if result:
-#             for row in result:
-#                 group_ids.append(row[0])
-
-#         return group_ids, 200
-
-#     except Exception as error:
-#         # conn.rollback()
-#         return errorMessage(str(error)), 500
-#     # finally:
-#     #     if conn.open:
-#     #         cursor.close()
-#     #         conn.close()
-
-
-# TODO:
-# include grammarRatings in response?
-# Returns a JSON of messages from a user in a certain titoModule
-#     {
-#         "messageID": a_value, 
-#         "source": a_value, 
-#         "message": a_value, 
-#         "timestamp": a_value, 
-#         "voiceID": a_value
-#     }
 def loadModuleChatHistory(userID: int, moduleID: int):
     query = """
             SELECT m.messageID, m.source, m.message, m.timestamp, m.isVoiceMessage
@@ -101,8 +52,7 @@ def loadModuleChatHistory(userID: int, moduleID: int):
 
     return messages
 
-# Revoke any existing instances of chatbot sessions &
-# Create new session for user
+# Revoke any existing instances of chatbot sessions & create new session for user
 def createNewChatbotSession(userID: int, moduleID: int):
     query_revoke_prev_sessions = """
             UPDATE `chatbot_sessions`
@@ -110,9 +60,6 @@ def createNewChatbotSession(userID: int, moduleID: int):
             WHERE userID = %s;
         """
     res = db.post(query_revoke_prev_sessions, (userID,))
-    print(f"Num of sessions revoked: {res.get(1)}")
-
-    # cursor.execute(query_revoke_prev_sessions, (userID,))
 
     query_insert_new_session = """
             INSERT INTO `chatbot_sessions` (userID, moduleID, activeSession)
@@ -120,12 +67,6 @@ def createNewChatbotSession(userID: int, moduleID: int):
         """
 
     res = db.post(query_insert_new_session, (userID, moduleID))
-    # cursor.execute(query_insert_new_session, (userID, moduleID))
-    # chatbot_sid = cursor.lastrowid
-
-    # conn.commit()
-    # conn.close()
-
     return res["lastrowid"]
 
 # Self-explanatory (F = inactive/invalid sesh, T = active sesh)
@@ -189,22 +130,22 @@ def checkTermsUsed(userID: int, moduleID: int, chatbotSID: int, message: str):
 # Returns a list of group_ids assigned to a user
 # st == all enrolled classes
 # pf == all owned classes
+# ENSURE THAT ONLY ACTIVE CLASSES ARE SENT
 def getClasses(userID: int, authority: str):
     query = '''
         SELECT gu.groupID
-        FROM group_user gu
+        FROM group_user gu 
         WHERE gu.userID = %s AND gu.accessLevel = %s;
     '''
 
     return db.get(query, (userID, authority))
     
-
 # Returns a list of tuples (tito_module_id, orderingID) for a given class
 def getTitoModules(classID: int):
     query = '''
         SELECT moduleID, sequenceID
         FROM tito_module
-        WHERE classID = %s;
+        WHERE classID = %s AND `status` = 'active';
     '''
 
     return db.get(query, (classID,))
@@ -320,16 +261,6 @@ def update_words_used(term_count_dict: dict, user_id: int, module_id: int):
     params = [user_id, module_id] + term_ids
     res = db.post(query, params)
 
-
-    # terms_used = 0
-    # for term_id, count in term_count_dict.items():
-    #     query = '''
-    #         UPDATE `tito_term_progress`
-    #         SET `timesUsedSuccessfully` = `timesUsedSuccessfully` + %s
-    #         WHERE `userID` = %s AND `moduleID` = %s AND `termID` = %s;
-    #     '''
-    #     db.post(query, (count, user_id, module_id, term_id))
-    #     terms_used += count
 
 def update_message_key_term_count(count: int, messageID: int):
     query = '''

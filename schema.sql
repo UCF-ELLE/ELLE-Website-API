@@ -138,10 +138,10 @@ CREATE TABLE `chatbot_sessions` (
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   `grammarPerformanceRating` float(4) NOT NULL DEFAULT 0,
   `activeSession` boolean NOT NULL DEFAULT 0,
-  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
-  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`),
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
+  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY (`chatbotSID`),
-  KEY `userID` (`userID`)
+  KEY(`userID`, `moduleID`, `chatbotSID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -257,6 +257,7 @@ CREATE TABLE `group` (
   `groupName` varchar(50) NOT NULL,
   `groupCode` varchar(10) NOT NULL,
   `status` enum('active','archived') DEFAULT 'active', -- for TWT, maybe for other classes
+  `expirationDate` timestamp NOT NULL,
   PRIMARY KEY (`groupID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -587,9 +588,7 @@ CREATE TABLE `messages` (
   `keyWordsUsed` int(4) NOT NULL DEFAULT 0,
   `grammarRating` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously, NULL means score unavailable
   PRIMARY KEY (`messageID`),
-  KEY `chatbotSID` (`chatbotSID`),
-  KEY `userID` (`userID`),
-  FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`), 
+  FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE, 
   CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
   CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -949,12 +948,13 @@ DROP TABLE IF EXISTS `tito_module`;
 CREATE TABLE `tito_module` (
   `moduleID` int(11) NOT NULL,
   `classID` int(11) NOT NULL,
-  `sequenceID` int(2) NOT NULL DEFAULT 0, -- chronological order in the unit
+  `sequenceID` int(2) NOT NULL AUTO_INCREMENT, -- chronological order in the unit
   `titoPrompt` text DEFAULT NULL, -- extra instructions given to the chatbot for the module, can be used to prevent extraneous materials
   `startDate` DATE DEFAULT NULL, -- default is today/day of creation
   `endDate` DATE DEFAULT NULL, -- default is end of semester
-  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
-  FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`),
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
+  FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
   PRIMARY KEY(`classID`, `moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
@@ -968,8 +968,8 @@ CREATE TABLE `tito_module_progress` (
   `studentID` int(11) NOT NULL,
   `completedTutorial` boolean NOT NULL DEFAULT 0, -- becomes 1 after tito intro scene finishes
   `totalTermsUsed` int (5) NOT NULL Default 0,
-  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
-  FOREIGN KEY(`studentID`) REFERENCES `user` (`userID`),
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
+  FOREIGN KEY(`studentID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY(`moduleID`,`studentID`) -- expects searches to be all modules in practice by student
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
@@ -981,9 +981,9 @@ CREATE TABLE `tito_term_progress` (
   `userID` int(11) NOT NULL,
   `proficiencyScore` float(4) NOT NULL DEFAULT 0.0, -- expect xxx.x%
   `timesUsedSuccessfully` int(4) NOT NULL DEFAULT 0,
-  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
-  FOREIGN KEY(`termID`) REFERENCES `term` (`termID`),
-  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`),
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
+  FOREIGN KEY(`termID`) REFERENCES `term` (`termID`) ON DELETE CASCADE,
+  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY(`userID`,`moduleID`,`termID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
@@ -992,13 +992,13 @@ DROP TABLE IF EXISTS `tito_voice_message`;
 CREATE TABLE `tito_voice_message` (
   `userID` int(11) NOT NULL,
   `voiceID` int(11) AUTO_INCREMENT,
-  `filename` VARCHAR(255) NOT NULL, -- relative path for audio access
+  `filename` VARCHAR(30) NOT NULL,
   `chatbotSID` int(11) NOT NULL,
   `messageID` int(11) NOT NULL,
   PRIMARY KEY (`voiceID`),
-  FOREIGN KEY (`userID`)  REFERENCES `user` (`userID`),
-  FOREIGN KEY (`messageID`) REFERENCES `messages` (`messageID`),
-  FOREIGN KEY (`chatbotSID`)  REFERENCES `chatbot_sessions` (`chatbotSID`),
+  FOREIGN KEY (`userID`)  REFERENCES `user` (`userID`) ON DELETE CASCADE,
+  FOREIGN KEY (`messageID`) REFERENCES `messages` (`messageID`) ON DELETE CASCADE,
+  FOREIGN KEY (`chatbotSID`)  REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
   KEY `idx_session_user` (`chatbotSID`, `userID`),
   KEY `idx_voice_message` (`userID`, `messageID`),
   UNIQUE (`userID`, `messageID`)

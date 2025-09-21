@@ -4,7 +4,15 @@
 ALTER TABLE `group`
 ADD COLUMN `status` ENUM('active','archived') DEFAULT 'active';
 
--- Update admin group to have all modules
+ALTER TABLE `group`
+ADD COLUMN `expirationDate` TIMESTAMP NOT NULL DEFAULT NOW();
+
+UPDATE `group`
+SET expirationDate = DATE_ADD(NOW(), INTERVAL 1 YEAR);
+
+
+-- Update a certain group to have all modules
+-- TODO: 
 INSERT IGNORE INTO group_module (moduleID, groupID)
 SELECT DISTINCT msg.moduleID, 1 AS groupID
 FROM messages msg;
@@ -24,10 +32,10 @@ CREATE TABLE `chatbot_sessions` (
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   `grammarPerformanceRating` float(4) NOT NULL DEFAULT 0,
   `activeSession` boolean NOT NULL DEFAULT 0,
-  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
-  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`),
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
+  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY (`chatbotSID`),
-  KEY `userID` (`userID`)
+  KEY(`userID`, `moduleID`, `chatbotSID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- migrate data from old to new
@@ -47,13 +55,14 @@ CREATE TABLE `messages` (
   `moduleID` int(4) NOT NULL,
   `source` ENUM('llm','user') NOT NULL,
   `message` text NOT NULL,
-  `timestamp` timestamp NULL DEFAULT current_timestamp(),
-  `isVoiceMessage` boolean NOT NULL DEFAULT 0, 
-  `grammarRating` float(4) DEFAULT 0.0,
+  `timestamp` timestamp NULL DEFAULT current_timestamp(), -- When message was sent
+  `isVoiceMessage` boolean NOT NULL DEFAULT 0,
+  `keyWordsUsed` int(4) NOT NULL DEFAULT 0,
+  `grammarRating` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously, NULL means score unavailable
   PRIMARY KEY (`messageID`),
-  FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`), 
-  FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`),
-  FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) 
+  FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE, 
+  FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
+  FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
@@ -68,61 +77,62 @@ FROM `messages_old`;
 
 -- ADD NEW TABLES
 CREATE TABLE `tito_generated_module` (
-  `moduleID` int(11) NOT NULL, 
-  `proffesorID` int(11) NOT NULL, 
+  `moduleID` int(4) NOT NULL, 
+  `proffesorID` int(4) NOT NULL, 
   `modulePrompt` text DEFAULT NULL, 
   FOREIGN KEY(`proffesorID`) REFERENCES `user` (`userID`),
   PRIMARY KEY(`proffesorID`, `moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE `tito_module` (
-  `moduleID` int(11) NOT NULL,
-  `classID` int(11) NOT NULL,
+  `moduleID` int(4) NOT NULL,
+  `classID` int(4) NOT NULL,
   `sequenceID` int(2) NOT NULL DEFAULT 0, 
   `titoPrompt` text DEFAULT NULL, 
   `startDate` DATE DEFAULT NULL, 
   `endDate` DATE DEFAULT NULL, 
-  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
-  FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`),
-  PRIMARY KEY(`moduleID`, `moduleID`)
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
+  FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
+  PRIMARY KEY(`classID`, `moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 
 CREATE TABLE `tito_module_progress` (
-  `proficiencyRate` float(4) DEFAULT 0.0,
-  `moduleID` int(11) NOT NULL,
-  `studentID` int(11) NOT NULL,
+  `proficiencyRate` float(4) DEFAULT 0.0, 
+  `moduleID` int(4) NOT NULL,
+  `studentID` int(4) NOT NULL,
   `completedTutorial` boolean NOT NULL DEFAULT 0,
   `totalTermsUsed` int (5) NOT NULL Default 0,
-  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
-  FOREIGN KEY(`studentID`) REFERENCES `user` (`userID`),
-  PRIMARY KEY(`moduleID`,`studentID`) 
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
+  FOREIGN KEY(`studentID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
+  PRIMARY KEY(`moduleID`,`studentID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 
 CREATE TABLE `tito_term_progress` (
-  `moduleID` int(11) NOT NULL,
-  `termID`  int(11) NOT NULL,
-  `userID` int(11) NOT NULL,
+  `moduleID` int(4) NOT NULL,
+  `termID`  int(4) NOT NULL,
+  `userID` int(4) NOT NULL,
   `proficiencyScore` float(4) NOT NULL DEFAULT 0.0, 
   `timesUsedSuccessfully` int(4) NOT NULL DEFAULT 0,
-  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
-  FOREIGN KEY(`termID`) REFERENCES `term` (`termID`),
-  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`),
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
+  FOREIGN KEY(`termID`) REFERENCES `term` (`termID`) ON DELETE CASCADE,
+  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY(`userID`,`moduleID`,`termID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 
 CREATE TABLE `tito_voice_message` (
-  `userID` int(11) NOT NULL,
-  `voiceID` int(11) AUTO_INCREMENT,
-  `filename` VARCHAR(255) NOT NULL, 
-  `chatbotSID` int(11) NOT NULL,
-  `messageID` int(11) NOT NULL,
+  `userID` int(4) NOT NULL,
+  `voiceID` int(4) AUTO_INCREMENT,
+  `filename` VARCHAR(30) NOT NULL,
+  `chatbotSID` int(4) NOT NULL,
+  `messageID` int(4) NOT NULL,
   PRIMARY KEY (`voiceID`),
-  FOREIGN KEY (`userID`)  REFERENCES `user` (`userID`),
-  FOREIGN KEY (`messageID`) REFERENCES `messages` (`messageID`),
-  FOREIGN KEY (`chatbotSID`)  REFERENCES `chatbot_sessions` (`chatbotSID`),
+  FOREIGN KEY (`userID`)  REFERENCES `user` (`userID`) ON DELETE CASCADE,
+  FOREIGN KEY (`messageID`) REFERENCES `messages` (`messageID`) ON DELETE CASCADE,
+  FOREIGN KEY (`chatbotSID`)  REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
   KEY `idx_session_user` (`chatbotSID`, `userID`),
   KEY `idx_voice_message` (`userID`, `messageID`),
   UNIQUE (`userID`, `messageID`)
