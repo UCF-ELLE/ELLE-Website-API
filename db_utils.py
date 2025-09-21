@@ -42,6 +42,7 @@ class DBHelper:
             if fetch == "all":
                 result = cursor.fetchall()
 
+            # NOTE: Unpack the result using as if it was an array
             elif fetch == "one":
                 result = cursor.fetchone()
             else:

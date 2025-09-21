@@ -27,7 +27,9 @@ AUD_UPLOAD_FOLDER = "audios/"
 # e.g. https://chdr.cs.ucf.edu/images/[FILE_NAME]
 IMG_RETRIEVE_FOLDER = "/images/"
 AUD_RETRIEVE_FOLDER = "/audios/"
-USER_VOICE_FOLDER = "/user_audio_files/"
+
+MAX_AUDIO_SIZE_BYTES = 3 * 1024 * 1024
+MAX_AUDIO_LENGTH_SEC = 90
 
 # List of user permission types
 # Changing these values is not recommended

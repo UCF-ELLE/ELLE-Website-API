@@ -4,6 +4,8 @@ from utils import *
 from exceptions_util import *
 from datetime import datetime
 import json
+from config import PERMISSION_GROUPS
+from flask_jwt_extended import get_jwt_claims
 
 
 db = DBHelper(mysql)
@@ -11,26 +13,14 @@ db = DBHelper(mysql)
 
 # Updates how long a user has been chatting in the current session
 def updateTotalTimeChatted(chatbotSID):
-    try:
-        conn = mysql.connect()
-        cursor = conn.cursor()
+    query = """
+        UPDATE chatbot_sessions
+        SET totalTimeChatted = TIMESTAMPDIFF(SECOND, timestamp, NOW()) / 60
+        WHERE chatbotSID = %s;
+    """
 
-        query = """
-            UPDATE chatbot_sessions
-            SET totalTimeChatted = TIMESTAMPDIFF(SECOND, timestamp, NOW()) / 60
-            WHERE chatbotSID = %s;
-        """
+    return db.post(query, (chatbotSID,)).get("lastrowid")
 
-        postToDB(query, (chatbotSID,))
-        conn.commit()
-        return 200
-    except Exception as error:
-        conn.rollback()
-        return errorMessage(str(error)), 500
-    finally:
-        if conn.open:
-            cursor.close()
-            conn.close()
 
 
 # ================================================
@@ -138,7 +128,7 @@ def createNewChatbotSession(userID: int, moduleID: int):
 
     return res["lastrowid"]
 
-# Self-explanatory (F = inactive sesh, T = active sesh)
+# Self-explanatory (F = inactive/invalid sesh, T = active sesh)
 def checkChatbotSessionStatus(userID: int, moduleID: int, chatbotSID: int):
     query = """
             SELECT activeSession
@@ -148,25 +138,29 @@ def checkChatbotSessionStatus(userID: int, moduleID: int, chatbotSID: int):
 
     result = db.get(query, (userID, moduleID, chatbotSID), fetchOne=True)
 
-    if not result:
+    if not result or not result[0]:
         return False
 
     return True
 
 def newUserMessage(userID: int, moduleID: int, chatbotSID: int, message: str, isVM: bool):
     # Check for valid chatbot session
-    if not checkChatbotSessionStatus(userID, moduleID, chatbotSID):
-        return False
+    try: 
+        if not checkChatbotSessionStatus(userID, moduleID, chatbotSID):
+            return False
 
-    query = """
-        INSERT INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage)
-        VALUES (%s, %s, %s, 'user', %s, %s);
-    """
+        query = """
+            INSERT INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage)
+            VALUES (%s, %s, %s, 'user', %s, %s);
+        """
 
-    result = db.post(query, (userID, chatbotSID, moduleID, message, isVM))
-    if result.get("rowcount") == 0:
+        result = db.post(query, (userID, chatbotSID, moduleID, message, isVM))
+        if result.get("rowcount") == 0:
+            return 0
+        return result.get("lastrowid")
+    except Exception as e:
+        print("[ERROR] Exception has occured when trying to insert message @ newUserMessage in database.py. Error: {e}")
         return 0
-    return result.get("lastrowid")
 
 
 def newTitoMessage(userID: int, chatbotSID: int, message: str):
@@ -286,7 +280,7 @@ def getVoiceMessage(userID: int, messageID: int):
 
     result = db.get(query, (userID, messageID), fetchOne=True)
     if result:
-        return result
+        return result[0]
     return None
 
 def create_response(success=True, message=None, data=None, status_code=200, **extra_json_fields):
@@ -346,3 +340,34 @@ def update_message_key_term_count(count: int, messageID: int):
 
     res = db.post(query, (count, messageID))
 
+def validate_user(permission_claim=None, req_perm_level=True, req_student_perm=False, req_prof_perm=False, req_admin_perm=False):
+    if req_perm_level:
+        if req_admin_perm:
+            if permission_claim == PERMISSION_GROUPS[0]:
+                return True
+        if req_prof_perm:
+            if permission_claim == PERMISSION_GROUPS[1]:
+                return True
+        if req_student_perm:
+            if permission_claim == PERMISSION_GROUPS[2]:
+                return True
+    else: # still checks that user has a group, might be unneccesary
+        if permission_claim == PERMISSION_GROUPS[0]:
+            return True
+        if permission_claim == PERMISSION_GROUPS[1]:
+            return True
+        if permission_claim == PERMISSION_GROUPS[2]:
+            return True
+    return False
+
+def is_duplicate_audio_upload(user_id: int, message_id: int):
+    query = '''
+        SELECT EXISTS(
+            SELECT *
+            FROM `tito_voice_message`
+            WHERE userID = %s AND messageID =%s
+        );
+    '''
+    res = db.get(query, (user_id, message_id), fetchOne=True)
+    print(res[0])
+    return res[0]

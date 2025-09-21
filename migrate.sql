@@ -133,7 +133,7 @@ CREATE TABLE `tito_voice_message` (
 -- Consider IGNORE after INSERT
 
 -- populate `tito_module`
-INSERT INTO `tito_module` (`moduleID`, `classID`)
+INSERT IGNORE INTO `tito_module` (`moduleID`, `classID`)
 SELECT DISTINCT msg.moduleID, gu.groupID
 FROM `messages` msg
 JOIN `group_user` gu ON msg.userID = gu.userID
@@ -143,7 +143,7 @@ JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID
 
 
 -- populate `tito_module_progress`
-INSERT INTO tito_module_progress (moduleID, studentID, completedTutorial, proficiencyRate)
+INSERT IGNORE INTO tito_module_progress (moduleID, studentID, completedTutorial, proficiencyRate)
 SELECT DISTINCT msg.moduleID, msg.userID, 0, 0.0
 FROM messages msg
 JOIN group_user gu ON gu.userID = msg.userID
@@ -153,7 +153,7 @@ JOIN group_module gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID;
 
 -- populate tito_term_progress (VALID) EXCEPT ADDS ADMIN
 
-INSERT INTO tito_term_progress (userID, moduleID, termID, proficiencyScore, timesUsedSuccessfully)
+INSERT IGNORE INTO tito_term_progress (userID, moduleID, termID, proficiencyScore, timesUsedSuccessfully)
 SELECT DISTINCT msg.userID, msg.moduleID, t.termID, 0.0, 0
 FROM messages msg
 JOIN module_question mq ON mq.moduleID = msg.moduleID

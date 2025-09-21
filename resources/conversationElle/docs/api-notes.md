@@ -6,14 +6,17 @@
 #### > GET: 
 - calls should NOT cause any changes no matter how many times it is called
 - Uses query parameters or path parameters:
+- Provided examples are simple, but may be made more complex to support multiple parameters.
 ```
-  ?userID=123&classID=456
+  a query parameter: 
+    ?userID=123&classID=456
 
-  /path/to/api/{id}
+  a path parameter:
+    /path/to/api/{id}
 ```
 <ul>
   <ul>
-    <li>Where query parameters initialize using a `?` then followed by key-value pairings {key-value}</li>
+    <li>Where query parameters initialize a query using a `?` after api-path then followed by key-value pairings {key-value}</li>
     <li>Combine many parameters using an `&` after each pair of key-value pairs</li>
       <ul>
         <li>What is primarily used by us</li>
@@ -27,7 +30,8 @@
 - Nothing else to say...
 
 ## > Creating Responses
-- API responses uses the `create_response()` method found in `database.py` to streamline reponses instead of manually making the JSON format every time
+- I have streamlined the api response generation to make it prettier and handy.
+- API responses uses the `create_response()` method found in `database.py` ***(tentative to move elsewhere)*** to streamline reponses instead of manually making the JSON format every time
 
 Parameters of the `create_response()` method
   ```python
@@ -45,7 +49,7 @@ Parameters of the `create_response()` method
   - `500`: Internal Server Error (e.g., database failure)
   - `xxx`: TBD
 
-# ALL API CALLS HERE REQUIRE A JWT TOKEN 
+# ALL API CALLS HERE REQUIRE A JWT TOKEN FOR SECURITY PURPOSES
 
 ## **API Overview**
    - **Purpose**: A brief description of what the API does.
@@ -54,8 +58,8 @@ Parameters of the `create_response()` method
 ---
 
 ### 1. **GET /elleapi/twt/session/access**
-- **Purpose**: Users requests permission from the server to access TWT.
-- **Notes**: Client should store the class -> ID pairs locally for ease of access later on.
+- **Purpose**: Users requests permission from the server to access TWT. Recieves a list of `enrolled classes` mapped to `tito-modules`, if none, user is barred from TWT access.
+- **Notes**: Client should store the `class_id` -> `module_id` pairs locally for ease of access later on or call this API once more. 
 - **Query Parameters**:
   ```
     None
@@ -64,15 +68,38 @@ Parameters of the `create_response()` method
   ```JSON
   {
     "success": true or false,
-    "message": "text",
-    "data": []    // Returns a list of tuples -> [(classID, [(moduleID, sequenceOrderofModule)]]
+    "message": "text" or "",
+    "data": []    // Returns a list of tuples -> [(classID, [(moduleID, sequenceOrderOfThisModule)]]
+    /*
+                      EX  [
+                            (
+                                class_id=1,
+                                [
+                                  (module_id_1, sequence_id_x),
+                                  (module_id_2, sequence_id_y),
+                                    ...
+                                  (module_id_N, sequence_id_z),
+                                ]
+                            ),
+                            ...
+                            (
+                              class_id=N,
+                              [
+                                  (module_id_1, sequence_id_x),
+                                  (module_id_2, sequence_id_y),
+                                    ...
+                                  (module_id_N, sequence_id_z),
+                              ]
+                            )
+                          ]
+    */
   }
   ```
 
 ---
 
 ### 2. **POST /elleapi/twt/session/create**
-- **Purpose**: Creates a chatbot session to allow the user to send messages to Tito
+- **Purpose**: Creates a chatbot session to allow the user to send messages to Tito. Only 1 session may be active for a user and is *exclusive* to one module at a time.
 - **Notes**: Must create a NEW session any time user loads modules for a new CLASS OR selects a new module
 - **Request body** (JSON)
   ```JSON
@@ -84,19 +111,19 @@ Parameters of the `create_response()` method
   {
     "success": bool,
     "message": string,
-    "data": int,            // returns a single int inside a list, the users chatbot session id
+    "data": int,            // returns a single int, representing the chatbot_session_id
   }
   ```
 ---
 
 ### 3. **POST /elleapi/twt/session/messages**
-- **Purpose**: Sends a single user message from the current session to the chatbot and returns the messageID
+- **Purpose**: Sends a single user message from the current session to the chatbot and returns the messageID for relating to a voice message & ordering (if needed) and more (TBD)
 - **Request body** (JSON):
   ```json
   {
-    "chatbotSID": int,          // Permission "token"
+    "chatbotSID": int,          // Permission session token id
     "moduleID": int,            // The currently selected module  
-    "message": string,          // The user's message 
+    "message": string,          // The user's message to LLM
     "isVoiceMessage": boolean   // if user will send an audio file after
   }
   ```
@@ -106,10 +133,10 @@ Parameters of the `create_response()` method
   {
     "success": true or false,
     "message": "text",
-    "data": [string],           // the message the user sent (single string)
+    "data": string,             // the message the user sent (single string)
     "resumeMessaging": boolean, // allows user to send another message (from the front end)
-    "messageID": int,           // insertion of new message returns id for the message sent, used in tandem with voice messages 
-    "titoResponse": text        // Tito's response to user message
+    "messageID": int,           // insertion of new message returns id for the message sent, REQUIRED for voice messages 
+    "titoResponse": "text"      // Tito's response to user message
   }
   ```
 - **Notes**:
@@ -124,8 +151,8 @@ Parameters of the `create_response()` method
 ---
 
 ### 4. **GET twt/session/messages?moduleID={#}**
-- **Purpose**: Retrieve a list of chat messages for a user's chat history on a given moduleID.
-- **Note**: We can keep a counter for each message that way we dont need unique message IDs (???)
+- **Purpose**: Retrieve a list of chat messages for a user's chat history on a given moduleID. Given in ascending order.
+- **Note**: 
 - **Query parameters**:
   ```JSON
   ?
@@ -141,19 +168,20 @@ Parameters of the `create_response()` method
         "messageID": 1,
         "moduleID": 2,
         "source": "user",
-        "value": "Hello, chatbot!",
+        "value": "Hello, Tito!",
         "timestamp": "2025-02-20T14:30:00",
         "voiceMessage": true,
       },
+      ...,
       {
-        "messageID": 2,
+        "messageID": N,
         "moduleID": 2,
         "source": "llm",
-        "value": "Hello! How can I assist you today?",
+        "value": "Hello! What would you like to talk about today?",
         "timestamp": "2025-02-20T14:30:05",
         "voiceMessage": false,
       },
-     ...
+     ...,
     ],    
   }
   ```
@@ -161,15 +189,16 @@ Parameters of the `create_response()` method
 ---
 
 ### 5. **POST /elleapi/twt/session/audio**
-- **Purpose**: Uploads a recorded user voice message associated to a message to the server
-- **Notes**: File saved with filename pattern -> `{classID}_{userID}_{messageID}.webm`
+- **Purpose**: Uploads and stores a recorded user voice message associated to a message to the server
+- **Notes**: File saved with filename pattern -> `{userID}_{messageID}.webm` under path `USER_VOICE_FOLDER`/classID/moduleID/userID/userID_messageID.webm
 - **Request body** (JSON)
 ```JSON
 {
   "messageID": int,
   "chatbotSID": int,
   "classID": int,
-  "audio": file
+  "moduleID": int,
+  "audio": "file.webm"
 }
 ```
 - **Response**
@@ -195,7 +224,7 @@ Parameters of the `create_response()` method
     messageID={int} // message associated to voice message
 ```
 
-- **Response:**
+- **Response:** check status code, 200 OK, other = failure
 
 ### success, no JSON
 ```JSON
@@ -208,7 +237,7 @@ response header
 ### OR failed to retrieve file, yes JSON
 ```JSON
 {
-  "success": true or false,
+  "success": false,
   "message": "text",
   "data": []               // no data returned
 }
@@ -229,8 +258,8 @@ response header
 {
   "success": true or false,
   "message": "text",
-  "data": [(tuple_1, tuple_2)]            // A list of pairs of tuples are returned (tuple_1 = `termID`, tuple_2 = `front`) 
-                                          // front is the table `term`'s word in the foreign language (the target word to be used)
+  "data": [(termID, "text")]  // A list of pairs of tuples are returned (tuple_1 = `termID`, tuple_2 = `front`) 
+                              // front is the table `term`'s word in the foreign language (the target word to be used)
 ```
 
 ---

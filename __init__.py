@@ -130,7 +130,7 @@ import config
 from resources.conversationElle.conversation import(
     ChatbotSessions,
     TitoAccess,
-    Messages, 
+    UserMessages, 
     Classes,
     ModuleTerms,
     UserAudio,
@@ -363,7 +363,7 @@ api.add_resource(GetALValues, API_ENDPOINT_PREFIX + "adaptivelearning/gettermlis
 api.add_resource(TitoAccess, API_ENDPOINT_PREFIX + "twt/session/access")
 # api.add_resource(ModuleSelected, API_ENDPOINT_PREFIX + "twt/session/")
 api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "twt/session/create")
-api.add_resource(Messages, API_ENDPOINT_PREFIX + "twt/session/messages")
+api.add_resource(UserMessages, API_ENDPOINT_PREFIX + "twt/session/messages")
 api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
 api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
