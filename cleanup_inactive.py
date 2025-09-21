@@ -1,0 +1,48 @@
+from db_utils import DBHelper
+from db import mysql
+
+import os
+import shutil
+from datetime import datetime
+
+USER_VOICE_FOLDER = "user_audio_files/"
+
+db = DBHelper(mysql)
+
+'''
+    ATTACH TO A CRON JOB TO RUN ONCE A MONTH TO PURGE EXPIRED TITO_GROUP MODULES AND USER VOICE MESSAGES
+'''
+
+def cleanup_expired_groups():
+    print("[START] APScheduler started for monthly cleanup")
+    # get newly expired groups
+    expired_groups = db.get("SELECT groupID FROM `group` WHERE status='active' AND expirationDate <= NOW()")
+    
+    # Update groups' status and delete 'old' audio files
+    # TODO: THIS IS A SLOW APPROACH, CAN BATCH UPDATE IN MYSQL
+    #       Will have to split 
+    for (class_id,) in expired_groups:
+        print(f"[INFO] Archiving group {class_id}")
+        
+        # archive group passed expiration date
+        db.post("UPDATE `group` SET status='archived' WHERE groupID=%s", (class_id,))
+        
+        # mark associated tito_modules as inactive
+        db.post("UPDATE `tito_module` SET status='inactive' WHERE classID=%s", (class_id,))
+        
+        # get moduleIDs for folder cleanup (see: conversation.py on how audio files are stored)
+        module_ids = db.get("SELECT moduleID FROM `tito_module` WHERE classID=%s AND status='inactive'", (class_id,))
+        
+        # Delete each tito_module folder as its expected for ALL contents within to be expired
+        for (module_id,) in module_ids:
+            module_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id))
+            
+            if os.path.exists(module_path):
+                print(f"[INFO] Deleting ALL contents from module folder: {module_path}")
+                shutil.rmtree(module_path)
+        
+        # If class_id folder is empty, delete it too
+        class_path = os.path.join(USER_VOICE_FOLDER, str(class_id))
+        if os.path.exists(class_path) and not os.listdir(class_path):
+            print(f"[INFO] Deleting empty class folder: {class_path}")
+            os.rmdir(class_path)

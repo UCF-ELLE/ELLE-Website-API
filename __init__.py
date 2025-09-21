@@ -125,8 +125,11 @@ from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALVal
 
 import config
 
-# Comment out if NOT using TWT or tools from
-# ConversationELLE / Talking With Tito Imports
+# ===============================================
+# ConversAItionELLE endpoints (Talking with Tito)
+# ===============================================
+
+# Comment out if NOT using TWT or tools from ConversationELLE / Talking With Tito Imports
 from resources.conversationElle.conversation import(
     ChatbotSessions,
     TitoAccess,
@@ -143,7 +146,11 @@ from resources.conversationElle.spacy_service import(
 from resources.conversationElle.database import(
     create_response
 )
-# End ConversationELLE
+from apscheduler.schedulers.background import BackgroundScheduler
+from .cleanup_inactive import cleanup_expired_groups
+# ===============================================
+# END of ConversAItionELLE  
+# ===============================================
 
 app = Flask(__name__, static_folder="templates/build", static_url_path="/")
 CORS(app)
@@ -366,35 +373,37 @@ api.add_resource(UpdateALValue, API_ENDPOINT_PREFIX + "adaptivelearning/updatete
 api.add_resource(GetSingleALValue, API_ENDPOINT_PREFIX + "adaptivelearning/gettermvalue")
 api.add_resource(GetALValues, API_ENDPOINT_PREFIX + "adaptivelearning/gettermlistvalues")
 
+
+# ===============================================
 # ConversAItionELLE endpoints (Talking with Tito)
-# api.add_resource(Messages, API_ENDPOINT_PREFIX + "chat/messages")
-# api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "chat/chatbot")
-# api.add_resource(ExportChatHistory, API_ENDPOINT_PREFIX + "chat/chatbot/export")
-# api.add_resource(UpdateChatTime, API_ENDPOINT_PREFIX + "chat/chatbot/time")
+# ===============================================
 api.add_resource(TitoAccess, API_ENDPOINT_PREFIX + "twt/session/access")
-# api.add_resource(ModuleSelected, API_ENDPOINT_PREFIX + "twt/session/")
 api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "twt/session/create")
 api.add_resource(UserMessages, API_ENDPOINT_PREFIX + "twt/session/messages")
 api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
 api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
+# ===============================================
+# End of ConversAItionELLE endpoints
+# ===============================================
 
 
 
-
-
-
-# =====================================
-
-# 127.0.0.1:5050/elleapi/twt/session/access
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
 
-    # =====================================
+    # =================================================
     # Extra stuff below, please comment out if not used
-    # =====================================
+    # =================================================
 
-    # spaCy lemmatizer worker initializer (prevents duplicate inits when in debug mode)
+    # prevents duplicate inits when in debug mode
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        # spaCy service
         threading.Thread(target=spacy_service, daemon=True).start()
+
+        # Monthly clean up to delete old audio files, and expire classes that have since expired
+        # Occurs the 1st of every month
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(cleanup_expired_groups, 'cron', day=1, hour=0, minute=0)
+        scheduler.start()

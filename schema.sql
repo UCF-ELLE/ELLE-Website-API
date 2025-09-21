@@ -955,7 +955,8 @@ CREATE TABLE `tito_module` (
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
-  PRIMARY KEY(`classID`, `moduleID`)
+  PRIMARY KEY(`classID`, `moduleID`),
+  KEY (`classID`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 DROP TABLE IF EXISTS `tito_module_progress`;

@@ -94,6 +94,7 @@ CREATE TABLE `tito_module` (
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
+  KEY (`classID`,`status`),
   PRIMARY KEY(`classID`, `moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
