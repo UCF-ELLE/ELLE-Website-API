@@ -1,5 +1,5 @@
 /* Imports */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/hooks/useAuth";
 import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage} from "@/services/TitoService";
 import Image from "next/image";
@@ -146,6 +146,69 @@ export default function ChatScreen(props: propsInterface) {
       const i = SUPPORTED_LANGS.findIndex(l => l.code === ttsLang);
       const next = SUPPORTED_LANGS[(i + 1) % SUPPORTED_LANGS.length];
       setTtsLang(next.code);
+    }
+
+
+      // --- Speech-to-Text (STT) ---
+      const [sttSupported, setSttSupported] = useState(false);
+      const [listening, setListening] = useState(false);
+      const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+      // Type helper for TS
+      type SpeechRecognitionConstructor = new () => SpeechRecognition;
+
+      useEffect(() => {
+        const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SR) return;               // not supported
+        setSttSupported(true);
+        const rec: SpeechRecognition = new (SR as SpeechRecognitionConstructor)();
+        rec.continuous = false;        // end after a phrase; set true for long dictation
+        rec.interimResults = true;     // show partial words as you speak
+        rec.maxAlternatives = 1;
+        rec.lang = ttsLang;            // use the same language you’re cycling (EN/ES/FR/PT)
+
+        rec.onstart = () => setListening(true);
+        rec.onend = () => setListening(false);
+        rec.onerror = (e) => {
+          console.warn("STT error:", e);
+          setListening(false);
+        };
+        rec.onresult = (ev) => {
+          let interim = "";
+          let finalText = "";
+          for (let i = ev.resultIndex; i < ev.results.length; i++) {
+            const chunk = ev.results[i][0].transcript;
+            if (ev.results[i].isFinal) finalText += chunk;
+            else interim += chunk;
+          }
+          // live preview while speaking:
+          if (interim) setUserMessage(prev => (prev?.trim() ? `${prev} ${interim}` : interim));
+          // commit the final text at phrase end:
+          if (finalText) setUserMessage(prev => (prev?.trim() ? `${prev} ${finalText}` : finalText));
+        };
+
+        recognitionRef.current = rec;
+        return () => {
+          try { rec.abort(); } catch {}
+          recognitionRef.current = null;
+        };
+      }, [ttsLang]); // re-init when language changes
+
+    function startListening() {
+      if (!sttSupported || !recognitionRef.current || listening) return;
+      try {
+        recognitionRef.current.start();
+      } catch (e) {
+        // Some browsers throw if called twice quickly
+        console.warn(e);
+      }
+    }
+
+    function stopListening() {
+      if (!recognitionRef.current) return;
+      try {
+        recognitionRef.current.stop();
+      } catch {}
     }
 
     //Sends new timeChatted to backend
@@ -421,19 +484,35 @@ export default function ChatScreen(props: propsInterface) {
                         value={userMessage}
                         onChange={(e) => setUserMessage(e.target.value)}
                     />
+                    {/* controls column: Mic + Language */}
+                  <div className="ml-2 flex items-center justify-center w-12 h-8 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium">
+                    {/* Push-to-talk microphone */}
                     <button
-                      type="button"
-                      onClick={() => {
-                        // Read the latest LLM message; if none, read what's in the textbox
-                        const lastLLM = [...chatMessages].reverse().find(m => m.source === "llm");
-                        speak(lastLLM?.value ?? userMessage);
-                      }}
-                      className="ml-2 flex items-center justify-center w-12 h-12 rounded-full bg-white/80 hover:bg-white transition disabled:opacity-50"
-                      disabled={!ttsSupported}
-                      title={ttsSupported ? "Read last reply" : "Text-to-speech not supported"}
-                    >
-                      <span className="text-xl">🎤</span>
-                    </button>
+                    type="button"
+                    onMouseDown={() => (sttSupported ? startListening() : alert("Speech-to-text isn’t supported in Firefox. Try Chrome, Edge, or use typing."))}
+                    onMouseUp={() => sttSupported && stopListening()}
+                    onMouseLeave={() => sttSupported && stopListening()}
+                    onTouchStart={(e) => { e.preventDefault(); sttSupported ? startListening() : alert("Speech-to-text isn’t supported in Firefox. Try Chrome, Edge, or use typing."); }}
+                    onTouchEnd={(e) => { e.preventDefault(); sttSupported && stopListening(); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (!sttSupported) {
+                        alert("Speech-to-text isn’t supported in Firefox. Try Chrome or Edge.");
+                        return;
+                      }
+                      if (!listening) startListening(); else stopListening();
+                    }}
+                    // IMPORTANT: don't disable in Firefox—show the message instead
+                    disabled={false}
+                    className={`flex items-center justify-center w-16 h-16 rounded-full shadow-sm transition
+                                ${listening ? "bg-red-500 text-white" : "bg-white/90 hover:bg-white"}`}
+                    title={sttSupported ? (listening ? "Listening… release/click to stop" : "Hold to talk (or click to toggle)") : "Speech-to-text not supported in Firefox"}
+                    aria-pressed={listening}
+                    aria-label="Hold to talk"
+                  >
+                    <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
+                  </button>
+                  </div>
                     {/* Language cycle (appears below the TTS button) */}
                       <button
                         type="button"
