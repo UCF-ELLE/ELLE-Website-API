@@ -127,18 +127,22 @@ def evaluateGrammar(userID: int, chatbotSID: int, message: str):
 def checkTermsUsed(userID: int, moduleID: int, chatbotSID: int, message: str):
     return False
 
-# Returns a list of group_ids assigned to a user
+# Returns a list of group_ids assigned to a user of ACTIVE TITO CLASSES
 # st == all enrolled classes
 # pf == all owned classes
-# ENSURE THAT ONLY ACTIVE CLASSES ARE SENT
-def getClasses(userID: int, authority: str):
+def getClasses(userID: int, permissionLevel: str):
     query = '''
-        SELECT gu.groupID
-        FROM group_user gu 
-        WHERE gu.userID = %s AND gu.accessLevel = %s;
+        SELECT g.groupID
+        FROM (
+            SELECT DISTINCT gu.groupID
+            FROM group_user gu
+            WHERE gu.userID = %s AND gu.accessLevel = %s
+        ) g
+        JOIN group_status gs ON g.groupID = gs.classID
+        WHERE gs.titoStatus = 'active';
     '''
 
-    return db.get(query, (userID, authority))
+    return db.get(query, (userID, permissionLevel))
     
 # Returns a list of tuples (tito_module_id, orderingID) for a given class
 def getTitoModules(classID: int):
@@ -154,12 +158,11 @@ def isTitoModule(classID: int, moduleID: int):
     query = '''
         SELECT moduleID
         FROM tito_module
-        WHERE classID = %s AND moduleID = %s
+        WHERE classID = %s AND moduleID = %s AND `status` = 'active'
         LIMIT 1;
     '''
 
     res = db.get(query, (classID, moduleID), fetchOne=True)
-    print(res)
     return res is not None
 
 def isNoneOrZero(result):
@@ -302,3 +305,26 @@ def is_duplicate_audio_upload(user_id: int, message_id: int):
     res = db.get(query, (user_id, message_id), fetchOne=True)
     print(res[0])
     return res[0]
+
+def handle_new_module(module_id, class_id):
+    db.post("INSERT INTO tito_module (moduleID, classID) VALUES (%s, %s)", (module_id, class_id))
+
+    # 1. Get all students in the class
+    students = db.get("SELECT DISTINCT userID FROM group_user WHERE groupID = %s AND accessLevel = 'st'", (class_id,))
+
+    # 2. Insert into tito_module_progress
+    module_progress_data = [(module_id, s[0]) for s in students]
+    db.post("INSERT INTO tito_module_progress (moduleID, studentID) VALUES (%s, %s)", module_progress_data)
+
+    # 3. Get all termIDs for module
+    term_ids = db.get("""
+        SELECT DISTINCT t.termID
+        FROM module_question mq
+        JOIN answer a ON mq.questionID = a.questionID
+        JOIN term t ON a.termID = t.termID
+        WHERE mq.moduleID=%s
+    """, (module_id,))
+
+    # 4. Insert into tito_term_progress
+    term_progress_data = [(module_id, term_id[0], s[0]) for term_id in term_ids for s in students]
+    db.post("INSERT INTO tito_term_progress (moduleID, termID, userID) VALUES (%s, %s, %s)", term_progress_data)

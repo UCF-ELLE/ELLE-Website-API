@@ -1,22 +1,20 @@
 -- use elle2020;
 
--- Update `group` table
-ALTER TABLE `group`
-ADD COLUMN `status` ENUM('active','archived') DEFAULT 'active';
-
-ALTER TABLE `group`
-ADD COLUMN `expirationDate` TIMESTAMP NOT NULL DEFAULT NOW();
-
-UPDATE `group`
-SET expirationDate = DATE_ADD(NOW(), INTERVAL 1 YEAR);
 
 
 -- Update a certain group to have all modules
--- TODO: 
+-- TODO: create a super class containing all modules for testing
 INSERT IGNORE INTO group_module (moduleID, groupID)
 SELECT DISTINCT msg.moduleID, 1 AS groupID
 FROM messages msg;
 
+UPDATE `group_user`
+SET `accessLevel` = 'st'
+WHERE `userID` = 1;
+
+UPDATE `user`
+SET `permissionGroup` = 'st'
+WHERE `userID` = 1;
 
 
 -- Begin migration chatbot sessions
@@ -72,6 +70,15 @@ SELECT `id`, `userId`, `chatbotId`, `moduleId`, `source`, `value`, `timestamp`, 
 FROM `messages_old`;
 
 
+
+CREATE TABLE `group_status` (
+  `classID` int(4) NOT NULL,
+  `titoStatus` enum('active', 'inactive') NOT NULL DEFAULT 'inactive',
+  `titoExpirationDate` timestamp NOT NULL DEFAULT current_timestamp(),
+  FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
+  PRIMARY KEY (`classID`),
+  KEY (`titoStatus`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 
@@ -154,25 +161,71 @@ JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID
 
 
 -- populate `tito_module_progress`
-INSERT IGNORE INTO tito_module_progress (moduleID, studentID, completedTutorial, proficiencyRate)
+INSERT IGNORE INTO `tito_module_progress` (`moduleID`, `studentID`, `completedTutorial`, `proficiencyRate`)
 SELECT DISTINCT msg.moduleID, msg.userID, 0, 0.0
-FROM messages msg
-JOIN group_user gu ON gu.userID = msg.userID
-JOIN group_module gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID;
+FROM `messages` msg
+JOIN `group_user` gu ON gu.userID = msg.userID
+JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID;
 
 
 
--- populate tito_term_progress (VALID) EXCEPT ADDS ADMIN
+populate tito_term_progress (VALID) EXCEPT ADDS ADMIN
 
-INSERT IGNORE INTO tito_term_progress (userID, moduleID, termID, proficiencyScore, timesUsedSuccessfully)
+INSERT IGNORE INTO `tito_term_progress` (`userID`, `moduleID`, `termID`, `proficiencyScore`, `timesUsedSuccessfully`)
 SELECT DISTINCT msg.userID, msg.moduleID, t.termID, 0.0, 0
-FROM messages msg
-JOIN module_question mq ON mq.moduleID = msg.moduleID
-JOIN answer a ON a.questionID = mq.questionID
-JOIN term t ON t.termID = a.termID
-JOIN group_user gu ON gu.userID = msg.userID
+FROM `messages` msg
+JOIN `module_question` mq ON mq.moduleID = msg.moduleID
+JOIN `answer` a ON a.questionID = mq.questionID
+JOIN `term` t ON t.termID = a.termID
+JOIN `group_user` gu ON gu.userID = msg.userID;
 -- WHERE gu.accessLevel = 'st';
 
+
+
+-- Populate `group_status` table
+INSERT IGNORE INTO `group_status` (`classID`, `titoStatus` `titoExpirationDate`)
+SELECT DISTINCT g.groupID, 'active', DATE_ADD(NOW(), INTERVAL 1 YEAR)
+FROM `group` g;
+
+
+
+-- CREATE TRIGGERS
+-- when a new group is created, so it a auxiliary table used to track "statuses" for any ELLE app
+DELIMITER //
+
+CREATE TRIGGER trigger_on_group_insert
+AFTER INSERT ON `group`
+FOR EACH ROW
+BEGIN
+    INSERT INTO `group_status` (`classID`, `titoExpirationDate`)
+    VALUES (NEW.groupID, DATE_ADD(NOW(), INTERVAL 1 YEAR));
+END //
+
+DELIMITER ;
+
+-- When the `tito_status` of a class changes, changes cascade onto `tito_module`
+DELIMITER //
+
+CREATE TRIGGER trigger_on_group_status_update
+AFTER UPDATE ON group_status
+FOR EACH ROW
+BEGIN
+    -- Case 1: active -> inactive
+    IF OLD.titoStatus = 'active' AND NEW.titoStatus = 'inactive' THEN
+        UPDATE `tito_module`
+        SET status = 'inactive'
+        WHERE classID = NEW.classID;
+    END IF;
+
+    -- Case 2: inactive -> active
+    IF OLD.titoStatus = 'inactive' AND NEW.titoStatus = 'active' THEN
+        UPDATE `tito_module`
+        SET status = 'active'
+        WHERE classID = NEW.classID;
+    END IF;
+END//
+
+DELIMITER ;
 
 
 

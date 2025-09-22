@@ -271,6 +271,16 @@ LOCK TABLES `group` WRITE;
 /*!40000 ALTER TABLE `group` ENABLE KEYS */;
 UNLOCK TABLES;
 
+CREATE TABLE `group_status` (
+  `classID` int(4) NOT NULL,
+  `titoStatus` enum('active', 'inactive') NOT NULL DEFAULT 'inactive',
+  `titoExpirationDate` timestamp NOT NULL DEFAULT current_timestamp(),
+  FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
+  PRIMARY KEY (`classID`),
+  KEY (`titoStatus`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
 --
 -- Table structure for table `group_module`
 --

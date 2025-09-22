@@ -50,7 +50,7 @@ class TitoAccess(Resource):
             
             class_ids = getClasses(user_id, user_perms)
             if not class_ids:
-                return create_response(success=False, message="User is not enrolled in any classes.", status_code=403)
+                return create_response(success=False, message="User is not enrolled in any active tito classes.", status_code=403)
             
             tito_modules = []
             is_valid_user = False
@@ -84,6 +84,13 @@ class ChatbotSessions(Resource):
         data = request.get_json()
         module_id = data.get("moduleID")
         class_id = data.get("classID")
+
+        if module_id is None or not class_id:
+            return create_response(False, message="Missing required parameters.", status_code=404)
+
+        # A freechat session
+        # if module_id == 0:
+            # return create_response()
         
         if not isTitoModule(class_id, module_id):
             return create_response(success=False, message="Chatbot session failed to be created.", status_code=403)
@@ -100,13 +107,20 @@ class UserMessages(Resource):
             Returns the messageID of the newly received message for use
         '''
         if not validate_user(permission_claim=get_jwt_claims().get("permission"), req_student_perm=True):
-            return create_response(False, message="User has invalid permissions to access this resource.", status_code=403)
+            return create_response(False, message="User has invalid permissions to access this resource.", status_code=403, resumeMessaging=True, titoResponse="Please try again.")
         user_id = get_jwt_identity()
 
         data = request.get_json()
         message = data.get('message')
         session_id = data.get('chatbotSID')
         module_id = data.get('moduleID')
+
+        if not session_id or module_id is None:
+            return create_response(False, message="Missing required parameters.", status_code=404)
+
+        # TODO: a freechat session
+        # if module_id == 0:
+            
 
         # Attempts to add message to DB, no error, success returns msg_id
         new_msg_id = newUserMessage(userID=user_id, moduleID=data.get('moduleID'),chatbotSID=session_id, message=message, isVM=data.get('isVoiceMessage'))
@@ -164,6 +178,9 @@ class UserMessages(Resource):
         try:
             data = request.get_json()
             module_id = request.args.get('moduleID')
+            
+            if not module_id:
+                return create_response(False, message="Missing required paranmeters.", status_code=404)
             return create_response(True, message="Retrieved chat history.", data=loadModuleChatHistory(user_id, module_id)) 
         except Exception as e:
             print("[ERROR] In UserMessages @ conversation.py")
@@ -324,8 +341,23 @@ class TitoModule(Resource):
         '''
             makes changes to a module's status on being a tito_module or not
         '''
+        if not validate_user(permission_claim=get_jwt_claims().get("permission"), req_prof_perm=True):
+            return create_response(False, message="User has invalid permissions to access this resource.", status_code=403)
+        user_id = get_jwt_identity()
 
-        return False
+        data = request.form
+        class_id = data.get('classID')
+        module_id = data.get('moduleID')
+        is_enabled = data.get('isEnabled')
+
+        if not class_id or not module_id or is_enabled is None:
+            create_response(False, message="Missing parameters.", status_code=404)
+
+        if is_enabled:
+            handle_new_module(module_id, class_id).get("rowcount")
+        # else: 
+            # TODO: WIP
+        return create_response(True, message="updated respective tables.")
 
 class GetStudentMessages(Resource):
     @jwt_required
@@ -335,6 +367,8 @@ class GetStudentMessages(Resource):
             TODO:
         '''
         return
+
+
 
 # Deprecated for now, unused?
 # class ExportChatHistory(Resource):

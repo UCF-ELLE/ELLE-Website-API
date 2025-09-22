@@ -147,7 +147,7 @@ from resources.conversationElle.database import(
     create_response
 )
 from apscheduler.schedulers.background import BackgroundScheduler
-from .cleanup_inactive import cleanup_expired_groups
+from cleanup_inactive import cleanup_expired_groups
 # ===============================================
 # END of ConversAItionELLE  
 # ===============================================
@@ -403,7 +403,7 @@ if __name__ == "__main__":
         threading.Thread(target=spacy_service, daemon=True).start()
 
         # Monthly clean up to delete old audio files, and expire classes that have since expired
-        # Occurs the 1st of every month
+        # Occurs the 1st of every month @ 2:00 AM
         scheduler = BackgroundScheduler()
-        scheduler.add_job(cleanup_expired_groups, 'cron', day=1, hour=0, minute=0)
+        scheduler.add_job(cleanup_expired_groups, 'cron', day=1, hour=2, minute=0)
         scheduler.start()

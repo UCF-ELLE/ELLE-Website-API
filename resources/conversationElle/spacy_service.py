@@ -169,7 +169,7 @@ def process_message(message: str, module_id: int, user_id: int, message_id: int)
 
 def clean_term_phrase(term_phrase: str):
     '''
-    Clean up raw term words/phrases:
+    Clean up raw term words/phrases using regex:
       - Trim word endings like "naranjo/a" -> "naranjo"
       - Leave spaced slashes ("apples / oranges") untouched
       - Convert isolated "/word" -> ""
@@ -220,7 +220,7 @@ def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], messa
     A = get_automaton_for_module(CURRENT_MODULE_ID, key_terms_lemmatized)
     text = " ".join(lemmas).strip()
     if not text:
-        update_message_key_term_count(0, message_id)
+        # update_message_key_term_count(0, message_id)
         return {}
 
     # Find all (start,end) indexes for matched term/phrases
