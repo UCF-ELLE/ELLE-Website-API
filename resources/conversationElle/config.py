@@ -22,6 +22,8 @@ TOP_P = 0.95
 language_list = ["english", "spanish", "portuguese"]
 level = "College"
 vocal_percent = 0.5
+LANGUAGETOOL_API_URL = "http://127.0.0.1:8081/v2/check"
+
 
 # Reading list of background files
 background_directory = "conversationElle/assets/backgrounds/"

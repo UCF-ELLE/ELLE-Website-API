@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
-from resources.conversationElle.config import *
+from config import *
+from convo_grader import *
 import language_tool_python
 import ast
 import re
@@ -9,19 +10,11 @@ import sys
 import os
 import requests 
 
-tool = None
-current_language = 'en-US'
-user_language_history = defaultdict(list)
+# tool = None
+# current_language = 'en-US'
+# #user_language_history = defaultdict(list)
 
-
-LANGUAGE_MAPPINGS = {
-    'english': 'en-US',
-    'spanish': 'es',
-    'french': 'fr', 
-    'portuguese': 'pt',
-}
-
-# Defining the API request and response formats.
+# Defining the API request and response formats, format was created for use with llama.cpp
 def GenerateRequest(user_text, max_new_tokens=MAX_NEW_TOKENS, temperature=TEMPERATURE, top_k=TOP_K, top_p=TOP_P):
     return {
         "prompt": user_text,
@@ -32,35 +25,6 @@ def GenerateRequest(user_text, max_new_tokens=MAX_NEW_TOKENS, temperature=TEMPER
         "stop": ["User:", "\nUser:", "Instruction"],
         "stream": False
     }
-
-
-def init_language_cache(default_language = current_language):
-    """
-    Initializes LanguageTool cache with the defualt language
-    If more languages available, more can be added as needed
-    """
-
-    global tool_cache, current_language
-    try:
-        tool_cache[default_language] = language_tool_python.LanguageTool(default_language)
-        current_language = default_language
-        print(f"LanguageTool cache initialized with {defualt_language}")
-    except Exception as error:
-        print(f"Failed to initialize LanguageTool cache: {error}")
-
-def get_or_create_language_tool(language_tool):
-    """
-    Get existing LanguageTool instance or create a new one for language
-    """
-    global tool_cache
-
-    if language_code not in tool_cache:
-        try:
-            print(f"Creating new LanguageTool instance for {language_code}")
-            tool_cache[language_code] = language_tool_python.LanguageTool(language_code)
-        except Exception as error:
-            print(f"Failed to create LanguageTool for {language_code}: {error}")
-            return tool_cache.get('en-US') # Fallsback to english
 
 
 def generate_message(message, prompt):
@@ -90,80 +54,6 @@ def generate_message(message, prompt):
     except json.JSONDecodeError as e:
         print(f"JSON decode error: {e}")
         return "Sorry, I received an invalid response from the language model."
-
-
-def assess_grammar(message: str, target_language: str = None):
-    """
-    Evaluates grammar correctness in the user's message.
-    Returns grammar score and specific corrections.
-    """
-
-    try:
-        grammar_prompt = grammar_assessment_prompt.format(
-            target_language = target_language or "the target language",
-            message = message
-        )
-
-        response = generate_message(message, grammar_prompt)
-        response = response['Assistant']
-
-        #Extract Json
-        response = response[response.index("{"):response.index("}") + 1]
-        response = ast.literal_eval(response)
-
-        return {
-            "grammar_score": response.get("grammar_score", 0),
-            "corrections": response.get("corrections", []),
-            "feedback": response.get("feedback", "")
-        }
-
-    except Exception as error:
-        print(f"Grammar assessment error: {error}")
-        return {
-            "grammar_score": 0,
-            "corrections": [],
-            "feedback": "Could not assess grammar."
-        }
-
-
-def evaluate_language_level(conversation_history: list):
-    """
-    Assesses user's current proficiency based on conversation history.
-    """
-
-    try:
-        # Prepare context
-        conversation_text = ""
-        for msg in conversation_history[-10]:
-            if msg.get('source') == user:
-                conversation_text += f"User: {msg.get('value', '')}\n"
-        
-        response = generate_message(conversation_text, language_level_prompt)
-        response = response["Assistant"]
-        response = response[response.index("{"):response.index("}")+1]
-        response = ast.literal_eval(response)
-
-        return {
-            "level": response.get("level", "beginner"),
-            "confidence": response.get("confidence", 0.5),
-            "recommendations": response.get("recommendations", [])
-        }
-
-    except Exception as error:
-        print(f"Language level evaluation error: {error}")
-        return {
-            "level": "beginner",
-            "confidence": 0.5,
-            "recommendations": ["Continue beginner vocab"]
-        }
-
-
-# Not used since LLM generation speed is slow
-def identify_language(message: str):
-    """
-    Identifies the language of the user input.
-    """
-    return generate_message(message, identify_language_prompt)
 
 def handle_message(message: str, prompt=None):
     """
