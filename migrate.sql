@@ -169,7 +169,6 @@ JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID
 
 
 
-populate tito_term_progress (VALID) EXCEPT ADDS ADMIN
 
 INSERT IGNORE INTO `tito_term_progress` (`userID`, `moduleID`, `termID`, `proficiencyScore`, `timesUsedSuccessfully`)
 SELECT DISTINCT msg.userID, msg.moduleID, t.termID, 0.0, 0
@@ -183,7 +182,7 @@ JOIN `group_user` gu ON gu.userID = msg.userID;
 
 
 -- Populate `group_status` table
-INSERT IGNORE INTO `group_status` (`classID`, `titoStatus` `titoExpirationDate`)
+INSERT IGNORE INTO `group_status` (`classID`, `titoStatus`, `titoExpirationDate`)
 SELECT DISTINCT g.groupID, 'active', DATE_ADD(NOW(), INTERVAL 1 YEAR)
 FROM `group` g;
 
@@ -191,41 +190,41 @@ FROM `group` g;
 
 -- CREATE TRIGGERS
 -- when a new group is created, so it a auxiliary table used to track "statuses" for any ELLE app
-DELIMITER //
+-- DELIMITER //
 
-CREATE TRIGGER trigger_on_group_insert
-AFTER INSERT ON `group`
-FOR EACH ROW
-BEGIN
-    INSERT INTO `group_status` (`classID`, `titoExpirationDate`)
-    VALUES (NEW.groupID, DATE_ADD(NOW(), INTERVAL 1 YEAR));
-END //
+-- CREATE TRIGGER trigger_on_group_insert
+-- AFTER INSERT ON `group`
+-- FOR EACH ROW
+-- BEGIN
+--     INSERT INTO `group_status` (`classID`, `titoExpirationDate`)
+--     VALUES (NEW.groupID, DATE_ADD(NOW(), INTERVAL 1 YEAR));
+-- END //
 
-DELIMITER ;
+-- DELIMITER ;
 
--- When the `tito_status` of a class changes, changes cascade onto `tito_module`
-DELIMITER //
+-- -- When the `tito_status` of a class changes, changes cascade onto `tito_module`
+-- DELIMITER //
 
-CREATE TRIGGER trigger_on_group_status_update
-AFTER UPDATE ON group_status
-FOR EACH ROW
-BEGIN
-    -- Case 1: active -> inactive
-    IF OLD.titoStatus = 'active' AND NEW.titoStatus = 'inactive' THEN
-        UPDATE `tito_module`
-        SET status = 'inactive'
-        WHERE classID = NEW.classID;
-    END IF;
+-- CREATE TRIGGER trigger_on_group_status_update
+-- AFTER UPDATE ON group_status
+-- FOR EACH ROW
+-- BEGIN
+--     -- Case 1: active -> inactive
+--     IF OLD.titoStatus = 'active' AND NEW.titoStatus = 'inactive' THEN
+--         UPDATE `tito_module`
+--         SET status = 'inactive'
+--         WHERE classID = NEW.classID;
+--     END IF;
 
-    -- Case 2: inactive -> active
-    IF OLD.titoStatus = 'inactive' AND NEW.titoStatus = 'active' THEN
-        UPDATE `tito_module`
-        SET status = 'active'
-        WHERE classID = NEW.classID;
-    END IF;
-END//
+--     -- Case 2: inactive -> active
+--     IF OLD.titoStatus = 'inactive' AND NEW.titoStatus = 'active' THEN
+--         UPDATE `tito_module`
+--         SET status = 'active'
+--         WHERE classID = NEW.classID;
+--     END IF;
+-- END//
 
-DELIMITER ;
+-- DELIMITER ;
 
 
 
