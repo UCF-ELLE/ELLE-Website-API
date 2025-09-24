@@ -2,6 +2,7 @@ aniso8601==8.0.0
 annotated-types==0.7.0
 antiorm==1.2.1
 anyio==4.9.0
+APScheduler==3.11.0
 astroid==2.4.2
 blinker==1.4
 blis==1.3.0
@@ -15,6 +16,7 @@ curated-tokenizers==0.0.9
 curated-transformers==0.1.1
 cymem==2.0.11
 db==0.1.1
+de_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-3.8.0/de_core_news_sm-3.8.0-py3-none-any.whl#sha256=fec69fec52b1780f2d269d5af7582a5e28028738bd3190532459aeb473bfa3e7
 en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
 en_core_web_trf @ https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.8.0/en_core_web_trf-3.8.0-py3-none-any.whl#sha256=272a31e9d8530d1e075351d30a462d7e80e31da23574f1b274e200f3fff35bf5
 es_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.8.0/es_core_news_sm-3.8.0-py3-none-any.whl#sha256=e451a83d6df79b87e9eed0cb553f03e99e36a3bab18a7b79f0dcfd1fdf875e12
@@ -50,6 +52,7 @@ mccabe==0.6.1
 mpmath==1.3.0
 murmurhash==1.0.13
 networkx==3.4.2
+nl_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/nl_core_news_sm-3.8.0/nl_core_news_sm-3.8.0-py3-none-any.whl#sha256=a76978477821f213ca76a46c686df1b1d41462905d4868bc53eac086adca8b7e
 numpy==2.2.6
 nvidia-cublas-cu12==12.6.4.1
 nvidia-cuda-cupti-cu12==12.6.80
@@ -70,6 +73,7 @@ packaging==25.0
 pathlib==1.0.1
 preshed==3.0.10
 protobuf==3.20.3
+pt_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/pt_core_news_sm-3.8.0/pt_core_news_sm-3.8.0-py3-none-any.whl#sha256=c304fa04db3af73cd08a250feacf560506e15a2ec2469bd1b09f06847f6b455c
 pyahocorasick==2.2.0
 pydantic==2.11.5
 pydantic_core==2.33.2
@@ -109,6 +113,7 @@ typed-ast==1.5.5
 typer==0.10.0
 typing-inspection==0.4.1
 typing_extensions==4.14.0
+tzlocal==5.3.1
 urllib3==1.25.9
 uvicorn==0.34.3
 wasabi==1.1.3
