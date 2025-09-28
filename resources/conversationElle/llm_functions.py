@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
-from config import *
-from convo_grader import *
+from .config import *
+# from .convo_grader import *
 import language_tool_python
 import ast
 import re

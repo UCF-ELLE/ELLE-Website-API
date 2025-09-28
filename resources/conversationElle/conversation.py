@@ -67,7 +67,7 @@ class ChatbotSessions(Resource):
             Returns a chatbotSID
         '''
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.form
         module_id = data.get("moduleID")
         class_id = data.get("classID")
 
@@ -96,7 +96,7 @@ class UserMessages(Resource):
             Returns the messageID of the newly received message for use
         '''
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.form
         message = data.get('message')
         session_id = data.get('chatbotSID')
         module_id = data.get('moduleID')
@@ -123,22 +123,25 @@ class UserMessages(Resource):
         # Async grammar evaluation
 
         # Sends a message to tito with safety check
-        # tito_response = ''
+        tito_response = ''
         # try:
-        #     try:
-        #         safety_check = detect_innapropriate_language(message)
-        #         if safety_check.get('is_appropriate', False):
-        #             tito_response_data = {'response': "I can't respond to that type of message. Let's keep the conversation educational and appropriate"}
-        #         else:
-        #             tito_response_data = handle_message(message)
-        #     except Exception as safety_error:
-        #         print(f"Safety check failed: {safety_error}")
-        #         tito_response_data = handle_message(message)
+        #     # try:
+        #     #     safety_check = detect_innapropriate_language(message)
+        #     #     if not safety_check.get('is_appropriate', True):
+        #     #         tito_response_data = {'response': "I can't respond to that type of message. Let's keep the conversation educational and appropriate"}
+        #     #     else:
+        #     #         tito_response_data = handle_message(message)
+        #     # except Exception as safety_error:
+        #     #     print(f"Safety check failed: {safety_error}")
+        #     tito_response_data = handle_message(message)
             
+        #     print("this1")
         #     tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
+        #     print(tito_response)
             
         #     # TODO: Verify data
-        #     newTitoMessage(user_id, session_id, tito_response_data)
+        #     newTitoMessage(user_id, session_id, tito_response_data.get('response'), module_id)
+        #     print("this3")
 
         # except Exception as error:
         #     print(f"Error communicating with Tito: {error}")
@@ -146,7 +149,7 @@ class UserMessages(Resource):
         #     tito_response_data = {"response": tito_response}
 
         if True: # a successful llm message insert
-            return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id, titoResponse="To be implemented.")
+            return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id, titoResponse=tito_response)
         else: 
             return 
 
@@ -160,7 +163,7 @@ class UserMessages(Resource):
         user_id = get_jwt_identity()
 
         try:
-            data = request.get_json()
+            data = request.form
             module_id = request.args.get('moduleID')
             
             if not module_id:
@@ -325,7 +328,7 @@ class AddTitoModule(Resource):
             will automatically populate tito_* tables for this module on success
         '''
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.form
         class_id = data.get('classID')
         module_id = data.get('moduleID')
         
@@ -350,7 +353,7 @@ class UpdateTitoModule(Resource):
             enable/disable tito modules for a class
         '''
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.form
         class_id = data.get('classID')
         module_id = data.get('moduleID')
 
@@ -391,7 +394,7 @@ class UpdateTitoClass(Resource):
                 inserts into tito_group_status if not previously a tito-enrolled class
         '''
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.form
         class_id = data.get('classID')
 
         if not class_id:
@@ -422,7 +425,7 @@ class GetStudentMessages(Resource):
 # class ExportChatHistory(Resource):
 #     @jwt_required
 #     def post(self):
-#          data = request.get_json()  
+#          data = request.form  
 #          userId = data.get('userId')
 #          chatbotSID = data.get('chatbotSID')
  

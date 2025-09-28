@@ -104,17 +104,17 @@ def createNewUserMessage(userID: int, moduleID: int, chatbotSID: int, message: s
         return 0
 
 
-def newTitoMessage(userID: int, chatbotSID: int, message: str):
-    is_valid_session = isValidChatbotSession(userID, moduleID, chatbotSID)
+def newTitoMessage(userID: int, chatbotSID: int, message: str, module_id: int):
+    is_valid_session = isValidChatbotSession(userID, module_id, chatbotSID)
     if not is_valid_session:
         return False
 
     query = '''
-        INSERT INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage)
+        INSERT INTO `messages` (`userID`, `chatbotSID`, `moduleID`, `source`, `message`, `isVoiceMessage`)
         VALUES (%s, %s, %s, 'llm', %s, 0);
     '''
 
-    res = db.post(query, (userID, chatbotSID, moduleID, message, isVM))
+    res = db.post(query, (userID, chatbotSID, module_id, message))
     if not res:
         return False
 
