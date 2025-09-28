@@ -67,7 +67,7 @@ class ChatbotSessions(Resource):
             Returns a chatbotSID
         '''
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.form
         module_id = data.get("moduleID")
         class_id = data.get("classID")
 
@@ -96,7 +96,7 @@ class UserMessages(Resource):
             Returns the messageID of the newly received message for use
         '''
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.form
         message = data.get('message')
         session_id = data.get('chatbotSID')
         module_id = data.get('moduleID')
@@ -123,7 +123,7 @@ class UserMessages(Resource):
         # Async grammar evaluation
 
         # Sends a message to tito with safety check
-        # tito_response = ''
+        tito_response = 'this is a sample tito response. Please enable Llama'
         # try:
         #     try:
         #         safety_check = detect_innapropriate_language(message)
@@ -325,7 +325,7 @@ class AddTitoModule(Resource):
             will automatically populate tito_* tables for this module on success
         '''
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.form
         class_id = data.get('classID')
         module_id = data.get('moduleID')
         
@@ -350,7 +350,7 @@ class UpdateTitoModule(Resource):
             enable/disable tito modules for a class
         '''
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.form
         class_id = data.get('classID')
         module_id = data.get('moduleID')
 
@@ -391,7 +391,7 @@ class UpdateTitoClass(Resource):
                 inserts into tito_group_status if not previously a tito-enrolled class
         '''
         user_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.form
         class_id = data.get('classID')
 
         if not class_id:
