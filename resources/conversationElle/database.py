@@ -514,3 +514,16 @@ def isModuleInClass(class_id: int, module_id:int):
     if not res:
         return False
     return True
+
+def getUserModuleProgress(user_id: int, module_id:int):
+    query = '''
+        SELECT proficiencyRate 
+        FROM tito_module_progress
+        WHERE moduleID = %s AND studentID = %s;
+    '''
+
+    res = db.get(query, (module_id, user_id), fetchOne=True)
+    if not res:
+        raise Exception(f"Failed to access tito_module_progress with {user_id} and {module_id} (invalid pair-request)")
+    else:
+        return res[0]

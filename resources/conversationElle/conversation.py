@@ -68,7 +68,6 @@ class ChatbotSessions(Resource):
         '''
         user_id = get_jwt_identity()
         data = request.form
-        data = request.form
         module_id = data.get("moduleID")
         class_id = data.get("classID")
 
@@ -97,7 +96,6 @@ class UserMessages(Resource):
             Returns the messageID of the newly received message for use
         '''
         user_id = get_jwt_identity()
-        data = request.form
         data = request.form
         message = data.get('message')
         session_id = data.get('chatbotSID')
@@ -299,6 +297,17 @@ class ModuleTerms(Resource):
             return create_response(False, message="module is a freechat module, no terms stored", status_code=400)
         return create_response(True, message=f"Retrieved module terms from module {module_id}", data=getModuleTerms(module_id))
 
+class GetModuleProgress(Resource):
+    @jwt_required
+    def get(self):
+        user_id = get_jwt_identity()
+        module_id = request.args.get('moduleID')
+
+        if not module_id:
+            return create_response(False, message="insufficient params provided", status_code=403)
+        res = getUserModuleProgress(user_id, module_id)
+        
+        return create_response(True, data=res)
 
 # ========================================
 # ++++++ PROFESSOR + (TAs?) ACCESS ONLY APIs ++++++
@@ -331,7 +340,6 @@ class AddTitoModule(Resource):
         '''
         user_id = get_jwt_identity()
         data = request.form
-        data = request.form
         class_id = data.get('classID')
         module_id = data.get('moduleID')
         
@@ -356,7 +364,6 @@ class UpdateTitoModule(Resource):
             enable/disable tito modules for a class
         '''
         user_id = get_jwt_identity()
-        data = request.form
         data = request.form
         class_id = data.get('classID')
         module_id = data.get('moduleID')
@@ -398,7 +405,6 @@ class UpdateTitoClass(Resource):
                 inserts into tito_group_status if not previously a tito-enrolled class
         '''
         user_id = get_jwt_identity()
-        data = request.form
         data = request.form
         class_id = data.get('classID')
 

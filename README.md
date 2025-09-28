@@ -12,3 +12,4 @@
   - for `group_status` make sure to update it to + 1 year from current date on insertion
   - Free chat sessions
   - inserts/updates to `tito` tables
+  - in convgrader.py > suggest_grade() figure out how to match errors to key terms
