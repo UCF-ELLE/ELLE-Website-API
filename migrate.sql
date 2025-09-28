@@ -5,11 +5,14 @@ ALTER TABLE group_module
 ADD PRIMARY KEY (`groupID`, `moduleID`);
 
 -- The free chat module
-INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en', 501, 'FREE_CHAT_MODULE');
+INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en', 473, 'FREE_CHAT_MODULE');
 
 
 -- Update a certain group to have all modules
 -- TODO: create a super class containing all modules for testing
+-- universal student account
+-- ucf2
+-- cooler
 INSERT IGNORE INTO group_module (groupID, moduleID)
 SELECT DISTINCT 1 AS groupID, m.moduleID 
 FROM `module` m;
