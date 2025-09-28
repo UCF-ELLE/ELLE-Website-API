@@ -68,6 +68,7 @@ class ChatbotSessions(Resource):
         '''
         user_id = get_jwt_identity()
         data = request.form
+        data = request.form
         module_id = data.get("moduleID")
         class_id = data.get("classID")
 
@@ -96,6 +97,7 @@ class UserMessages(Resource):
             Returns the messageID of the newly received message for use
         '''
         user_id = get_jwt_identity()
+        data = request.form
         data = request.form
         message = data.get('message')
         session_id = data.get('chatbotSID')
@@ -329,6 +331,7 @@ class AddTitoModule(Resource):
         '''
         user_id = get_jwt_identity()
         data = request.form
+        data = request.form
         class_id = data.get('classID')
         module_id = data.get('moduleID')
         
@@ -353,6 +356,7 @@ class UpdateTitoModule(Resource):
             enable/disable tito modules for a class
         '''
         user_id = get_jwt_identity()
+        data = request.form
         data = request.form
         class_id = data.get('classID')
         module_id = data.get('moduleID')
@@ -394,6 +398,7 @@ class UpdateTitoClass(Resource):
                 inserts into tito_group_status if not previously a tito-enrolled class
         '''
         user_id = get_jwt_identity()
+        data = request.form
         data = request.form
         class_id = data.get('classID')
 
