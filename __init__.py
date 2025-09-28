@@ -131,12 +131,16 @@ import config
 
 # Comment out if NOT using TWT or tools from ConversationELLE / Talking With Tito Imports
 from resources.conversationElle.conversation import(
-    ChatbotSessions,
     TitoAccess,
+    ChatbotSessions,
     UserMessages, 
-    Classes,
-    ModuleTerms,
     UserAudio,
+    ModuleTerms,
+    Classes,
+    AddTitoModule,
+    UpdateTitoModule,
+    UpdateTitoClass,
+
 )
 import os
 import threading
@@ -380,9 +384,15 @@ api.add_resource(GetALValues, API_ENDPOINT_PREFIX + "adaptivelearning/gettermlis
 api.add_resource(TitoAccess, API_ENDPOINT_PREFIX + "twt/session/access")
 api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "twt/session/create")
 api.add_resource(UserMessages, API_ENDPOINT_PREFIX + "twt/session/messages")
-api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
-api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
 api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
+api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
+
+api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
+api.add_resource(AddTitoModule, API_ENDPOINT_PREFIX + "twt/professor/addModule")
+api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/updateModule")
+api.add_resource(UpdateTitoClass, API_ENDPOINT_PREFIX + "twt/professor/updateClassStatus")
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
+
 # ===============================================
 # End of ConversAItionELLE endpoints
 # ===============================================

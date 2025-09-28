@@ -1,12 +1,18 @@
 -- use elle2020;
 
+-- ALTER group_module with PRIMARY KEY (`groupID`, `moduleID`),
+ALTER TABLE group_module
+ADD PRIMARY KEY (`groupID`, `moduleID`);
+
+-- The free chat module
+INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en', 501, 'FREE_CHAT_MODULE');
 
 
 -- Update a certain group to have all modules
 -- TODO: create a super class containing all modules for testing
-INSERT IGNORE INTO group_module (moduleID, groupID)
-SELECT DISTINCT msg.moduleID, 1 AS groupID
-FROM messages msg;
+INSERT IGNORE INTO group_module (groupID, moduleID)
+SELECT DISTINCT 1 AS groupID, m.moduleID 
+FROM `module` m;
 
 UPDATE `group_user`
 SET `accessLevel` = 'st'
@@ -17,6 +23,37 @@ SET `permissionGroup` = 'st'
 WHERE `userID` = 1;
 
 
+-- REGISTER A NEW USER FIRST BEFORE PROCEEDING
+-- LOG IN AND GET THEIR USER ID AND REPLACE '501' WITH THE NEW ID
+-- THAT WILL BE YOUR PROFESSOR ACCOUNT
+-- username =  
+-- password = 1 
+
+
+-- REPLACE FROM HERE
+INSERT INTO group_user (userID, groupID, accessLevel)
+VALUES (501, 1, 'pf');
+
+INSERT IGNORE INTO group_module (groupID, moduleID)
+SELECT DISTINCT 1 as groupID, m.moduleID as moduleID
+from `module` m;
+
+UPDATE `group_user`
+SET `accessLevel` = 'pf'
+WHERE `userID` = 501;
+
+UPDATE `user`
+SET `permissionGroup` = 'pf'
+WHERE `userID` = 501;
+-- REPLACE TO HERE
+
+
+
+
+
+
+
+
 -- Begin migration chatbot sessions
 RENAME TABLE `chatbot_sessions` TO `chatbot_sessions_old`;
 
@@ -25,7 +62,6 @@ CREATE TABLE `chatbot_sessions` (
   `userID` int(4) NOT NULL,
   `moduleID` int(4) NOT NULL,
   `totalTimeChatted` float NOT NULL DEFAULT 0,
-  `wordsUsed` int(4) NOT NULL DEFAULT 0,
   `moduleWordsUsed` int(4) NOT NULL DEFAULT 0,
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   `grammarPerformanceRating` float(4) NOT NULL DEFAULT 0,
@@ -38,8 +74,8 @@ CREATE TABLE `chatbot_sessions` (
 
 -- migrate data from old to new
 
-INSERT IGNORE INTO `chatbot_sessions` (`chatbotSID`, `userID`, `moduleID`, `totalTimeChatted`, `wordsUsed`, `moduleWordsUsed`, `timestamp`)
-SELECT `chatbotId`, `userId`, `moduleId`, `totalTimeChatted`, `wordsUsed`, `totalWordsForModule`, `timestamp`
+INSERT IGNORE INTO `chatbot_sessions` (`chatbotSID`, `userID`, `moduleID`, `totalTimeChatted`, `moduleWordsUsed`, `timestamp`)
+SELECT `chatbotId`, `userId`, `moduleId`, `totalTimeChatted`, `totalWordsForModule`, `timestamp`
 FROM `chatbot_sessions_old`;
 
 
@@ -58,6 +94,7 @@ CREATE TABLE `messages` (
   `keyWordsUsed` int(4) NOT NULL DEFAULT 0,
   `grammarRating` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously, NULL means score unavailable
   PRIMARY KEY (`messageID`),
+  KEY (`timestamp`),
   FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE, 
   FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
   FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
@@ -71,12 +108,14 @@ FROM `messages_old`;
 
 
 
-CREATE TABLE `group_status` (
+CREATE TABLE `tito_group_status` (
   `classID` int(4) NOT NULL,
-  `titoStatus` enum('active', 'inactive') NOT NULL DEFAULT 'inactive',
-  `titoExpirationDate` timestamp NOT NULL DEFAULT current_timestamp(),
+  `professorID` int(4) NOT NULL,
+  `titoStatus` enum('active', 'inactive') NOT NULL DEFAULT 'active',
+  `titoExpirationDate` date NOT NULL,
   FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
-  PRIMARY KEY (`classID`),
+  FOREIGN KEY (`professorID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
+  PRIMARY KEY (`classID`, `professorID`),
   KEY (`titoStatus`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -105,6 +144,13 @@ CREATE TABLE `tito_module` (
   PRIMARY KEY(`classID`, `moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
+-- CREATE TABLE `tito_free_chat_module` (
+--   `classID` int(4) NOT NULL,
+--   `titoPrompt` text DEFAULT NULL,
+--   `status` enum('active', 'inactive') NOT NULL DEFAULT 'active',
+--   FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
+--   PRIMARY KEY (`classID`)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE `tito_module_progress` (
   `proficiencyRate` float(4) DEFAULT 0.0, 
@@ -181,50 +227,52 @@ JOIN `group_user` gu ON gu.userID = msg.userID;
 
 
 
--- Populate `group_status` table
-INSERT IGNORE INTO `group_status` (`classID`, `titoStatus`, `titoExpirationDate`)
-SELECT DISTINCT g.groupID, 'active', DATE_ADD(NOW(), INTERVAL 1 YEAR)
-FROM `group` g;
+-- Populate tito_group_status table
+INSERT IGNORE INTO `tito_group_status` (`classID`, `professorID`, `titoStatus`, `titoExpirationDate`)
+SELECT DISTINCT gu.groupID, gu.userID, 'active', DATE_ADD(NOW(), INTERVAL 1 YEAR)
+FROM `group_user` gu
+WHERE gu.accessLevel = 'pf';
 
 
 
 -- CREATE TRIGGERS
 -- when a new group is created, so it a auxiliary table used to track "statuses" for any ELLE app
+-- Makes no sense
 -- DELIMITER //
 
--- CREATE TRIGGER trigger_on_group_insert
--- AFTER INSERT ON `group`
+-- CREATE TRIGGER trigger_on_tito_module_insert
+-- AFTER INSERT ON `tito_module`
 -- FOR EACH ROW
 -- BEGIN
---     INSERT INTO `group_status` (`classID`, `titoExpirationDate`)
+--     INSERT INTO tito_group_status (`classID`, `titoExpirationDate`)
 --     VALUES (NEW.groupID, DATE_ADD(NOW(), INTERVAL 1 YEAR));
 -- END //
 
 -- DELIMITER ;
 
--- -- When the `tito_status` of a class changes, changes cascade onto `tito_module`
--- DELIMITER //
+-- When the `tito_group_status` of a class changes, changes cascade onto `tito_module`
+DELIMITER //
 
--- CREATE TRIGGER trigger_on_group_status_update
--- AFTER UPDATE ON group_status
--- FOR EACH ROW
--- BEGIN
---     -- Case 1: active -> inactive
---     IF OLD.titoStatus = 'active' AND NEW.titoStatus = 'inactive' THEN
---         UPDATE `tito_module`
---         SET status = 'inactive'
---         WHERE classID = NEW.classID;
---     END IF;
+CREATE TRIGGER trigger_on_group_status_update
+AFTER UPDATE ON tito_group_status
+FOR EACH ROW
+BEGIN
+    -- Case 1: active -> inactive
+    IF OLD.titoStatus = 'active' AND NEW.titoStatus = 'inactive' THEN
+        UPDATE `tito_module`
+        SET status = 'inactive'
+        WHERE classID = NEW.classID;
+    END IF;
 
---     -- Case 2: inactive -> active
---     IF OLD.titoStatus = 'inactive' AND NEW.titoStatus = 'active' THEN
---         UPDATE `tito_module`
---         SET status = 'active'
---         WHERE classID = NEW.classID;
---     END IF;
--- END//
+    -- Case 2: inactive -> active
+    IF OLD.titoStatus = 'inactive' AND NEW.titoStatus = 'active' THEN
+        UPDATE `tito_module`
+        SET status = 'active'
+        WHERE classID = NEW.classID;
+    END IF;
+END//
 
--- DELIMITER ;
+DELIMITER ;
 
 
 

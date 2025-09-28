@@ -11,7 +11,7 @@ from db import mysql
 
 class DBHelper:
     '''
-        This is similar to the methods below this class, but is a tad bit more useful
+        This is similar to the methods below this class, but returns a bit more context
     '''
     def __init__(self, mysql: MySQL):
         self.mysql = mysql
@@ -37,7 +37,10 @@ class DBHelper:
         cursor = conn.cursor()
 
         try:
-            cursor.execute(query, vals or ())
+            if isinstance(vals, list) and all(isinstance(v, (tuple, list)) for v in vals):
+                cursor.executemany(query, vals)
+            else:
+                cursor.execute(query, vals or ())
 
             if fetch == "all":
                 result = cursor.fetchall()

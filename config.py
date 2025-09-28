@@ -28,8 +28,12 @@ AUD_UPLOAD_FOLDER = "audios/"
 IMG_RETRIEVE_FOLDER = "/images/"
 AUD_RETRIEVE_FOLDER = "/audios/"
 
-MAX_AUDIO_SIZE_BYTES = 3 * 1024 * 1024
+
+# START: ConversAItionELLE-specific magic nums 
+MAX_AUDIO_SIZE_BYTES = 3 * 1024 * 1024 # 3MB user voice files
 MAX_AUDIO_LENGTH_SEC = 90
+FREE_CHAT_MODULE = 3 # Magic `module` for Tito free-chat
+# END:
 
 # List of user permission types
 # Changing these values is not recommended

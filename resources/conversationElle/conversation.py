@@ -3,7 +3,7 @@ from flask import Response, request, jsonify, send_file
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt_claims
 # from .config import free_prompt
-from config import MAX_AUDIO_SIZE_BYTES, MAX_AUDIO_LENGTH_SEC
+from config import MAX_AUDIO_SIZE_BYTES, MAX_AUDIO_LENGTH_SEC, FREE_CHAT_MODULE
 from .database import * 
 from .spacy_service import add_message
 import os
@@ -14,7 +14,7 @@ from pydub import AudioSegment
 USER_VOICE_FOLDER = "user_audio_files/"
 
 # ======================================
-# ++++++ STUDENT ACCESS ONLY APIs ++++++
+# ++++++ TWT ACCESS APIs ++++++
 # ======================================
 
 # TODO: Free chat AND module-based chats to be worked on
@@ -26,8 +26,8 @@ class TitoAccess(Resource):
         '''
         /elleapi/twt/session/access
             Requires server permission to be able to use Talking with Tito (TWT)
-                - Only student users may use TWT currently for simplicity of management
-                - Returns: active, tito-enabled, groups/classes where student is enrolled in 
+                - Any user of any access_level [pf, ta, st] may be able to use TWT
+                - Returns: active, tito-enabled, class:[modules] where a user has access to 
                     A (?) list of tuples [(classID, [(tito_module_id, sequence_id)])]
                     EX  [
                             (
@@ -40,30 +40,19 @@ class TitoAccess(Resource):
                                 ]
                             ),
                         ]
-            TODO: Error Handling
+            TODO: Error Handling or let it be 
         '''
         try:
-            user_perms = get_jwt_claims().get("permission")
-            if not validate_user(permission_claim=user_perms, req_student_perm=True):
-                return create_response(False, message="User has invalid permissions to access this resource.", status_code=403)
-            user_id = get_jwt_identity()
-            
-            class_ids = getClasses(user_id, user_perms)
+            class_ids = getTitoClasses(userID=get_jwt_identity(), permissionLevel='any', get_classes_type='active')
             if not class_ids:
                 return create_response(success=False, message="User is not enrolled in any active tito classes.", status_code=403)
             
             tito_modules = []
-            is_valid_user = False
-            counter = 0
             for class_id in class_ids:
                 res = getTitoModules(class_id)
-                if res:
-                    is_valid_user = True
                 tito_modules.append((class_id[0], res))
 
-            if not is_valid_user:
-                return create_response(message="User not enrolled in valid tito_modules.", status_code=403)
-            return create_response(True, data=tito_modules) 
+            return create_response(True, message="Returned user modules", data=tito_modules) 
         except Exception as e:
             print(f"Error occurred: {e} when trying to access TitoAccess @ conversation.py")
             return create_response(False, message="Internal server error. Please try again later.", error=str(e), status_code=500) 
@@ -77,24 +66,24 @@ class ChatbotSessions(Resource):
             Enables a user to chat with Tito
             Returns a chatbotSID
         '''
-        if not validate_user(permission_claim=get_jwt_claims().get("permission"), req_student_perm=True):
-            return create_response(False, message="User has invalid permissions to access this resource.", status_code=403)
         user_id = get_jwt_identity()
-
         data = request.get_json()
         module_id = data.get("moduleID")
         class_id = data.get("classID")
 
-        if module_id is None or not class_id:
+        if not module_id or not class_id:
             return create_response(False, message="Missing required parameters.", status_code=404)
+        if not isUserInClass(user_id, class_id):
+            return create_response(False, message=f"User does not belong to class {class_id}.", status_code=403)
 
         # A freechat session
-        # if module_id == 0:
-            # return create_response()
+        if module_id == FREE_CHAT_MODULE:
+            return create_response(True, message="Free chat Chatbot session created.", data=createChatbotSession(user_id, FREE_CHAT_MODULE))
+
         
-        if not isTitoModule(class_id, module_id):
-            return create_response(success=False, message="Chatbot session failed to be created.", status_code=403)
-        return create_response(True, message="Chatbot session created.", data=createNewChatbotSession(user_id, module_id))
+        if not isActiveTitoModule(class_id, module_id):
+            return create_response(success=False, message="Chatbot session failed to be created. No available modules", status_code=403)
+        return create_response(True, message="Chatbot session created.", data=createChatbotSession(user_id, module_id))
 
 # NOTE: Ability to send messages should block until receiving back a response
 # stores message to DB and Tito AI And Returns response from Tito
@@ -106,31 +95,28 @@ class UserMessages(Resource):
             Sends a single message to the server
             Returns the messageID of the newly received message for use
         '''
-        if not validate_user(permission_claim=get_jwt_claims().get("permission"), req_student_perm=True):
-            return create_response(False, message="User has invalid permissions to access this resource.", status_code=403, resumeMessaging=True, titoResponse="Please try again.")
         user_id = get_jwt_identity()
-
         data = request.get_json()
         message = data.get('message')
         session_id = data.get('chatbotSID')
         module_id = data.get('moduleID')
+        is_vm = data.get('isVoiceMessage')
 
-        if not session_id or module_id is None:
+        if not session_id or not module_id or not message or is_vm is None:
             return create_response(False, message="Missing required parameters.", status_code=404)
 
-        # TODO: a freechat session
-        # if module_id == 0:
-            
 
-        # Attempts to add message to DB, no error, success returns msg_id
-        new_msg_id = newUserMessage(userID=user_id, moduleID=data.get('moduleID'),chatbotSID=session_id, message=message, isVM=data.get('isVoiceMessage'))
+        # Attempts to add message to DB, 0/None = error, success returns msg_id
+        new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id,chatbotSID=session_id, message=message, isVM=is_vm)
         if not new_msg_id:
             return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
 
         updateTotalTimeChatted(session_id)
 
-        # Send to spacy service to parse key terms
-        add_message(message, module_id, user_id, new_msg_id)
+        # TODO: a freechat session ADD SUPPORT FOR IT
+        # Send to spacy service to parse key terms if NOT in free chat mode
+        if module_id != FREE_CHAT_MODULE:
+            add_message(message, module_id, user_id, new_msg_id, session_id)
 
         # TODO:
         # Update module words used =>
@@ -171,8 +157,6 @@ class UserMessages(Resource):
             Returns chat history of a user for a given moduleID in ascending order (1 -> N)
             TODO: to be worked on?
         '''
-        if not validate_user(permission_claim=get_jwt_claims().get("permission"), req_student_perm=True):
-            return create_response(False, message="User has invalid permissions to access this resource.", status_code=403)
         user_id = get_jwt_identity()
 
         try:
@@ -206,10 +190,7 @@ class UserAudio(Resource):
         -F "moduleID=1" \
         -F "audio=@1.webm"
         '''
-        if not validate_user(permission_claim=get_jwt_claims().get("permission"), req_student_perm=True):
-            return create_response(False, message="User has invalid permissions to access this resource.", status_code=403)
         user_id = get_jwt_identity()
-
         data = request.form
         message_id = data.get('messageID')
         chatbot_sid = data.get('chatbotSID')
@@ -218,20 +199,18 @@ class UserAudio(Resource):
 
         if not message_id or not chatbot_sid or not class_id or not module_id:
             return create_response(False, message="Failed to upload. Missing required parameters.", status_code=400) 
-        if is_duplicate_audio_upload(user_id, message_id):
+        if isDuplicateAudioUpload(user_id, message_id):
             return create_response(False, message="User already has uploaded an audio file for this message.", status_code=403)
 
         audio_file = request.files.get('audio')
-        print(audio_file.content_length)
-        print(audio_file.read())  # just to peek at the bytes
         audio_file.seek(0)
         if not audio_file:
             return create_response(False, message="Audio file not received.", status_code=400)
         audio_file.seek(0, 2)
-        size_bytes = audio_file.tell()
+        filesize_bytes = audio_file.tell()
         audio_file.seek(0)
 
-        if size_bytes > MAX_AUDIO_SIZE_BYTES:
+        if filesize_bytes > MAX_AUDIO_SIZE_BYTES:
             return create_response(False, message="Failed to upload, file too large.", status_code=400)
         
         audio = AudioSegment.from_file(audio_file)
@@ -257,13 +236,15 @@ class UserAudio(Resource):
         except Exception as e:
             return create_response(False, message=f"Failed to save audio file: {str(e)}", status_code=500)
 
-        is_stored = storeVoiceMessage(user_id, message_id, filename, chatbot_sid)
+        res = storeVoiceMessage(user_id, message_id, filename, chatbot_sid)
 
-        # TODO: Create a way to test if file actually written, maybe search up the file and see if not NONE
+        # TODO: Create a way to test if file actually written, maybe search up the file and see if exists
         # if not is_stored:
         #     return create_response(False, message="Failed to store voice message.", status_code=500) 
 
-        return create_response(True, message="Audio message uploaded successfully.")
+        if not res:
+            return create_response(False, message="Error occurred when inserting vm data into DB.", voiceID=res)
+        return create_response(True, message="Audio message uploaded successfully.", voiceID=res)
 
     @jwt_required
     def get(self):
@@ -279,10 +260,7 @@ class UserAudio(Resource):
             --output output_audio.webm
 
         '''
-        if not validate_user(permission_claim=get_jwt_claims().get("permission"), req_student_perm=True):
-            return create_response(False, message="User has invalid permissions to access this resource.", status_code=403)
         user_id = get_jwt_identity() 
-
         class_id = request.args.get('classID')
         message_id = request.args.get('messageID')
         module_id = request.args.get('moduleID')
@@ -307,18 +285,18 @@ class ModuleTerms(Resource):
         '''
         /elleapi/twt/module/terms
             Fetches all terms associated to a given moduleID
-            TODO: error handling when moduleID doesnt exist
             TODO: ensure only enrolled people can access modules
         '''
         module_id = request.args.get('moduleID')
         if not module_id:
             return create_response(False, message="improper moduleID given.", status_code=403)
-
+        if module_id == FREE_CHAT_MODULE:
+            return create_response(False, message="module is a freechat module, no terms stored", status_code=400)
         return create_response(True, message=f"Retrieved module terms from module {module_id}", data=getModuleTerms(module_id))
 
 
 # ========================================
-# ++++++ PROFESSOR ACCESS ONLY APIs ++++++
+# ++++++ PROFESSOR + (TAs?) ACCESS ONLY APIs ++++++
 # ========================================
 
 class Classes(Resource):
@@ -328,37 +306,109 @@ class Classes(Resource):
         /elleapi/twt/professor/classes
             Gets a professors owned classes
         '''
-        if not validate_user(permission_claim=get_jwt_claims().get("permission"), req_prof_perm=True):
-            return create_response(False, message="User has invalid permissions to access this resource.", status_code=403)
         user_id = get_jwt_identity()
 
-        return create_response(True, data=getClasses(user_id, get_jwt_claims().get("permission")))
+        # Should be either 'all', 'active' or 'inactive'
+        class_type = request.args.get('classType')
+
+        if class_type is None:
+            return create_response(False, message="Missing parameters in request.", status_code=400)
+
+        return create_response(True, data=getTitoClasses(user_id, 'pf', class_type))
  
-# TODO: this
-class TitoModule(Resource):
+# TODO: this might need try catch statements
+class AddTitoModule(Resource):
     @jwt_required
     def post(self):
         '''
             makes changes to a module's status on being a tito_module or not
+            will automatically populate tito_* tables for this module on success
         '''
-        if not validate_user(permission_claim=get_jwt_claims().get("permission"), req_prof_perm=True):
-            return create_response(False, message="User has invalid permissions to access this resource.", status_code=403)
         user_id = get_jwt_identity()
-
-        data = request.form
+        data = request.get_json()
         class_id = data.get('classID')
         module_id = data.get('moduleID')
-        is_enabled = data.get('isEnabled')
-
-        if not class_id or not module_id or is_enabled is None:
+        
+        if not class_id or not module_id:
             create_response(False, message="Missing parameters.", status_code=404)
+        if not userIsNotStudent(user_id, class_id):
+            return create_response(False, message="user does not have required privileges.", status_code=403)
+        if not isTitoClass(user_id, class_id):
+            return create_response(False, message="Class is not currently a tito class.", status_code=403)
+        if isTitoModule(class_id, module_id):
+            return create_response(False, message="module is already a tito module.", status_code=404)
+        if not isModuleInClass(class_id, module_id):
+            return create_response(False, message="user does not have required privileges.", status_code=403)
+        insertNewTitoModule(module_id, class_id)
 
-        if is_enabled:
-            handle_new_module(module_id, class_id).get("rowcount")
-        # else: 
-            # TODO: WIP
         return create_response(True, message="updated respective tables.")
 
+class UpdateTitoModule(Resource):
+    @jwt_required
+    def post(self):
+        '''
+            enable/disable tito modules for a class
+        '''
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        class_id = data.get('classID')
+        module_id = data.get('moduleID')
+
+        # OPTIONAL ARGS
+        start_date = data.get('startDate')
+        end_date = data.get('endDate')
+        status_update_change = data.get('isStatusUpdate') # true or false
+        
+        if not class_id or not module_id:
+            return create_response(False, message="Missing parameters.", status_code=404)
+        if not start_date and not end_date and status_update_change is None:
+            return create_response(False, message="failed to change anything, missing params.")
+        if not userIsNotStudent(user_id, class_id):
+            return create_response(False, message="user does not have required privileges.", status_code=403)
+        if not isTitoClass(user_id, class_id):
+            return create_response(False, message="Class is not currently a tito class.", status_code=403)
+        if not isTitoModule(class_id, module_id):
+            return create_response(False, message="module is not a tito module.", status_code=403)
+
+        if start_date is not None and end_date is not None:
+            if status_update_change is not None:
+                if updateTitoModuleStatus(module_id, class_id, update_status=True, update_date=True, start_date=start_date, end_date=end_date):
+                    return create_response(True, message="successfully update tito module date and/or status")
+            else:
+                if updateTitoModuleStatus(module_id, class_id, update_date=True, start_date=start_date, end_date=end_date):
+                    return create_response(True, message="updated start/end dates.")
+        elif status_update_change: 
+            if updateTitoModuleStatus(module_id, class_id, update_status=True):
+                return create_response(True, message="Changed module status successfully")
+
+        return create_response(False, message="error has occurred, no change made in UpdateTitoModule.", status_code=400)
+
+class UpdateTitoClass(Resource):
+    @jwt_required
+    def post(self):
+        '''
+            enable/disable tito status for a class
+                inserts into tito_group_status if not previously a tito-enrolled class
+        '''
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        class_id = data.get('classID')
+
+        if not class_id:
+            return create_response(False, message="invalid params", status_code=403)
+        if not userIsNotStudent(user_id, class_id):
+            return create_response(False, message="invalid perms", status_code=403)
+        if not isTitoClass(user_id, class_id):
+            if createTitoClass(user_id, class_id):
+                return create_response(True, message="Successfully made class into a tito-enabled class")
+            else:
+                return create_response(False, message="Failed to make class a Tito class. Valve please fix...", status_code=500)
+            
+        if not updateTitoGroupStatus(user_id, class_id):
+            return create_response(False, message="failed to update tito class", status_code=400)
+
+        return create_response(True, message="updated tito class status")
+        
 class GetStudentMessages(Resource):
     @jwt_required
     def get(self):
@@ -367,8 +417,6 @@ class GetStudentMessages(Resource):
             TODO:
         '''
         return
-
-
 
 # Deprecated for now, unused?
 # class ExportChatHistory(Resource):
