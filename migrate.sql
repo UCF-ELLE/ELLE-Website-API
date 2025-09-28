@@ -26,13 +26,13 @@ WHERE `userID` = 1;
 -- REGISTER A NEW USER FIRST BEFORE PROCEEDING
 -- LOG IN AND GET THEIR USER ID AND REPLACE '501' WITH THE NEW ID
 -- THAT WILL BE YOUR PROFESSOR ACCOUNT
--- username =  
+-- username =  ecstaticseahorse0
 -- password = 1 
 
 
 -- REPLACE FROM HERE
 INSERT INTO group_user (userID, groupID, accessLevel)
-VALUES (501, 1, 'pf');
+VALUES (473, 1, 'pf');
 
 INSERT IGNORE INTO group_module (groupID, moduleID)
 SELECT DISTINCT 1 as groupID, m.moduleID as moduleID
@@ -40,11 +40,11 @@ from `module` m;
 
 UPDATE `group_user`
 SET `accessLevel` = 'pf'
-WHERE `userID` = 501;
+WHERE `userID` = 473;
 
 UPDATE `user`
 SET `permissionGroup` = 'pf'
-WHERE `userID` = 501;
+WHERE `userID` = 473;
 -- REPLACE TO HERE
 
 
