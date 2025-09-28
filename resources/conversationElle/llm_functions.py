@@ -100,6 +100,9 @@ def detect_innapropriate_language(message: str):
             "severity": "low"
         }
 
+
+
+# TODO: Figure out about
 def getUserBackgroundandMusic(vocab_list: str):
     """
     Returns a filename in the background folder and music folder
