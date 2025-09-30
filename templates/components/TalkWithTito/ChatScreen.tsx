@@ -1,9 +1,10 @@
 /* Imports */
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo} from "react";
 import { useUser } from "@/hooks/useAuth";
 import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage} from "@/services/TitoService";
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
+import SpeechRecognition, {useSpeechRecognition} from "react-speech-recognition";
 
 /* Assets */
 import background from "@/public/static/images/ConversAItionELLE/Graident Background.png";
@@ -152,6 +153,7 @@ export default function ChatScreen(props: propsInterface) {
       // --- Speech-to-Text (STT) ---
       const [sttSupported, setSttSupported] = useState(false);
       const [listening, setListening] = useState(false);
+      const [interimSTT, setInterimSTT] = useState("");
       const recognitionRef = useRef<SpeechRecognition | null>(null);
 
       // Type helper for TS
@@ -181,10 +183,14 @@ export default function ChatScreen(props: propsInterface) {
             if (ev.results[i].isFinal) finalText += chunk;
             else interim += chunk;
           }
-          // live preview while speaking:
-          if (interim) setUserMessage(prev => (prev?.trim() ? `${prev} ${interim}` : interim));
-          // commit the final text at phrase end:
-          if (finalText) setUserMessage(prev => (prev?.trim() ? `${prev} ${finalText}` : finalText));
+          // live preview while speaking (don't commit to userMessage)
+          setInterimSTT(interim);
+
+          // commit final text at phrase end, then clear interim preview
+          if (finalText) {
+            setUserMessage(prev => (prev?.trim() ? `${prev} ${finalText.trim()}` : finalText.trim()));
+            setInterimSTT("");
+          }
         };
 
         recognitionRef.current = rec;
@@ -481,7 +487,7 @@ export default function ChatScreen(props: propsInterface) {
 
                         style={{pointerEvents: titoMood === "thinking" ? "none" : "auto", opacity: titoMood === "thinking" ? 0.75 : 1, fontWeight: titoMood === "thinking" ? "bold" : "normal"}}
                         disabled={titoMood === "thinking"}
-                        value={userMessage}
+                        value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
                         onChange={(e) => setUserMessage(e.target.value)}
                     />
                     {/* controls column: Mic + Language */}
