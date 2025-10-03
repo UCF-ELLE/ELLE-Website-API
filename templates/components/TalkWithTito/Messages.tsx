@@ -15,6 +15,7 @@ interface ChatMessage {
 }
 
 interface MessageProps { message: ChatMessage; chatFontSize: string; }
+
 function Message({ message,chatFontSize }: MessageProps) {
 
     function scoreToRGB(score: number): string {
