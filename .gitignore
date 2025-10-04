@@ -21,6 +21,9 @@ temp_uploads/*
 !temp_uploads/.gitkeep
 user_audio_files/*
 
+# Other
+*.sql
+
 
 ### PyCharm ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
