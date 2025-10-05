@@ -5,6 +5,7 @@ import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage} 
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
 import SpeechRecognition, {useSpeechRecognition} from "react-speech-recognition";
+import TitoCloudBubble from "@/components/TalkWithTito/TitoCloudBubble";
 
 /* Assets */
 import background from "@/public/static/images/ConversAItionELLE/Graident Background.png";
@@ -62,9 +63,33 @@ export default function ChatScreen(props: propsInterface) {
     const [userMessage, setUserMessage] = useState<string>("");
     const [titoMood, setTitoMood] = useState("neutral");
     const [timeChatted, setTimeChatted] = useState<number | undefined>(undefined);
+    const [progress, setProgress] = useState(0);
+    const [message, setMessage] = useState("");
+    const [trigger, setTrigger] = useState(0);
     // --- TTS state + helpers ---
     const [ttsSupported, setTtsSupported] = useState(false);
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+    //effect for cloud bubble
+    useEffect(() => {
+      async function fetchProgress() {
+      const res = await fetch("twt/session/getModuleProgress");
+      const data = await res.json();
+      setProgress(data.proficiencyRate);
+
+      if (data.proficiencyRate === 25) {
+        setMessage("Tito remembers his hometown… but the name is fuzzy.");
+        setTrigger(Date.now());
+      } else if (data.proficiencyRate === 50) {
+        setMessage("Tito recalls speaking another language long ago!");
+        setTrigger(Date.now());
+      } else if (data.proficiencyRate === 100) {
+        setMessage("Tito has fully regained his memory thanks to you!");
+        setTrigger(Date.now());
+      }
+      }
+      fetchProgress();
+    }, []);
 
     async function handleSendMessageClick() {
 
@@ -147,6 +172,18 @@ export default function ChatScreen(props: propsInterface) {
       const i = SUPPORTED_LANGS.findIndex(l => l.code === ttsLang);
       const next = SUPPORTED_LANGS[(i + 1) % SUPPORTED_LANGS.length];
       setTtsLang(next.code);
+
+      //Trigger TitoCloudBubble for testing
+      if (next.code === "es-ES") {
+        setMessage("Tito remembers his hometown… but the name is fuzzy.");
+        setTrigger(Date.now());
+      } else if (next.code === "fr-FR") {
+        setMessage("Tito recalls speaking another language long ago!");
+        setTrigger(Date.now());
+      } else if (next.code === "pt-BR") {
+        setMessage("Tito has fully regained his memory thanks to you!");
+        setTrigger(Date.now());
+      }
     }
 
 
@@ -479,6 +516,7 @@ export default function ChatScreen(props: propsInterface) {
                     style={{width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%"}} 
                     alt={`Tito is ${titoMood}`}
                     className={titoMood === "thinking" ? 'tito-thinking' : ''}/>
+                    <TitoCloudBubble message={message} trigger={trigger} />
                 </div>
                 <div className="w-[85%] flex items-center justify-center ">
                     <textarea 
