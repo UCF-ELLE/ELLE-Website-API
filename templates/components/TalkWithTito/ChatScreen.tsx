@@ -141,6 +141,14 @@ export default function ChatScreen(props: propsInterface) {
                 used: term.used || sendMessageResponse.termsUsed.includes(term.questionFront)
             }))
             setTerms(newTerms);
+
+            // Automatically speak Tito's response
+            if (sendMessageResponse.llmResponse && ttsSupported) {
+                // Add a small delay to let the UI update before speaking
+                setTimeout(() => {
+                    speak(sendMessageResponse.llmResponse);
+                }, 100);
+            }
         }
         else {
             console.log("Error sending message");
@@ -196,15 +204,85 @@ export default function ChatScreen(props: propsInterface) {
       // Type helper for TS
       type SpeechRecognitionConstructor = new () => SpeechRecognition;
 
+      // Convert digits to words function
+      function convertDigitsToWords(text: string): string {
+        if (!text || typeof text !== 'string') return text;
+        
+        // Multi-language number mappings
+        const numberMappings: { [key: string]: { [key: string]: string } } = {
+          'en-US': {
+            '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four',
+            '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine',
+            '10': 'ten', '11': 'eleven', '12': 'twelve', '13': 'thirteen',
+            '14': 'fourteen', '15': 'fifteen', '16': 'sixteen', '17': 'seventeen',
+            '18': 'eighteen', '19': 'nineteen', '20': 'twenty'
+          },
+          'es-ES': {
+            '0': 'cero', '1': 'uno', '2': 'dos', '3': 'tres', '4': 'cuatro',
+            '5': 'cinco', '6': 'seis', '7': 'siete', '8': 'ocho', '9': 'nueve',
+            '10': 'diez', '11': 'once', '12': 'doce', '13': 'trece',
+            '14': 'catorce', '15': 'quince', '16': 'dieciséis', '17': 'diecisiete',
+            '18': 'dieciocho', '19': 'diecinueve', '20': 'veinte'
+          },
+          'fr-FR': {
+            '0': 'zéro', '1': 'un', '2': 'deux', '3': 'trois', '4': 'quatre',
+            '5': 'cinq', '6': 'six', '7': 'sept', '8': 'huit', '9': 'neuf',
+            '10': 'dix', '11': 'onze', '12': 'douze', '13': 'treize',
+            '14': 'quatorze', '15': 'quinze', '16': 'seize', '17': 'dix-sept',
+            '18': 'dix-huit', '19': 'dix-neuf', '20': 'vingt'
+          },
+          'pt-BR': {
+            '0': 'zero', '1': 'um', '2': 'dois', '3': 'três', '4': 'quatro',
+            '5': 'cinco', '6': 'seis', '7': 'sete', '8': 'oito', '9': 'nove',
+            '10': 'dez', '11': 'onze', '12': 'doze', '13': 'treze',
+            '14': 'quatorze', '15': 'quinze', '16': 'dezesseis', '17': 'dezessete',
+            '18': 'dezoito', '19': 'dezenove', '20': 'vinte'
+          }
+        };
+
+        const currentLangMap = numberMappings[ttsLang] || numberMappings['en-US'];
+        let result = text;
+        
+        try {
+          // First handle multi-digit numbers (20, 19, 18, ..., 10)
+          // Sort by descending number value to handle longer numbers first
+          const sortedNumbers = Object.keys(currentLangMap)
+            .map(num => parseInt(num))
+            .filter(num => num >= 10)
+            .sort((a, b) => b - a);
+            
+          sortedNumbers.forEach(num => {
+            const regex = new RegExp(`\\b${num}\\b`, 'gi');
+            result = result.replace(regex, currentLangMap[num.toString()]);
+          });
+          
+          // Then handle single digits (9, 8, 7, ..., 0)
+          const singleDigits = Object.keys(currentLangMap)
+            .map(num => parseInt(num))
+            .filter(num => num < 10)
+            .sort((a, b) => b - a);
+            
+          singleDigits.forEach(num => {
+            const regex = new RegExp(`\\b${num}\\b`, 'gi');
+            result = result.replace(regex, currentLangMap[num.toString()]);
+          });
+        } catch (error) {
+          console.warn('Error in number conversion:', error);
+          return text; // Return original text if conversion fails
+        }
+        
+        return result;
+      }
+
       useEffect(() => {
         const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SR) return;               // not supported
         setSttSupported(true);
         const rec: SpeechRecognition = new (SR as SpeechRecognitionConstructor)();
-        rec.continuous = false;        // end after a phrase; set true for long dictation
+        rec.continuous = true;         // keep listening continuously until manually stopped
         rec.interimResults = true;     // show partial words as you speak
         rec.maxAlternatives = 1;
-        rec.lang = ttsLang;            // use the same language you’re cycling (EN/ES/FR/PT)
+        rec.lang = ttsLang;            // use the same language you're cycling (EN/ES/FR/PT)
 
         rec.onstart = () => setListening(true);
         rec.onend = () => setListening(false);
@@ -220,12 +298,15 @@ export default function ChatScreen(props: propsInterface) {
             if (ev.results[i].isFinal) finalText += chunk;
             else interim += chunk;
           }
-          // live preview while speaking (don't commit to userMessage)
-          setInterimSTT(interim);
+          // Apply digit-to-word conversion to interim results
+          const processedInterim = convertDigitsToWords(interim);
+          setInterimSTT(processedInterim);
 
           // commit final text at phrase end, then clear interim preview
           if (finalText) {
-            setUserMessage(prev => (prev?.trim() ? `${prev} ${finalText.trim()}` : finalText.trim()));
+            // Apply digit-to-word conversion to final text
+            const processedFinalText = convertDigitsToWords(finalText.trim());
+            setUserMessage(prev => (prev?.trim() ? `${prev} ${processedFinalText}` : processedFinalText));
             setInterimSTT("");
           }
         };
@@ -414,6 +495,14 @@ export default function ChatScreen(props: propsInterface) {
           const newMessages = await getMessages(user.jwt, user.userID, props.chatbotId);
           if(newMessages) {
               setChatMessages([instructionMessage, ...newMessages]);
+              
+              // Speak the welcome message automatically when chat loads for first time
+              // Only if there are no previous messages (new conversation)
+              if (newMessages.length === 0 && ttsSupported && instructionMessage.value) {
+                  setTimeout(() => {
+                      speak(instructionMessage.value);
+                  }, 1000); // Wait 1 second to let everything load
+              }
           }
           else {
               console.log("Error getting messages");
@@ -479,17 +568,35 @@ export default function ChatScreen(props: propsInterface) {
       }
     }, [titoMood]);
 
+
     function speak(text: string, opts?: { rate?: number; pitch?: number; lang?: string }) {
       if (!ttsSupported || !text?.trim()) return;
       const lang = opts?.lang ?? ttsLang;
 
       const u = new SpeechSynthesisUtterance(text);
-      u.rate = opts?.rate ?? 1;
-      u.pitch = opts?.pitch ?? 1;
+      // Enhanced settings for more natural speech
+      u.rate = opts?.rate ?? 0.9;     // Slightly slower for clarity
+      u.pitch = opts?.pitch ?? 1.0;   // Natural pitch
+      u.volume = 0.8;                 // Slightly softer volume
       u.lang = lang;
 
-      const v = voices.find(v => v.lang?.toLowerCase().startsWith(lang.toLowerCase()));
-      if (v) u.voice = v;
+      // Use Google US English as default, with fallbacks for other languages
+      const langVoices = voices.filter(v => v.lang?.toLowerCase().startsWith(lang.toLowerCase()));
+      
+      let selectedVoice = null;
+      
+      // For English, prioritize Google US English
+      if (lang.startsWith('en')) {
+        selectedVoice = voices.find(v => v.name === 'Google US English') ||
+                       langVoices.find(v => v.name.includes('Google')) ||
+                       langVoices.find(v => v.name.includes('Zira')) ||
+                       langVoices[0];
+      } else {
+        // For other languages, prefer Google voices
+        selectedVoice = langVoices.find(v => v.name.includes('Google')) || langVoices[0];
+      }
+      
+      if (selectedVoice) u.voice = selectedVoice;
 
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(u);
@@ -530,29 +637,27 @@ export default function ChatScreen(props: propsInterface) {
                     />
                     {/* controls column: Mic + Language */}
                   <div className="ml-2 flex items-center justify-center w-12 h-8 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium">
-                    {/* Push-to-talk microphone */}
+                    {/* Click-to-toggle microphone */}
                     <button
                     type="button"
-                    onMouseDown={() => (sttSupported ? startListening() : alert("Speech-to-text isn’t supported in Firefox. Try Chrome, Edge, or use typing."))}
-                    onMouseUp={() => sttSupported && stopListening()}
-                    onMouseLeave={() => sttSupported && stopListening()}
-                    onTouchStart={(e) => { e.preventDefault(); sttSupported ? startListening() : alert("Speech-to-text isn’t supported in Firefox. Try Chrome, Edge, or use typing."); }}
-                    onTouchEnd={(e) => { e.preventDefault(); sttSupported && stopListening(); }}
                     onClick={(e) => {
                       e.preventDefault();
                       if (!sttSupported) {
-                        alert("Speech-to-text isn’t supported in Firefox. Try Chrome or Edge.");
+                        alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
                         return;
                       }
-                      if (!listening) startListening(); else stopListening();
+                      if (!listening) {
+                        startListening();
+                      } else {
+                        stopListening();
+                      }
                     }}
-                    // IMPORTANT: don't disable in Firefox—show the message instead
                     disabled={false}
                     className={`flex items-center justify-center w-16 h-16 rounded-full shadow-sm transition
-                                ${listening ? "bg-red-500 text-white" : "bg-white/90 hover:bg-white"}`}
-                    title={sttSupported ? (listening ? "Listening… release/click to stop" : "Hold to talk (or click to toggle)") : "Speech-to-text not supported in Firefox"}
+                                ${listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"}`}
+                    title={sttSupported ? (listening ? "Listening… click to stop" : "Click to start listening") : "Speech-to-text not supported in Firefox"}
                     aria-pressed={listening}
-                    aria-label="Hold to talk"
+                    aria-label={listening ? "Stop listening" : "Start listening"}
                   >
                     <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
                   </button>
