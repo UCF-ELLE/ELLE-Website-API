@@ -13,16 +13,17 @@ INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en',
 -- universal student account
 -- ucf2
 -- cooler
+-- Group 1 has ACCESS to ALL MODULES and they are also TITO MODULES
 INSERT IGNORE INTO group_module (groupID, moduleID)
 SELECT DISTINCT 1 AS groupID, m.moduleID 
 FROM `module` m;
 
 UPDATE `group_user`
-SET `accessLevel` = 'st'
+SET `accessLevel` = 'pf'
 WHERE `userID` = 1;
 
 UPDATE `user`
-SET `permissionGroup` = 'st'
+SET `permissionGroup` = 'pf'
 WHERE `userID` = 1;
 
 
@@ -33,20 +34,16 @@ WHERE `userID` = 1;
 -- password = 1 
 
 
--- REPLACE FROM HERE
+-- THIS IS THE STUDENT WITH ACCESS TO ALL T-MODULES
 INSERT INTO group_user (userID, groupID, accessLevel)
-VALUES (473, 1, 'pf');
-
-INSERT IGNORE INTO group_module (groupID, moduleID)
-SELECT DISTINCT 1 as groupID, m.moduleID as moduleID
-from `module` m;
+VALUES (473, 1, 'st');
 
 UPDATE `group_user`
-SET `accessLevel` = 'pf'
+SET `accessLevel` = 'st'
 WHERE `userID` = 473;
 
 UPDATE `user`
-SET `permissionGroup` = 'pf'
+SET `permissionGroup` = 'st'
 WHERE `userID` = 473;
 -- REPLACE TO HERE
 
@@ -141,6 +138,7 @@ CREATE TABLE `tito_module` (
   `startDate` DATE DEFAULT NULL, 
   `endDate` DATE DEFAULT NULL, 
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `loreAssigned` int(2) NOT NULL DEFAULT 1,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
   KEY (`classID`,`status`),
@@ -161,6 +159,7 @@ CREATE TABLE `tito_module_progress` (
   `studentID` int(4) NOT NULL,
   `completedTutorial` boolean NOT NULL DEFAULT 0,
   `totalTermsUsed` int (5) NOT NULL Default 0,
+  `loreProgress` int(1) NOT NULL DEFAULT 0,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`studentID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY(`moduleID`,`studentID`)
@@ -171,8 +170,9 @@ CREATE TABLE `tito_term_progress` (
   `moduleID` int(4) NOT NULL,
   `termID`  int(4) NOT NULL,
   `userID` int(4) NOT NULL,
-  `proficiencyScore` float(4) NOT NULL DEFAULT 0.0, 
-  `timesUsedSuccessfully` int(4) NOT NULL DEFAULT 0,
+  `timesMisspelled` int(2) NOT NULL DEFAULT 0,
+  `timesUsed` int(3) NOT NULL DEFAULT 0,
+  `hasMastered` boolean NOT NULL DEFAULT 0,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`termID`) REFERENCES `term` (`termID`) ON DELETE CASCADE,
   FOREIGN KEY(`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
@@ -219,8 +219,8 @@ JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID
 
 
 
-INSERT IGNORE INTO `tito_term_progress` (`userID`, `moduleID`, `termID`, `proficiencyScore`, `timesUsedSuccessfully`)
-SELECT DISTINCT msg.userID, msg.moduleID, t.termID, 0.0, 0
+INSERT IGNORE INTO `tito_term_progress` (`userID`, `moduleID`, `termID`, `timesUsed`)
+SELECT DISTINCT msg.userID, msg.moduleID, t.termID, 0
 FROM `messages` msg
 JOIN `module_question` mq ON mq.moduleID = msg.moduleID
 JOIN `answer` a ON a.questionID = mq.questionID
@@ -239,43 +239,51 @@ WHERE gu.accessLevel = 'pf';
 
 
 -- CREATE TRIGGERS
--- when a new group is created, so it a auxiliary table used to track "statuses" for any ELLE app
--- Makes no sense
 -- DELIMITER //
 
--- CREATE TRIGGER trigger_on_tito_module_insert
--- AFTER INSERT ON `tito_module`
+-- CREATE TRIGGER trigger_on_group_status_update
+-- AFTER UPDATE ON tito_group_status
 -- FOR EACH ROW
 -- BEGIN
---     INSERT INTO tito_group_status (`classID`, `titoExpirationDate`)
---     VALUES (NEW.groupID, DATE_ADD(NOW(), INTERVAL 1 YEAR));
+--     -- Case 1: active -> inactive
+--     IF OLD.titoStatus = 'active' AND NEW.titoStatus = 'inactive' THEN
+--         UPDATE `tito_module`
+--         SET status = 'inactive'
+--         WHERE classID = NEW.classID;
+--     END IF;
+
+--     -- Case 2: inactive -> active
+--     IF OLD.titoStatus = 'inactive' AND NEW.titoStatus = 'active' THEN
+--         UPDATE `tito_module`
+--         SET status = 'active'
+--         WHERE classID = NEW.classID;
+--     END IF;
+-- END//
+
+-- DELIMITER ;
+
+
+-- -- 
+-- DELIMITER //
+
+-- CREATE TRIGGER update_hasMastered
+-- AFTER UPDATE ON `tito_term_progress`
+-- FOR EACH ROW
+-- BEGIN
+--     -- Check if the update involves changing the timesMispelled or timesUsed
+--     IF NEW.timesUsed > 3 AND (NEW.timesMispelled / NEW.timesUsed) <= 0.25 AND NOT OLD.hasMastered THEN
+--         UPDATE `tito_term_progress`
+--         SET `hasMastered` = TRUE
+--         WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;
+--     ELSEIF (NEW.timesMispelled / NEW.timesUsed) > 0.25 AND OLD.hasMastered THEN
+--         UPDATE `tito_term_progress`
+--         SET `hasMastered` = FALSE
+--         WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;
+--     END IF;
 -- END //
 
 -- DELIMITER ;
 
--- When the `tito_group_status` of a class changes, changes cascade onto `tito_module`
-DELIMITER //
-
-CREATE TRIGGER trigger_on_group_status_update
-AFTER UPDATE ON tito_group_status
-FOR EACH ROW
-BEGIN
-    -- Case 1: active -> inactive
-    IF OLD.titoStatus = 'active' AND NEW.titoStatus = 'inactive' THEN
-        UPDATE `tito_module`
-        SET status = 'inactive'
-        WHERE classID = NEW.classID;
-    END IF;
-
-    -- Case 2: inactive -> active
-    IF OLD.titoStatus = 'inactive' AND NEW.titoStatus = 'active' THEN
-        UPDATE `tito_module`
-        SET status = 'active'
-        WHERE classID = NEW.classID;
-    END IF;
-END//
-
-DELIMITER ;
 
 
 

@@ -6,6 +6,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt_claims
 from config import MAX_AUDIO_SIZE_BYTES, MAX_AUDIO_LENGTH_SEC, FREE_CHAT_MODULE
 from .database import * 
 from .spacy_service import add_message
+from .convo_grader import suggest_grade as grade_message
 import os
 from pydub import AudioSegment
 # from .llm_functions import *
@@ -17,6 +18,7 @@ USER_VOICE_FOLDER = "user_audio_files/"
 # ++++++ TWT ACCESS APIs ++++++
 # ======================================
 
+# NOTE: data = request.form is for {Content-Type = application/x-www-form-urlencoded} not application/JSON
 # TODO: Free chat AND module-based chats to be worked on
 
 # Check if user can access TWT (Must be enrolled in an active class AND assigned a Tito Module)
@@ -112,6 +114,25 @@ class UserMessages(Resource):
             return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
 
         updateTotalTimeChatted(session_id)
+
+        # Rate messages grammar
+        msg_graded = grade_message (message=message)
+        if msg_graded:
+            msg_score = msg_graded.get("suggested_grade")
+            matches = msg_graded.get("errors")
+            # print(matches)
+
+            res = ""
+            for match in matches:   
+                if match.get('rule', {}).get('issueType') == "misspelling":
+                    replacements = [replacement['value'] for replacement in match['replacements']]
+                    res += " ".join(replacements) + " "
+            print(res)
+            add_message(message=res, module_id=module_id, user_id=user_id, message_id=0, chatbot_sid=0, update_db=False)
+
+            res = updateMessageScore(new_msg_id, msg_score)
+            # print(f"message score is {msg_score}")
+
 
         # TODO: a freechat session ADD SUPPORT FOR IT
         # Send to spacy service to parse key terms if NOT in free chat mode

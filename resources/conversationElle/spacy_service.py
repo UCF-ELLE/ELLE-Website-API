@@ -64,7 +64,7 @@ CURRENT_KEY_TERM_PHRASES_LEMMATIZED = [] # same as above, but lemmatized
 
 
 
-def add_message(message: str, module_id: int, user_id: int, message_id: int, chatbot_sid: int):
+def add_message(message: str, module_id: int, user_id: int, message_id: int, chatbot_sid: int, update_db=True):
     '''
         Push a (message, module_id, user_id, message_id) tuple into the queue.
     '''
@@ -76,7 +76,7 @@ def add_message(message: str, module_id: int, user_id: int, message_id: int, cha
         if module_id == FREE_CHAT_MODULE:
             return
 
-        MESSAGE_QUEUE.put((message, module_id, user_id, message_id, chatbot_sid))
+        MESSAGE_QUEUE.put((message, module_id, user_id, message_id, chatbot_sid, update_db))
     except Exception as e:
         print(f"[ERROR] Failed to add message {message_id} to queue: Error: {e}")
 
@@ -109,7 +109,7 @@ def load_language(lang_code: str):
             NLP = spacy.load(SPACY_MODELS[DEFAULT_LANGUAGE_CODE])
             CURRENT_LANGUAGE = DEFAULT_LANGUAGE_CODE
 
-def process_message(message: str, module_id: int, user_id: int, message_id: int, chatbot_sid: int):
+def process_message(message: str, module_id: int, user_id: int, message_id: int, chatbot_sid: int, update_db: bool):
     '''
     4-step process:
         1. Check if module is currently loaded in to prevent unnecessary lookups and update key-terms as needed
@@ -168,7 +168,8 @@ def process_message(message: str, module_id: int, user_id: int, message_id: int,
     # 4. Find matches and update in the DB
     if SYSTEM_LOGGING_FLAG:
         print(f"[INFO] Updating key terms matches:")
-    matches = find_used_key_terms(CURRENT_KEY_TERM_PHRASES_LEMMATIZED, lemmas, message_id, chatbot_sid)
+
+    matches = find_used_key_terms(CURRENT_KEY_TERM_PHRASES_LEMMATIZED, lemmas, message_id, chatbot_sid, user_id, module_id, update_db)
 
     return matches
 
@@ -209,7 +210,7 @@ def lemmatize_terms(terms: (int, str), nlp: Language):
         lemmatized.append((term_id, lemma))
     return lemmatized
 
-def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], message_id: int, chatbot_sid: int):
+def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], message_id: int, chatbot_sid: int, user_id: int, module_id: int, update_db=True):
     '''
         Match lemmas against known key terms/phrases, finding the longest, non-overlapping matches
         - key_terms_lemmatized: [(term_id, lemmatized term/phrase)]
@@ -254,6 +255,11 @@ def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], messa
         for pos in range(start, end + 1):
             occupied.add(pos)
 
+        if not update_db:
+            print(f'matched word {term_phrase}')
+            updateMisspellings(user_id, module_id, term_id)
+            return {}
+
         words_found[term_id] += 1
         total_count += 1
         
@@ -261,6 +267,7 @@ def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], messa
             print(f"Matched '{term_phrase}' (id={term_id}) at pos {start}-{end}")
 
     updateMessageKeytermCount(total_count, message_id, chatbot_sid)
+
     return dict(words_found)
 
 def get_automaton_for_module(module_id: int, key_terms_lemmatized: [(int, str)]):
@@ -289,7 +296,7 @@ def spacy_service():
     if DEBUG_TRACING_FLAG or SYSTEM_LOGGING_FLAG:
         print("[START] Waking up spacy_service()")
     while True:
-        message, module_id, user_id, message_id, chatbot_sid = MESSAGE_QUEUE.get()
+        message, module_id, user_id, message_id, chatbot_sid, update_db = MESSAGE_QUEUE.get()
         if SYSTEM_LOGGING_FLAG:
             print(f"[INFO] started processing message {message_id}")
         
@@ -298,15 +305,15 @@ def spacy_service():
             if DEBUG_TRACING_FLAG:
                 print("[CHRONOLOGY] 1: Beginning to process message")
 
-            matches = process_message(message, module_id, user_id, message_id, chatbot_sid)
-            
-            if SYSTEM_LOGGING_FLAG:
-                print(f"[INFO] printing matches: {matches}")
-            if DEBUG_TRACING_FLAG:
-                print("[CHRONOLOGY] END OF MESSAGE PROCESSING: Updating used key terms/phrases @ update_words_used()")
-            updateWordsUsed(matches, user_id, module_id)
+            matches = process_message(message, module_id, user_id, message_id, chatbot_sid, update_db)
+            if update_db:
+                if SYSTEM_LOGGING_FLAG:
+                    print(f"[INFO] printing matches: {matches}")
+                if DEBUG_TRACING_FLAG:
+                    print("[CHRONOLOGY] END OF MESSAGE PROCESSING: Updating used key terms/phrases @ update_words_used()")
+                updateWordsUsed(matches, user_id, module_id)
         except Exception as e:
-            print(f"[ERROR] Failure occurred while trying to process message: error: {e}")
+            print(f"[ERROR] Failure occurred while trying to process message in spacy_service.py: error: {e}")
         finally:
             MESSAGE_QUEUE.task_done()
 

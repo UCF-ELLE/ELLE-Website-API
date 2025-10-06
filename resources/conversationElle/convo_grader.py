@@ -61,17 +61,17 @@ def suggest_grade(message: str, expected_language: str = None):
             error_rate = error_count / total_words
 
             if error_rate == 0: # No errors (A+)
-                grade_score = 10.0
+                grade_score = 100.0
             elif error_rate < 0.10:  # Less than 10% errors (A)
-                grade_score = 9.0
+                grade_score = 90.0
             elif error_rate < 0.20:  # Less than 20% errors (B)
-                grade_score = 8.0
+                grade_score = 80.0
             elif error_rate < 0.30:  # Less than 30% errors (C)
-                grade_score = 7.0
+                grade_score = 70.0
             elif error_rate < 0.40:  # Less than 40% errors (D)
-                grade_score = 6.0
+                grade_score = 60.0
             else:
-                grade_score = 5.0 # Less than 50% errors (F)
+                grade_score = 50.0 # Less than 50% errors (F)
 
         detected_language_info = result.get('language', {})
         detected_name = detected_language_info.get('name', 'Unknown')
@@ -82,6 +82,7 @@ def suggest_grade(message: str, expected_language: str = None):
             "error_count": error_count,
             "total_words": total_words,
             "detected_language": detected_name,
+            "errors": matches,
             "status": "success"
         }
 
@@ -104,6 +105,7 @@ def suggest_grade(message: str, expected_language: str = None):
             "detected_language": "Unknown",
             "status": "timeout"
         }
+
 
 
 # grader testing

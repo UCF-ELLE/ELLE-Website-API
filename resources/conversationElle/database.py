@@ -351,7 +351,7 @@ def updateWordsUsed(term_count_dict: dict, user_id: int, module_id: int):
 
     query = f'''
         UPDATE `tito_term_progress`
-        SET `timesUsedSuccessfully` = `timesUsedSuccessfully` + CASE `termID`
+        SET `timesUsed` = `timesUsed` + CASE `termID`
             {case_statements}
             ELSE 0
         END
@@ -360,7 +360,10 @@ def updateWordsUsed(term_count_dict: dict, user_id: int, module_id: int):
     '''
 
     params = [user_id, module_id] + term_ids
-    res = db.post(query, params)
+    db.post(query, params)
+
+    for tID in term_ids:
+        updateTermProgress(user_id, module_id, tID)
 
 
 def updateMessageKeytermCount(count: int, messageID: int, chatbotSID: int):
@@ -527,3 +530,41 @@ def getUserModuleProgress(user_id: int, module_id:int):
         raise Exception(f"Failed to access tito_module_progress with {user_id} and {module_id} (invalid pair-request)")
     else:
         return res[0]
+
+def updateMessageScore(msg_id: int, score: int):
+    query = '''
+        UPDATE `messages`
+        SET `grammarRating` = %s
+        WHERE messageID = %s;
+    '''
+
+    res = db.post(query, (score, msg_id))
+    return False if not res else True
+
+def updateTermProgress(user_id: int, module_id: int, term_id: int):
+    query = '''
+        UPDATE `tito_term_progress`
+        SET 
+        `hasMastered` = CASE
+            WHEN `timesUsed` > 3 AND (`timesMisspelled` / `timesUsed`) <= 0.25 THEN TRUE
+            WHEN (`timesMisspelled` / `timesUsed`) > 0.25 THEN FALSE
+            ELSE `hasMastered`  -- Keeps the current value if none of the conditions are met
+        END
+        WHERE userID = %s AND moduleID = %s AND termID = %s;
+    '''
+    print(f'Added u:{user_id} and mid:{module_id} to term {term_id}')
+
+
+    db.post(query, (user_id, module_id, term_id))
+
+def updateMisspellings(user_id: int, module_id: int, term_id: int):
+    query = '''
+        UPDATE `tito_term_progress`
+        SET `timesMisspelled` = `timesMisspelled` + 1,
+        `timesUsed` = `timesUsed` + 1
+        WHERE userID = %s AND moduleID = %s AND termID = %s;
+    '''
+
+    db.post(query, (user_id, module_id, term_id))
+
+    updateTermProgress(user_id, module_id, term_id)
