@@ -25,47 +25,112 @@ interface Module {
   language: string;
 }
 
-// Fetches a user's available Tito modules given their JWT
-// Returns all modules' ID, name, and language
+// Fetches all user's available modules (not just Tito modules)
+// Returns all modules' ID, name, and language  
 export const fetchModules = async (access_token: string): Promise<Module[] | null> => {
   try {
-    const response = await axios.get(`${ELLE_URL}/twt/session/access`, {
+    // Try to fetch all user modules from the original endpoint
+    const response = await axios.get(`${ELLE_URL}/retrieveusermodules`, {
       headers: {
         Authorization: `Bearer ${access_token}`,
       },
     });
     
-    const data = response.data.data || [];
-    console.log('Tito modules response:', data);
+    const data = response.data.data || response.data || [];
+    console.log('All modules response:', data);
     
-    // The response is an array of [classID, modules] tuples
-    // Extract all modules from all classes
+    // Map the response to the expected Module format
     const allModules: Module[] = [];
-    for (const [classID, modulesList] of data) {
-      for (const [moduleID, sequenceID] of modulesList) {
-        // For now, we'll create basic module info
-        // In production, you might want to fetch full module details
+    
+    if (Array.isArray(data)) {
+      for (const moduleData of data) {
         allModules.push({
-          moduleID: moduleID,
-          name: `Module ${moduleID}`, // Placeholder name
-          language: 'es' // Default to Spanish for Colors module
+          moduleID: moduleData.moduleID || moduleData.module_id,
+          name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleData.moduleID || moduleData.module_id}`,
+          language: moduleData.language || 'es' // Default to Spanish
         });
       }
     }
     
-    console.log('Processed modules:', allModules);
+    console.log('Processed all modules:', allModules);
     return allModules;
+    
   } catch (error) {
-    console.error('Error fetching Tito modules:', error);
-    if (axios.isAxiosError(error)) {
-      console.error('Status:', error.response?.status);
-      console.error('Status Text:', error.response?.statusText);
-      console.error('Response Data:', error.response?.data);
-      console.error('Request URL:', error.config?.url);
-      console.error('Request Headers:', error.config?.headers);
+    console.warn('Failed to fetch from retrieveusermodules, trying Tito modules with full module data:', error);
+    
+    // Fallback: Get Tito module IDs and fetch their complete data
+    try {
+      // First get the Tito-enabled module IDs
+      const titoResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+      
+      const titoData = titoResponse.data.data || [];
+      console.log('Tito modules response:', titoData);
+      
+      // Extract all unique module IDs
+      const moduleIDs = new Set<number>();
+      for (const [classID, modulesList] of titoData) {
+        for (const [moduleID, sequenceID] of modulesList) {
+          moduleIDs.add(moduleID);
+        }
+      }
+      
+      console.log('Unique module IDs found:', Array.from(moduleIDs));
+      
+      // Now fetch complete module data for each module ID
+      const allModules: Module[] = [];
+      
+      // Try to get all modules data from the general modules endpoint
+      try {
+        const modulesResponse = await axios.get(`${ELLE_URL}/modules`, {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        });
+        
+        const modulesData = modulesResponse.data || [];
+        console.log('All available modules data:', modulesData);
+        
+        // Filter to only include Tito-enabled modules with complete data
+        for (const moduleData of modulesData) {
+          const moduleID = moduleData.moduleID || moduleData.module_id;
+          if (moduleIDs.has(moduleID)) {
+            allModules.push({
+              moduleID: moduleID,
+              name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
+              language: moduleData.language || 'es'
+            });
+          }
+        }
+        
+      } catch (modulesError) {
+        console.warn('Failed to fetch detailed module data, using basic info:', modulesError);
+        
+        // Fallback to basic module info with IDs only
+        for (const moduleID of moduleIDs) {
+          allModules.push({
+            moduleID: moduleID,
+            name: `Module ${moduleID}`,
+            language: 'es'
+          });
+        }
+      }
+      
+      console.log('Processed Tito modules with complete data:', allModules);
+      return allModules;
+      
+    } catch (fallbackError) {
+      console.error('Error fetching modules from both endpoints:', fallbackError);
+      if (axios.isAxiosError(fallbackError)) {
+        console.error('Status:', fallbackError.response?.status);
+        console.error('Response Data:', fallbackError.response?.data);
+      }
+      handleError(fallbackError);
+      return null;
     }
-    handleError(error);
-    return null;
   }
 };
 
@@ -286,7 +351,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     formData.append('message', userValue);
     formData.append('chatbotSID', chatbotId.toString());
     formData.append('moduleID', moduleId.toString());
-    formData.append('isVoiceMessage', 'false'); // Assuming text message
+    formData.append('isVoiceMessage', '0'); // 0 = false (text message), 1 = true (voice message)
     
     console.log(`[SendMessage] Sending with original session ID: ${chatbotId}`);
     
@@ -302,7 +367,22 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
       }
     );
     
-    const data = response.data.data || response.data;
+    // Debug: Log the full response structure
+    console.log("[DEBUG] Full backend response:");
+    console.log(response.data);
+    
+    // Extract response data (backend wraps in response.data)
+    const responseData = response.data;
+    const data = responseData.data || responseData;
+    
+    console.log("[DEBUG] Extracted data:");
+    console.log(data);
+    
+    // Get titoResponse from the top-level response (not nested in data)
+    const titoResponse = responseData.titoResponse || data.titoResponse || data.llmResponse;
+    console.log("[DEBUG] Extracted titoResponse:");
+    console.log(titoResponse);
+    
     if(data && data.metadata && typeof data.metadata === "string") {
       try {
         data.metadata = JSON.parse(data.metadata);
@@ -311,12 +391,12 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
       }
     }
     
-    console.log("sendMessage response:");
-    console.log(data);
+    console.log("sendMessage final processing:");
+    console.log({ titoResponse, data });
     
     // Success! Map the response to match expected format
     return {
-      llmResponse: data.titoResponse || data.llmResponse || "Great job!",
+      llmResponse: titoResponse || "Great job!",
       termsUsed: data.termsUsed || [],
       titoConfused: data.titoConfused || false,
       metadata: data.metadata || {}

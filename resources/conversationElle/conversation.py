@@ -9,8 +9,8 @@ from .spacy_service import add_message
 from .convo_grader import suggest_grade as grade_message
 import os
 from pydub import AudioSegment
-# from .llm_functions import *
-# from .utils import *
+from .llm_functions import *
+from .utils import *
 
 USER_VOICE_FOLDER = "user_audio_files/"
 
@@ -147,29 +147,29 @@ class UserMessages(Resource):
 
         # Sends a message to tito with safety check
         tito_response = ''
-        # try:
-        #     # try:
-        #     #     safety_check = detect_innapropriate_language(message)
-        #     #     if not safety_check.get('is_appropriate', True):
-        #     #         tito_response_data = {'response': "I can't respond to that type of message. Let's keep the conversation educational and appropriate"}
-        #     #     else:
-        #     #         tito_response_data = handle_message(message)
-        #     # except Exception as safety_error:
-        #     #     print(f"Safety check failed: {safety_error}")
-        #     tito_response_data = handle_message(message)
+        try:
+            # try:
+            #     safety_check = detect_innapropriate_language(message)
+            #     if not safety_check.get('is_appropriate', True):
+            #         tito_response_data = {'response': "I can't respond to that type of message. Let's keep the conversation educational and appropriate"}
+            #     else:
+            #         tito_response_data = handle_message(message)
+            # except Exception as safety_error:
+            #     print(f"Safety check failed: {safety_error}")
+            tito_response_data = handle_message(message)
             
-        #     print("this1")
-        #     tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
-        #     print(tito_response)
+            print("this1")
+            tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
+            print(tito_response)
             
-        #     # TODO: Verify data
-        #     newTitoMessage(user_id, session_id, tito_response_data.get('response'), module_id)
-        #     print("this3")
+            # TODO: Verify data
+            newTitoMessage(user_id, session_id, tito_response_data.get('response'), module_id)
+            print("this3")
 
-        # except Exception as error:
-        #     print(f"Error communicating with Tito: {error}")
-        #     tito_response = "Sorry, there is a bit of trouble. Please try again!"
-        #     tito_response_data = {"response": tito_response}
+        except Exception as error:
+            print(f"Error communicating with Tito: {error}")
+            tito_response = "Sorry, there is a bit of trouble. Please try again!"
+            tito_response_data = {"response": tito_response}
 
         if True: # a successful llm message insert
             return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id, titoResponse=tito_response)

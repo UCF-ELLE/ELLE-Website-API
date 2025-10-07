@@ -64,11 +64,26 @@ def handle_message(message: str, prompt=None):
             prompt = main_prompt
 
         response = generate_message(message, prompt)
-        response = response[response.index("{"):response.index("}")+1]
-        response = ast.literal_eval(response)
-        #print("returned message: ", response)
+        print(f"[DEBUG] Raw LLM response: {response}")
+        
+        # Try to find JSON in the response
+        if "{" in response and "}" in response:
+            json_start = response.index("{")
+            json_end = response.index("}") + 1
+            json_response = response[json_start:json_end]
+            print(f"[DEBUG] Extracted JSON: {json_response}")
+            parsed_response = ast.literal_eval(json_response)
+            print(f"[DEBUG] Parsed response: {parsed_response}")
+            return parsed_response
+        else:
+            # No JSON found, create a response from the raw text
+            print(f"[DEBUG] No JSON found, using raw response")
+            clean_response = response.strip()
+            return {"response": clean_response}
+            
     except Exception as e:
-        print(e)
+        print(f"[DEBUG] Exception in handle_message: {e}")
+        print(f"[DEBUG] Raw response was: {response if 'response' in locals() else 'No response'}")
         return {"response" : "Sorry, Tito could not understand your message! Please try again."}
     
     return response
