@@ -95,12 +95,19 @@ def createNewUserMessage(userID: int, moduleID: int, chatbotSID: int, message: s
             VALUES (%s, %s, %s, 'user', %s, %s);
         '''
 
+        if isVM == 'false':
+            isVM = 0
+        elif isVM == 'true':
+            isVM = 1
         result = db.post(query, (userID, chatbotSID, moduleID, message, isVM))
-        if result.get("rowcount") == 0:
-            return 0
-        return result.get("lastrowid")
+        print(result)
+        if result:
+            if not result.get("rowcount"):
+                return 0
+            return result.get("lastrowid")
+        return 0
     except Exception as e:
-        print("[ERROR] Exception has occured when trying to insert message @ createNewUserMessage in database.py. Error: {e}")
+        print(f"[ERROR] Exception has occured when trying to insert message @ createNewUserMessage in database.py. Error: {e}")
         return 0
 
 
@@ -375,12 +382,12 @@ def updateMessageKeytermCount(count: int, messageID: int, chatbotSID: int):
 
     db.post(query, (count, messageID))
 
-    query = '''
-        UPDATE `chatbot_sessions`
-        SET `moduleWordsUsed` = `moduleWordsUsed` + %s
-        WHERE `chatbotSID` = %s;
-    '''
-    db.post(query, (count, chatbotSID))
+    # query = '''
+    #     UPDATE `chatbot_sessions`
+    #     SET `moduleWordsUsed` = `moduleWordsUsed` + %s
+    #     WHERE `chatbotSID` = %s;
+    # '''
+    # db.post(query, (count, chatbotSID))
 
 # def validate_user(permission_claim=None, any_perm_level=False, req_perm_level=True, req_student_perm=False, req_prof_perm=False, req_admin_perm=False):
 #     if req_perm_level:
@@ -518,11 +525,16 @@ def isModuleInClass(class_id: int, module_id:int):
         return False
     return True
 
+# TODO: Improve this? 
 def getUserModuleProgress(user_id: int, module_id:int):
+    # query = '''
+    #     SELECT proficiencyRate 
+    #     FROM tito_module_progress
+    #     WHERE moduleID = %s AND studentID = %s;
+    # '''
+
     query = '''
-        SELECT proficiencyRate 
-        FROM tito_module_progress
-        WHERE moduleID = %s AND studentID = %s;
+        SELECT 
     '''
 
     res = db.get(query, (module_id, user_id), fetchOne=True)
@@ -547,15 +559,42 @@ def updateTermProgress(user_id: int, module_id: int, term_id: int):
         SET 
         `hasMastered` = CASE
             WHEN `timesUsed` > 3 AND (`timesMisspelled` / `timesUsed`) <= 0.25 THEN TRUE
-            WHEN (`timesMisspelled` / `timesUsed`) > 0.25 THEN FALSE
-            ELSE `hasMastered`  -- Keeps the current value if none of the conditions are met
+            ELSE `hasMastered`  
         END
         WHERE userID = %s AND moduleID = %s AND termID = %s;
     '''
-    print(f'Added u:{user_id} and mid:{module_id} to term {term_id}')
 
 
-    db.post(query, (user_id, module_id, term_id))
+    # NOTE: OLD, replace once triggers allowed
+    #     query = '''
+    #     UPDATE `tito_term_progress`
+    #     SET 
+    #     `hasMastered` = CASE
+    #         WHEN `timesUsed` > 3 AND (`timesMisspelled` / `timesUsed`) <= 0.25 THEN TRUE
+    #         WHEN (`timesMisspelled` / `timesUsed`) > 0.25 THEN FALSE
+    #         ELSE `hasMastered`  -- Keeps the current value if none of the conditions are met
+    #     END
+    #     WHERE userID = %s AND moduleID = %s AND termID = %s;
+    # '''
+    # print(f'Added u:{user_id} and mid:{module_id} to term {term_id}')
+
+
+    res = db.post(query, (user_id, module_id, term_id))
+    if res:
+        if res.get("rowcount") > 0:
+            updateModuleProgress(module_id, student_id)
+
+# Adds +1 to `termsMastered`
+def updateModuleProgress(module_id: int, user_id: int):
+    query = '''
+        UPDATE `tito_module_progress`
+        SET `termsMastered` = `termsMastered` + 1
+        WHERE moduleID = %s AND studentID = %s;
+    '''
+
+def getTermCountInModule(module_id: int):
+
+    return
 
 def updateMisspellings(user_id: int, module_id: int, term_id: int):
     query = '''

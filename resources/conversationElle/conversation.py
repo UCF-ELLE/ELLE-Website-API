@@ -104,6 +104,8 @@ class UserMessages(Resource):
         module_id = data.get('moduleID')
         is_vm = data.get('isVoiceMessage')
 
+        # print(f'{message} and {session_id} and {module_id} and {is_vm}')
+
         if not session_id or not module_id or not message or is_vm is None:
             return create_response(False, message="Missing required parameters.", status_code=404)
 
@@ -123,12 +125,12 @@ class UserMessages(Resource):
             # print(matches)
 
             res = ""
-            for match in matches:   
-                if match.get('rule', {}).get('issueType') == "misspelling":
-                    replacements = [replacement['value'] for replacement in match['replacements']]
-                    res += " ".join(replacements) + " "
-            print(res)
-            add_message(message=res, module_id=module_id, user_id=user_id, message_id=0, chatbot_sid=0, update_db=False)
+            if matches:
+                for match in matches:   
+                    if match.get('rule', {}).get('issueType') == "misspelling":
+                        replacements = [replacement['value'] for replacement in match['replacements']]
+                        res += " ".join(replacements) + " "
+                add_message(message=res, module_id=module_id, user_id=user_id, message_id=0, chatbot_sid=0, update_db=False)
 
             res = updateMessageScore(new_msg_id, msg_score)
             # print(f"message score is {msg_score}")
@@ -329,6 +331,8 @@ class GetModuleProgress(Resource):
         res = getUserModuleProgress(user_id, module_id)
         
         return create_response(True, data=res)
+
+
 
 # ========================================
 # ++++++ PROFESSOR + (TAs?) ACCESS ONLY APIs ++++++
