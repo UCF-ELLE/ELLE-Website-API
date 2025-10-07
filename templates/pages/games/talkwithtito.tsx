@@ -134,9 +134,12 @@ export default function TalkWithTito() {
     if(selectedModule === moduleId) {
       setSelectedModule(null);
       setAnalyticsActive(false);
+      setChatbotId(undefined); // Reset chatbot session when deselecting module
     }
     else {
-      setSelectedModule(moduleId)
+      console.log(`[TalkWithTito] Switching to module ${moduleId}, resetting chatbot session`);
+      setSelectedModule(moduleId);
+      setChatbotId(undefined); // Reset chatbot session when switching modules
     }
   };
 

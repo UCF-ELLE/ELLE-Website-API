@@ -23,13 +23,44 @@ interface Module {
   moduleID: number;
   name: string;
   language: string;
+  isTitoEnabled?: boolean; // Indicates if this module is configured as a Tito module
 }
 
-// Fetches all user's available modules (not just Tito modules)
-// Returns all modules' ID, name, and language  
+// Fetches all user modules and indicates which ones are Tito-enabled
+// Returns all modules with their ID, name, language, and Tito status
 export const fetchModules = async (access_token: string): Promise<Module[] | null> => {
+  let titoModuleIDs = new Set<number>();
+  
+  // STEP 1: Try to get Tito-enabled module IDs (for marking purposes)
   try {
-    // Try to fetch all user modules from the original endpoint
+  console.log('[fetchModules] Fetching Tito-enabled module IDs...');
+    const titoResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+    
+    const titoData = titoResponse.data.data || [];
+    console.log('[fetchModules] Raw Tito modules response:', titoResponse.data);
+    console.log('[fetchModules] Processed Tito data:', titoData);
+    
+    // Extract all unique module IDs that are Tito-enabled
+    for (const [classID, modulesList] of titoData) {
+      console.log(`[fetchModules] Class ${classID} has modules:`, modulesList);
+      for (const [moduleID, sequenceID] of modulesList) {
+        console.log(`[fetchModules] Adding Tito module: ${moduleID}`);
+        titoModuleIDs.add(moduleID);
+      }
+    }
+    
+    console.log('[fetchModules] ✅ Tito-enabled module IDs:', Array.from(titoModuleIDs));
+  } catch (titoError) {
+    console.warn('[fetchModules] Could not fetch Tito module IDs (will show all modules without Tito status):', titoError);
+  }
+  
+  // STEP 2: Get all user modules from the original endpoint
+  try {
+    console.log('[fetchModules] Fetching all user modules...');
     const response = await axios.get(`${ELLE_URL}/retrieveusermodules`, {
       headers: {
         Authorization: `Bearer ${access_token}`,
@@ -37,93 +68,70 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
     });
     
     const data = response.data.data || response.data || [];
-    console.log('All modules response:', data);
+    console.log('[fetchModules] All user modules response:', data);
     
-    // Map the response to the expected Module format
+    // Map the response to the expected Module format with Tito status
     const allModules: Module[] = [];
     
     if (Array.isArray(data)) {
       for (const moduleData of data) {
+        const moduleID = moduleData.moduleID || moduleData.module_id;
+        const isTitoEnabled = titoModuleIDs.has(moduleID);
+        
         allModules.push({
-          moduleID: moduleData.moduleID || moduleData.module_id,
-          name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleData.moduleID || moduleData.module_id}`,
-          language: moduleData.language || 'es' // Default to Spanish
+          moduleID: moduleID,
+          name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
+          language: moduleData.language || 'es',
+          isTitoEnabled: isTitoEnabled
         });
       }
     }
     
-    console.log('Processed all modules:', allModules);
+    const titoEnabledCount = allModules.filter(m => m.isTitoEnabled).length;
+    console.log(`[fetchModules] Found ${allModules.length} total modules, ${titoEnabledCount} are Tito-enabled`);
+    console.log('[fetchModules] All modules with Tito status:', allModules);
+    
     return allModules;
     
   } catch (error) {
-    console.warn('Failed to fetch from retrieveusermodules, trying Tito modules with full module data:', error);
+    console.warn('[fetchModules] Failed to fetch from retrieveusermodules, trying modules endpoint:', error);
     
-    // Fallback: Get Tito module IDs and fetch their complete data
+    // Fallback: Try the general modules endpoint
     try {
-      // First get the Tito-enabled module IDs
-      const titoResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
+      const modulesResponse = await axios.get(`${ELLE_URL}/modules`, {
         headers: {
           Authorization: `Bearer ${access_token}`,
         },
       });
       
-      const titoData = titoResponse.data.data || [];
-      console.log('Tito modules response:', titoData);
+      const modulesData = modulesResponse.data || [];
+      console.log('[fetchModules] General modules response:', modulesData);
       
-      // Extract all unique module IDs
-      const moduleIDs = new Set<number>();
-      for (const [classID, modulesList] of titoData) {
-        for (const [moduleID, sequenceID] of modulesList) {
-          moduleIDs.add(moduleID);
-        }
-      }
-      
-      console.log('Unique module IDs found:', Array.from(moduleIDs));
-      
-      // Now fetch complete module data for each module ID
+      // Map the response to the expected Module format with Tito status
       const allModules: Module[] = [];
       
-      // Try to get all modules data from the general modules endpoint
-      try {
-        const modulesResponse = await axios.get(`${ELLE_URL}/modules`, {
-          headers: {
-            Authorization: `Bearer ${access_token}`,
-          },
-        });
-        
-        const modulesData = modulesResponse.data || [];
-        console.log('All available modules data:', modulesData);
-        
-        // Filter to only include Tito-enabled modules with complete data
+      if (Array.isArray(modulesData)) {
         for (const moduleData of modulesData) {
           const moduleID = moduleData.moduleID || moduleData.module_id;
-          if (moduleIDs.has(moduleID)) {
-            allModules.push({
-              moduleID: moduleID,
-              name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
-              language: moduleData.language || 'es'
-            });
-          }
-        }
-        
-      } catch (modulesError) {
-        console.warn('Failed to fetch detailed module data, using basic info:', modulesError);
-        
-        // Fallback to basic module info with IDs only
-        for (const moduleID of moduleIDs) {
+          const isTitoEnabled = titoModuleIDs.has(moduleID);
+          
           allModules.push({
             moduleID: moduleID,
-            name: `Module ${moduleID}`,
-            language: 'es'
+            name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
+            language: moduleData.language || 'es',
+            isTitoEnabled: isTitoEnabled
           });
         }
       }
       
-      console.log('Processed Tito modules with complete data:', allModules);
+      const titoEnabledCount = allModules.filter(m => m.isTitoEnabled).length;
+      console.log(`[fetchModules] Found ${allModules.length} total modules from general endpoint, ${titoEnabledCount} are Tito-enabled`);
+      console.log('[fetchModules] All modules with Tito status:', allModules);
+      
       return allModules;
       
     } catch (fallbackError) {
-      console.error('Error fetching modules from both endpoints:', fallbackError);
+      console.error('[fetchModules] Error fetching modules from both endpoints:', fallbackError);
       if (axios.isAxiosError(fallbackError)) {
         console.error('Status:', fallbackError.response?.status);
         console.error('Response Data:', fallbackError.response?.data);
@@ -197,7 +205,7 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
 
   // Use real API
   try {
-    console.log("getChabot sending:");
+    console.log(`[getChatbot] Creating session for userId: ${userId}, moduleId: ${moduleId}`);
     console.log({ userId, moduleId, terms });
     
     // First get available classes to find the right classID for this module
@@ -219,7 +227,7 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
       if (classID !== '1') break; // Found the class, exit outer loop
     }
     
-    console.log(`Using classID: ${classID} for moduleID: ${moduleId}`);
+    console.log(`[getChatbot] Using classID: ${classID} for moduleID: ${moduleId}`);
     
     // Create form data to match backend expectations
     const formData = new FormData();
@@ -236,14 +244,29 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
         }
       }
     );
-    console.log("getChatbot response:");
+    console.log(`[getChatbot] Session creation response for module ${moduleId}:`);
     console.log(response.data);
+    
+    // Check if the response indicates success
+    if (response.data.success === false) {
+      const errorMessage = response.data.message || 'Unknown error';
+      console.error(`[getChatbot] Session creation failed for module ${moduleId}:`, errorMessage);
+      
+      // Provide specific error messages for common issues
+      if (errorMessage.includes('not configured as a Tito module')) {
+        console.error(`[getChatbot] Module ${moduleId} is not configured as a Tito module. Please contact your instructor to enable Tito for this module.`);
+      }
+      
+      return null;
+    }
     
     // The session creation endpoint returns { success: true, data: chatbotSID }
     // We need to create a proper response object
     const chatbotSID = response.data.data;
-    if (typeof chatbotSID === 'number') {
-      
+    console.log(`[getChatbot] Extracted chatbotSID: ${chatbotSID} (type: ${typeof chatbotSID})`);
+    
+    if (typeof chatbotSID === 'number' && chatbotSID > 0) {
+      console.log(`[getChatbot] Successfully created session ${chatbotSID} for module ${moduleId}`);
       return {
         chatbotId: chatbotSID,
         termsUsed: [], // No terms used yet in a new session
@@ -252,7 +275,8 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
         userMusicChoice: undefined
       };
     } else {
-      console.error('Unexpected response format:', response.data);
+      console.error(`[getChatbot] Invalid chatbotSID received for module ${moduleId}:`, chatbotSID);
+      console.error('Full response:', response.data);
       return null;
     }
   } catch (error) {

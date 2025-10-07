@@ -474,9 +474,14 @@ export default function ChatScreen(props: propsInterface) {
     //Used to initialize chatbot
     useEffect(() => {
         if(userLoading || !user || !termsLoaded) return; // Returns if not ready to execute
+        
+        console.log(`[ChatScreen] Initializing chatbot for module ${props.moduleID}`);
+        
         const loadChatbot = async () => {
+            console.log(`[ChatScreen] Calling getChatbot for module ${props.moduleID}`);
             const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
             if(newChatbot) {
+              console.log(`[ChatScreen] Successfully got chatbot session ${newChatbot.chatbotId} for module ${props.moduleID}`);
               props.setChatbotId(newChatbot.chatbotId);
               setTimeChatted(newChatbot.totalTimeChatted * 3600);
               if(newChatbot.userBackground) {
@@ -497,15 +502,19 @@ export default function ChatScreen(props: propsInterface) {
               setTerms(newTerms);
             }
             else {
-                console.log("Error getting chatbot");
+                console.error(`[ChatScreen] Failed to get chatbot for module ${props.moduleID}`);
+                // Don't set chatbotId if session creation failed
+                props.setChatbotId(undefined);
             }
         }
         loadChatbot();
     }, [props.moduleID, user, userLoading, termsLoaded])
     
-    // Used to initialize chat messages
+    // Used to initialize chat messages - reset when module changes
     useEffect(() => {
-
+        // Clear chat messages immediately when module changes
+        setChatMessages([]);
+        
         //Instruction message
         const instructionMessage: ChatMessage = props.moduleID !== -1 ? {
             value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. View the vocab list on the right for a list of terms which we can chat about. Try to use them each in a sentence atleast once, then they will be crossed off to indicate you've used them correctly.`,
@@ -522,10 +531,14 @@ export default function ChatScreen(props: propsInterface) {
         }
 
         if(userLoading || !user || !props.chatbotId) return;
+        
+        console.log(`[ChatScreen] Loading messages for moduleID: ${props.moduleID}, chatbotId: ${props.chatbotId}`);
+        
         const loadMessages = async () => {
           if(!props.chatbotId) return;
           const newMessages = await getMessages(user.jwt, user.userID, props.chatbotId, props.moduleID);
           if(newMessages) {
+              console.log(`[ChatScreen] Loaded ${newMessages.length} messages for module ${props.moduleID}`);
               setChatMessages([instructionMessage, ...newMessages]);
               
               // Speak the welcome message automatically when chat loads for first time
@@ -537,11 +550,13 @@ export default function ChatScreen(props: propsInterface) {
               }
           }
           else {
-              console.log("Error getting messages");
+              console.log(`[ChatScreen] Error getting messages for module ${props.moduleID}`);
+              // Set just the instruction message if no messages could be loaded
+              setChatMessages([instructionMessage]);
           }
         }
         loadMessages();
-    }, [props.chatbotId, user, userLoading]);
+    }, [props.chatbotId, props.moduleID, user, userLoading]);
 
     //Used to update termScore
     useEffect(() => {
