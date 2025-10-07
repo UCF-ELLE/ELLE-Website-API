@@ -97,11 +97,12 @@ export default function ChatScreen(props: propsInterface) {
         
         //Resets Tito state & empties textArea
         setTitoMood("thinking");
+        const messageToSend = userMessage; // Store the message before clearing
         setUserMessage("");
 
         //Temporarily appends userMessage (no metadata yet bcs no LLM response)
         const tempUserChatMessage: ChatMessage = {
-          value: userMessage,
+          value: messageToSend,
           timestamp: new Date().toISOString(),
           source: "user",
           metadata: undefined
@@ -109,19 +110,27 @@ export default function ChatScreen(props: propsInterface) {
         setChatMessages((prevChatMessages) => [...prevChatMessages, tempUserChatMessage]);
 
         //Calls API
-        const sendMessageResponse = await sendMessage(user.jwt, user.userID, props.chatbotId, props.moduleID, userMessage, terms.map(term => term.questionFront), terms.filter(term => term.used === true).map(term => term.questionFront));
+        const sendMessageResponse = await sendMessage(
+          user.jwt, 
+          user.userID, 
+          props.chatbotId, 
+          props.moduleID, 
+          messageToSend, 
+          terms.map(term => term.questionFront), 
+          terms.filter(term => term.used === true).map(term => term.questionFront)
+        );
 
         //Makes sure API call is succesful (it returns null if it isn't)
         if(sendMessageResponse) {
             //Sets tito mood accordingly
             setTitoMood(sendMessageResponse.titoConfused ? "confused" : "happy");
-            //Apppends user response to chatMessages
             const userResponse: ChatMessage = {
-                value: userMessage,
+                value: messageToSend,
                 timestamp: tempUserChatMessage.timestamp,
                 source: "user",
                 metadata: sendMessageResponse.metadata
             }
+            
             //Appends llm response to chatMessages
             const llmMessage: ChatMessage = {
                 value: sendMessageResponse.llmResponse,
@@ -129,8 +138,11 @@ export default function ChatScreen(props: propsInterface) {
                 source: "llm",
                 metadata: undefined //LLM Messages don't have metadata
             }
+            
+            console.log('[ChatScreen] Created LLM message:', llmMessage);
 
-            //Updates ChatMessages array, removing temprorary user message
+            //Updates ChatMessages array, removing temporary user message
+            console.log('[ChatScreen] Updating chat messages with user response and LLM message');
             setChatMessages((prevChatMessages) => [...prevChatMessages.slice(0, -1), userResponse, llmMessage]);
 
             //Update usedTerms
@@ -152,6 +164,26 @@ export default function ChatScreen(props: propsInterface) {
         }
         else {
             console.log("Error sending message");
+            // Reset Tito mood on error
+            setTitoMood("neutral");
+            
+            // Add an error message to the chat
+            const errorMessage: ChatMessage = {
+                value: "Sorry, I couldn't send your message. Please try again or refresh the page if the problem persists.",
+                timestamp: new Date().toISOString(),
+                source: "llm",
+                metadata: undefined
+            }
+            
+            // Update chat messages, replacing the temporary user message with both user message and error
+            const finalUserMessage: ChatMessage = {
+                value: messageToSend,
+                timestamp: tempUserChatMessage.timestamp,
+                source: "user",
+                metadata: { error: "Message failed to send" }
+            }
+            
+            setChatMessages((prevChatMessages) => [...prevChatMessages.slice(0, -1), finalUserMessage, errorMessage]);
         }
     }
 
@@ -460,7 +492,7 @@ export default function ChatScreen(props: propsInterface) {
                   termID: term.termID,
                   questionFront: term.questionFront,
                   questionBack: term.questionBack,
-                  used: newChatbot.termsUsed.includes(term.questionFront)
+                  used: newChatbot.termsUsed ? newChatbot.termsUsed.includes(term.questionFront) : false
               }))
               setTerms(newTerms);
             }

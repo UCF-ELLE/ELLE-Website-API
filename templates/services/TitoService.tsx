@@ -15,7 +15,8 @@ const checkMockAvailable = async () => {
 
 // const ELLE_URL = 'https://chdr.cs.ucf.edu/elleapi';
 //const ELLE_URL = 'http://159.65.232.73/elleapi';
-const ELLE_URL = 'http://127.0.0.1:5050/elleapi';
+// Connect directly to Flask backend running on port 5050
+const ELLE_URL = 'http://localhost:5050/elleapi';
 
 
 interface Module {
@@ -24,22 +25,45 @@ interface Module {
   language: string;
 }
 
-// Fetches a user's modules given their JWT
+// Fetches a user's available Tito modules given their JWT
 // Returns all modules' ID, name, and language
 export const fetchModules = async (access_token: string): Promise<Module[] | null> => {
   try {
-    const response = await axios.get<Module[]>(`${ELLE_URL}/modules`, {
+    const response = await axios.get(`${ELLE_URL}/twt/session/access`, {
       headers: {
         Authorization: `Bearer ${access_token}`,
       },
     });
-
-    return response.data.map((module) => ({
-      moduleID: module.moduleID,
-      name: module.name,
-      language: module.language,
-    }));
+    
+    const data = response.data.data || [];
+    console.log('Tito modules response:', data);
+    
+    // The response is an array of [classID, modules] tuples
+    // Extract all modules from all classes
+    const allModules: Module[] = [];
+    for (const [classID, modulesList] of data) {
+      for (const [moduleID, sequenceID] of modulesList) {
+        // For now, we'll create basic module info
+        // In production, you might want to fetch full module details
+        allModules.push({
+          moduleID: moduleID,
+          name: `Module ${moduleID}`, // Placeholder name
+          language: 'es' // Default to Spanish for Colors module
+        });
+      }
+    }
+    
+    console.log('Processed modules:', allModules);
+    return allModules;
   } catch (error) {
+    console.error('Error fetching Tito modules:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Status:', error.response?.status);
+      console.error('Status Text:', error.response?.statusText);
+      console.error('Response Data:', error.response?.data);
+      console.error('Request URL:', error.config?.url);
+      console.error('Request Headers:', error.config?.headers);
+    }
     handleError(error);
     return null;
   }
@@ -111,10 +135,31 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
     console.log("getChabot sending:");
     console.log({ userId, moduleId, terms });
     
+    // First get available classes to find the right classID for this module
+    const accessResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    
+    const accessData = accessResponse.data.data || [];
+    let classID = '1'; // Default fallback
+    
+    // Find the class that contains this module
+    for (const [cID, modulesList] of accessData) {
+      for (const [mID, sequenceID] of modulesList) {
+        if (mID === moduleId) {
+          classID = cID.toString();
+          break;
+        }
+      }
+      if (classID !== '1') break; // Found the class, exit outer loop
+    }
+    
+    console.log(`Using classID: ${classID} for moduleID: ${moduleId}`);
+    
     // Create form data to match backend expectations
     const formData = new FormData();
     formData.append('moduleID', moduleId.toString());
-    formData.append('classID', '1'); // TODO: Get actual class ID from user context
+    formData.append('classID', classID);
     
     const response = await axios.post(
       `${ELLE_URL}/twt/session/create`,
@@ -128,7 +173,23 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
     );
     console.log("getChatbot response:");
     console.log(response.data);
-    return response.data.data || response.data;
+    
+    // The session creation endpoint returns { success: true, data: chatbotSID }
+    // We need to create a proper response object
+    const chatbotSID = response.data.data;
+    if (typeof chatbotSID === 'number') {
+      
+      return {
+        chatbotId: chatbotSID,
+        termsUsed: [], // No terms used yet in a new session
+        totalTimeChatted: 0, // New session starts at 0
+        userBackground: undefined,
+        userMusicChoice: undefined
+      };
+    } else {
+      console.error('Unexpected response format:', response.data);
+      return null;
+    }
   } catch (error) {
     console.error("getChatbot API Error Details:");
     if (axios.isAxiosError(error)) {
@@ -218,7 +279,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     return mockResponse;
   }
 
-  // Use real API
+  // Use real API - single attempt with original session
   try {
     // Create form data to match backend expectations
     const formData = new FormData();
@@ -227,6 +288,8 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     formData.append('moduleID', moduleId.toString());
     formData.append('isVoiceMessage', 'false'); // Assuming text message
     
+    console.log(`[SendMessage] Sending with original session ID: ${chatbotId}`);
+    
     const response = await axios.post(
       `${ELLE_URL}/twt/session/messages`,
       formData,
@@ -234,9 +297,11 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
         headers: { 
           Authorization: `Bearer ${access_token}`,
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        timeout: 30000 // 30 seconds timeout
       }
     );
+    
     const data = response.data.data || response.data;
     if(data && data.metadata && typeof data.metadata === "string") {
       try {
@@ -245,26 +310,54 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
         console.log("Failed to parse metadata for message: " + data.metadata);
       }
     }
+    
     console.log("sendMessage response:");
     console.log(data);
-    // Map the response to match expected format
+    
+    // Success! Map the response to match expected format
     return {
       llmResponse: data.titoResponse || data.llmResponse || "Great job!",
       termsUsed: data.termsUsed || [],
       titoConfused: data.titoConfused || false,
       metadata: data.metadata || {}
     };
+    
   } catch (error) {
-    console.error("sendMessage API Error Details:");
+    console.error("sendMessage failed:");
+    
     if (axios.isAxiosError(error)) {
       console.error("Status:", error.response?.status);
       console.error("Data:", error.response?.data);
-      console.error("Headers:", error.response?.headers);
+      console.error("Error code:", error.code);
+      
+      // Handle timeout specifically
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        console.error("Request timed out after 30 seconds");
+        return {
+          llmResponse: "I'm taking longer than usual to respond. The backend service seems to be slow right now. Please try sending your message again.",
+          termsUsed: [],
+          titoConfused: false,
+          metadata: {}
+        };
+      }
+      
+      // Handle session validation errors
+      if (error.response?.status === 400 && error.response?.data?.message?.includes('invalid session')) {
+        console.log('[SendMessage] Detected invalid session error, returning session error message');
+        const errorResponse = {
+          llmResponse: "I'm having trouble with the session. This might be a backend issue. Please try refreshing the page to start a new chat session.",
+          termsUsed: [],
+          titoConfused: false,
+          metadata: {}
+        };
+        console.log('[SendMessage] Returning error response:', errorResponse);
+        return errorResponse;
+      }
     }
-    handleError(error);
-    // Return basic response when API fails
+    
+    // Generic error message for other issues
     return {
-      llmResponse: "Sorry, I'm having trouble connecting to the server. The backend might not be running properly.",
+      llmResponse: "I'm having trouble processing your message right now. The issue might be temporary - please try again in a moment.",
       termsUsed: [],
       titoConfused: false,
       metadata: {}
@@ -281,54 +374,20 @@ export const incrementTime = async (access_token: string, userId: number, chatbo
     return await mockModule.mockIncrementTime(access_token, userId, chatbotId, prevTimeChatted, newTimeChatted);
   }
 
-  // Use real API
-  try {
-    const response = await axios.post(
-      `${ELLE_URL}/chat/chatbot/time`,
-      { userId, chatbotId, prevTimeChatted, newTimeChatted },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        }
-      }
-    );
-    console.log("incrementTime response:");
-    console.log(response.status);
-    return response.status;
-  } catch (error) {
-    handleError(error);
-    return 200;
-  }
+  // Use real API - For now, just return success since this endpoint doesn't exist yet
+  // TODO: Implement time tracking endpoint in backend if needed
+  console.log("[TitoService] Skipping incrementTime - endpoint not implemented in Tito backend");
+  return 200; // Return success code
 }
 
 
 // exportChat (POST)
 // Expects a CSV file to be downloaded when the chat history is requested.
 export const exportChat = async (access_token: string, userId: number, chatbotId: number): Promise<":)" | ":("> => {
-  try {
-    // Send POST request to Flask API to export chat history
-    const response = await axios.post(
-      `${ELLE_URL}/chat/chatbot/export`,
-      { userId, chatbotId }, // Send necessary data in the body
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-        responseType: 'blob', // Expect a binary response (the CSV file)
-      }
-    );
-    // Create a download link for the CSV file
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a"); // Create temporary invisible anchor element
-    link.href = url;
-    link.setAttribute("download", "chat_history.csv");
-    document.body.appendChild(link);
-    link.click(); // Triggers the download
-    return ":)";
-  } catch (error) {
-    handleError(error);
-    return ":(";
-  }
+  // TODO: Implement chat export endpoint in Tito backend if needed
+  console.log("[TitoService] Export chat not implemented yet for Tito backend");
+  console.log("Chat export requested for:", { userId, chatbotId });
+  return ":("; // Return sad face since not implemented
 };
 
 // Utility function for handling errors
