@@ -634,6 +634,19 @@ export default function ChatScreen(props: propsInterface) {
       window.speechSynthesis.speak(u);
     }
 
+    // Lore intro bubble on first load
+    useEffect(() => {
+      setMessage("I… I think I’ve lost my memories.");
+      setTrigger(Date.now());
+      
+      const timer = setTimeout(() => {
+        setMessage("Can you talk with me in different languages to help me remember them?");
+        setTrigger(Date.now());
+      }, 8000);
+
+      return () => clearTimeout(timer);
+    }, []);
+
     return(
         <div className="w-full h-full"> {/*Outer container div*/}
 
