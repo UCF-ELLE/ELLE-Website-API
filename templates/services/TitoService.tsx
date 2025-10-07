@@ -281,7 +281,7 @@ interface ChatMessage {
 type GetMessagesResponse = ChatMessage[];
 
 // getMessages (GET)
-export const getMessages = async (access_token: string, userId: number, chatbotId: number): Promise<GetMessagesResponse | null> => {
+export const getMessages = async (access_token: string, userId: number, chatbotId: number, moduleId?: number): Promise<GetMessagesResponse | null> => {
   // First try to use mock if available
   const mockModule = await checkMockAvailable();
   if (mockModule && mockModule.mockGetMessages) {
@@ -291,27 +291,53 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
 
   // Use real API
   try {
-    // Backend expects moduleID as query parameter, not userId/chatbotId
-    // For now, using moduleID=1 as default - this should be passed from the frontend
+    // If moduleId is not provided, we need to extract it from chatbot session data
+    // For now, we'll need moduleId to be passed from the calling code
+    if (!moduleId) {
+      console.error('getMessages: moduleId is required but not provided');
+      return [];
+    }
+    
+    console.log(`[getMessages] Fetching messages for userId: ${userId}, moduleId: ${moduleId}`);
+    
     const response = await axios.get(
       `${ELLE_URL}/twt/session/messages`,
       {
-        params: { moduleID: 1 }, // TODO: Get actual moduleID from context
+        params: { moduleID: moduleId },
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
-    const messages = response.data.data || response.data;
+    
+    console.log("[getMessages] Raw backend response:");
+    console.log(response.data);
+    
+    const messages = response.data.data || response.data || [];
+    
+    // Transform backend message format to frontend expected format
+    const transformedMessages: ChatMessage[] = [];
+    
     if (Array.isArray(messages)) {
-      messages.forEach((dataItem: ChatMessage) => {
-        if(dataItem && typeof dataItem.metadata === "string") {
-          dataItem.metadata = JSON.parse(dataItem.metadata);
-        }
-      });
+      for (const msg of messages) {
+        const transformedMessage: ChatMessage = {
+          value: msg.message || msg.value || '',
+          timestamp: msg.timestamp || new Date().toISOString(),
+          source: (msg.source === 'user' || msg.source === 'llm') ? msg.source : 'user',
+          metadata: typeof msg.metadata === 'string' ? JSON.parse(msg.metadata) : (msg.metadata || {})
+        };
+        transformedMessages.push(transformedMessage);
+      }
     }
-    console.log("getMessages response:");
-    console.log(messages);
-    return Array.isArray(messages) ? messages : [];
+    
+    console.log("[getMessages] Transformed messages:");
+    console.log(transformedMessages);
+    
+    return transformedMessages;
   } catch (error) {
+    console.error('[getMessages] Error fetching messages:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Status:', error.response?.status);
+      console.error('Response Data:', error.response?.data);
+    }
     handleError(error);
     return [];
   }
