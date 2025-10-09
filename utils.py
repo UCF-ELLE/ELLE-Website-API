@@ -33,6 +33,24 @@ from config import (
 # this line was missing and causing redis_host to cause errors
 from config import REDIS_HOST, REDIS_PORT, REDIS_CHARSET
 
+########################################################################################
+# API RESPONSE RETURN HELPER
+########################################################################################
+# Not required to use, but helps reduce the amount of clutter
+# NOTE: See /resources/conversationElle/Conversation.py and the RETURN values to see how this may be implemented
+def create_response(success=True, message=None, data=None, status_code=200, **extra_json_fields):
+    response = {
+        "success": success,
+        "message": message if message else "",
+        "data": {} if data is None else data
+    }
+
+    # Add any additional key-value pairs (from extra_fields) to the response
+    if extra_json_fields:
+        response.update(extra_json_fields)
+
+    return response, status_code
+
 
 ########################################################################################
 # TERM FUNCTIONS

@@ -11,6 +11,7 @@ from flask_cors import CORS
 from flask_mail import Mail
 from db import mysql
 from db_utils import *
+from utils import create_response
 from pathlib import Path
 from resources.pasta import (
     AllPastaInModule,
@@ -147,9 +148,7 @@ import threading
 from resources.conversationElle.spacy_service import(
     spacy_service,
 )
-from resources.conversationElle.database import(
-    create_response
-)
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from cleanup_inactive import cleanup_expired_groups
 # ===============================================

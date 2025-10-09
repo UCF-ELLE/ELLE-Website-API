@@ -4,6 +4,7 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt_claims
 # from .config import free_prompt
 from config import MAX_AUDIO_SIZE_BYTES, MAX_AUDIO_LENGTH_SEC, FREE_CHAT_MODULE
+from utils import create_response
 from .database import * 
 from .spacy_service import add_message
 from .convo_grader import suggest_grade as grade_message
@@ -191,7 +192,7 @@ class UserMessages(Resource):
             
             if not module_id:
                 return create_response(False, message="Missing required paranmeters.", status_code=404)
-            return create_response(True, message="Retrieved chat history.", data=loadModuleChatHistory(user_id, module_id)) 
+            return create_response(True, message="Retrieved chat history.", data=fetchModuleChatHistory(user_id, module_id)) 
         except Exception as e:
             print("[ERROR] In UserMessages @ conversation.py")
             return create_response(False, message="Failed to retrieve user's messages. Error: {e}", status_code=504)
@@ -370,7 +371,7 @@ class AddTitoModule(Resource):
         
         if not class_id or not module_id:
             create_response(False, message="Missing parameters.", status_code=404)
-        if not userIsNotStudent(user_id, class_id):
+        if not userIsNotAStudent(user_id, class_id):
             return create_response(False, message="user does not have required privileges.", status_code=403)
         if not isTitoClass(user_id, class_id):
             return create_response(False, message="Class is not currently a tito class.", status_code=403)
@@ -402,7 +403,7 @@ class UpdateTitoModule(Resource):
             return create_response(False, message="Missing parameters.", status_code=404)
         if not start_date and not end_date and status_update_change is None:
             return create_response(False, message="failed to change anything, missing params.")
-        if not userIsNotStudent(user_id, class_id):
+        if not userIsNotAStudent(user_id, class_id):
             return create_response(False, message="user does not have required privileges.", status_code=403)
         if not isTitoClass(user_id, class_id):
             return create_response(False, message="Class is not currently a tito class.", status_code=403)
@@ -435,7 +436,7 @@ class UpdateTitoClass(Resource):
 
         if not class_id:
             return create_response(False, message="invalid params", status_code=403)
-        if not userIsNotStudent(user_id, class_id):
+        if not userIsNotAStudent(user_id, class_id):
             return create_response(False, message="invalid perms", status_code=403)
         if not isTitoClass(user_id, class_id):
             if createTitoClass(user_id, class_id):
@@ -443,7 +444,7 @@ class UpdateTitoClass(Resource):
             else:
                 return create_response(False, message="Failed to make class a Tito class. Valve please fix...", status_code=500)
             
-        if not updateTitoGroupStatus(user_id, class_id):
+        if not updateTitoClassStatus(user_id, class_id):
             return create_response(False, message="failed to update tito class", status_code=400)
 
         return create_response(True, message="updated tito class status")
