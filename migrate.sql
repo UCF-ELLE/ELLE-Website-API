@@ -28,8 +28,8 @@ WHERE `userID` = 1;
 
 
 -- REGISTER A NEW USER FIRST BEFORE PROCEEDING
--- LOG IN AND GET THEIR USER ID AND REPLACE '501' WITH THE NEW ID
--- THAT WILL BE YOUR PROFESSOR ACCOUNT
+-- LOG IN AND GET THEIR USER ID AND REPLACE '473' WITH THE NEW ID
+-- THAT WILL BE YOUR STUDENT ACCOUNT
 -- username =  ecstaticseahorse0
 -- password = 1 
 
@@ -57,15 +57,16 @@ WHERE `userID` = 473;
 -- Begin migration chatbot sessions
 RENAME TABLE `chatbot_sessions` TO `chatbot_sessions_old`;
 
+-- NOTE: Create triggers for grammarScore, isActiveSession, timeChatted?
 CREATE TABLE `chatbot_sessions` (
   `chatbotSID` int(4) NOT NULL AUTO_INCREMENT,
   `userID` int(4) NOT NULL,
   `moduleID` int(4) NOT NULL,
-  `totalTimeChatted` float NOT NULL DEFAULT 0,
+  `timeChatted` float NOT NULL DEFAULT 0,
   `moduleWordsUsed` int(4) NOT NULL DEFAULT 0,
-  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
-  `grammarPerformanceRating` float(4) NOT NULL DEFAULT 0,
-  `activeSession` boolean NOT NULL DEFAULT 0,
+  `creationTimestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  `grammarScore` float(4) NOT NULL DEFAULT 0,
+  `isActiveSession` boolean NOT NULL DEFAULT 0,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY (`chatbotSID`),
@@ -74,14 +75,15 @@ CREATE TABLE `chatbot_sessions` (
 
 -- migrate data from old to new
 
-INSERT IGNORE INTO `chatbot_sessions` (`chatbotSID`, `userID`, `moduleID`, `totalTimeChatted`, `moduleWordsUsed`, `timestamp`)
-SELECT `chatbotId`, `userId`, `moduleId`, `totalTimeChatted`, `totalWordsForModule`, `timestamp`
+INSERT IGNORE INTO `chatbot_sessions` (`chatbotSID`, `userID`, `moduleID`, `timeChatted`, `moduleWordsUsed`, `creationTimestamp`)
+SELECT `chatbotId`, `userId`, `moduleId`, `timeChatted`, `totalWordsForModule`, `creationTimestamp`
 FROM `chatbot_sessions_old`;
 
 
 -- Begin message migration
 RENAME TABLE `messages` TO `messages_old`;
 
+-- NOTE: Create triggers for grammarScore and keyWordsUsed?
 CREATE TABLE `messages` (
   `messageID` int(4) NOT NULL AUTO_INCREMENT,
   `userID` int(4) NOT NULL,
@@ -89,12 +91,12 @@ CREATE TABLE `messages` (
   `moduleID` int(4) NOT NULL,
   `source` ENUM('llm','user') NOT NULL,
   `message` text NOT NULL,
-  `timestamp` timestamp NULL DEFAULT current_timestamp(), -- When message was sent
+  `creationTimestamp` timestamp NULL DEFAULT current_timestamp(), -- When message was sent
   `isVoiceMessage` boolean NOT NULL DEFAULT 0,
   `keyWordsUsed` int(4) NOT NULL DEFAULT 0,
-  `grammarRating` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously, NULL means score unavailable
+  `grammarScore` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously(?)
   PRIMARY KEY (`messageID`),
-  KEY (`timestamp`),
+  KEY (`creationTimestamp`),
   FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE, 
   FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
   FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
@@ -102,13 +104,13 @@ CREATE TABLE `messages` (
 
 
 -- Migrate data from old_messages into messages (new)
-INSERT IGNORE INTO `messages` (`messageID`, `userID`, `chatbotSID`, `moduleID`, `source`, `message`, `timestamp`, `isVoiceMessage`, `grammarRating`)
-SELECT `id`, `userId`, `chatbotId`, `moduleId`, `source`, `value`, `timestamp`, 0, 0
+INSERT IGNORE INTO `messages` (`messageID`, `userID`, `chatbotSID`, `moduleID`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`, `grammarScore`)
+SELECT `id`, `userId`, `chatbotId`, `moduleId`, `source`, `value`, `creationTimestamp`, 0, 0
 FROM `messages_old`;
 
 
-
-CREATE TABLE `tito_group_status` (
+-- NOTE: Create triggers for titoStatus and titoExpirationDate?
+CREATE TABLE `tito_class_status` (
   `classID` int(4) NOT NULL,
   `professorID` int(4) NOT NULL,
   `titoStatus` enum('active', 'inactive') NOT NULL DEFAULT 'active',
@@ -121,15 +123,16 @@ CREATE TABLE `tito_group_status` (
 
 
 
--- ADD NEW TABLES
+-- NOTE: Create triggers for titoStatus and titoExpirationDate?
 CREATE TABLE `tito_generated_module` (
   `moduleID` int(4) NOT NULL, 
-  `proffesorID` int(4) NOT NULL, 
+  `professorID` int(4) NOT NULL, 
   `modulePrompt` text DEFAULT NULL, 
-  FOREIGN KEY(`proffesorID`) REFERENCES `user` (`userID`),
-  PRIMARY KEY(`proffesorID`, `moduleID`)
+  FOREIGN KEY(`professorID`) REFERENCES `user` (`userID`),
+  PRIMARY KEY(`professorID`, `moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
+-- NOTE: Create triggers for titoStatus change and titoExpirationDate?
 CREATE TABLE `tito_module` (
   `moduleID` int(4) NOT NULL,
   `classID` int(4) NOT NULL,
@@ -137,6 +140,7 @@ CREATE TABLE `tito_module` (
   `titoPrompt` text DEFAULT NULL, 
   `startDate` DATE DEFAULT NULL, 
   `endDate` DATE DEFAULT NULL, 
+  `totalTerms` int(4) NOT NULL DEFAULT 0, 
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   `loreAssigned` int(2) NOT NULL DEFAULT 1,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
@@ -145,27 +149,19 @@ CREATE TABLE `tito_module` (
   PRIMARY KEY(`classID`, `moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
--- CREATE TABLE `tito_free_chat_module` (
---   `classID` int(4) NOT NULL,
---   `titoPrompt` text DEFAULT NULL,
---   `status` enum('active', 'inactive') NOT NULL DEFAULT 'active',
---   FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
---   PRIMARY KEY (`classID`)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE `tito_module_progress` (
-  `proficiencyRate` float(4) DEFAULT 0.0, 
   `moduleID` int(4) NOT NULL,
   `studentID` int(4) NOT NULL,
   `completedTutorial` boolean NOT NULL DEFAULT 0,
-  `totalTermsUsed` int (5) NOT NULL Default 0,
+  `termsMastered` int (5) NOT NULL DEFAULT 0,
   `loreProgress` int(1) NOT NULL DEFAULT 0,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`studentID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY(`moduleID`,`studentID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-
+-- on sufficient ratio change update hasMastered, then update tito_module_progress
 CREATE TABLE `tito_term_progress` (
   `moduleID` int(4) NOT NULL,
   `termID`  int(4) NOT NULL,
@@ -230,8 +226,8 @@ JOIN `group_user` gu ON gu.userID = msg.userID;
 
 
 
--- Populate tito_group_status table
-INSERT IGNORE INTO `tito_group_status` (`classID`, `professorID`, `titoStatus`, `titoExpirationDate`)
+-- Populate tito_class_status table
+INSERT IGNORE INTO `tito_class_status` (`classID`, `professorID`, `titoStatus`, `titoExpirationDate`)
 SELECT DISTINCT gu.groupID, gu.userID, 'active', DATE_ADD(NOW(), INTERVAL 1 YEAR)
 FROM `group_user` gu
 WHERE gu.accessLevel = 'pf';
@@ -239,38 +235,72 @@ WHERE gu.accessLevel = 'pf';
 
 
 -- CREATE TRIGGERS
+
+-- When a class's status changes, cascade changes to modules too if they are tito_modules
+DELIMITER //
+CREATE TRIGGER onClassStatusUpdate_updateModules
+AFTER UPDATE ON `tito_class_status`
+FOR EACH ROW
+BEGIN
+    -- Case 1: active -> inactive
+    IF OLD.titoStatus = 'active' AND NEW.titoStatus = 'inactive' THEN
+        UPDATE `tito_module`
+        SET status = 'inactive'
+        WHERE classID = NEW.classID;
+    END IF;
+    -- Case 2: inactive -> active
+    IF OLD.titoStatus = 'inactive' AND NEW.titoStatus = 'active' THEN
+        UPDATE `tito_module`
+        SET status = 'active'
+        WHERE classID = NEW.classID;
+    END IF;
+END//
+DELIMITER ;
+
+
+-- When an update of a SINGLE TERM CHANGES, updates `hasMastered` if there is a need to
+DELIMITER //
+CREATE TRIGGER onUpdateTermProgress_change_hasMastered
+AFTER UPDATE ON `tito_term_progress`
+FOR EACH ROW
+BEGIN
+    IF NEW.timesUsed > 3 AND (NEW.timesMispelled / NEW.timesUsed) <= 0.25 AND NOT OLD.hasMastered THEN
+        UPDATE `tito_term_progress`
+        SET `hasMastered` = TRUE
+        WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;
+    END IF;
+END //
+DELIMITER ;
+
+-- 
+DELIMITER // 
+CREATE TRIGGER onSessionCreate_revokeOtherSessions
+BEFORE INSERT ON `chatbot_sessions`
+FOR EACH ROW
+BEGIN
+  UPDATE `chatbot_sessions`
+  SET `isActiveSession` = 0
+  WHERE `userID` = NEW.userID;
+END // 
+DELIMITER ;
+
+
+
+
+-- Clean up UNCOMMENT
+-- DROP TABLE `chatbot_sessions_old`;
+-- DROP TABLE `messages_old`;
+
+
+
+-- OLD TRIGGERS
+
+-- When an update of a SINGLE TERM CHANGES, updates `hasMastered` if there is a need to
 -- DELIMITER //
-
--- CREATE TRIGGER trigger_on_group_status_update
--- AFTER UPDATE ON tito_group_status
--- FOR EACH ROW
--- BEGIN
---     -- Case 1: active -> inactive
---     IF OLD.titoStatus = 'active' AND NEW.titoStatus = 'inactive' THEN
---         UPDATE `tito_module`
---         SET status = 'inactive'
---         WHERE classID = NEW.classID;
---     END IF;
-
---     -- Case 2: inactive -> active
---     IF OLD.titoStatus = 'inactive' AND NEW.titoStatus = 'active' THEN
---         UPDATE `tito_module`
---         SET status = 'active'
---         WHERE classID = NEW.classID;
---     END IF;
--- END//
-
--- DELIMITER ;
-
-
--- -- 
--- DELIMITER //
-
--- CREATE TRIGGER update_hasMastered
+-- CREATE TRIGGER onUpdateTermProgress_change_hasMastered
 -- AFTER UPDATE ON `tito_term_progress`
 -- FOR EACH ROW
 -- BEGIN
---     -- Check if the update involves changing the timesMispelled or timesUsed
 --     IF NEW.timesUsed > 3 AND (NEW.timesMispelled / NEW.timesUsed) <= 0.25 AND NOT OLD.hasMastered THEN
 --         UPDATE `tito_term_progress`
 --         SET `hasMastered` = TRUE
@@ -281,12 +311,9 @@ WHERE gu.accessLevel = 'pf';
 --         WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;
 --     END IF;
 -- END //
-
 -- DELIMITER ;
 
 
 
 
--- Clean up UNCOMMENT
--- DROP TABLE `chatbot_sessions_old`;
--- DROP TABLE `messages_old`;
+
