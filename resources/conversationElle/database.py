@@ -12,7 +12,7 @@ db = DBHelper(mysql)
 
 
 # Updates how long a user has been chatting in the current session
-# TODO: check if timestamp used is keyword or column
+# TODO: check if timestamp used is keyword or column AND consider a trigger
 def updateTotalTimeChatted(chatbotSID):
     query = '''
         UPDATE `chatbot_sessions`
@@ -20,7 +20,7 @@ def updateTotalTimeChatted(chatbotSID):
         WHERE `chatbotSID` = %s;
     '''
 
-    return db.post(query, (chatbotSID,)).get("lastrowid")
+    db.post(query, (chatbotSID,))
 
 
 
@@ -58,9 +58,11 @@ def createChatbotSession(userID: int, moduleID: int):
 # TODO: Check logic, test with existing but expired, current and existing nonE, and future nonExist
 def isValidChatbotSession(userID: int, moduleID: int, chatbotSID: int):
     query = '''
-        SELECT `isActiveSession`
-        FROM `chatbot_sessions`
-        WHERE `userID` = %s AND `moduleID` = %s AND `chatbotSID` = %s;
+        SELECT EXISTS(
+            SELECT `isActiveSession`
+            FROM `chatbot_sessions`
+            WHERE `userID` = %s AND `moduleID` = %s AND `chatbotSID` = %s
+        );
     '''
 
     result = db.get(query, (userID, moduleID, chatbotSID), fetchOne=True)
@@ -79,7 +81,9 @@ def userIsNotAStudent(user_id:int, class_id: int):
         );
     '''
     res = db.get(query, (user_id, class_id), fetchOne=True)
-    return False if not res else res[0]
+    if not result or not result[0]:
+        return False
+    return True
 
 # ================================================
 #
@@ -91,9 +95,9 @@ def userIsNotAStudent(user_id:int, class_id: int):
 # st == all enrolled classes
 # pf == all owned classes
 # pf may get either all tito classes or just currently active tito classes
-# TODO: Create get classAccessLevel
 def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
     query = ''
+    # Professors can retrieve active, inactive or both classes 
     if permissionLevel == 'pf':
         if get_classes_type == 'active':
             query = '''
@@ -114,6 +118,7 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
                 WHERE professorID = %s AND titoStatus = 'inactive';
             '''
         return db.get(query, (userID,))
+    # Otherwise, retrieves gets ACTIVE classes assigned to a TWT user
     elif permissionLevel == 'st':
         query = '''
             SELECT g.groupID
@@ -126,6 +131,7 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
             WHERE gs.titoStatus = 'active';
         '''
         return db.get(query, (userID, permissionLevel))
+    # Like the first if statement, but for general users
     elif permissionLevel == 'any':
         if get_classes_type == 'all':
             query = '''
@@ -163,15 +169,19 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
 
 def isUserInClass(user_id: int, class_id:int):
     query = '''
-        SELECT * 
-        FROM `group_user` 
-        WHERE groupID = %s AND userID = %s;
+        SELECT EXISTS(
+            SELECT * 
+            FROM `group_user` 
+            WHERE groupID = %s AND userID = %s
+        );
     '''
 
-    if not db.get(query, (class_id, user_id), fetchOne=True):
+    res = db.get(query, (class_id, user_id), fetchOne=True)
+    if not res or not res[0]:
         return False
     return True
 
+# TODO: Fix HANDLING MULTIPLE accessLevels being returned, prioritize pf>ta>st
 def getUserGroupAccessLevel(user_id: int, class_id: int):
     query = '''
         SELECT `accessLevel` 
@@ -231,7 +241,6 @@ def createNewUserMessage(userID: int, moduleID: int, chatbotSID: int, message: s
         # elif isVM == 'true':
         #     isVM = 1
         result = db.post(query, (userID, chatbotSID, moduleID, message, isVM))
-        # print(result)
         if result:
             if not result.get("rowcount"):
                 return 0
@@ -241,19 +250,6 @@ def createNewUserMessage(userID: int, moduleID: int, chatbotSID: int, message: s
         print(f"[ERROR] Exception has occured when trying to insert message @ createNewUserMessage in database.py. Error: {e}")
         return 0
 
-# NOTE: Deprecated?
-# def getMessageID(userID: int, moduleID: int, chatbotSID: int):
-#     query = '''
-#             SELECT messageID
-#             FROM `messages`
-#             WHERE userID = %s AND moduleID = %s AND chatbotSID = %s
-#             ORDER BY timestamp DESC LIMIT 1;
-#         '''
-#     result = db.get(query, (userID, moduleID, chatbotSID))
-#     if not result:
-#         return False
-#     return True
-
 # TODO: implement trigger logic here
 def updateWordsUsed(term_count_dict: dict, user_id: int, module_id: int):
     if not term_count_dict:
@@ -261,16 +257,16 @@ def updateWordsUsed(term_count_dict: dict, user_id: int, module_id: int):
     
     term_ids = list(term_count_dict.keys())
 
-    count = 0
-    for tID in term_ids:
-        count += term_count_dict[tID]
+    count = len(term_ids)
+    # for tID in term_ids:
+        # count += term_count_dict[tID]
 
-    query = '''
-        UPDATE `tito_module_progress` 
-        SET `totalTermsUsed` = `totalTermsUsed` + %s 
-        WHERE `moduleID` = %s AND `studentID` = %s;
-    '''
-    db.post(query, (count, module_id, user_id))
+    # query = '''
+    #     UPDATE `tito_module_progress` 
+    #     SET `totalTermsUsed` = `totalTermsUsed` + %s 
+    #     WHERE `moduleID` = %s AND `studentID` = %s;
+    # '''
+    # db.post(query, (count, module_id, user_id))
 
 
     # Build CASE statement
@@ -285,7 +281,7 @@ def updateWordsUsed(term_count_dict: dict, user_id: int, module_id: int):
             ELSE 0
         END
         WHERE `userID` = %s AND `moduleID` = %s
-          AND `termID` IN ({",".join(["%s"] * len(term_ids))});
+          AND `termID` IN ({",".join(["%s"] * count)});
     '''
 
     params = [user_id, module_id] + term_ids
@@ -300,21 +296,8 @@ def updateMessageKeytermCount(count: int, messageID: int, chatbotSID: int):
 
     db.post(query, (count, messageID))
 
-    # query = '''
-    #     UPDATE `chatbot_sessions`
-    #     SET `moduleWordsUsed` = `moduleWordsUsed` + %s
-    #     WHERE `chatbotSID` = %s;
-    # '''
-    # db.post(query, (count, chatbotSID))
-
 # TODO: Improve this? 
 def getUserModuleProgress(user_id: int, module_id:int):
-    # query = '''
-    #     SELECT proficiencyRate 
-    #     FROM tito_module_progress
-    #     WHERE moduleID = %s AND studentID = %s;
-    # '''
-
     query = '''
         SELECT termsMastered, totalTerms 
         FROM tito_module_progress 
@@ -369,15 +352,29 @@ def updateMessageScore(msg_id: int, score: int):
     #     if res.get("rowcount") > 0:
     #         updateModuleProgress(module_id, student_id)
 
+# NOTE: deprecated?
 # Adds +1 to `termsMastered`
-def updateModuleProgress(module_id: int, user_id: int):
+# def updateModuleProgress(module_id: int, user_id: int):
+#     query = '''
+#         UPDATE `tito_module_progress`
+#         SET `termsMastered` = `termsMastered` + 1
+#         WHERE moduleID = %s AND studentID = %s;
+#     '''
+
+#     db.post(query, (module_id, user_id))
+
+# Adds +1 to misspell count for this term for the user
+def updateMisspellings(user_id: int, module_id: int, term_id: int):
     query = '''
-        UPDATE `tito_module_progress`
-        SET `termsMastered` = `termsMastered` + 1
-        WHERE moduleID = %s AND studentID = %s;
+        UPDATE `tito_term_progress`
+        SET `timesMisspelled` = `timesMisspelled` + 1,
+            `timesUsed` = `timesUsed` + 1 
+        WHERE userID = %s AND moduleID = %s AND termID = %s;
     '''
 
-    db.post(query, (module_id, user_id))
+    db.post(query, (user_id, module_id, term_id))
+    
+
 
 
 # ================================================
@@ -387,10 +384,11 @@ def updateModuleProgress(module_id: int, user_id: int):
 # ================================================
 
 # Stores some related msg data & returns the voiceID to this insert
+# Expire user audio files 7 months from date of recording for housekeeping
 def storeVoiceMessage(userID: int, messageID: int, filename: str, chatbotSID: int):
     query = '''
-        INSERT INTO `tito_voice_message` (userID, messageID, filename, chatbotSID)
-        VALUES (%s, %s, %s, %s);
+        INSERT INTO `tito_voice_message` (userID, messageID, filename, chatbotSID, audioExpireDate)
+        VALUES (%s, %s, %s, %s, DATE_ADD(CURDATE(), INTERVAL 7 MONTH));
     '''
     
     res = db.post(query, (userID, messageID, filename, chatbotSID))
@@ -411,8 +409,10 @@ def isDuplicateAudioUpload(user_id: int, message_id: int):
 
 # Might be redundant
 def getVoiceMessage(userID: int, messageID: int):
+    if hasVoiceMessageExpired(userID, messageID):
+        return None
     query = '''
-        SELECT filename
+        SELECT filename, 
         FROM `tito_voice_message` t
         WHERE t.userID = %s AND t.messageID = %s;
     '''
@@ -422,6 +422,20 @@ def getVoiceMessage(userID: int, messageID: int):
         return result[0]
     return None
 
+def hasVoiceMessageExpired(user_id: int, message_id: int):
+    query = '''
+        SELECT EXISTS(
+            SELECT 1
+            FROM `tito_voice_message`
+            WHERE `userID` = %s AND `messageID` = %s
+            AND `audioExpireDate` <= CURDATE()
+        ) AS hasExpired;
+    '''
+
+    res = db.get(query, (user_id, message_id), fetchOne=True)
+    if not res:
+        return True
+    return res[0]
 
 # ================================================
 #
@@ -452,30 +466,88 @@ def newTitoMessage(userID: int, chatbotSID: int, message: str, module_id: int):
 #
 # ================================================
 
-# TODO: read this
-def insertNewTitoModule(module_id, class_id):
+# TODO: Check if tito_module method required?
+# TODO: create DB safety checks?
+# TODO: create methods for when a new user joins the group [URGENT]
+def addNewTitoModule(module_id, class_id):
     db.post("INSERT INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
 
-    # 1. Get all students in the class
-    students = db.get("SELECT DISTINCT userID FROM group_user WHERE groupID = %s;", (class_id,))
+    # 1. Get ALL users assigned to class (even non students)
+    users = db.get("SELECT DISTINCT userID FROM group_user WHERE groupID = %s;", (class_id,))
 
-    # 2. Insert into tito_module_progress
-    module_progress_data = [(module_id, s) for s in students]
-    # print(module_progress_data)
-    db.post("INSERT INTO tito_module_progress (moduleID, studentID) VALUES (%s, %s);", module_progress_data)
+    # 2. Create tito_module_progress for all users
+    module_user_pair = [(module_id, user) for user in users]
+    db.post("INSERT INTO tito_module_progress (moduleID, studentID) VALUES (%s, %s);", module_user_pair)
 
-    # 3. Get all termIDs for module
-    term_ids = db.get('''
-        SELECT DISTINCT t.termID
-        FROM module_question mq
-        JOIN answer a ON mq.questionID = a.questionID
-        JOIN term t ON a.termID = t.termID
-        WHERE mq.moduleID = %s;
-    ''', (module_id,))
+    # 3. Get all termIDs for this module
+    term_ids = db.get(
+        '''
+            SELECT DISTINCT t.termID
+            FROM (
+                SELECT DISTINCT questionID
+                FROM module_question
+                WHERE moduleID = %s
+            ) mq
+            JOIN answer a ON mq.questionID = a.questionID
+            JOIN term t ON a.termID = t.termID
+            WHERE mq.moduleID = %s;
+        ''', (module_id,module_id)
+    )
+
     # 4. Insert into tito_term_progress
-    term_progress_data = [(module_id, term_id[0], s[0]) for term_id in term_ids for s in students]
-    # print(term_progress_data)
+    term_progress_data = [(module_id, term_id[0], s[0]) for term_id in term_ids for user in users]
     db.post("INSERT INTO tito_term_progress (moduleID, termID, userID) VALUES (%s, %s, %s);", term_progress_data)
+
+def addNewGroupUserToTitoGroup(user_id, class_id):
+    """
+    When a user is added to a group that already has Tito modules,
+    insert tito_module_progress and tito_term_progress for them.
+    """
+    # 1. Check if this class is an active Tito class
+    class_check = db.get(
+        "SELECT 1 FROM tito_group_status WHERE classID = %s LIMIT 1;", (class_id,), fetchOne=True
+    )
+    if not class_check:
+        return
+
+    # 2. Get all Tito modules for this class
+    modules = db.get(
+        "SELECT moduleID FROM tito_module WHERE classID = %s;", (class_id,)
+    )
+    if not modules:
+        return
+
+    # 3. Create module progress entries for each module
+    module_progress_data = [(m[0], user_id) for m in modules]
+    db.post(
+        "INSERT INTO tito_module_progress (moduleID, studentID) VALUES (%s, %s);", module_progress_data
+    )
+
+    # 4. For each module, get its termIDs and add term progress
+    for m in modules:
+        module_id = m[0]
+        term_ids = db.get(
+            '''
+                SELECT DISTINCT t.termID
+                FROM (
+                    SELECT DISTINCT questionID
+                    FROM module_question
+                    WHERE moduleID = %s
+                ) mq
+                JOIN answer a ON mq.questionID = a.questionID
+                JOIN term t ON a.termID = t.termID
+                WHERE mq.moduleID = %s;
+            ''', (module_id, module_id)
+        )
+        # Assign all terms to this user
+        if term_ids:
+            term_progress_data = [(user_id, module_id, term_id[0]) for term_id in term_ids]
+            db.post(
+                "INSERT INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);",
+                term_progress_data
+            )
+
+
 
 # Change some status of a Tito Module (current availability and/or start/end dates)
 def updateTitoModuleStatus(module_id:int, class_id: int, update_status=False, update_date=False, start_date=None, end_date=None):
@@ -534,7 +606,7 @@ def isTitoClass(user_id: int, class_id: int):
 def createTitoClass(user_id: int, class_id: int):
     query = '''
         INSERT INTO `tito_class_status` (`classID`, `professorID`, `titoExpirationDate`) 
-        VALUES (%s,%s,CURDATE());
+        VALUES (%s,%s,DATE_ADD(CURDATE(), INTERVAL 12 MONTH));
     '''
     res = db.post(query, (class_id, user_id))
     if not res:
@@ -564,35 +636,46 @@ def getTitoModules(classID: int, status='active'):
 # TODO: check if this works w/ not instead of not None
 def isActiveTitoModule(classID: int, moduleID: int):
     query = '''
-        SELECT `moduleID`
-        FROM `tito_module`
-        WHERE `classID` = %s AND `moduleID` = %s AND `status` = 'active';
+        SELECT EXISTS (
+            SELECT `moduleID`
+            FROM `tito_module`
+            WHERE `classID` = %s AND `moduleID` = %s AND `status` = 'active'
+        );
     '''
 
     res = db.get(query, (classID, moduleID), fetchOne=True)
-    return False if not res else True
+    return False if not res else res[0]
 
 def isTitoModule(class_id: int, module_id: int):
     query = '''
-        SELECT `moduleID`
-        FROM `tito_module`
-        WHERE `classID` = %s AND `moduleID` = %s;
+        SELECT EXISTS (
+            SELECT `moduleID`
+            FROM `tito_module`
+            WHERE `classID` = %s AND `moduleID` = %s
+        );
     '''
 
     res = db.get(query, (class_id, module_id), fetchOne=True)
-    return False if not res else True
+    return False if not res else res[0]
     
 # Returns pairs of termIDs with the term (str) for a given module
 def getModuleTerms(module_id: int):
     query = '''
         SELECT DISTINCT t.termID, t.front
-        FROM `module_question` mq
-        JOIN `answer` a ON mq.questionID = a.questionID
-        JOIN `term` t ON a.termID = t.termID
+        FROM (
+            SELECT DISTINCT questionID
+            FROM module_question
+            WHERE moduleID = %s
+        ) mq
+        JOIN answer a ON mq.questionID = a.questionID
+        JOIN term t ON a.termID = t.termID
         WHERE mq.moduleID = %s;
     '''
 
-    return db.get(query, (module_id,))
+    res = db.get(query, (module_id,))
+    if not res:
+        return []
+    return res
 
 def getModuleLanguage(module_id: int):
     query = '''
@@ -620,6 +703,39 @@ def isModuleInClass(class_id: int, module_id:int):
         return False
     return res[0]
 
+# ================================================
+#
+# Data/Progress-related
+#
+# ================================================
+
+def getAvgGrammarScoreChatbotSession(user_id: int, module_id: int, chatbot_sid: int):
+    # Make sure to calc score for USER and NOT also LLM
+    query = '''
+        SELECT AVG(m.grammarScore) AS avgGrammarScore
+        FROM messages m
+        WHERE 
+            m.userID = %s AND m.moduleID = %s AND m.chatbotSID = %s AND m.source = 'user';
+    '''
+
+    res = db.get(query, (user_id, module_id, chatbot_sid), fetchOne=True)
+    if not res:
+        return None
+    return res[0]
+
+def getAvgGrammarScoreModule(user_id: int, module_id: int):
+    # Make sure to calc score for USER and NOT also LLM
+    query = '''
+        SELECT AVG(m.grammarScore) AS avgGrammarScore
+        FROM messages m
+        WHERE m.userID = %s AND m.moduleID = %s AND m.source = 'user';
+    '''
+
+    res = db.get(query, (user_id, module_id), fetchOne=True)
+    if not res:
+        return None
+    return res[0]
+
 
 
 # ================================================
@@ -628,41 +744,41 @@ def isModuleInClass(class_id: int, module_id:int):
 #
 # ================================================
 
-# TODO: Trigger
-def getTermCountInModule(module_id: int):
+# # TODO: Trigger
+# def getTermCountInModule(module_id: int):
 
-    return
+#     return
 
-# TODO: CREATE TRIGGER TO AUTOMATE THIS ON TITO_MODULE CREATION
-def iterateUpdateModule():
-    modules = []
-    for m in modules:
-        updateTMPTotalTerms(m)
-    return
+# # TODO: CREATE TRIGGER TO AUTOMATE THIS ON TITO_MODULE CREATION
+# def iterateUpdateModule():
+#     modules = []
+#     for m in modules:
+#         updateTMPTotalTerms(m)
+#     return
 
-# Call once in a while or when terms are inserted/deleted
-# TODO: create a timed daemon to schedule this for all modules
-def updateTMPTotalTerms(module_id: int):
-    term_count_query = """
-        SELECT COUNT(DISTINCT t.termID)
-        FROM module_question mq
-        JOIN answer a ON mq.questionID = a.questionID
-        JOIN term t ON a.termID = t.termID
-        WHERE mq.moduleID = %s;
-    """
-    term_count = db.get(term_count_query, (module_id,), fetchOne=True)
+# # Call once in a while or when terms are inserted/deleted
+# # TODO: create a timed daemon to schedule this for all modules
+# def updateTMPTotalTerms(module_id: int):
+#     term_count_query = """
+#         SELECT COUNT(DISTINCT t.termID)
+#         FROM module_question mq
+#         JOIN answer a ON mq.questionID = a.questionID
+#         JOIN term t ON a.termID = t.termID
+#         WHERE mq.moduleID = %s;
+#     """
+#     term_count = db.get(term_count_query, (module_id,), fetchOne=True)
 
-    error_flag = False
-    if not term_count:
-        return
+#     error_flag = False
+#     if not term_count:
+#         return
 
-    total_terms = term_count[0]
+#     total_terms = term_count[0]
 
-    update_query = """
-        UPDATE tito_module
-        SET totalTerms = %s
-        WHERE moduleID = %s;
-    """
-    res = db.post(update_query, (total_terms, module_id))
+#     update_query = """
+#         UPDATE tito_module
+#         SET totalTerms = %s
+#         WHERE moduleID = %s;
+#     """
+#     res = db.post(update_query, (total_terms, module_id))
     
-    print(f"[UPDATE] Module {module_id}: totalTerms set to {total_terms} ")
+#     print(f"[UPDATE] Module {module_id}: totalTerms set to {total_terms} ")

@@ -1,11 +1,10 @@
 -- use elle2020;
 
--- ALTER group_module with PRIMARY KEY (`groupID`, `moduleID`),
 ALTER TABLE group_module
-ADD PRIMARY KEY (`groupID`, `moduleID`);
+ADD UNIQUE (`moduleID`, `groupID`);
 
 -- The free chat module
-INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en', 473, 'FREE_CHAT_MODULE');
+INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en', 1, 'FREE_CHAT_MODULE');
 
 
 -- Update a certain group to have all modules
@@ -14,16 +13,19 @@ INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en',
 -- ucf2
 -- cooler
 -- Group 1 has ACCESS to ALL MODULES and they are also TITO MODULES
-INSERT IGNORE INTO group_module (groupID, moduleID)
+INSERT INTO group_module (groupID, moduleID)
 SELECT DISTINCT 1 AS groupID, m.moduleID 
 FROM `module` m;
+
+INSERT INTO group_user (userID, groupID, accessLevel)
+VALUES (1, 1, 'pf');
 
 UPDATE `group_user`
 SET `accessLevel` = 'pf'
 WHERE `userID` = 1;
 
 UPDATE `user`
-SET `permissionGroup` = 'pf'
+SET `permissionGroup` = 'su'
 WHERE `userID` = 1;
 
 
@@ -57,7 +59,7 @@ WHERE `userID` = 473;
 -- Begin migration chatbot sessions
 RENAME TABLE `chatbot_sessions` TO `chatbot_sessions_old`;
 
--- NOTE: Create triggers for grammarScore, isActiveSession, timeChatted?
+-- NOTE: Create triggers for grammarScore, isActiveSession, timeChatted and moduleWordsUsed?
 CREATE TABLE `chatbot_sessions` (
   `chatbotSID` int(4) NOT NULL AUTO_INCREMENT,
   `userID` int(4) NOT NULL,
@@ -65,7 +67,6 @@ CREATE TABLE `chatbot_sessions` (
   `timeChatted` float NOT NULL DEFAULT 0,
   `moduleWordsUsed` int(4) NOT NULL DEFAULT 0,
   `creationTimestamp` timestamp NOT NULL DEFAULT current_timestamp(),
-  `grammarScore` float(4) NOT NULL DEFAULT 0,
   `isActiveSession` boolean NOT NULL DEFAULT 0,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
@@ -76,12 +77,14 @@ CREATE TABLE `chatbot_sessions` (
 -- migrate data from old to new
 
 INSERT IGNORE INTO `chatbot_sessions` (`chatbotSID`, `userID`, `moduleID`, `timeChatted`, `moduleWordsUsed`, `creationTimestamp`)
-SELECT `chatbotId`, `userId`, `moduleId`, `timeChatted`, `totalWordsForModule`, `creationTimestamp`
+SELECT `chatbotId`, `userId`, `moduleId`, `timeChatted`, `totalWordsForModule`, `timestamp`
 FROM `chatbot_sessions_old`;
 
 
 -- Begin message migration
 RENAME TABLE `messages` TO `messages_old`;
+
+
 
 -- NOTE: Create triggers for grammarScore and keyWordsUsed?
 CREATE TABLE `messages` (
@@ -105,11 +108,11 @@ CREATE TABLE `messages` (
 
 -- Migrate data from old_messages into messages (new)
 INSERT IGNORE INTO `messages` (`messageID`, `userID`, `chatbotSID`, `moduleID`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`, `grammarScore`)
-SELECT `id`, `userId`, `chatbotId`, `moduleId`, `source`, `value`, `creationTimestamp`, 0, 0
+SELECT `id`, `userId`, `chatbotId`, `moduleId`, `source`, `value`, `timestamp`, 0, 0
 FROM `messages_old`;
 
 
--- NOTE: Create triggers for titoStatus and titoExpirationDate?
+-- NOTE: Create triggers for titoExpirationDate?
 CREATE TABLE `tito_class_status` (
   `classID` int(4) NOT NULL,
   `professorID` int(4) NOT NULL,
@@ -123,16 +126,17 @@ CREATE TABLE `tito_class_status` (
 
 
 
--- NOTE: Create triggers for titoStatus and titoExpirationDate?
+
 CREATE TABLE `tito_generated_module` (
   `moduleID` int(4) NOT NULL, 
   `professorID` int(4) NOT NULL, 
   `modulePrompt` text DEFAULT NULL, 
   FOREIGN KEY(`professorID`) REFERENCES `user` (`userID`),
+  FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`),
   PRIMARY KEY(`professorID`, `moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
--- NOTE: Create triggers for titoStatus change and titoExpirationDate?
+-- NOTE: Create triggers for titoExpirationDate?
 CREATE TABLE `tito_module` (
   `moduleID` int(4) NOT NULL,
   `classID` int(4) NOT NULL,
@@ -161,7 +165,7 @@ CREATE TABLE `tito_module_progress` (
   PRIMARY KEY(`moduleID`,`studentID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
--- on sufficient ratio change update hasMastered, then update tito_module_progress
+
 CREATE TABLE `tito_term_progress` (
   `moduleID` int(4) NOT NULL,
   `termID`  int(4) NOT NULL,
@@ -182,12 +186,13 @@ CREATE TABLE `tito_voice_message` (
   `filename` VARCHAR(30) NOT NULL,
   `chatbotSID` int(4) NOT NULL,
   `messageID` int(4) NOT NULL,
+  `audioExpireDate` date NOT NULL,
   PRIMARY KEY (`voiceID`),
   FOREIGN KEY (`userID`)  REFERENCES `user` (`userID`) ON DELETE CASCADE,
   FOREIGN KEY (`messageID`) REFERENCES `messages` (`messageID`) ON DELETE CASCADE,
   FOREIGN KEY (`chatbotSID`)  REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
-  KEY `idx_session_user` (`chatbotSID`, `userID`),
-  KEY `idx_voice_message` (`userID`, `messageID`),
+  KEY (`chatbotSID`, `userID`),
+  KEY (`userID`, `messageID`),
   UNIQUE (`userID`, `messageID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
@@ -234,11 +239,16 @@ WHERE gu.accessLevel = 'pf';
 
 
 
+
+
+
+
+
 -- CREATE TRIGGERS
 
 -- When a class's status changes, cascade changes to modules too if they are tito_modules
 DELIMITER //
-CREATE TRIGGER onClassStatusUpdate_updateModules
+CREATE TRIGGER onClassStatusUpdate_updateModulesStatus
 AFTER UPDATE ON `tito_class_status`
 FOR EACH ROW
 BEGIN
@@ -260,19 +270,40 @@ DELIMITER ;
 
 -- When an update of a SINGLE TERM CHANGES, updates `hasMastered` if there is a need to
 DELIMITER //
-CREATE TRIGGER onUpdateTermProgress_change_hasMastered
-AFTER UPDATE ON `tito_term_progress`
+CREATE TRIGGER beforeUpdateTermProgress_change_hasMastered
+BEFORE UPDATE ON `tito_term_progress`
 FOR EACH ROW
 BEGIN
-    IF NEW.timesUsed > 3 AND (NEW.timesMispelled / NEW.timesUsed) <= 0.25 AND NOT OLD.hasMastered THEN
+    IF NEW.timesUsed > 3 AND (NEW.timesMispelled / NEW.timesUsed) <= 0.25 AND OLD.hasMastered = 0 THEN
         UPDATE `tito_term_progress`
-        SET `hasMastered` = TRUE
+        SET NEW.hasMastered = 1
         WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;
+    END IF;
+
+    IF OLD.timesUsed < NEW.timesUsed THEN 
+      UPDATE `tito_module_progress` 
+      SET `totalTermsUsed` = `totalTermsUsed` + (NEW.timesUsed - OLD.timesUsed)
+      WHERE `moduleID` = NEW.moduleID AND `studentID` = NEW.userID;
     END IF;
 END //
 DELIMITER ;
 
--- 
+
+DELIMITER //
+CREATE TRIGGER afterUpdateTermProgress_change_termsMastered
+AFTER UPDATE ON `tito_term_progress`
+FOR EACH ROW
+BEGIN
+    -- Only act when hasMastered becomes true for the first time
+    IF NEW.hasMastered = 1 AND OLD.hasMastered = 0 THEN
+        UPDATE `tito_module_progress`
+        SET `termsMastered` = `termsMastered` + 1
+        WHERE `moduleID` = NEW.moduleID AND `studentID` = NEW.userID;
+    END IF;
+END //
+DELIMITER ;
+
+-- When creating a new session, invalidates other sessions for this user
 DELIMITER // 
 CREATE TRIGGER onSessionCreate_revokeOtherSessions
 BEFORE INSERT ON `chatbot_sessions`
@@ -283,6 +314,95 @@ BEGIN
   WHERE `userID` = NEW.userID;
 END // 
 DELIMITER ;
+
+-- When tito_module is created, auto populates the totalTerms
+DELIMITER //
+CREATE TRIGGER afterInsertOntitoModule_update_totalTerms
+AFTER INSERT ON `tito_module`
+FOR EACH ROW
+BEGIN
+  DECLARE term_count INT DEFAULT 0;
+
+  -- Count unique terms assigned to this module
+  SELECT COUNT(DISTINCT t.termID)
+  INTO term_count
+  FROM module_question mq
+  JOIN answer a ON mq.questionID = a.questionID
+  JOIN term t ON a.termID = t.termID
+  WHERE mq.moduleID = NEW.moduleID;
+
+  -- Update the totalTerms for the inserted record
+  UPDATE `tito_module`
+  SET totalTerms = term_count
+  WHERE moduleID = NEW.moduleID AND classID = NEW.classID;
+END//
+DELIMITER ;
+
+-- when a new term is added to a module, reupdate totalterm count
+DELIMITER //
+CREATE TRIGGER afterInsertOnModuleQuestion_update_totalTerms
+AFTER INSERT ON `module_question`
+FOR EACH ROW
+BEGIN
+    DECLARE term_count INT DEFAULT 0;
+
+    -- Count distinct terms for this module
+    SELECT COUNT(DISTINCT t.termID)
+    INTO term_count
+    FROM module_question mq
+    JOIN answer a ON mq.questionID = a.questionID
+    JOIN term t ON a.termID = t.termID
+    WHERE mq.moduleID = NEW.moduleID;
+
+    -- Update totalTerms for *all* classes that use this module
+    UPDATE `tito_module`
+    SET totalTerms = term_count
+    WHERE moduleID = NEW.moduleID;
+END//
+DELIMITER ;
+
+-- same as above but for deletes
+DELIMITER //
+CREATE TRIGGER afterDeleteOnModuleQuestion_update_totalTerms
+AFTER DELETE ON `module_question`
+FOR EACH ROW
+BEGIN
+    DECLARE term_count INT DEFAULT 0;
+
+    SELECT COUNT(DISTINCT t.termID)
+    INTO term_count
+    FROM module_question mq
+    JOIN answer a ON mq.questionID = a.questionID
+    JOIN term t ON a.termID = t.termID
+    WHERE mq.moduleID = OLD.moduleID;
+
+    UPDATE `tito_module`
+    SET totalTerms = term_count
+    WHERE moduleID = OLD.moduleID;
+END//
+DELIMITER ;
+
+-- Updates chatbot_sessions's kewwordcount by the delta change
+DELIMITER //
+CREATE TRIGGER onMessageUpdate_update_chatbotSessions
+AFTER UPDATE ON `messages` 
+FOR EACH ROW 
+BEGIN 
+  IF NEW.moduleWordsUsed > OLD.moduleWordsUsed THEN 
+    UPDATE `chatbot_sessions` 
+    SET `moduleWordsUsed` = `moduleWordsUsed` + (NEW.moduleWordsUsed - OLD.moduleWordsUsed) 
+    WHERE userID = NEW.userID AND moduleID = NEW.moduleID AND chatbotSID = NEW.chatbotSID;
+  END IF
+END //
+DELIMITER ;
+
+
+
+
+
+
+
+
 
 
 

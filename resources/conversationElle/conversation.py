@@ -53,6 +53,8 @@ class TitoAccess(Resource):
             tito_modules = []
             for class_id in class_ids:
                 res = getTitoModules(class_id)
+                if not res:
+                    return create_response(True, message="Returned user modules", data=[]) 
                 tito_modules.append((class_id[0], res))
 
             return create_response(True, message="Returned user modules", data=tito_modules) 
@@ -263,6 +265,7 @@ class UserAudio(Resource):
         except Exception as e:
             return create_response(False, message=f"Failed to save audio file: {str(e)}", status_code=500)
 
+        # Store to DB if successfully stored in Server
         res = storeVoiceMessage(user_id, message_id, filename, chatbot_sid)
 
         # TODO: Create a way to test if file actually written, maybe search up the file and see if exists
@@ -379,7 +382,7 @@ class AddTitoModule(Resource):
             return create_response(False, message="module is already a tito module.", status_code=404)
         if not isModuleInClass(class_id, module_id):
             return create_response(False, message="user does not have required privileges.", status_code=403)
-        insertNewTitoModule(module_id, class_id)
+        addNewTitoModule(module_id, class_id)
 
         return create_response(True, message="updated respective tables.")
 

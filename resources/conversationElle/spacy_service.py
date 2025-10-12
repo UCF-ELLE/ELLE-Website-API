@@ -243,6 +243,9 @@ def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], messa
     total_count = 0
 
     # Match UNIQUE matches
+    if not matches:
+        return {}
+
     for start, end, term_id, term_phrase in matches:
         overlap = False
         for pos in range(start, end + 1):
@@ -255,6 +258,8 @@ def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], messa
         for pos in range(start, end + 1):
             occupied.add(pos)
 
+        # TODO: Create a better implementation esp, as a tool
+        # This is for checking single words (aka mispellings)
         if not update_db:
             print(f'matched word {term_phrase}')
             updateMisspellings(user_id, module_id, term_id)
@@ -306,7 +311,7 @@ def spacy_service():
                 print("[CHRONOLOGY] 1: Beginning to process message")
 
             matches = process_message(message, module_id, user_id, message_id, chatbot_sid, update_db)
-            if update_db:
+            if update_db and matches:
                 if SYSTEM_LOGGING_FLAG:
                     print(f"[INFO] printing matches: {matches}")
                 if DEBUG_TRACING_FLAG:

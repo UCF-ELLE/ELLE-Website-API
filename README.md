@@ -3,7 +3,7 @@
   Conversationelle part 2
 
 ## Notes
-
+  - Table `group_user` doesn't have a primary key, when would you *ever* need a user in a group to be a student, ta ***and*** a prof? I don't work on the other projects and don't have the ability to test if it breaks anything, but worth noting, but this is annoying to work around potentially.
 
 ## TODO:
   - Sanitize SQL queries & text
