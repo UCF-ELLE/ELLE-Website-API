@@ -24,9 +24,9 @@ INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en',
 -- INSERT INTO group_user (userID, groupID, accessLevel)
 -- VALUES (1, 1, 'pf');
 
--- INSERT INTO group_module (moduleID, groupID)
--- SELECT DISTINCT moduleID as moduleID, 1
--- FROM `module`;
+INSERT IGNORE INTO group_module (moduleID, groupID)
+SELECT DISTINCT moduleID as moduleID, 1
+FROM `module`;
 
 UPDATE `group_user`
 SET `accessLevel` = 'pf'
@@ -178,13 +178,13 @@ CREATE TABLE `tito_module` (
 
 CREATE TABLE `tito_module_progress` (
   `moduleID` int(4) NOT NULL,
-  `studentID` int(4) NOT NULL,
+  `userID` int(4) NOT NULL,
   `completedTutorial` boolean NOT NULL DEFAULT 0,
   `termsMastered` int (5) NOT NULL DEFAULT 0,
   `loreProgress` int(1) NOT NULL DEFAULT 0,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
-  FOREIGN KEY(`studentID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
-  PRIMARY KEY(`moduleID`,`studentID`)
+  FOREIGN KEY(`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
+  PRIMARY KEY(`moduleID`,`userID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 
@@ -234,7 +234,7 @@ CREATE TABLE `tito_voice_message` (
 
 
 -- -- populate `tito_module_progress`
--- INSERT IGNORE INTO `tito_module_progress` (`moduleID`, `studentID`)
+-- INSERT IGNORE INTO `tito_module_progress` (`moduleID`, `userID`)
 -- SELECT DISTINCT msg.moduleID, msg.userID
 -- FROM `messages` msg
 -- JOIN `group_user` gu ON gu.userID = msg.userID
@@ -297,20 +297,16 @@ CREATE TRIGGER beforeUpdateTermProgress_change_hasMastered
 BEFORE UPDATE ON `tito_term_progress`
 FOR EACH ROW
 BEGIN
-    IF NEW.timesUsed > 3 AND (NEW.timesMisspelled / NEW.timesUsed) <= 0.25 AND OLD.hasMastered = 0 THEN
-        UPDATE `tito_term_progress`
-        SET NEW.hasMastered = 1
-        WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;
+    IF (NEW.timesUsed > 3) AND ((NEW.timesMisspelled / NEW.timesUsed) <= 0.25) AND (OLD.hasMastered = 0) THEN
+      SET NEW.hasMastered = 1;
     END IF;
 
-    IF OLD.timesUsed < NEW.timesUsed THEN 
-      UPDATE `tito_module_progress` 
-      SET `totalTermsUsed` = `totalTermsUsed` + (NEW.timesUsed - OLD.timesUsed)
-      WHERE `moduleID` = NEW.moduleID AND `studentID` = NEW.userID;
-    END IF;
 END //
 DELIMITER ;
 
+    -- IF OLD.timesUsed < NEW.timesUsed THEN 
+    --   SET NEW.timesUsed = `timesUsed` + (NEW.timesUsed - OLD.timesUsed)
+    -- END IF;
 
 DELIMITER //
 CREATE TRIGGER afterUpdateTermProgress_change_termsMastered
@@ -321,22 +317,22 @@ BEGIN
     IF NEW.hasMastered = 1 AND OLD.hasMastered = 0 THEN
         UPDATE `tito_module_progress`
         SET `termsMastered` = `termsMastered` + 1
-        WHERE `moduleID` = NEW.moduleID AND `studentID` = NEW.userID;
+        WHERE `moduleID` = NEW.moduleID AND `userID` = NEW.userID;
     END IF;
 END //
 DELIMITER ;
 
 -- When creating a new session, invalidates other sessions for this user
-DELIMITER // 
-CREATE TRIGGER onSessionCreate_revokeOtherSessions
-BEFORE INSERT ON `chatbot_sessions`
-FOR EACH ROW
-BEGIN
-  UPDATE `chatbot_sessions`
-  SET `isActiveSession` = 0
-  WHERE `userID` = NEW.userID;
-END // 
-DELIMITER ;
+-- DELIMITER // 
+-- CREATE TRIGGER onSessionCreate_revokeOtherSessions
+-- AFTER INSERT ON `chatbot_sessions`
+-- FOR EACH ROW
+-- BEGIN
+--   UPDATE `chatbot_sessions`
+--   SET `isActiveSession` = 0
+--   WHERE `userID` = NEW.userID;
+-- END // 
+-- DELIMITER ;
 
 -- When tito_module is created, auto populates the totalTerms
 DELIMITER //
@@ -349,7 +345,7 @@ BEGIN
   -- Count unique terms assigned to this module
   SELECT COUNT(DISTINCT t.termID)
   INTO term_count
-  FROM module_question mq
+  FROM `module_question` mq
   JOIN answer a ON mq.questionID = a.questionID
   JOIN term t ON a.termID = t.termID
   WHERE mq.moduleID = NEW.moduleID;
@@ -371,7 +367,7 @@ BEGIN
     -- Count distinct terms for this module
     SELECT COUNT(DISTINCT t.termID)
     INTO term_count
-    FROM module_question mq
+    FROM `module_question` mq
     JOIN answer a ON mq.questionID = a.questionID
     JOIN term t ON a.termID = t.termID
     WHERE mq.moduleID = NEW.moduleID;
@@ -418,7 +414,15 @@ BEGIN
 END //
 DELIMITER ;
 
-
+DELIMITER // 
+CREATE TRIGGER onClassCreation_insertAdmin
+AFTER INSERT ON `group`
+FOR EACH ROW
+BEGIN
+  INSERT IGNORE INTO `group_user` (`userID`, `groupID`, `accessLevel`)
+  VALUES (1, NEW.groupID, 'pf');
+END //
+DELIMITER ;
 
 
 

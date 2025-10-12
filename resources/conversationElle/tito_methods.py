@@ -24,7 +24,7 @@ def addNewTitoModule(module_id, class_id):
 
     # 2. Create tito_module_progress for all users
     module_user_pair = [(module_id, user) for user in users]
-    db.post("INSERT INTO tito_module_progress (moduleID, studentID) VALUES (%s, %s);", module_user_pair)
+    db.post("INSERT INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_user_pair)
 
     # 3. Get all termIDs for this module
     term_ids = db.get(

@@ -40,12 +40,12 @@ def updateTotalTimeChatted(chatbotSID):
 # OLD:Revoke any existing and all instances of chatbot sessions & create new session for this user
 # CURRENT: Creates new chatbot_session and returns the sessionID
 def createChatbotSession(userID: int, moduleID: int):
-    # query_revoke_prev_sessions = '''
-    #         UPDATE `chatbot_sessions`
-    #         SET `isActiveSession` = 0
-    #         WHERE `userID` = %s;
-    #     '''
-    # db.post(query_revoke_prev_sessions, (userID,))
+    query_revoke_prev_sessions = '''
+            UPDATE `chatbot_sessions`
+            SET `isActiveSession` = 0
+            WHERE `userID` = %s;
+        '''
+    db.post(query_revoke_prev_sessions, (userID,))
 
     query = '''
         INSERT INTO `chatbot_sessions` (`userID`, `moduleID`, `isActiveSession`)
@@ -82,7 +82,7 @@ def userIsNotAStudent(user_id:int, class_id: int):
         );
     '''
     res = db.get(query, (user_id, class_id), fetchOne=True)
-    if not result or not result[0]:
+    if not res or not res[0]:
         return False
     return True
 
@@ -261,7 +261,7 @@ def updateWordsUsed(term_count_dict: dict, user_id: int, module_id: int):
     # query = '''
     #     UPDATE `tito_module_progress` 
     #     SET `totalTermsUsed` = `totalTermsUsed` + %s 
-    #     WHERE `moduleID` = %s AND `studentID` = %s;
+    #     WHERE `moduleID` = %s AND `userID` = %s;
     # '''
     # db.post(query, (count, module_id, user_id))
 
@@ -293,20 +293,20 @@ def updateMessageKeytermCount(count: int, messageID: int, chatbotSID: int):
 
     db.post(query, (count, messageID))
 
-# TODO: Improve this? 
+# TODO: Improve this? return # words mastered and totalwords in that module
 def getUserModuleProgress(user_id: int, module_id:int):
     query = '''
-        SELECT termsMastered, totalTerms 
-        FROM tito_module_progress 
-        WHERE moduleID = %s AND studentID = %s;
+        SELECT tmp.termsMastered, tm.totalTerms 
+        FROM tito_module_progress tmp
+        JOIN tito_module tm ON tmp.moduleID = tm.moduleID 
+        WHERE tmp.moduleID = %s AND tmp.userID = %s;
     '''
 
     res = db.get(query, (module_id, user_id), fetchOne=True)
     if not res:
         raise Exception(f"Failed to access tito_module_progress with {user_id} and {module_id} (invalid pair-request)")
-    else:
-        print(res[0])
-        return res[0]
+    
+    return res
 
 def updateMessageScore(msg_id: int, score: int):
     query = '''
@@ -355,7 +355,7 @@ def updateMessageScore(msg_id: int, score: int):
 #     query = '''
 #         UPDATE `tito_module_progress`
 #         SET `termsMastered` = `termsMastered` + 1
-#         WHERE moduleID = %s AND studentID = %s;
+#         WHERE moduleID = %s AND userID = %s;
 #     '''
 
 #     db.post(query, (module_id, user_id))
@@ -482,7 +482,7 @@ def addNewTitoModule(module_id, class_id):
 
     # 2. Create tito_module_progress for all users
     module_user_pair = [(module_id, user) for user in users]
-    db.post("INSERT INTO tito_module_progress (moduleID, studentID) VALUES (%s, %s);", module_user_pair)
+    db.post("INSERT INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_user_pair)
 
     # 3. Get all termIDs for this module
     term_ids = db.get(
@@ -532,7 +532,7 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
     # 3. Create module progress entries for each module
     module_progress_data = [(m[0], user_id) for m in modules]
     db.post(
-        "INSERT INTO tito_module_progress (moduleID, studentID) VALUES (%s, %s);", module_progress_data
+        "INSERT INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_progress_data
     )
 
     # 4. For each module, get its termIDs and add term progress
