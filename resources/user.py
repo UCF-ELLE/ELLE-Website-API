@@ -24,6 +24,7 @@ import datetime
 import string
 import random
 from config import HAND_PREFERENCES
+from resources.conversationElle.database import addNewGroupUserToTitoGroup
 
 
 # A complex object that stores the user's userID and permissionGroup
@@ -296,6 +297,7 @@ class UserRegister(Resource):
                     group_id = results[0][0]
                     gu_query = "INSERT INTO `group_user` (`userID`, `groupID`, `accessLevel`) VALUES (%s, %s, %s)"
                     postToDB(gu_query, (user_id, group_id, "st"), conn, cursor)
+                    addNewGroupUserToTitoGroup(user_id, group_id)
 
             raise ReturnSuccess("Successfully registered!", 201)
         except CustomException as error:

@@ -142,6 +142,8 @@ from resources.conversationElle.conversation import(
     UpdateTitoModule,
     UpdateTitoClass,
     GetModuleProgress,
+    GetClassUsers,
+    Testing,
 )
 import os
 import threading
@@ -391,6 +393,11 @@ api.add_resource(AddTitoModule, API_ENDPOINT_PREFIX + "twt/professor/addModule")
 api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/updateModule")
 api.add_resource(UpdateTitoClass, API_ENDPOINT_PREFIX + "twt/professor/updateClassStatus")
 api.add_resource(GetModuleProgress, API_ENDPOINT_PREFIX + "twt/session/getModuleProgress")
+api.add_resource(GetClassUsers, API_ENDPOINT_PREFIX + "twt/professor/getClassUsers")
+api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 

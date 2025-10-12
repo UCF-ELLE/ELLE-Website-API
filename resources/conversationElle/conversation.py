@@ -12,6 +12,7 @@ import os
 from pydub import AudioSegment
 from .llm_functions import *
 from .utils import *
+from .tito_methods import updateLiveDB
 
 USER_VOICE_FOLDER = "user_audio_files/"
 
@@ -197,7 +198,7 @@ class UserMessages(Resource):
             return create_response(True, message="Retrieved chat history.", data=fetchModuleChatHistory(user_id, module_id)) 
         except Exception as e:
             print("[ERROR] In UserMessages @ conversation.py")
-            return create_response(False, message="Failed to retrieve user's messages. Error: {e}", status_code=504)
+            return create_response(False, message=f"Failed to retrieve user's messages. Error: {e}", status_code=504)
 
 class UserAudio(Resource):
     @jwt_required
@@ -382,8 +383,9 @@ class AddTitoModule(Resource):
             return create_response(False, message="module is already a tito module.", status_code=404)
         if not isModuleInClass(class_id, module_id):
             return create_response(False, message="user does not have required privileges.", status_code=403)
-        addNewTitoModule(module_id, class_id)
-
+        res = addNewTitoModule(module_id, class_id)
+        if not res:
+            create_response(False, message="failed to insert tito_module, already exists", status_code=403)
         return create_response(True, message="updated respective tables.")
 
 class UpdateTitoModule(Resource):
@@ -431,7 +433,7 @@ class UpdateTitoClass(Resource):
     def post(self):
         '''
             enable/disable tito status for a class
-                inserts into tito_group_status if not previously a tito-enrolled class
+                inserts into tito_class_status if not previously a tito-enrolled class
         '''
         user_id = get_jwt_identity()
         data = request.form
@@ -460,6 +462,22 @@ class GetStudentMessages(Resource):
             TODO:
         '''
         return
+
+class GetClassUsers(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            twt/professor/getClassUsers
+        '''
+        class_id = request.args.get('classID')
+        users = getUsersInClass(class_id)
+        return create_response(message="users retrieved", users=users)
+
+
+# Disable/Remove AFTER RUNNING ONCE
+class Testing(Resource):
+    def get(self):
+        return create_response(res=updateLiveDB())
 
 # Deprecated for now, unused?
 # class ExportChatHistory(Resource):

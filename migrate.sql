@@ -3,7 +3,11 @@
 ALTER TABLE group_module
 ADD UNIQUE (`moduleID`, `groupID`);
 
--- The free chat module
+ALTER TABLE group_user
+ADD UNIQUE (`groupID`, `userID`);
+
+
+-- -- The free chat module
 INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en', 1, 'FREE_CHAT_MODULE');
 
 
@@ -13,12 +17,16 @@ INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en',
 -- ucf2
 -- cooler
 -- Group 1 has ACCESS to ALL MODULES and they are also TITO MODULES
-INSERT INTO group_module (groupID, moduleID)
-SELECT DISTINCT 1 AS groupID, m.moduleID 
-FROM `module` m;
+-- INSERT INTO group_module (groupID, moduleID)
+-- SELECT DISTINCT 1 AS groupID, m.moduleID 
+-- FROM `module` m;
 
-INSERT INTO group_user (userID, groupID, accessLevel)
-VALUES (1, 1, 'pf');
+-- INSERT INTO group_user (userID, groupID, accessLevel)
+-- VALUES (1, 1, 'pf');
+
+-- INSERT INTO group_module (moduleID, groupID)
+-- SELECT DISTINCT moduleID as moduleID, 1
+-- FROM `module`;
 
 UPDATE `group_user`
 SET `accessLevel` = 'pf'
@@ -76,8 +84,13 @@ CREATE TABLE `chatbot_sessions` (
 
 -- migrate data from old to new
 
+-- FIX FREE CHAT ISSUE
+UPDATE `chatbot_sessions_old`
+SET `moduleId` = 3
+WHERE `moduleId` = -1;
+
 INSERT IGNORE INTO `chatbot_sessions` (`chatbotSID`, `userID`, `moduleID`, `timeChatted`, `moduleWordsUsed`, `creationTimestamp`)
-SELECT `chatbotId`, `userId`, `moduleId`, `timeChatted`, `totalWordsForModule`, `timestamp`
+SELECT `chatbotId`, `userId`, `moduleId`, `totalTimeChatted`, `totalWordsForModule`, `timestamp`
 FROM `chatbot_sessions_old`;
 
 
@@ -94,7 +107,7 @@ CREATE TABLE `messages` (
   `moduleID` int(4) NOT NULL,
   `source` ENUM('llm','user') NOT NULL,
   `message` text NOT NULL,
-  `creationTimestamp` timestamp NULL DEFAULT current_timestamp(), -- When message was sent
+  `creationTimestamp` timestamp NOT NULL DEFAULT current_timestamp(), -- When message was sent
   `isVoiceMessage` boolean NOT NULL DEFAULT 0,
   `keyWordsUsed` int(4) NOT NULL DEFAULT 0,
   `grammarScore` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously(?)
@@ -105,12 +118,23 @@ CREATE TABLE `messages` (
   FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+UPDATE `messages_old`
+SET `moduleId` = 3
+WHERE `moduleId` = -1;
 
--- Migrate data from old_messages into messages (new)
-INSERT IGNORE INTO `messages` (`messageID`, `userID`, `chatbotSID`, `moduleID`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`, `grammarScore`)
-SELECT `id`, `userId`, `chatbotId`, `moduleId`, `source`, `value`, `timestamp`, 0, 0
-FROM `messages_old`;
 
+-- Migrate data from messages_old into messages (new)
+-- INSERT IGNORE INTO `messages` (`messageID`, `userID`, `chatbotSID`, `moduleID`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`, `grammarScore`)
+-- SELECT `id`, `userId`, `chatbotId`, `moduleId`, `source`, `value`, `timestamp`, 0, 0
+-- FROM `messages_old`;
+
+
+-- drop table tito_class_status;
+-- drop table tito_generated_module;
+-- drop table tito_module;
+-- drop table tito_module_progress;
+-- drop table tito_term_progress;
+-- drop table tito_voice_message;
 
 -- NOTE: Create triggers for titoExpirationDate?
 CREATE TABLE `tito_class_status` (
@@ -123,8 +147,6 @@ CREATE TABLE `tito_class_status` (
   PRIMARY KEY (`classID`, `professorID`),
   KEY (`titoStatus`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-
 
 
 CREATE TABLE `tito_generated_module` (
@@ -176,7 +198,8 @@ CREATE TABLE `tito_term_progress` (
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`termID`) REFERENCES `term` (`termID`) ON DELETE CASCADE,
   FOREIGN KEY(`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
-  PRIMARY KEY(`userID`,`moduleID`,`termID`)
+  PRIMARY KEY(`userID`,`moduleID`,`termID`),
+  KEY (`moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 
@@ -200,42 +223,42 @@ CREATE TABLE `tito_voice_message` (
 
 -- Consider IGNORE after INSERT
 
--- populate `tito_module`
-INSERT IGNORE INTO `tito_module` (`moduleID`, `classID`)
-SELECT DISTINCT msg.moduleID, gu.groupID
-FROM `messages` msg
-JOIN `group_user` gu ON msg.userID = gu.userID
-JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID;
+-- -- populate `tito_module`
+-- INSERT IGNORE INTO `tito_module` (`moduleID`, `classID`)
+-- SELECT DISTINCT msg.moduleID, gu.groupID
+-- FROM `messages` msg
+-- JOIN `group_user` gu ON msg.userID = gu.userID
+-- JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID;
 
 
 
 
--- populate `tito_module_progress`
-INSERT IGNORE INTO `tito_module_progress` (`moduleID`, `studentID`, `completedTutorial`, `proficiencyRate`)
-SELECT DISTINCT msg.moduleID, msg.userID, 0, 0.0
-FROM `messages` msg
-JOIN `group_user` gu ON gu.userID = msg.userID
-JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID;
+-- -- populate `tito_module_progress`
+-- INSERT IGNORE INTO `tito_module_progress` (`moduleID`, `studentID`)
+-- SELECT DISTINCT msg.moduleID, msg.userID
+-- FROM `messages` msg
+-- JOIN `group_user` gu ON gu.userID = msg.userID
+-- JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID;
 
 
 
 
-INSERT IGNORE INTO `tito_term_progress` (`userID`, `moduleID`, `termID`, `timesUsed`)
-SELECT DISTINCT msg.userID, msg.moduleID, t.termID, 0
-FROM `messages` msg
-JOIN `module_question` mq ON mq.moduleID = msg.moduleID
-JOIN `answer` a ON a.questionID = mq.questionID
-JOIN `term` t ON t.termID = a.termID
-JOIN `group_user` gu ON gu.userID = msg.userID;
--- WHERE gu.accessLevel = 'st';
+-- INSERT IGNORE INTO `tito_term_progress` (`userID`, `moduleID`, `termID`, `timesUsed`)
+-- SELECT DISTINCT msg.userID, msg.moduleID, t.termID, 0
+-- FROM `messages` msg
+-- JOIN `module_question` mq ON mq.moduleID = msg.moduleID
+-- JOIN `answer` a ON a.questionID = mq.questionID
+-- JOIN `term` t ON t.termID = a.termID
+-- JOIN `group_user` gu ON gu.userID = msg.userID;
+-- -- WHERE gu.accessLevel = 'st';
 
 
 
--- Populate tito_class_status table
-INSERT IGNORE INTO `tito_class_status` (`classID`, `professorID`, `titoStatus`, `titoExpirationDate`)
-SELECT DISTINCT gu.groupID, gu.userID, 'active', DATE_ADD(NOW(), INTERVAL 1 YEAR)
-FROM `group_user` gu
-WHERE gu.accessLevel = 'pf';
+-- -- Populate tito_class_status table
+-- INSERT IGNORE INTO `tito_class_status` (`classID`, `professorID`, `titoStatus`, `titoExpirationDate`)
+-- SELECT DISTINCT gu.groupID, gu.userID, 'active', DATE_ADD(NOW(), INTERVAL 1 YEAR)
+-- FROM `group_user` gu
+-- WHERE gu.accessLevel = 'pf';
 
 
 
@@ -274,7 +297,7 @@ CREATE TRIGGER beforeUpdateTermProgress_change_hasMastered
 BEFORE UPDATE ON `tito_term_progress`
 FOR EACH ROW
 BEGIN
-    IF NEW.timesUsed > 3 AND (NEW.timesMispelled / NEW.timesUsed) <= 0.25 AND OLD.hasMastered = 0 THEN
+    IF NEW.timesUsed > 3 AND (NEW.timesMisspelled / NEW.timesUsed) <= 0.25 AND OLD.hasMastered = 0 THEN
         UPDATE `tito_term_progress`
         SET NEW.hasMastered = 1
         WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;
@@ -317,8 +340,8 @@ DELIMITER ;
 
 -- When tito_module is created, auto populates the totalTerms
 DELIMITER //
-CREATE TRIGGER afterInsertOntitoModule_update_totalTerms
-AFTER INSERT ON `tito_module`
+CREATE TRIGGER beforeInsertOntitoModule_update_totalTerms
+BEFORE INSERT ON `tito_module`
 FOR EACH ROW
 BEGIN
   DECLARE term_count INT DEFAULT 0;
@@ -332,9 +355,8 @@ BEGIN
   WHERE mq.moduleID = NEW.moduleID;
 
   -- Update the totalTerms for the inserted record
-  UPDATE `tito_module`
-  SET totalTerms = term_count
-  WHERE moduleID = NEW.moduleID AND classID = NEW.classID;
+
+  SET NEW.totalTerms = term_count;
 END//
 DELIMITER ;
 
@@ -388,11 +410,11 @@ CREATE TRIGGER onMessageUpdate_update_chatbotSessions
 AFTER UPDATE ON `messages` 
 FOR EACH ROW 
 BEGIN 
-  IF NEW.moduleWordsUsed > OLD.moduleWordsUsed THEN 
+  IF NEW.keyWordsUsed > OLD.keyWordsUsed THEN 
     UPDATE `chatbot_sessions` 
-    SET `moduleWordsUsed` = `moduleWordsUsed` + (NEW.moduleWordsUsed - OLD.moduleWordsUsed) 
+    SET `moduleWordsUsed` = `moduleWordsUsed` + (NEW.keyWordsUsed - OLD.keyWordsUsed) 
     WHERE userID = NEW.userID AND moduleID = NEW.moduleID AND chatbotSID = NEW.chatbotSID;
-  END IF
+  END IF;
 END //
 DELIMITER ;
 
@@ -421,11 +443,11 @@ DELIMITER ;
 -- AFTER UPDATE ON `tito_term_progress`
 -- FOR EACH ROW
 -- BEGIN
---     IF NEW.timesUsed > 3 AND (NEW.timesMispelled / NEW.timesUsed) <= 0.25 AND NOT OLD.hasMastered THEN
+--     IF NEW.timesUsed > 3 AND (NEW.timesMisspelled / NEW.timesUsed) <= 0.25 AND NOT OLD.hasMastered THEN
 --         UPDATE `tito_term_progress`
 --         SET `hasMastered` = TRUE
 --         WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;
---     ELSEIF (NEW.timesMispelled / NEW.timesUsed) > 0.25 AND OLD.hasMastered THEN
+--     ELSEIF (NEW.timesMisspelled / NEW.timesUsed) > 0.25 AND OLD.hasMastered THEN
 --         UPDATE `tito_term_progress`
 --         SET `hasMastered` = FALSE
 --         WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;

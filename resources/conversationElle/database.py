@@ -6,17 +6,18 @@ from datetime import datetime
 import json
 from config import PERMISSION_GROUPS
 from flask_jwt_extended import get_jwt_claims
+from .tito_methods import flatten_list
 
 
 db = DBHelper(mysql)
 
 
 # Updates how long a user has been chatting in the current session
-# TODO: check if timestamp used is keyword or column AND consider a trigger
+# TODO: check if creationTimestamp used is keyword or column AND consider a trigger
 def updateTotalTimeChatted(chatbotSID):
     query = '''
         UPDATE `chatbot_sessions`
-        SET `timeChatted` = TIMESTAMPDIFF(SECOND, timestamp, NOW()) / 60
+        SET `timeChatted` = TIMESTAMPDIFF(SECOND, creationTimestamp, NOW()) / 60
         WHERE `chatbotSID` = %s;
     '''
 
@@ -204,7 +205,7 @@ def getUserGroupAccessLevel(user_id: int, class_id: int):
 # Gets a single user's messages + LLM responses
 def fetchModuleChatHistory(userID: int, moduleID: int):
     query = '''
-            SELECT m.messageID, m.source, m.message, m.timestamp, m.isVoiceMessage
+            SELECT m.messageID, m.source, m.message, m.creationTimestamp, m.isVoiceMessage
             FROM `messages` m
             WHERE m.userID = %s AND m.moduleID = %s
             ORDER BY m.messageID ASC;
@@ -218,7 +219,7 @@ def fetchModuleChatHistory(userID: int, moduleID: int):
             "messageID": row[0],
             "source": row[1],
             "message": row[2],
-            "timestamp": row[3].isoformat() if row[3] else None, # TODO: consider removing this ternary
+            "creationTimestamp": row[3].isoformat() if row[3] else None, # TODO: consider removing this ternary
             "isVoiceMessage": row[4]
         }
         messages.append(message)
@@ -232,14 +233,10 @@ def createNewUserMessage(userID: int, moduleID: int, chatbotSID: int, message: s
             return 0
 
         query = '''
-            INSERT INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage)
-            VALUES (%s, %s, %s, 'user', %s, %s);
+            INSERT INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage, creationTimestamp)
+            VALUES (%s, %s, %s, 'user', %s, %s, NOW());
         '''
 
-        # if isVM == 'false':
-        #     isVM = 0
-        # elif isVM == 'true':
-        #     isVM = 1
         result = db.post(query, (userID, chatbotSID, moduleID, message, isVM))
         if result:
             if not result.get("rowcount"):
@@ -470,8 +467,16 @@ def newTitoMessage(userID: int, chatbotSID: int, message: str, module_id: int):
 # TODO: create DB safety checks?
 # TODO: create methods for when a new user joins the group [URGENT]
 def addNewTitoModule(module_id, class_id):
-    db.post("INSERT INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
+    res = db.get("SELECT EXISTS(SELECT * FROM tito_module WHERE moduleID = %s AND classID = %s);", (module_id, class_id), fetchOne=True)
+    if res:
+        if res[0]:
+            return 0
+    else:
+        return 0
 
+    print(res[0])
+
+    db.post("INSERT INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
     # 1. Get ALL users assigned to class (even non students)
     users = db.get("SELECT DISTINCT userID FROM group_user WHERE groupID = %s;", (class_id,))
 
@@ -484,19 +489,26 @@ def addNewTitoModule(module_id, class_id):
         '''
             SELECT DISTINCT t.termID
             FROM (
-                SELECT DISTINCT questionID
+                SELECT DISTINCT questionID, moduleID
                 FROM module_question
                 WHERE moduleID = %s
             ) mq
             JOIN answer a ON mq.questionID = a.questionID
             JOIN term t ON a.termID = t.termID
             WHERE mq.moduleID = %s;
-        ''', (module_id,module_id)
+        ''', (module_id, module_id)
     )
 
+    # term_ids = flatten_list(term_ids)
+
     # 4. Insert into tito_term_progress
-    term_progress_data = [(module_id, term_id[0], s[0]) for term_id in term_ids for user in users]
-    db.post("INSERT INTO tito_term_progress (moduleID, termID, userID) VALUES (%s, %s, %s);", term_progress_data)
+    term_progress_data = [(user, module_id, term_id) for term_id in term_ids for user in users]
+    # for a, b, c in term_progress_data:
+        # print(f'{a} to {b} to {c}')
+    # print("added titoModule")
+    # print(term_progress_data)
+    db.post("INSERT INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);", term_progress_data)
+    return 
 
 def addNewGroupUserToTitoGroup(user_id, class_id):
     """
@@ -505,9 +517,9 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
     """
     # 1. Check if this class is an active Tito class
     class_check = db.get(
-        "SELECT 1 FROM tito_group_status WHERE classID = %s LIMIT 1;", (class_id,), fetchOne=True
+        "SELECT EXISTS (SELECT * FROM tito_class_status WHERE classID = %s LIMIT 1);", (class_id,), fetchOne=True
     )
-    if not class_check:
+    if not class_check or not class_check[0]:
         return
 
     # 2. Get all Tito modules for this class
@@ -530,14 +542,13 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
             '''
                 SELECT DISTINCT t.termID
                 FROM (
-                    SELECT DISTINCT questionID
-                    FROM module_question
-                    WHERE moduleID = %s
+                    SELECT DISTINCT questionID, moduleID
+                    FROM module_question;
                 ) mq
                 JOIN answer a ON mq.questionID = a.questionID
                 JOIN term t ON a.termID = t.termID
                 WHERE mq.moduleID = %s;
-            ''', (module_id, module_id)
+            ''', (module_id,)
         )
         # Assign all terms to this user
         if term_ids:
@@ -546,6 +557,18 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
                 "INSERT INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);",
                 term_progress_data
             )
+
+def getUsersInClass(class_id: int):
+    query = '''
+        SELECT userID
+        FROM group_user
+        WHERE groupID = %s;
+    '''
+    res = db.get(query, (class_id,))
+    if not res:
+        return []
+    return flatten_list(res)
+
 
 
 
@@ -663,7 +686,7 @@ def getModuleTerms(module_id: int):
     query = '''
         SELECT DISTINCT t.termID, t.front
         FROM (
-            SELECT DISTINCT questionID
+            SELECT DISTINCT questionID, moduleID
             FROM module_question
             WHERE moduleID = %s
         ) mq
@@ -672,7 +695,7 @@ def getModuleTerms(module_id: int):
         WHERE mq.moduleID = %s;
     '''
 
-    res = db.get(query, (module_id,))
+    res = db.get(query, (module_id, module_id))
     if not res:
         return []
     return res
