@@ -13,3 +13,4 @@
   - Free chat sessions
   - inserts/updates to `tito` tables
   - in convgrader.py > suggest_grade() figure out how to match errors to key terms
+  - CREATE TRIGGER WHEN A MODULE IS TITO-FIED for `tito_lore` table

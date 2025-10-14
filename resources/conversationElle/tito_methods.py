@@ -17,14 +17,15 @@ def addNewTitoModule(module_id, class_id):
         return 0
 
     print(res[0])
+    print(f'{module_id}, {class_id}')
 
-    db.post("INSERT INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
+    db.post("INSERT IGNORE INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
     # 1. Get ALL users assigned to class (even non students)
     users = db.get("SELECT DISTINCT userID FROM group_user WHERE groupID = %s;", (class_id,))
 
     # 2. Create tito_module_progress for all users
     module_user_pair = [(module_id, user) for user in users]
-    db.post("INSERT INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_user_pair)
+    db.post("INSERT IGNORE INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_user_pair)
 
     # 3. Get all termIDs for this module
     term_ids = db.get(
@@ -49,7 +50,7 @@ def addNewTitoModule(module_id, class_id):
         # print(f'{a} to {b} to {c}')
     # print("added titoModule")
     # print(term_progress_data)
-    db.post("INSERT INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);", term_progress_data)
+    db.post("INSERT IGNORE INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);", term_progress_data)
     return 
 
 def activate_tito_from_existing_sessions():
@@ -102,7 +103,7 @@ def addTitoClassStatus():
         if not res:
             continue
         query = '''
-            INSERT INTO tito_class_status (classID, professorID, titoExpirationDate)
+            INSERT IGNORE INTO tito_class_status (classID, professorID, titoExpirationDate)
             VALUES (%s, %s, DATE_ADD(CURDATE(), INTERVAL 12 MONTH));
         '''
         insert_data = [(x[0], y[0]) for y in res]
@@ -113,7 +114,7 @@ def addTitoClassStatus():
 def createNewUserMessageTEST(userID: int, moduleID: int, chatbotSID: int, message: str, isVM: bool, source='user', dateCreated=''):
     try: 
         query = '''
-            INSERT INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage, creationTimestamp)
+            INSERT IGNORE INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage, creationTimestamp)
             VALUES (%s, %s, %s, %s, %s, %s, %s);
         '''
 

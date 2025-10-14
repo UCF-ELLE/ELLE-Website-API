@@ -152,6 +152,15 @@ CREATE TABLE `tito_class_status` (
   KEY (`titoStatus`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- CREATE TRIGGER WHEN A MODULE IS TITO-FIED
+CREATE TABLE `tito_lore` (
+  `loreID` int(4) NOT NULL DEFAULT 1,
+  `classID` int(4) NOT NULL,
+  `moduleID` int(4) NOT NULL,
+  FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`),
+  FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`),
+  PRIMARY KEY (`classID`, `moduleID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE `tito_generated_module` (
   `moduleID` int(4) NOT NULL, 
@@ -359,6 +368,21 @@ BEGIN
   SET NEW.totalTerms = term_count;
 END//
 DELIMITER ;
+
+
+-- Autogenerate a tito-lore assignment to a tito class module
+DELIMITER // 
+CREATE TRIGGER afterInsertOnTitoModule_assignTitoLore
+AFTER INSERT ON `tito_module`
+FOR EACH ROW
+BEGIN
+  INSERT INTO `tito_lore` (`loreID`, `classID`, `moduleID`)
+  VALUES (1, NEW.classID, NEW.moduleID);
+END //
+DELIMITER ;
+
+
+
 
 -- when a new term is added to a module, reupdate totalterm count
 DELIMITER //

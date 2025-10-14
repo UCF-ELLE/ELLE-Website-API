@@ -473,11 +473,74 @@ class GetClassUsers(Resource):
         users = getUsersInClass(class_id)
         return create_response(message="users retrieved", users=users)
 
+class AssignTitoLore(Resource):
+    @jwt_required
+    def post(self):
+        '''
+            Updating the assigned tito lore
+            returns nothing
+        '''
+        user_id = get_jwt_identity()
+        data = request.form
+        class_id = data.get('classID')
+        module_id = data.get('moduleID')
+        lore_id = data.get('loreID')
+
+        if not class_id or not module_id or not lore_id:
+            return create_response(False, message="insufficient params provided.", status_code=403)
+        if not isUserThisAccessLevel(user_id, class_id, 'pf'):
+            return create_response(False, message="insufficient perms.", status_code=403)
+        if not updateClassModuleTitoLore(class_id, module_id, lore_id):
+            return create_response(False, message="unable to make changes or module already assigned this lore", status_code=500)
+        return create_response(True, message="successfully updated assigned lore to class module")
+    
+    @jwt_required
+    def get(self):
+        '''
+            Get the assigned tito lore for the class's module
+            returns tito lore id via data
+        '''
+        user_id = get_jwt_identity()
+        class_id = request.args.get('classID')
+        module_id = request.args.get('moduleID')
+
+        print(f'{class_id} and {module_id}')
+
+        if not class_id or not module_id:
+            return create_response(False, message="insufficient params provided.", status_code=403)
+        if not isUserThisAccessLevel(user_id, class_id, 'pf'):
+            return create_response(False, message="insufficient perms.", status_code=403)
+
+        res = getClassModuleTitoLore(class_id, module_id)
+        if not res:
+            return create_response(False, message="failed to retrieve tito lore id for class module", status_code=400)
+        return create_response(True, message="yes", data=res)
+
+# NOTE: Doesnt work due to current implementation
+# class CreateTitoLore(Resource):
+#     @jwt_required
+#     def post(self):
+#         user_id = get_jwt_identity()
+#         data = request.form
+#         lore_id = data.get('titoLoreID')
+
+#         if not lore_id:
+#             return create_response(False, message="invalid params", status_code=403)
+        
+
+# ========================================
+# ++++++ DB MIGRATION TEMPORARY ++++++
+# ========================================
 
 # Disable/Remove AFTER RUNNING ONCE
 class Testing(Resource):
     def get(self):
         return create_response(res=updateLiveDB())
+
+
+# ========================================
+# REDO APIS ++++++
+# ========================================
 
 # Deprecated for now, unused?
 # class ExportChatHistory(Resource):

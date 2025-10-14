@@ -86,6 +86,8 @@ def userIsNotAStudent(user_id:int, class_id: int):
         return False
     return True
 
+
+
 # ================================================
 #
 # Group-Related
@@ -183,16 +185,22 @@ def isUserInClass(user_id: int, class_id:int):
     return True
 
 # TODO: Fix HANDLING MULTIPLE accessLevels being returned, prioritize pf>ta>st
-def getUserGroupAccessLevel(user_id: int, class_id: int):
+def isUserThisAccessLevel(user_id: int, class_id: int, desired_access: str):
     query = '''
         SELECT `accessLevel` 
         FROM `group_user`
         WHERE `userID` = %s AND `groupID` = %s;
     '''
-    res = db.get(query, (user_id, class_id), fetchOne=True)
+    res = db.get(query, (user_id, class_id))
     if not res:
-        return None
-    return res[0]
+        return False
+    for user in res:
+        print(user)
+        print(user[0])
+        if user[0] == desired_access:
+            return True
+
+    return False
 
 
 
@@ -569,9 +577,6 @@ def getUsersInClass(class_id: int):
         return []
     return flatten_list(res)
 
-
-
-
 # Change some status of a Tito Module (current availability and/or start/end dates)
 def updateTitoModuleStatus(module_id:int, class_id: int, update_status=False, update_date=False, start_date=None, end_date=None):
     flag = False
@@ -638,7 +643,29 @@ def createTitoClass(user_id: int, class_id: int):
         return False
     return True
 
+def updateClassModuleTitoLore(class_id: int, module_id: int, lore_selected: int):
+    query = '''
+        UPDATE `tito_lore` 
+        SET `loreID` = %s
+        WHERE `classID` = %s AND `moduleID` = %s;
+    '''
 
+    res = db.post(query, (lore_selected, class_id, module_id))
+    if not res or not res.get('rowcount'):
+        return False
+    return True
+
+def getClassModuleTitoLore(class_id: int, module_id: int):
+    query = '''
+        SELECT `loreID` 
+        FROM `tito_lore`
+        WHERE classID = %s AND moduleID = %s;
+    '''
+
+    res = db.get(query, (class_id, module_id), fetchOne=True)
+    if not res or not res[0]:
+        return 0
+    return res[0]
 
 # ================================================
 #

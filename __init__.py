@@ -143,6 +143,8 @@ from resources.conversationElle.conversation import(
     UpdateTitoClass,
     GetModuleProgress,
     GetClassUsers,
+    AssignTitoLore,
+
     Testing,
 )
 import os
@@ -387,19 +389,23 @@ api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "twt/session/create")
 api.add_resource(UserMessages, API_ENDPOINT_PREFIX + "twt/session/messages")
 api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
+api.add_resource(GetModuleProgress, API_ENDPOINT_PREFIX + "twt/session/getModuleProgress")
+
 
 api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
+
 api.add_resource(AddTitoModule, API_ENDPOINT_PREFIX + "twt/professor/addModule")
 api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/updateModule")
 api.add_resource(UpdateTitoClass, API_ENDPOINT_PREFIX + "twt/professor/updateClassStatus")
-api.add_resource(GetModuleProgress, API_ENDPOINT_PREFIX + "twt/session/getModuleProgress")
 api.add_resource(GetClassUsers, API_ENDPOINT_PREFIX + "twt/professor/getClassUsers")
+api.add_resource(AssignTitoLore, API_ENDPOINT_PREFIX + "twt/professor/titoLore")
+
+
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 
 # ===============================================
 # End of ConversAItionELLE endpoints
