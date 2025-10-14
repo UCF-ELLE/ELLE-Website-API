@@ -29,8 +29,11 @@ SELECT DISTINCT moduleID as moduleID, 1
 FROM `module`;
 
 INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
-SELECT DISTINCT 1, gu.groupID, 'pf'
-FROM `group_user` gu;
+VALUES (1, 1, 'pf');
+
+-- INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
+-- SELECT DISTINCT 1, 1, 'pf'
+-- FROM `group_user` gu;
 
 UPDATE `group_user`
 SET `accessLevel` = 'pf'

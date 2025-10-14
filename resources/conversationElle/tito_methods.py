@@ -17,7 +17,7 @@ def addNewTitoModule(module_id, class_id):
         return 0
 
     print(res[0])
-    print(f'{module_id}, {class_id}')
+    print(f'adding tito_module to mod:class {module_id}, {class_id}')
 
     db.post("INSERT IGNORE INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
     # 1. Get ALL users assigned to class (even non students)
@@ -56,19 +56,21 @@ def addNewTitoModule(module_id, class_id):
 def activate_tito_from_existing_sessions():
     # 1. Fetch all module-user pairs from existing chatbot_sessions
     sessions = db.get("""
-        SELECT DISTINCT cs.moduleID, cs.userID
-        FROM chatbot_sessions cs;
+        SELECT DISTINCT moduleID, userID
+        FROM chatbot_sessions;
     """)
+
+    print(sessions)
     processed_pairs = set()
 
     for module_id, user_id in sessions:
         # 2. Find all classes where this user is assigned AND the module is part of the class
         class_ids = db.get("""
-            SELECT DISTINCT gu.groupID
-            FROM group_user gu
-            JOIN group_module gm 
-                ON gm.groupID = gu.groupID AND gm.moduleID = %s
-            WHERE gu.userID = %s;
+            SELECT gm.groupID
+            FROM group_module gm
+            JOIN group_user gu 
+                ON gu.groupID = gm.groupID
+            WHERE gm.moduleID = %s AND gu.userID = %s;
         """, (module_id, user_id))
 
         for (class_id,) in class_ids:
@@ -94,7 +96,7 @@ def addTitoClassStatus():
     
     for x in res:
         query = '''
-            SELECT userID
+            SELECT DISTINCT userID
             FROM group_user
             WHERE groupID = %s AND accessLevel = 'pf';
         '''
