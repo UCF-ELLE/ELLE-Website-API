@@ -49,7 +49,11 @@ class DBHelper:
             elif fetch == "one":
                 result = cursor.fetchone()
             else:
-                result = {"rowcount": cursor.rowcount, "lastrowid": cursor.lastrowid}
+                result = {
+                    "rowcount": cursor.rowcount,
+                    "lastrowid": getattr(cursor, "lastrowid", None)  # <- safe lookup
+                }
+
 
             conn.commit()
             return result

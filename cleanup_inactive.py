@@ -16,23 +16,21 @@ db = DBHelper(mysql)
 def cleanup_expired_groups():
     print("[START] APScheduler started for monthly cleanup")
     # get newly expired groups
-    expired_groups = db.get("SELECT groupID FROM `group` WHERE status='active' AND expirationDate <= NOW()")
+    expired_groups = db.get("SELECT classID, professorID FROM `tito_class_status` WHERE titoStatus='active' AND titoExpirationDate <= CURDATE();")
     
     # Update groups' status and delete 'old' audio files
     # TODO: THIS IS A SLOW APPROACH, CAN BATCH UPDATE IN MYSQL
     #       Will have to split 
-    for (class_id,) in expired_groups:
-        print(f"[INFO] Archiving group {class_id}")
+    for (class_id, professor_id) in expired_groups:
+        print(f"[INFO] Archiving group {class_id} led by prof {professor_id}")
         
         # archive group passed expiration date
-        db.post("UPDATE `group` SET status='archived' WHERE groupID=%s", (class_id,))
+        db.post("UPDATE `tito_class_status` SET titoStatus='inactive' WHERE groupID = %s AND professorID = %s;", (class_id, professor_id))
         
-        # mark associated tito_modules as inactive
-        db.post("UPDATE `tito_module` SET status='inactive' WHERE classID=%s", (class_id,))
+        # associated tito_modules marked as inactive by triggers
         
         # get moduleIDs for folder cleanup (see: conversation.py on how audio files are stored)
-        module_ids = db.get("SELECT moduleID FROM `tito_module` WHERE classID=%s AND status='inactive'", (class_id,))
-        
+        module_ids = db.get("SELECT moduleID FROM `tito_module` WHERE classID=%s AND status='inactive';", (class_id,))
         # Delete each tito_module folder as its expected for ALL contents within to be expired
         for (module_id,) in module_ids:
             module_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id))

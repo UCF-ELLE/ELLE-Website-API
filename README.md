@@ -3,7 +3,11 @@
   Conversationelle part 2
 
 ## Notes
+  - Table `group_user` doesn't have a primary key, when would you *ever* need a user in a group to be a student, ta ***and*** a prof? I don't work on the other projects and don't have the ability to test if it breaks anything, but worth noting, but this is annoying to work around potentially.
 
+## TWT Notes:
+  - `tito_module` overlaps `ucf2` with existing professor's for their classes, causing duplicate (?) classes to be created 
+    - >Solution: Have only 1 class with all modules? therefore update the migrate script + triggers and stuff
 
 ## TODO:
   - Sanitize SQL queries & text
@@ -13,3 +17,4 @@
   - Free chat sessions
   - inserts/updates to `tito` tables
   - in convgrader.py > suggest_grade() figure out how to match errors to key terms
+  - CREATE TRIGGER WHEN A MODULE IS TITO-FIED for `tito_lore` table

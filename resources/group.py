@@ -49,9 +49,8 @@ class Group(Resource):
                 if gc_results:
                     raise CustomException("groupCode already exists", 400)
 
-                expiration_date = datetime.now() + timedelta(days=365)
-                query = "INSERT INTO `group` (`groupName`, `groupCode`, `expirationDate`) VALUES (%s, %s, %s)"
-                postToDB(query, (data['groupName'], group_code, expiration_date), conn, cursor)
+                query = "INSERT INTO `group` (`groupName`, `groupCode`) VALUES (%s, %s)"
+                postToDB(query, (data['groupName'], group_code,), conn, cursor)
 
                 g_query = "SELECT `groupID` FROM `group` WHERE `groupName`= %s"
                 g_results = getFromDB(g_query, data['groupName'], conn, cursor)
