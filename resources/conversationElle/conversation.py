@@ -84,12 +84,23 @@ class ChatbotSessions(Resource):
 
         # A freechat session
         if module_id == FREE_CHAT_MODULE:
-            return create_response(True, message="Free chat Chatbot session created.", data=createChatbotSession(user_id, FREE_CHAT_MODULE))
+            chatbot_sid = createChatbotSession(user_id, FREE_CHAT_MODULE)
+            warming_thread = threading.Thread(target = prewarm_llm_context, # Uses threading so that LLM may "warm up" for 
+            args = (FREE_CHAT_MODULE, chatbot_sid), daemon = True)          # subsiquent prompts
+            warming_thread.start()
 
+            return create_response(True, message="Free chat Chatbot session created.", data=chatbot_sid)
         
         if not isActiveTitoModule(class_id, module_id):
             return create_response(success=False, message="Chatbot session failed to be created. No available modules", status_code=403)
-        return create_response(True, message="Chatbot session created.", data=createChatbotSession(user_id, module_id))
+        
+        # If a module ID is found
+        chatbot_sid = createChatbotSession(user_id, module_id)
+        warming_thread = threading.Thread(target = prewarm_llm_context, 
+        args = (module_id, chatbot_sid), daemon = True)
+        warming_thread.start()
+
+        return create_response(True, message="Chatbot session created.", data=chatbot_sid)
 
 # NOTE: Ability to send messages should block until receiving back a response
 # stores message to DB and Tito AI And Returns response from Tito
@@ -160,14 +171,14 @@ class UserMessages(Resource):
             #         tito_response_data = handle_message(message)
             # except Exception as safety_error:
             #     print(f"Safety check failed: {safety_error}")
-            tito_response_data = handle_message(message)
+            tito_response = handle_message(message, module_id = module_id)
             
             print("this1")
-            tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
+            # tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
             print(tito_response)
             
             # TODO: Verify data
-            newTitoMessage(user_id, session_id, tito_response_data.get('response'), module_id)
+            newTitoMessage(user_id, session_id, tito_response, module_id)
             print("this3")
 
         except Exception as error:

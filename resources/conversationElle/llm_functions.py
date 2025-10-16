@@ -1,6 +1,8 @@
 from datetime import datetime
 from pydantic import BaseModel
 from .config import *
+from config import FREE_CHAT_MODULE
+from .database import getModuleTerms, getModuleLanguage
 # from .convo_grader import *
 import ast
 import re
@@ -8,6 +10,7 @@ import json
 import sys
 import os
 import requests 
+import threading
 
 # tool = None
 # current_language = 'en-US'
@@ -24,6 +27,50 @@ def GenerateRequest(user_text, max_new_tokens=MAX_NEW_TOKENS, temperature=TEMPER
         "stop": ["User:", "\nUser:", "Instruction"],
         "stream": False
     }
+
+
+def prewarm_llm_context(module_id, session_id):
+    """
+    Pre-warm the LLM with module context so first real message is fast.
+    Sends a dummy message to cache the prompt.
+    """
+    # Determines what prompt to use based on module ID
+    try: 
+        if module_id == FREE_CHAT_MODULE or module_id is None:
+            base_prompt = free_prompt
+        else:
+            base_prompt = main_prompt
+
+
+            # If module is not a free chat then acquire language and vocab to pass into prompt
+            try:
+               terms = getModuleTerms(module_id)
+               language = getModuleLanguage(module_id)
+
+               if terms and language:
+                    vocab_list = [term[1] for term in terms[:20]]
+                    vocab_context = ", ".join(vocab_list)
+                    base_prompt = f"""{base_prompt}
+                    Context: Student learning {language[0]}. Key vocab: {vocab_context}
+                    , When a vocab word remark that you remember more and thank for reminding"""
+
+            except Exception as error:
+                print(f"Could not load module context: {error}")
+
+        # Short "warming" message for LLM
+        warming_message = "Hi"
+        full_prompt = f"{base_prompt}\n\nStudent: {warming_message}\n\nTito:"
+
+        request = GenerateRequest(user_text = full_prompt, max_new_tokens = 10) # Uses minimal tokens
+        response = requests.post(model_path, json=request, timeout = 30)
+
+        if response.status_code == 200:
+            print(f" Pre-Warmed LLM context for module {module_id} (session {session_id})")
+        else:
+            print(f"Pre-warming got status {response.status_code}")
+
+    except Exception as error:
+        print(f"Pre-warming falied: {error}")
 
 
 def generate_message(message, prompt):
@@ -54,31 +101,37 @@ def generate_message(message, prompt):
         print(f"JSON decode error: {e}")
         return "Sorry, I received an invalid response from the language model."
 
-def handle_message(message: str, prompt=None):
+def handle_message(message: str, module_id: int = None, prompt=None):
     """
     Handles the incoming message and generates a response using the LLM.
     """
     try:
-        if prompt == None:
-            prompt = main_prompt
+        if module_id == FREE_CHAT_MODULE or module_id is None:
+            if prompt is None:
+                prompt = free_prompt
+        else:
+            if prompt is None:
+                prompt = main_prompt
 
         response = generate_message(message, prompt)
+        response = response.strip()
+
         print(f"[DEBUG] Raw LLM response: {response}")
         
         # Try to find JSON in the response
-        if "{" in response and "}" in response:
-            json_start = response.index("{")
-            json_end = response.index("}") + 1
-            json_response = response[json_start:json_end]
-            print(f"[DEBUG] Extracted JSON: {json_response}")
-            parsed_response = ast.literal_eval(json_response)
-            print(f"[DEBUG] Parsed response: {parsed_response}")
-            return parsed_response
-        else:
-            # No JSON found, create a response from the raw text
-            print(f"[DEBUG] No JSON found, using raw response")
-            clean_response = response.strip()
-            return {"response": clean_response}
+        # if "{" in response and "}" in response:
+        #     json_start = response.index("{")
+        #     json_end = response.index("}") + 1
+        #     json_response = response[json_start:json_end]
+        #     print(f"[DEBUG] Extracted JSON: {json_response}")
+        #     parsed_response = ast.literal_eval(json_response)
+        #     print(f"[DEBUG] Parsed response: {parsed_response}")
+        #     return parsed_response
+        # else:
+        #     # No JSON found, create a response from the raw text
+        #     print(f"[DEBUG] No JSON found, using raw response")
+        #     clean_response = response.strip()
+        #     return {"response": clean_response}
             
     except Exception as e:
         print(f"[DEBUG] Exception in handle_message: {e}")

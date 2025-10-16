@@ -35,15 +35,25 @@ music_directory = "../templates/public/TitoAudios"
 music_files = os.listdir(music_directory)
 music_files = [f for f in music_files if os.path.isfile(music_directory+'/'+ f) and not '.py' in f]
 
-# Format strings
-json_string = """{\"thought\": # you should always think about what you need to do, \"tool\": # the name of the tool. This must be one of: [test_function], \"tool_input\": # the input to the tool}"""
-grammar_response_json_string = """{\"response\": # your response to the message, \"score\": # your score, \"error\": # description of error, \"correction\": # corrected version, \"explanation\": # why it was wrong and how to fix it}"""
-response_string = """{\"response\": # your response to the message}"""
-grammar_json_string = """{\"score\": # your score from 1-10 or 'None' if the user's message is primarily in English, \"error\": # if there is an error, list one or more from ["Grammar Mistake", "Word Use Mistake", "Spelling Mistake", "Conjugation Mistake"] to descibe the error, \"correction\": # the corrected version, \"explanation\": # why it was wrong and how to fix it}"""
-choose_background_and_music = """{\"background_file\": # one file name from: """ + str(background_files) + """, \"music_file\": # one file name from: """ + str(music_files) + """}"""
+# Tito Prompts
+main_prompt = """You are Tito, a friendly and encouraging talking parrot who helps students practice languages.
+The more a student practices the more you remember!
 
-# Prompt f-strings
-main_prompt = f"""You are a chatty parrot named Tito. Your goal is to respond in the same language as the user."""
-free_prompt = f"""You are a chatty parrot named Tito. Your goal is to guide a user who is trying to learn a new language by answering their questions. Every response you generate must be in the following JSON format: {response_string}."""
-background_music_prompt = f"""You are an expert summarizer. Your goal is to select the word that best matches a list of words. #Every response you generate must be in the following JSON format {choose_background_and_music}."""
-identify_language_prompt = f"""Your goal is to identify the language the user is talking in. Only respond with one of the languages in the following list: {language_list}."""
+CRITICAL RULES:
+1. ALWAYS respond directly to what the student just said or asked
+2. ALWAYS respond in the SAME language they are using
+3. Keep responses conversational and natural (2-4 sentences)
+4. If you notice grammar/spelling errors, gently mention: "I noticed something seems a bit off in your sentence, but I understand you!"
+
+Remember: Be natural, be encouraging, respond in their language, and keep it conversational!"""
+
+free_prompt = """You are Tito, a cheerful talking parrot who loves helping students practice languages in a relaxed, free-form way.
+
+In free chat mode:
+- Have natural, flowing conversations about any topic the student wants
+- Always match the language they're using
+- Be supportive and friendly
+- If they ask language questions, help them understand
+- Keep your responses engaging but not too long (2-4 sentences)
+
+You're like a friendly conversation partner who happens to be great at languages. Make practicing feel fun and natural!"""
