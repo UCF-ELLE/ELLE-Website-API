@@ -16,9 +16,6 @@ def addNewTitoModule(module_id, class_id):
     else:
         return 0
 
-    print(res[0])
-    print(f'adding tito_module to mod:class {module_id}, {class_id}')
-
     db.post("INSERT IGNORE INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
     # 1. Get ALL users assigned to class (even non students)
     users = db.get("SELECT DISTINCT userID FROM group_user WHERE groupID = %s;", (class_id,))
@@ -55,33 +52,31 @@ def addNewTitoModule(module_id, class_id):
 
 def activate_tito_from_existing_sessions():
     # 1. Fetch all module-user pairs from existing chatbot_sessions
-    sessions = db.get("""
+    sessions = db.get('''
         SELECT DISTINCT moduleID, userID
         FROM chatbot_sessions;
-    """)
+    ''')
 
     print(sessions)
     processed_pairs = set()
 
     for module_id, user_id in sessions:
         # 2. Find all classes where this user is assigned AND the module is part of the class
-        class_ids = db.get("""
+        class_ids = db.get('''
             SELECT gm.groupID
             FROM group_module gm
             JOIN group_user gu 
                 ON gu.groupID = gm.groupID
             WHERE gm.moduleID = %s AND gu.userID = %s;
-        """, (module_id, user_id))
+        ''', (module_id, user_id))
 
         for (class_id,) in class_ids:
             # 3. Ensure Tito module exists
             x = addNewTitoModule(module_id, class_id)
             if not x:
-                print(f'{class_id} and {module_id}')
                 processed_pairs.add((class_id, module_id))
 
     # Return list of unique (classID, moduleID) pairs
-    print(processed_pairs)
     return list(processed_pairs)
 
 def addTitoClassStatus():
@@ -142,7 +137,23 @@ def insertOldMessages():
 
     return
 
+def migrateChatbotSessionsTable():
+    rows = db.get('''
+        SELECT chatbotId, userId, moduleId, totalTimeChatted, totalWordsForModule, timestamp
+        FROM chatbot_sessions_old
+        ORDER BY chatbotId ASC;
+    ''')
+
+    for row in rows:
+        db.post('''
+            INSERT IGNORE INTO `chatbot_sessions`
+            (chatbotSID, userID, moduleID, timeChatted, moduleWordsUsed, creationTimestamp)
+            VALUES (%s, %s, %s, %s, %s, %s);
+        ''', row)
+
+
 def updateLiveDB():
+    migrateChatbotSessionsTable()
     res = activate_tito_from_existing_sessions()
     if not res:
         return []

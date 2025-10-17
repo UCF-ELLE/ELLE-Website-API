@@ -348,6 +348,31 @@ class GetModuleProgress(Resource):
         
         return create_response(True, data=res)
 
+class GetTitoLoreAssignment(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            Get the assigned tito lore for the class's module
+            returns tito lore id via data and respective lores
+        '''
+        user_id = get_jwt_identity()
+        class_id = request.args.get('classID')
+        module_id = request.args.get('moduleID')
+
+        if not class_id or not module_id:
+            return create_response(False, message="insufficient params provided.", status_code=403)
+        if not isUserThisAccessLevel(user_id, class_id, 'pf'):
+            return create_response(False, message="insufficient perms.", status_code=403)
+
+        res = getClassModuleTitoLore(class_id, module_id)
+        if not res:
+            return create_response(False, message="failed to retrieve tito lore id for class module", status_code=400)
+        
+        lore_texts = getTitoLoreTexts(res)
+        if not lore_texts:
+            return create_response(False, message="failed to retrieve tito lore_texts for class module", status_code=400)
+        
+        return create_response(True, message="returned tito lore id", data=lore_texts, loreID=res)
 
 
 # ========================================
@@ -484,7 +509,7 @@ class GetClassUsers(Resource):
         users = getUsersInClass(class_id)
         return create_response(message="users retrieved", users=users)
 
-class AssignTitoLore(Resource):
+class UpdateLoreAssignment(Resource):
     @jwt_required
     def post(self):
         '''
@@ -499,33 +524,74 @@ class AssignTitoLore(Resource):
 
         if not class_id or not module_id or not lore_id:
             return create_response(False, message="insufficient params provided.", status_code=403)
-        if not isUserThisAccessLevel(user_id, class_id, 'pf'):
+        if isUserThisAccessLevel(user_id, class_id, 'st'):
             return create_response(False, message="insufficient perms.", status_code=403)
-        if not updateClassModuleTitoLore(class_id, module_id, lore_id):
-            return create_response(False, message="unable to make changes or module already assigned this lore", status_code=500)
+        if not updateClassModuleTitoLoreAssignment(class_id, module_id, lore_id):
+            return create_response(False, message="unable to make changes. module already assigned this lore or given module id doesnt exist", status_code=500)
         return create_response(True, message="successfully updated assigned lore to class module")
     
+class CreateTitoLore(Resource):
     @jwt_required
-    def get(self):
+    def post(self):
         '''
-            Get the assigned tito lore for the class's module
-            returns tito lore id via data
+            creates tito lore, requires 4 strings to work
         '''
         user_id = get_jwt_identity()
-        class_id = request.args.get('classID')
-        module_id = request.args.get('moduleID')
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
+        data = request.form
+        lore_1 = data.get('lore_1')
+        lore_2 = data.get('lore_2')
+        lore_3 = data.get('lore_3')
+        lore_4 = data.get('lore_4')
 
-        print(f'{class_id} and {module_id}')
+        if not lore_1 or not lore_2 or not lore_3 or not lore_4:
+            return create_response(False, message='insufficient params provided', status_code=404)
+        if not user_permission or user_permission == 'st':
+            return create_response(False, message='insufficient perms', status_code=403)
+        
+        lore_list = []
+        lore_list.append(lore_1)
+        lore_list.append(lore_2)
+        lore_list.append(lore_3)
+        lore_list.append(lore_4)
 
-        if not class_id or not module_id:
-            return create_response(False, message="insufficient params provided.", status_code=403)
-        if not isUserThisAccessLevel(user_id, class_id, 'pf'):
-            return create_response(False, message="insufficient perms.", status_code=403)
-
-        res = getClassModuleTitoLore(class_id, module_id)
+        res = insertTitoLore(user_id, lore_list)
         if not res:
-            return create_response(False, message="failed to retrieve tito lore id for class module", status_code=400)
-        return create_response(True, message="yes", data=res)
+            return create_response(False, message='failed to fully process insert', status_code=500)
+        return create_response(True, message="successfully created tito lore")
+
+class UpdateTitoLore(Resource):
+    @jwt_required
+    def post(self):
+        '''
+            Updating the assigned tito lore
+            returns nothing
+        '''
+        user_id = get_jwt_identity()
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
+
+        data = request.form
+        class_id = data.get('classID')
+        module_id = data.get('moduleID')
+        lore_id = data.get('loreID')
+        sequence_num = data.get('sequenceNumber')
+        new_lore_text = data.get('newLoreText')
+
+        if not class_id or not module_id or not lore_id:
+            return create_response(False, message="insufficient params provided.", status_code=403)
+        if not user_permission or user_permission == 'st':
+            return create_response(False, message='insufficient perms', status_code=403)
+        if user_permission != 'su' and isTitoLoreOwner(user_id, lore_id):
+            return create_response(False, message='insufficient perms', status_code=403)
+
+        res = updateTitoLoreText(lore_id, sequence_num, new_lore_text)
+        if not res:
+            return create_response(False, message="failed to update tito lore. probably used the same text", status_code=500)
+        return create_response(True, message='updated tito lore')
+
+        
 
 # NOTE: Doesnt work due to current implementation
 # class CreateTitoLore(Resource):
