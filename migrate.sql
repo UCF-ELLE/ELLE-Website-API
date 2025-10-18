@@ -268,11 +268,34 @@ CREATE TABLE `tito_voice_message` (
 
 -- HARDCODE INSERT, REPLACE WITH ACTUAL THINGS
 INSERT INTO `tito_lore` (`ownerID`) VALUES (1);
-INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 1, "Part 1");
-INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 2, "Part 2");
-INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 3, "Part 3");
-INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 4, "Part 4");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 1, "Tito remembers his hometown… but the name is fuzzy.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 2, "Tito recalls speaking another language long ago!");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 3, "A vivid scene returns: a seaside market and familiar voices.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 4, "Tito has fully regained his memory thanks to you!");
 
+INSERT INTO `tito_lore` (`ownerID`) VALUES (2);
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 1, "A name surfaces… maybe ‘Mira’? Tito isn’t sure.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 2, "He remembers a small boat and a song he used to hum.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 3, "Faces blur into focus—market stalls, a blue kite, laughter.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 4, "Everything clicks into place—Tito’s story is whole again!");
+
+INSERT INTO `tito_lore` (`ownerID`) VALUES (3);
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 1, "A torn journal page appears—ink smeared, date missing.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 2, "Another page: a recipe in the margins and a note to self.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 3, "The pages stitch together—directions to somewhere by the pier.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 4, "The journal closes; Tito remembers every chapter.");
+
+INSERT INTO `tito_lore` (`ownerID`) VALUES (4);
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 1, "A sun-faded postcard: ‘Wish you were here…’ The signature is unclear.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 2, "Another postcard shows bright umbrellas and a long pier.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 3, "A final postcard reveals an address Tito once called home.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 4, "All postcards align—Tito knows exactly where he belongs.");
+
+INSERT INTO `tito_lore` (`ownerID`) VALUES (5);
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 1, "A melody returns—just four notes on a breeze.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 2, "Lyrics follow, half in another language he used to speak.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 3, "He can hum the whole tune, and a friend’s voice joins in.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 4, "The song finishes; the memories return in harmony.");
 
 
 -- Consider IGNORE after INSERT
