@@ -29,6 +29,9 @@
 - POST calls are for when you cause any change in the backened
 - Nothing else to say...
 
+### Other notes:
+- Returns values are a *little* inconsistent. Sometimes its in `data` other times in a more specific `retval`
+
 ## > Creating Responses
 - I have streamlined the api response generation to make it prettier and handy.
 - API responses uses the `create_response()` method found in `database.py` ***(tentative to move elsewhere)*** to streamline reponses instead of manually making the JSON format every time
@@ -58,8 +61,8 @@ Parameters of the `create_response()` method
 ---
 
 ### 1. **GET /elleapi/twt/session/access**
-- **Purpose**: Users requests permission from the server to access TWT. Recieves a list of `enrolled classes` mapped to `tito-modules`, if none, user is barred from TWT access.
-- **Notes**: Client should store the `class_id` -> `module_id` pairs locally for ease of access later on or call this API once more. 
+- **Purpose**: Users requests permission from the server to access TWT. Recieves a list of `enrolled classes` mapped to `tito-modules`, if none, user has no access to TWT.
+- **Notes**: Client should store the `class_id` -> [`module_id`] pairs locally for ease of access later on or call this API once more. 
 - **Query Parameters**:
   ```
     None
@@ -118,6 +121,7 @@ Parameters of the `create_response()` method
 
 ### 3. **POST /elleapi/twt/session/messages**
 - **Purpose**: Sends a single user message from the current session to the chatbot and returns the messageID for relating to a voice message & ordering (if needed) and more (TBD)
+- **Notes**: Audio messages are requested on top of this API
 - **Request body** (JSON):
   ```json
   {
@@ -142,11 +146,12 @@ Parameters of the `create_response()` method
 - **Notes**:
     - API process:
         1. User sends a message
-        2. Backend process the message, calls the LLM. (checks for free talk or module-based chat)
-        3. The LLM process the user message
-        4. The LLM calls the word counting function for terms used that are part of this module. spaCy + DB
-        5. Once the backend gets all of this data back, send to front end
-        6. Asynchronously grades the users grammar. LanguageTools
+        2. Backend process the message (checks for free talk or module-based chat)
+        3. Message passed into the key-word counting function for terms/phrases used for this module. spaCy + DB
+        4. Grammar is rated for the message
+        5. The LLM process the user message
+        6. Once the backend gets all of this data back, send to front end
+
 
 ---
 
@@ -156,7 +161,7 @@ Parameters of the `create_response()` method
 - **Query parameters**:
   ```JSON
   ?
-  moduleID={int} // where int is the ID for a tito_module
+  moduleID={int}
   ```
 - **Response** (JSON):
   ```json
@@ -198,7 +203,7 @@ Parameters of the `create_response()` method
   "chatbotSID": int,
   "classID": int,
   "moduleID": int,
-  "audio": "file.webm"
+  "audio": "file.webm" // the audio file to be uploaded
 }
 ```
 - **Response**
@@ -246,7 +251,7 @@ response header
 ---
 
 ### 7. **GET /elleapi/twt/module/terms**
-- **Purpose**: 
+- **Purpose**: Gets all the terms/phrases associated to this modules as a list of (id, term)
 - **Notes**: 
 - **Query Parameters**
 ```JSON
@@ -258,21 +263,39 @@ response header
 {
   "success": true or false,
   "message": "text",
-  "data": [(termID, "text")]  // A list of pairs of tuples are returned (tuple_1 = `termID`, tuple_2 = `front`) 
-                              // front is the table `term`'s word in the foreign language (the target word to be used)
+  "data": [(termID, term)]  // A list of pairs of tuples are returned (tuple_1 = `termID`, tuple_2 = `front`) 
+}                             // front is the table `term`'s word in the foreign language (the target word to be used)
 ```
 
 ---
 
-## FOR PROFESSORS
+### 8. **GET /elleapi/twt/session/getModuleProgress**
+- **Purpose**: Returns the percentage of words mastered for this module
+- **Notes**: At every 25% progress interval, new tito lore is provided
+- **Query Parameters**
+```JSON
+  ?
+  moduleID={int}
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": float  // A list of pairs of tuples are returned (tuple_1 = `termID`, tuple_2 = `front`) 
+}                             // front is the table `term`'s word in the foreign language (the target word to be used)
+```
 
+---
+## Universal
 
-### 8. **POST /elleapi/twt/professor/classes**
-- **Purpose**: Retrieves a list of all classes owned by professor (maybe only tito-enrolled classes?)
-- **Notes**: 
+### 9. **GET /elleapi/twt/session/classes**
+- **Purpose**: Retrieves a list of all tito_classes (either owned by professor, or enrolled by student)
+- **Notes**: Can request for `all`, `active` or `inactive` tito_classes
 - **Query Parameters** 
 ```JSON
-  NONE
+  ?
+  classType={string}
 ```
 - **Response**
 ```JSON
@@ -284,10 +307,176 @@ response header
 
 ---
 
+### 10. **GET /elleapi/twt/session/getTitoLore**
+- **Purpose**: Get the assigned tito lore for the class's module a list of strings + the loreID
+- **Notes**: User must not be a `st`
+- **Query Parameters** 
+```JSON
+  ?
+  classID={int}
+  &
+  moduleID={int}
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "data": string[],               // returns a list of 4 ordered tito lore strings for the module
+  "loreID": int
+}
+```
 
+---
 
-### 444. **POST /elleapi/twt/session/create**
-- **Purpose**: 
+## FOR PROFESSORS
+
+### 11. **POST /elleapi/twt/professor/addModule**
+- **Purpose**:  makes changes to a module's status on being a tito_module or not
+- **Notes**: automatically populate `tito_*` tables for this module
+- **Request body** (JSON)
+```JSON
+{
+  "classID": int,
+  "moduleID": int
+}
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text"
+}
+```
+
+---
+
+### 12. **POST /elleapi/twt/professor/updateModule**
+- **Purpose**: enable/disable a tito module for a class
+- **Notes**: Can also update start/end dates
+- **Request body** (JSON)
+```JSON
+
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text"
+}
+```
+
+---
+
+### 13. **POST /elleapi/twt/professor/updateClassStatus**
+- **Purpose**: enable/disable tito status for a class ()
+- **Notes**: inserts into tito_class_status if not previously a tito-enrolled class
+- **Request body** (JSON)
+```JSON
+{
+  "classID": int
+}
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text"
+}
+```
+
+---
+
+### 14. **POST /elleapi/twt/professor/getClassUsers**
+- **Purpose**: gets a list of all students in class
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+{
+  "classID": int
+}
+
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text",
+  "users": int[],
+}
+```
+
+---
+
+### 15. **POST /elleapi/twt/professor/changeAssignedLore**
+- **Purpose**: Updating the assigned tito lore
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+{
+  "classID": int,
+  "moduleID": int,
+  "loreID": int
+}
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text"
+}
+```
+
+---
+
+### 16. **POST /elleapi/twt/professor/createNewTitoLore**
+- **Purpose**: creates tito lore tied to this user as the owner
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+{
+  "lore_1": "text1",
+  "lore_2": "text2",
+  "lore_3": "text3",
+  "lore_4": "text4"
+}
+
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text"
+}
+```
+
+---
+
+### 17. **POST /elleapi/twt/professor/updateTitoLore**
+- **Purpose**: Updating a singular tito lore part (1-4)
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+{
+  "classID": int,
+  "moduleID": int,
+  "loreID": int,
+  "sequenceNumber": int (1-4),
+  "newLoreText": "new text"
+} 
+```
+- **Response**
+```JSON
+{
+  "success": true or false,
+  "message": "text"
+}
+```
+
+---
+
+### 18. **POST /elleapi/twt/professor/fetchOwnedTitoLore**
+- **Purpose**: Returns a list of tuples containing tito lores owned by this user so they can modify them later
 - **Notes**: 
 - **Request body** (JSON)
 ```JSON
@@ -298,12 +487,97 @@ response header
 {
   "success": true or false,
   "message": "text",
-  "data": int[],
+  "loreData": [(loreID, sequenceNumber, loreText)]
+      /*
+        EX:
+        [ 
+         (1, 1, "lore1"),
+         (1, 2, "lore2"),
+         (1, 3, "lore3"),
+         (1, 4, "lore4"),
+         ...
+         (4, 4, "lore4")
+        ]
+      */
+}
 ```
 
 ---
 
+### 444. **POST /elleapi/PLACEHOLDER**
+- **Purpose**: Returns a list of tuples containing tito lores owned by this user so they can modify them later
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
 
+```
+- **Response**
+```JSON
+{
+}  
+```
+
+---
+
+### 444. **POST /elleapi/PLACEHOLDER**
+- **Purpose**: Returns a list of tuples containing tito lores owned by this user so they can modify them later
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+
+```
+- **Response**
+```JSON
+{
+}  
+```
+
+---
+
+### 444. **POST /elleapi/PLACEHOLDER**
+- **Purpose**: Returns a list of tuples containing tito lores owned by this user so they can modify them later
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+
+```
+- **Response**
+```JSON
+{
+}  
+```
+
+---
+
+### 444. **POST /elleapi/PLACEHOLDER**
+- **Purpose**: Returns a list of tuples containing tito lores owned by this user so they can modify them later
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+
+```
+- **Response**
+```JSON
+{
+}  
+```
+
+---
+
+### 444. **POST /elleapi/PLACEHOLDER**
+- **Purpose**: Returns a list of tuples containing tito lores owned by this user so they can modify them later
+- **Notes**: 
+- **Request body** (JSON)
+```JSON
+
+```
+- **Response**
+```JSON
+{
+}  
+```
+
+---
 
 ### SAMPLE. **POST /elleapi/twt/...**
 - **Purpose**: Sends a user's message from the current session to the chatbot

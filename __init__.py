@@ -395,8 +395,8 @@ api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
 api.add_resource(GetModuleProgress, API_ENDPOINT_PREFIX + "twt/session/getModuleProgress")
 
-api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
-api.add_resource(GetTitoLoreAssignment, API_ENDPOINT_PREFIX + "twt/professor/getTitoLore")
+api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/session/classes")
+api.add_resource(GetTitoLoreAssignment, API_ENDPOINT_PREFIX + "twt/session/getTitoLore")
 
 api.add_resource(AddTitoModule, API_ENDPOINT_PREFIX + "twt/professor/addModule")
 api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/updateModule")

@@ -120,7 +120,7 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
                 FROM tito_class_status
                 WHERE professorID = %s AND titoStatus = 'inactive';
             '''
-        return db.get(query, (userID,))
+        return flatten_list(db.get(query, (userID,)))
     # Otherwise, retrieves gets ACTIVE classes assigned to a TWT user
     elif permissionLevel == 'st':
         query = '''
@@ -133,7 +133,7 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
             JOIN tito_class_status gs ON g.groupID = gs.classID
             WHERE gs.titoStatus = 'active';
         '''
-        return db.get(query, (userID, permissionLevel))
+        return flatten_list(db.get(query, (userID, permissionLevel)))
     # Like the first if statement, but for general users
     elif permissionLevel == 'any':
         if get_classes_type == 'all':
@@ -168,7 +168,7 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
                 JOIN tito_class_status gs ON g.groupID = gs.classID
                 WHERE gs.titoStatus = 'active';
             '''
-        return db.get(query, (userID,))
+        return flatten_list(db.get(query, (userID,)))
 
 def isUserInClass(user_id: int, class_id:int):
     query = '''
@@ -195,13 +195,22 @@ def isUserThisAccessLevel(user_id: int, class_id: int, desired_access: str):
     if not res:
         return False
     for user in res:
-        print(user)
-        print(user[0])
         if user[0] == desired_access:
             return True
 
     return False
 
+def isUserAStudentInGroup(user_id: int, class_id: int):
+    query = '''
+        SELECT EXISTS(
+            SELECT * FROM group_user WHERE userID = %s AND groupID = %s AND accessLevel == 'st';
+        );
+    '''
+
+    res = db.get(query, (user_id, class_id), fetchOne=True)
+    if not res:
+        return False
+    return res[0]
 
 
 # ================================================
@@ -566,13 +575,13 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
                 term_progress_data
             )
 
-def getUsersInClass(class_id: int):
+def getUsersInClass(class_id: int, user_id: int):
     query = '''
         SELECT userID
         FROM group_user
-        WHERE groupID = %s;
+        WHERE groupID = %s AND userID != %s;
     '''
-    res = db.get(query, (class_id,))
+    res = db.get(query, (class_id,user_id))
     if not res:
         return []
     return flatten_list(res)
