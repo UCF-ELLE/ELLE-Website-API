@@ -1,4 +1,4 @@
-import { exportChat } from "@/services/TitoService";
+import { exportChat, exportAudio, exportModuleAudio } from "@/services/TitoService";
 import { useUser } from "@/hooks/useAuth";
 
 interface propsInterface {
@@ -7,6 +7,8 @@ interface propsInterface {
     averageScore: number;
     chatbotId?: number;
     isFreeTalk: boolean;
+    moduleId?: number;
+    classId?: number;
 }
 
 
@@ -19,6 +21,18 @@ export default function AnalyticsMenu(props: propsInterface) {
         const exportChatResult = await exportChat(user.jwt, user.userID, props.chatbotId);
         if(exportChatResult !== ":)") {
             console.log("Failed to export chat");
+        }
+    }
+
+    async function handleExportAudioClick() {
+        if(!user || !props.moduleId) return;
+        const classId = props.classId || 1; // Default to class 1 if not provided
+        // Export all audio from this module (not just current session)
+        const exportAudioResult = await exportModuleAudio(user.jwt, props.moduleId, classId);
+        if(exportAudioResult === ":)") {
+            console.log("Audio export successful!");
+        } else {
+            console.log("Failed to export audio");
         }
     }
 
@@ -42,6 +56,14 @@ export default function AnalyticsMenu(props: propsInterface) {
                 <div className="inline-block font-bold mr-1">Export Chat:</div>
                 {(user && props.chatbotId) ?
                 <button className="border border-black rounded px-1 bg-gray-300 hover:bg-gray-400" onClick={handleExportClick}>Download CSV</button>
+                :
+                <>Loading...</>
+                }
+            </div>
+            <div className="w-full">
+                <div className="inline-block font-bold mr-1">Export Audio:</div>
+                {(user && props.moduleId) ?
+                <button className="border border-black rounded px-1 bg-blue-300 hover:bg-blue-400" onClick={handleExportAudioClick}>Download MP3</button>
                 :
                 <>Loading...</>
                 }

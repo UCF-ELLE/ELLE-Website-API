@@ -1,7 +1,7 @@
 /* Imports */
 import { useState, useEffect, useRef, useCallback, useMemo} from "react";
 import { useUser } from "@/hooks/useAuth";
-import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage} from "@/services/TitoService";
+import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage, uploadAudioFile} from "@/services/TitoService";
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
 import SpeechRecognition, {useSpeechRecognition} from "react-speech-recognition";
@@ -93,7 +93,10 @@ export default function ChatScreen(props: propsInterface) {
 
     async function handleSendMessageClick() {
 
-        if(userMessage === "" || user === undefined || props.chatbotId === undefined || !termsLoaded) return; //Does nothing if empty textarea or invalid credentials
+        if(userMessage === "" || user === undefined || props.chatbotId === undefined || !termsLoaded) {
+            console.log(`[ChatScreen] Send blocked - userMessage: '${userMessage}', user: ${!!user}, chatbotId: ${props.chatbotId}, termsLoaded: ${termsLoaded}`);
+            return; //Does nothing if empty textarea or invalid credentials
+        }
         
         //Resets Tito state & empties textArea
         setTitoMood("thinking");
@@ -119,6 +122,41 @@ export default function ChatScreen(props: propsInterface) {
           terms.map(term => term.questionFront), 
           terms.filter(term => term.used === true).map(term => term.questionFront)
         );
+        
+        // Upload audio file if this was a voice message
+        console.log('[ChatScreen] Checking audio upload conditions:', { 
+          sendMessageResponse: !!sendMessageResponse, 
+          wasVoiceMessage, 
+          audioBlob: !!audioBlob,
+          audioBlobSize: audioBlob ? audioBlob.size : 0
+        });
+        
+        let messageId: number | undefined;
+        if (sendMessageResponse && wasVoiceMessage && audioBlob) {
+          messageId = sendMessageResponse.messageID;
+          console.log('[ChatScreen] Audio upload starting for message ID:', messageId);
+          if (messageId) {
+            try {
+              const uploadResult = await uploadAudioFile(
+                user.jwt,
+                messageId,
+                props.chatbotId,
+                1, // classID - defaulting to 1
+                props.moduleID,
+                audioBlob
+              );
+              console.log('[ChatScreen] Audio upload result:', uploadResult);
+            } catch (error) {
+              console.error('[ChatScreen] Failed to upload audio:', error);
+            }
+          }
+          // Reset voice message state
+          setWasVoiceMessage(false);
+          setAudioBlob(null);
+          console.log('[ChatScreen] Audio upload process completed, states reset');
+        } else {
+          console.log('[ChatScreen] Audio upload skipped - conditions not met');
+        }
 
         //Makes sure API call is succesful (it returns null if it isn't)
         if(sendMessageResponse) {
@@ -232,6 +270,12 @@ export default function ChatScreen(props: propsInterface) {
       const [listening, setListening] = useState(false);
       const [interimSTT, setInterimSTT] = useState("");
       const recognitionRef = useRef<SpeechRecognition | null>(null);
+      
+      // --- Audio Recording for Voice Messages ---
+      const [isRecording, setIsRecording] = useState(false);
+      const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+      const [wasVoiceMessage, setWasVoiceMessage] = useState(false);
+      const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
       // Type helper for TS
       type SpeechRecognitionConstructor = new () => SpeechRecognition;
@@ -354,6 +398,7 @@ export default function ChatScreen(props: propsInterface) {
       if (!sttSupported || !recognitionRef.current || listening) return;
       try {
         recognitionRef.current.start();
+        startAudioRecording(); // Also start audio recording
       } catch (e) {
         // Some browsers throw if called twice quickly
         console.warn(e);
@@ -364,7 +409,62 @@ export default function ChatScreen(props: propsInterface) {
       if (!recognitionRef.current) return;
       try {
         recognitionRef.current.stop();
+        stopAudioRecording(); // Also stop audio recording
       } catch {}
+    }
+    
+    // Start recording audio for voice messages
+    async function startAudioRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        const chunks: BlobPart[] = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            chunks.push(event.data);
+          }
+        };
+        
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          console.log('[ChatScreen] Audio recording stopped, blob created:', {
+            size: blob.size,
+            type: blob.type,
+            chunksCount: chunks.length
+          });
+          setAudioBlob(blob);
+          setWasVoiceMessage(true);
+          console.log('[ChatScreen] Audio states set: wasVoiceMessage=true, audioBlob size=', blob.size);
+          // Stop all tracks to free up the microphone
+          stream.getTracks().forEach(track => track.stop());
+        };
+        
+        mediaRecorder.start();
+        mediaRecorderRef.current = mediaRecorder;
+        setIsRecording(true);
+        console.log('[ChatScreen] Started audio recording');
+      } catch (error) {
+        console.error('[ChatScreen] Error starting audio recording:', error);
+      }
+    }
+    
+    // Stop recording audio
+    function stopAudioRecording() {
+      console.log('[ChatScreen] stopAudioRecording called, current state:', {
+        hasMediaRecorder: !!mediaRecorderRef.current,
+        isRecording: isRecording,
+        recorderState: mediaRecorderRef.current?.state
+      });
+      
+      if (mediaRecorderRef.current && isRecording) {
+        console.log('[ChatScreen] Stopping MediaRecorder...');
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+        console.log('[ChatScreen] MediaRecorder stopped, isRecording set to false');
+      } else {
+        console.log('[ChatScreen] stopAudioRecording: conditions not met for stopping');
+      }
     }
 
     //Sends new timeChatted to backend
@@ -483,23 +583,23 @@ export default function ChatScreen(props: propsInterface) {
             if(newChatbot) {
               console.log(`[ChatScreen] Successfully got chatbot session ${newChatbot.chatbotId} for module ${props.moduleID}`);
               props.setChatbotId(newChatbot.chatbotId);
-              setTimeChatted(newChatbot.totalTimeChatted * 3600);
-              if(newChatbot.userBackground) {
-                  console.log("Received LLM Background: " + newChatbot.userBackground)
-                  props.setUserBackgroundFilepath(newChatbot.userBackground);
-              }
-              // Add User Music from chatbot
-              if(newChatbot.userMusicChoice) {
-                console.log("Received Music Background: " + newChatbot.userMusicChoice)
-                props.setUserMusicFilepath(newChatbot.userMusicChoice);
-              }
-              const newTerms: Term[] = terms.map(term => ({
-                  termID: term.termID,
-                  questionFront: term.questionFront,
-                  questionBack: term.questionBack,
-                  used: newChatbot.termsUsed ? newChatbot.termsUsed.includes(term.questionFront) : false
-              }))
-              setTerms(newTerms);
+                  setTimeChatted(newChatbot.totalTimeChatted * 3600);
+                  if(newChatbot.userBackground) {
+                      console.log("Received LLM Background: " + newChatbot.userBackground)
+                      props.setUserBackgroundFilepath(newChatbot.userBackground);
+                  }
+                  // Add User Music from chatbot
+                  if(newChatbot.userMusicChoice) {
+                    console.log("Received Music Background: " + newChatbot.userMusicChoice)
+                    props.setUserMusicFilepath(newChatbot.userMusicChoice);
+                  }
+                  const newTerms: Term[] = terms.map(term => ({
+                      termID: term.termID,
+                      questionFront: term.questionFront,
+                      questionBack: term.questionBack,
+                      used: newChatbot.termsUsed ? newChatbot.termsUsed.includes(term.questionFront) : false
+                  }))
+                  setTerms(newTerms);
             }
             else {
                 console.error(`[ChatScreen] Failed to get chatbot for module ${props.moduleID}`);
@@ -702,13 +802,21 @@ export default function ChatScreen(props: propsInterface) {
                     type="button"
                     onClick={(e) => {
                       e.preventDefault();
+                      console.log('[ChatScreen] Microphone button clicked, current state:', { 
+                        sttSupported, 
+                        listening,
+                        isRecording
+                      });
+                      
                       if (!sttSupported) {
                         alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
                         return;
                       }
                       if (!listening) {
+                        console.log('[ChatScreen] Starting to listen...');
                         startListening();
                       } else {
+                        console.log('[ChatScreen] Stopping listening...');
                         stopListening();
                       }
                     }}

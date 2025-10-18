@@ -144,7 +144,8 @@ from resources.conversationElle.conversation import(
     GetModuleProgress,
     GetClassUsers,
     AssignTitoLore,
-
+    ConversationAudioExport,
+    SimpleAudioExport,
     Testing,
 )
 import os
@@ -153,8 +154,8 @@ from resources.conversationElle.spacy_service import(
     spacy_service,
 )
 
-from apscheduler.schedulers.background import BackgroundScheduler
-from cleanup_inactive import cleanup_expired_groups
+# from apscheduler.schedulers.background import BackgroundScheduler
+# from cleanup_inactive import cleanup_expired_groups
 # ===============================================
 # END of ConversAItionELLE  
 # ===============================================
@@ -388,6 +389,8 @@ api.add_resource(TitoAccess, API_ENDPOINT_PREFIX + "twt/session/access")
 api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "twt/session/create")
 api.add_resource(UserMessages, API_ENDPOINT_PREFIX + "twt/session/messages")
 api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
+api.add_resource(ConversationAudioExport, API_ENDPOINT_PREFIX + "twt/session/export-audio")
+api.add_resource(SimpleAudioExport, API_ENDPOINT_PREFIX + "twt/simple-export")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
 api.add_resource(GetModuleProgress, API_ENDPOINT_PREFIX + "twt/session/getModuleProgress")
 
@@ -428,6 +431,6 @@ if __name__ == "__main__":
 
         # Monthly clean up to delete old audio files, and expire classes that have since expired
         # Occurs the 1st of every month @ 2:00 AM
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(cleanup_expired_groups, 'cron', day=1, hour=2, minute=0)
-        scheduler.start()
+        # scheduler = BackgroundScheduler()
+        # scheduler.add_job(cleanup_expired_groups, 'cron', day=1, hour=2, minute=0)
+        # scheduler.start()

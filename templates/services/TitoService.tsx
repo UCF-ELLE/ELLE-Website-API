@@ -372,6 +372,7 @@ interface SendMessageResponse {
   llmResponse: string;
   termsUsed: string[];
   titoConfused?: boolean;
+  messageID?: number;
   metadata?: {
     score?: number;
     error?: string;
@@ -449,6 +450,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
       llmResponse: titoResponse || "Great job!",
       termsUsed: data.termsUsed || [],
       titoConfused: data.titoConfused || false,
+      messageID: responseData.messageID || data.messageID, // Extract messageID from response
       metadata: data.metadata || {}
     };
     
@@ -467,6 +469,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
           llmResponse: "I'm taking longer than usual to respond. The backend service seems to be slow right now. Please try sending your message again.",
           termsUsed: [],
           titoConfused: false,
+          messageID: undefined,
           metadata: {}
         };
       }
@@ -478,6 +481,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
           llmResponse: "I'm having trouble with the session. This might be a backend issue. Please try refreshing the page to start a new chat session.",
           termsUsed: [],
           titoConfused: false,
+          messageID: undefined,
           metadata: {}
         };
         console.log('[SendMessage] Returning error response:', errorResponse);
@@ -490,6 +494,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
       llmResponse: "I'm having trouble processing your message right now. The issue might be temporary - please try again in a moment.",
       termsUsed: [],
       titoConfused: false,
+      messageID: undefined,
       metadata: {}
     };
   }
@@ -518,6 +523,166 @@ export const exportChat = async (access_token: string, userId: number, chatbotId
   console.log("[TitoService] Export chat not implemented yet for Tito backend");
   console.log("Chat export requested for:", { userId, chatbotId });
   return ":("; // Return sad face since not implemented
+};
+
+// exportAudio (GET)
+// Downloads all audio files from a conversation as a combined MP3 or ZIP file
+export const exportAudio = async (access_token: string, moduleId: number, chatbotId: number, classId: number = 1): Promise<":)" | ":("> => {
+  try {
+    console.log("[TitoService] Exporting conversation audio for:", { moduleId, chatbotId, classId });
+    
+    // Call the audio export endpoint
+    const response = await axios.get(
+      `${ELLE_URL}/twt/session/export-audio`,
+      {
+        params: { 
+          moduleID: moduleId, 
+          chatbotSID: chatbotId,
+          classID: classId 
+        },
+        headers: { Authorization: `Bearer ${access_token}` },
+        responseType: 'blob' // Important for file downloads
+      }
+    );
+    
+    // Create a blob URL and trigger download
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Determine file extension based on content type
+    const contentType = response.headers['content-type'];
+    const isZip = contentType && contentType.includes('zip');
+    const fileExtension = isZip ? 'zip' : 'mp3';
+    const fileName = `conversation_${moduleId}_${chatbotId}_audio.${fileExtension}`;
+    
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    
+    console.log(`[TitoService] Audio export successful: ${fileName}`);
+    return ":)"; // Success!
+    
+  } catch (error) {
+    console.error("[TitoService] Error exporting audio:", error);
+    
+    if (axios.isAxiosError(error)) {
+      console.error("Status:", error.response?.status);
+      console.error("Response Data:", error.response?.data);
+      
+      // Handle specific error cases
+      if (error.response?.status === 404) {
+        console.log("[TitoService] No audio files found for this conversation");
+      }
+    }
+    
+    return ":("; // Failed
+  }
+};
+
+// exportModuleAudio (GET)
+// Downloads all audio files from all conversations in a module as a combined MP3 or ZIP file
+export const exportModuleAudio = async (access_token: string, moduleId: number, classId: number = 1): Promise<":)" | ":("> => {
+  try {
+    console.log("[TitoService] Exporting module audio for:", { moduleId, classId });
+    
+    // Call the new simple audio export endpoint (no JWT required)
+    const response = await axios.get(
+      `${ELLE_URL}/twt/simple-export`,
+      {
+        params: { 
+          moduleID: moduleId,
+          classID: classId 
+        },
+        // No Authorization header needed for simple endpoint
+        responseType: 'blob' // Important for file downloads
+      }
+    );
+    
+    // Create a blob URL and trigger download
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Determine file extension based on content type
+    const contentType = response.headers['content-type'];
+    const isZip = contentType && contentType.includes('zip');
+    const fileExtension = isZip ? 'zip' : 'mp3';
+    const fileName = `module_${moduleId}_all_audio.${fileExtension}`;
+    
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    
+    console.log(`[TitoService] Module audio export successful: ${fileName}`);
+    return ":)"; // Success!
+    
+  } catch (error) {
+    console.error("[TitoService] Error exporting module audio:", error);
+    
+    if (axios.isAxiosError(error)) {
+      console.error("Status:", error.response?.status);
+      console.error("Response Data:", error.response?.data);
+      
+      // Handle specific error cases
+      if (error.response?.status === 404) {
+        console.log("[TitoService] No audio files found for this module");
+      }
+    }
+    
+    return ":("; // Failed
+  }
+};
+
+// uploadAudioFile (POST)
+// Uploads an audio file for a specific message after it's been sent
+export const uploadAudioFile = async (
+  access_token: string, 
+  messageID: number, 
+  chatbotSID: number, 
+  classID: number, 
+  moduleID: number, 
+  audioBlob: Blob
+): Promise<boolean> => {
+  try {
+    console.log('[TitoService] Uploading audio for message:', { messageID, chatbotSID, classID, moduleID });
+    
+    // Create form data for the audio upload
+    const formData = new FormData();
+    formData.append('messageID', messageID.toString());
+    formData.append('chatbotSID', chatbotSID.toString());
+    formData.append('classID', classID.toString());
+    formData.append('moduleID', moduleID.toString());
+    formData.append('audio', audioBlob, `${1}_${messageID}.webm`);
+    
+    const response = await axios.post(
+      `${ELLE_URL}/twt/session/audio`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+    
+    console.log('[TitoService] Audio upload successful:', response.data);
+    return true;
+    
+  } catch (error) {
+    console.error('[TitoService] Error uploading audio file:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Status:', error.response?.status);
+      console.error('Response Data:', error.response?.data);
+    }
+    return false;
+  }
 };
 
 // Utility function for handling errors

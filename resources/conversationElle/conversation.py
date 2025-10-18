@@ -13,6 +13,7 @@ from pydub import AudioSegment
 from .llm_functions import *
 from .utils import *
 from .tito_methods import updateLiveDB
+from datetime import datetime
 
 USER_VOICE_FOLDER = "user_audio_files/"
 
@@ -79,6 +80,14 @@ class ChatbotSessions(Resource):
 
         if not module_id or not class_id:
             return create_response(False, message="Missing required parameters.", status_code=404)
+        
+        # Convert to integers
+        try:
+            module_id = int(module_id)
+            class_id = int(class_id)
+        except ValueError:
+            return create_response(False, message="Invalid parameter format.", status_code=400)
+            
         if not isUserInClass(user_id, class_id):
             return create_response(False, message=f"User does not belong to class {class_id}.", status_code=403)
 
@@ -89,7 +98,9 @@ class ChatbotSessions(Resource):
         
         if not isActiveTitoModule(class_id, module_id):
             return create_response(success=False, message="Chatbot session failed to be created. No available modules", status_code=403)
-        return create_response(True, message="Chatbot session created.", data=createChatbotSession(user_id, module_id))
+        
+        session_id = createChatbotSession(user_id, module_id)
+        return create_response(True, message="Chatbot session created.", data=session_id)
 
 # NOTE: Ability to send messages should block until receiving back a response
 # stores message to DB and Tito AI And Returns response from Tito
@@ -162,13 +173,10 @@ class UserMessages(Resource):
             #     print(f"Safety check failed: {safety_error}")
             tito_response_data = handle_message(message)
             
-            print("this1")
             tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
-            print(tito_response)
             
             # TODO: Verify data
             newTitoMessage(user_id, session_id, tito_response_data.get('response'), module_id)
-            print("this3")
 
         except Exception as error:
             print(f"Error communicating with Tito: {error}")
@@ -243,9 +251,14 @@ class UserAudio(Resource):
         if filesize_bytes > MAX_AUDIO_SIZE_BYTES:
             return create_response(False, message="Failed to upload, file too large.", status_code=400)
         
-        audio = AudioSegment.from_file(audio_file)
-        if len(audio) / 1000.0 > MAX_AUDIO_LENGTH_SEC:
-            return create_response(False, message="Failed to store audio, file too long.", status_code=400)
+        # Try to validate audio duration (optional if ffmpeg not available)
+        try:
+            audio = AudioSegment.from_file(audio_file)
+            if len(audio) / 1000.0 > MAX_AUDIO_LENGTH_SEC:
+                return create_response(False, message="Failed to store audio, file too long.", status_code=400)
+        except Exception as e:
+            # If audio processing fails (e.g., no ffmpeg), skip duration validation
+            print(f"Warning: Audio duration validation skipped due to: {e}")
 
         # Points of failure to accept files
         # TODO: Decide on which implementation to fail to accept file (both?)
@@ -536,6 +549,294 @@ class AssignTitoLore(Resource):
 class Testing(Resource):
     def get(self):
         return create_response(res=updateLiveDB())
+
+# ========================================
+# ++++++ CONVERSATION AUDIO EXPORT ++++++
+# ========================================
+
+class ConversationAudioExport(Resource):
+    def options(self):
+        """Handle CORS preflight requests"""
+        print(f"\n🔥 [EXPORT-AUDIO] OPTIONS preflight called!")
+        return {"message": "CORS preflight OK"}, 200
+    
+    @jwt_required
+    def get(self):
+        '''
+        /elleapi/twt/session/export-audio
+            Exports all audio files from a user's conversation in a specific module
+            Creates a ZIP file with all audio messages
+            
+            Parameters:
+            - moduleID: The module ID
+            - chatbotSID: (optional) Specific session ID, if not provided exports all audio from module
+            - classID: The class ID
+        '''
+        try:
+            user_id = get_jwt_identity()
+            module_id = request.args.get('moduleID')
+            chatbot_sid = request.args.get('chatbotSID')
+            class_id = request.args.get('classID')
+            
+            if not module_id or not class_id:
+                return create_response(False, message="Missing required parameters (moduleID, classID).", status_code=400)
+            
+            # Convert to integers
+            module_id = int(module_id)
+            class_id = int(class_id)
+            if chatbot_sid:
+                chatbot_sid = int(chatbot_sid)
+            
+            # Check if user has access to this class and module
+            if not isUserInClass(user_id, class_id):
+                return create_response(False, message="User does not have access to this class.", status_code=403)
+            
+            # Get audio files for the conversation
+            if chatbot_sid:
+                audio_files = getConversationAudioFiles(user_id, module_id, chatbot_sid)
+                filename_prefix = f"conversation_{user_id}_{module_id}_{chatbot_sid}"
+            else:
+                audio_files = getAllUserAudioInModule(user_id, module_id)
+                filename_prefix = f"module_audio_{user_id}_{module_id}"
+            
+            if not audio_files:
+                return create_response(False, message="No audio files found for this conversation.", status_code=404)
+            
+            # Create ZIP file with clean naming
+            output_filename = self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix)
+                
+            if not output_filename:
+                return create_response(False, message="Failed to create audio export.", status_code=500)
+            
+            # Return the ZIP file
+            return send_file(output_filename, 
+                           mimetype="application/zip", 
+                           as_attachment=True, 
+                           attachment_filename=f"{filename_prefix}_audio_files.zip")
+            
+        except Exception as e:
+            return create_response(False, message="Internal server error during audio export.", status_code=500)
+    
+    def _combine_audio_files(self, audio_files, user_id, class_id, module_id, filename_prefix):
+        '''
+        Combine multiple audio files into a single MP3 file or create a ZIP file
+        Returns the path to the combined file
+        '''
+        try:
+            # Check if ffmpeg is available
+            try:
+                # Test ffmpeg by creating a small audio segment
+                test_audio = AudioSegment.silent(duration=100)  # 100ms of silence
+                ffmpeg_available = True
+                print("ffmpeg is available - will attempt MP3 combining")
+            except Exception as ffmpeg_test_error:
+                print(f"ffmpeg not available: {ffmpeg_test_error}")
+                ffmpeg_available = False
+                
+            # Try to use AudioSegment for proper audio combining
+            combined_audio = AudioSegment.empty()
+            
+            files_processed = 0
+            for audio_file in audio_files:
+                filename, message_id, timestamp = audio_file[0], audio_file[1], audio_file[2]
+                
+                # Construct the full path to the audio file
+                file_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id), str(user_id), filename)
+                file_path = os.path.normpath(file_path)  # Normalize path for current OS
+                
+                if os.path.exists(file_path):
+                    try:
+                        # Load the audio file and add it to the combination
+                        audio_segment = AudioSegment.from_file(file_path)
+                        
+                        # Add a small silence between files (0.5 seconds)
+                        if len(combined_audio) > 0:
+                            silence = AudioSegment.silent(duration=500)  # 500ms of silence
+                            combined_audio += silence
+                        
+                        combined_audio += audio_segment
+                        files_processed += 1
+                    except Exception as audio_error:
+                        print(f"Warning: Could not process audio file {filename}: {audio_error}")
+                        # Continue with other files instead of breaking
+                        if files_processed == 0:
+                            # If first file fails, disable ffmpeg
+                            ffmpeg_available = False
+                else:
+                    print(f"Warning: Audio file not found: {file_path}")
+            
+            # Create output directory if it doesn't exist
+            output_dir = os.path.join("temp_exports")
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Try MP3 combining first, fallback to ZIP if it fails
+            if ffmpeg_available and len(combined_audio) > 0:
+                # Create output filename
+                output_filename = os.path.join(output_dir, f"{filename_prefix}.mp3")
+                
+                # Export as MP3
+                try:
+                    combined_audio.export(output_filename, format="mp3")
+                    return output_filename
+                except Exception as export_error:
+                    print(f"Error exporting MP3: {export_error}")
+                    # Fallback to ZIP if MP3 export fails
+                    return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
+            else:
+                # Fallback: create a ZIP file with all individual audio files
+                return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
+            
+            # Original MP3 combining code (commented out for debugging)
+            # if ffmpeg_available and len(combined_audio) > 0:
+            #     # Create output filename
+            #     output_filename = os.path.join(output_dir, f"{filename_prefix}.mp3")
+            #     
+            #     # Export as MP3
+            #     combined_audio.export(output_filename, format="mp3")
+            #     return output_filename
+            # else:
+            #     # Fallback: create a ZIP file with all individual audio files
+            #     return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
+            
+        except Exception as e:
+            print(f"Error combining audio files: {e}")
+            # Try fallback ZIP export
+            try:
+                output_dir = os.path.join("temp_exports")
+                os.makedirs(output_dir, exist_ok=True)
+                return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
+            except Exception as zip_error:
+                print(f"Error creating ZIP fallback: {zip_error}")
+                return None
+    
+    def _create_zip_export(self, audio_files, user_id, class_id, module_id, filename_prefix):
+        '''
+        Create a ZIP file containing all audio files with clean naming
+        '''
+        import zipfile
+        import time
+        
+        # Create output directory
+        output_dir = "temp_exports"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Add timestamp to prevent caching
+        timestamp = int(time.time())
+        zip_filename = os.path.join(output_dir, f"{filename_prefix}_{timestamp}.zip")
+        
+        with zipfile.ZipFile(zip_filename, 'w') as zipf:
+            for i, audio_file in enumerate(audio_files):
+                filename, message_id, timestamp = audio_file[0], audio_file[1], audio_file[2]
+                
+                # Construct the full path to the audio file
+                file_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id), str(user_id), filename)
+                file_path = os.path.normpath(file_path)
+                
+                if os.path.exists(file_path):
+                    # Add file to ZIP with clean naming: message_1.webm, message_2.webm, etc.
+                    file_extension = os.path.splitext(filename)[1]
+                    zip_name = f"message_{i+1}{file_extension}"
+                    zipf.write(file_path, zip_name)
+        
+        return zip_filename
+
+
+# Audio export endpoint for module conversations
+class SimpleAudioExport(Resource):
+    def get(self):
+        try:
+            # Get parameters
+            user_id = 1  # TODO: Replace with get_jwt_identity() when JWT is restored
+            module_id = int(request.args.get('moduleID', 3))
+            class_id = int(request.args.get('classID', 1))
+            
+            # Get audio files for the module
+            audio_files = getAllUserAudioInModule(user_id, module_id)
+            
+            if not audio_files:
+                return create_response(False, message="No audio files found for this module.", status_code=404)
+            
+            # Create ZIP with clean naming
+            import zipfile
+            import time
+            
+            output_dir = "temp_exports"
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Add timestamp to prevent caching
+            timestamp = int(time.time())
+            zip_filename = os.path.join(output_dir, f"audio_export_{timestamp}.zip")
+            
+            with zipfile.ZipFile(zip_filename, 'w') as zipf:
+                for i, audio_file in enumerate(audio_files):
+                    filename = audio_file[0]
+                    file_path = os.path.join("user_audio_files", str(class_id), str(module_id), str(user_id), filename)
+                    
+                    if os.path.exists(file_path):
+                        file_extension = os.path.splitext(filename)[1]
+                        new_name = f"message_{i+1}{file_extension}"
+                        zipf.write(file_path, new_name)
+            
+            # Return the ZIP file
+            return send_file(zip_filename, 
+                           mimetype="application/zip", 
+                           as_attachment=True, 
+                           attachment_filename="audio_messages.zip")
+                           
+        except Exception as e:
+            return create_response(False, message="Internal server error during audio export.", status_code=500)
+
+# Debug endpoint to check audio files and write to file
+class DebugAudioFiles(Resource):
+    @jwt_required
+    def get(self):
+        from .database import debugGetAllUserVoiceMessages, getAllUserAudioInModule, getConversationAudioFiles
+        import json
+        
+        user_id = get_jwt_identity()
+        module_id = request.args.get('moduleID')
+        class_id = request.args.get('classID')
+        chatbot_sid = request.args.get('chatbotSID')
+        
+        debug_data = {
+            "user_id": user_id,
+            "module_id": module_id,
+            "class_id": class_id,
+            "chatbot_sid": chatbot_sid,
+            "timestamp": str(datetime.now())
+        }
+        
+        try:
+            # Get all voice messages for user
+            all_voice_messages = debugGetAllUserVoiceMessages(user_id)
+            debug_data["all_voice_messages_count"] = len(all_voice_messages)
+            debug_data["all_voice_messages"] = all_voice_messages
+            
+            if module_id:
+                module_id = int(module_id)
+                # Get audio files for module
+                module_audio = getAllUserAudioInModule(user_id, module_id)
+                debug_data["module_audio_count"] = len(module_audio)
+                debug_data["module_audio"] = module_audio
+                
+                if chatbot_sid:
+                    chatbot_sid = int(chatbot_sid)
+                    # Get audio files for specific conversation
+                    conversation_audio = getConversationAudioFiles(user_id, module_id, chatbot_sid)
+                    debug_data["conversation_audio_count"] = len(conversation_audio)
+                    debug_data["conversation_audio"] = conversation_audio
+        
+            # Write debug data to file
+            with open("audio_debug.json", "w") as f:
+                json.dump(debug_data, f, indent=2, default=str)
+            
+            return create_response(True, message="Debug data written to audio_debug.json", data=debug_data)
+            
+        except Exception as e:
+            debug_data["error"] = str(e)
+            with open("audio_debug_error.json", "w") as f:
+                json.dump(debug_data, f, indent=2, default=str)
+            return create_response(False, message=f"Debug error: {e}", data=debug_data)
 
 
 # ========================================

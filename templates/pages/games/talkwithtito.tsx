@@ -356,7 +356,7 @@ export default function TalkWithTito() {
                   
                 />
               </div>
-              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} isFreeTalk={selectedModule === -1} />}
+              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} isFreeTalk={selectedModule === -1} moduleId={selectedModule === -1 ? undefined : selectedModule} />}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {!selectedModule ? (
                 <>
