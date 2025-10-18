@@ -534,7 +534,8 @@ class CreateTitoLore(Resource):
     @jwt_required
     def post(self):
         '''
-            creates tito lore, requires 4 strings to work
+            creates tito lore tied to this user as the owner
+            required 4 strings to properly create tito lore
         '''
         user_id = get_jwt_identity()
         claims = get_jwt_claims()
@@ -565,7 +566,7 @@ class UpdateTitoLore(Resource):
     @jwt_required
     def post(self):
         '''
-            Updating the assigned tito lore
+            Updating the a singular tito lore (1-4)
             returns nothing
         '''
         user_id = get_jwt_identity()
@@ -591,7 +592,27 @@ class UpdateTitoLore(Resource):
             return create_response(False, message="failed to update tito lore. probably used the same text", status_code=500)
         return create_response(True, message='updated tito lore')
 
-        
+class FetchAllOwnedTitoLore(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            Returns a list of tuples containing tito lores owned by this user so they can modify them later:
+                    [ ( loreID, sequenceNumber, loreText ),
+                    ...(...) 
+                    ]
+        '''
+
+        user_id = get_jwt_identity()
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
+
+        if not user_permission or user_permission == 'st':
+            return create_response(False, message="invalid perms", status_code=403)
+
+        res = getAllTitoLore(user_id, True if user_permission == 'su' else False)
+        if not res:
+            return create_response(False, message='failed to retrieve info or user has no owned tito lore', status_code=500)  
+        return create_response(True, message="returned owned tito lores", loreData=res)
 
 # NOTE: Doesnt work due to current implementation
 # class CreateTitoLore(Resource):

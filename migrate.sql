@@ -160,6 +160,7 @@ CREATE TABLE `tito_class_status` (
   FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
   FOREIGN KEY (`professorID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY (`classID`, `professorID`),
+  KEY (`professorID`),
   KEY (`titoStatus`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

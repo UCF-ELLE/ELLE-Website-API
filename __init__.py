@@ -147,6 +147,7 @@ from resources.conversationElle.conversation import(
     UpdateLoreAssignment,
     CreateTitoLore,
     UpdateTitoLore,
+    FetchAllOwnedTitoLore,
 
     Testing,
 )
@@ -404,8 +405,10 @@ api.add_resource(GetClassUsers, API_ENDPOINT_PREFIX + "twt/professor/getClassUse
 api.add_resource(UpdateLoreAssignment, API_ENDPOINT_PREFIX + "twt/professor/changeAssignedLore")
 api.add_resource(CreateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/createNewTitoLore")
 api.add_resource(UpdateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/updateTitoLore")
+api.add_resource(FetchAllOwnedTitoLore, API_ENDPOINT_PREFIX + "twt/professor/fetchOwnedTitoLore")
 
 
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")

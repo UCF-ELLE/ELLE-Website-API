@@ -690,6 +690,32 @@ def getTitoLoreTexts(tito_lore_id: int):
         return None
     return flatten_list(res)
 
+def getAllTitoLore(owner_id: int, isSuperUser=False):
+    if isSuperUser:
+        query = '''
+            SELECT tlt.loreID, tlt.sequenceNumber, tlt.loreText
+            from tito_lore_text tlt
+            JOIN tito_lore tl ON tlt.loreID = tl.loreID
+            WHERE tl.ownerID = %s
+            GROUP BY tlt.loreID, tlt.sequenceNumber ASC;
+        '''
+        res = db.get(query, (owner_id,))
+        if not res:
+            return None
+        return res
+    else:
+        query = '''
+            SELECT tlt.loreID, tlt.sequenceNumber, tlt.loreText
+            from tito_lore_text tlt
+            JOIN tito_lore tl ON tlt.loreID = tl.loreID
+            WHERE tl.ownerID = %s
+            GROUP BY tlt.loreID, tlt.sequenceNumber ASC;
+        '''
+        res = db.get(query, (owner_id,))
+        if not res:
+            return None
+        return res
+
 # Assumes privilege check b4 this call
 def updateTitoLoreText(lore_id: int, sequence_num: int, new_lore_text: str):
     query = '''
