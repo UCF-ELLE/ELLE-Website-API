@@ -12,9 +12,8 @@ import os
 from pydub import AudioSegment
 from .llm_functions import *
 from .utils import *
-from .tito_methods import updateLiveDB
+from .tito_methods import updateLiveDB, merge_user_audio
 
-USER_VOICE_FOLDER = "user_audio_files/"
 
 # ======================================
 # ++++++ TWT ACCESS APIs ++++++
@@ -50,13 +49,12 @@ class TitoAccess(Resource):
             class_ids = getTitoClasses(userID=get_jwt_identity(), permissionLevel='any', get_classes_type='active')
             if not class_ids:
                 return create_response(success=False, message="User is not enrolled in any active tito classes.", status_code=403)
-            
             tito_modules = []
             for class_id in class_ids:
                 res = getTitoModules(class_id)
                 if not res:
                     return create_response(True, message="Returned user modules", data=[]) 
-                tito_modules.append((class_id[0], res))
+                tito_modules.append((class_id, res))
 
             return create_response(True, message="Returned user modules", data=tito_modules) 
         except Exception as e:
@@ -319,6 +317,27 @@ class UserAudio(Resource):
             return create_response(False, message="File does not exist.", status_code=404)
 
         return send_file(file_path, mimetype="audio/webm")
+
+class FetchAllUserAudio(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            twt/session/downloadAllUserAudio
+            downloads all audio for this user for classID and moduleID
+        '''
+        user_id = get_jwt_identity() 
+        class_id = request.args.get('classID')
+        module_id = request.args.get('moduleID')
+
+        if not class_id or not module_id:
+            return create_response(False, message='missing req params', status_code=400)
+        
+        res = merge_user_audio(class_id, module_id, user_id)
+        if not res:
+            return create_response(False, message='an error has occured when feteching files or no files found', status_code=500)
+        
+        return send_file(res, mimetype="audio/webm")
+
 
 # Unsure if needed as an API
 class ModuleTerms(Resource):

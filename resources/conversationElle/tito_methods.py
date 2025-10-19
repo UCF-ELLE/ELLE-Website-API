@@ -1,4 +1,9 @@
+import os
+import subprocess
+from pathlib import Path
+
 from db_utils import *
+from config import USER_VOICE_FOLDER
 
 db = DBHelper(mysql)
 
@@ -161,3 +166,55 @@ def updateLiveDB():
     insertOldMessages()
 
     return res
+
+
+def merge_user_audio(class_id: int, module_id: int, user_id: int):
+    """
+    Merge all {userID}_{messageID}.webm files for a given user into one .webm file.
+    Looks inside: user_audio_files/{class_id}/{module_id}/{user_id}/
+    """
+
+    base_dir = Path(USER_VOICE_FOLDER) / str(class_id) / str(module_id) / str(user_id)
+    if not base_dir.exists():
+        return None
+        # raise FileNotFoundError(f"Audio directory not found: {base_dir}")
+
+    # Collect and sort all .webm files by messageID (numerically)
+    files = sorted(
+        base_dir.glob(f"{user_id}_*.webm"),
+        key=lambda f: int(f.stem.split("_")[1])  # extract messageID part
+    )
+
+    if not files:
+        return None
+        # raise FileNotFoundError(f"No .webm files found for user {user_id} in {base_dir}")
+
+    # Create temporary list file for ffmpeg
+    concat_list = base_dir / "concat_list.txt"
+    with open(concat_list, "w") as f:
+        for file in files:
+            f.write(f"file '{file.resolve()}'\n")
+
+    output_file = base_dir / f"{user_id}.webm"
+
+    # ffmpeg command (lossless concat)
+    cmd = [
+        "ffmpeg",
+        "-y",  # overwrite if exists
+        "-f", "concat",
+        "-safe", "0",
+        "-i", str(concat_list),
+        "-c", "copy",
+        str(output_file)
+    ]
+
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+    except subprocess.CalledProcessError as e:
+        print("ffmpeg failed:", e.stderr.decode())
+        raise
+    finally:
+        concat_list.unlink(missing_ok=True)  # clean up list file
+
+    print(f"Merged {len(files)} audio files → {output_file}")
+    return output_file

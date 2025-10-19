@@ -23,6 +23,7 @@ TEMP_UPLOAD_FOLDER = "temp_uploads/"
 TEMP_DELETE_FOLDER = "deletes/"
 IMG_UPLOAD_FOLDER = "images/"
 AUD_UPLOAD_FOLDER = "audios/"
+USER_VOICE_FOLDER = "user_audio_files/" # THIS IS FOR TWT ONLY
 # That path to append to the URL so that the media is accessible publicly
 # e.g. https://chdr.cs.ucf.edu/images/[FILE_NAME]
 IMG_RETRIEVE_FOLDER = "/images/"
