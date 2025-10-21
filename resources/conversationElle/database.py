@@ -118,7 +118,7 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
                 FROM tito_class_status
                 WHERE professorID = %s AND titoStatus = 'inactive';
             '''
-        return db.get(query, (userID,))
+        return flatten_list(db.get(query, (userID,)))
     # Otherwise, retrieves gets ACTIVE classes assigned to a TWT user
     elif permissionLevel == 'st':
         query = '''
@@ -131,7 +131,7 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
             JOIN tito_class_status gs ON g.groupID = gs.classID
             WHERE gs.titoStatus = 'active';
         '''
-        return db.get(query, (userID, permissionLevel))
+        return flatten_list(db.get(query, (userID, permissionLevel)))
     # Like the first if statement, but for general users
     elif permissionLevel == 'any':
         if get_classes_type == 'all':
@@ -166,7 +166,7 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
                 JOIN tito_class_status gs ON g.groupID = gs.classID
                 WHERE gs.titoStatus = 'active';
             '''
-        return db.get(query, (userID,))
+        return flatten_list(db.get(query, (userID,)))
 
 def isUserInClass(user_id: int, class_id:int):
     query = '''
@@ -193,13 +193,22 @@ def isUserThisAccessLevel(user_id: int, class_id: int, desired_access: str):
     if not res:
         return False
     for user in res:
-        print(user)
-        print(user[0])
         if user[0] == desired_access:
             return True
 
     return False
 
+def isUserAStudentInGroup(user_id: int, class_id: int):
+    query = '''
+        SELECT EXISTS(
+            SELECT * FROM group_user WHERE userID = %s AND groupID = %s AND accessLevel == 'st';
+        );
+    '''
+
+    res = db.get(query, (user_id, class_id), fetchOne=True)
+    if not res:
+        return False
+    return res[0]
 
 
 # ================================================
@@ -610,13 +619,13 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
                 term_progress_data
             )
 
-def getUsersInClass(class_id: int):
+def getUsersInClass(class_id: int, user_id: int):
     query = '''
         SELECT userID
         FROM group_user
-        WHERE groupID = %s;
+        WHERE groupID = %s AND userID != %s;
     '''
-    res = db.get(query, (class_id,))
+    res = db.get(query, (class_id,user_id))
     if not res:
         return []
     return flatten_list(res)
@@ -687,22 +696,32 @@ def createTitoClass(user_id: int, class_id: int):
         return False
     return True
 
-def updateClassModuleTitoLore(class_id: int, module_id: int, lore_selected: int):
+def updateClassModuleTitoLoreAssignment(class_id: int, module_id: int, new_lore_id: int):
+    # check that the new loreid is valid
+    validate_id_query = '''
+        SELECT EXISTS(
+            SELECT * FROM tito_lore WHERE loreID = %s
+        );
+    '''
+    res = db.get(validate_id_query, (new_lore_id,), fetchOne=True)
+    if not res or not res[0]:
+        return 0
+    
     query = '''
-        UPDATE `tito_lore` 
-        SET `loreID` = %s
+        UPDATE `tito_module` 
+        SET `loreAssigned` = %s
         WHERE `classID` = %s AND `moduleID` = %s;
     '''
 
-    res = db.post(query, (lore_selected, class_id, module_id))
+    res = db.post(query, (new_lore_id, class_id, module_id))
     if not res or not res.get('rowcount'):
         return False
     return True
 
 def getClassModuleTitoLore(class_id: int, module_id: int):
     query = '''
-        SELECT `loreID` 
-        FROM `tito_lore`
+        SELECT `loreAssigned` 
+        FROM `tito_module`
         WHERE classID = %s AND moduleID = %s;
     '''
 
@@ -711,6 +730,97 @@ def getClassModuleTitoLore(class_id: int, module_id: int):
         return 0
     return res[0]
 
+def getTitoLoreTexts(tito_lore_id: int):
+    query = '''
+        SELECT loreText 
+        FROM tito_lore_text
+        WHERE loreID = %s
+        ORDER BY sequenceNumber ASC;
+    '''
+
+    res = db.get(query, (tito_lore_id))
+    if not res:
+        return None
+    return flatten_list(res)
+
+def getAllTitoLore(owner_id: int, isSuperUser=False):
+    if isSuperUser:
+        query = '''
+            SELECT tlt.loreID, tlt.sequenceNumber, tlt.loreText
+            from tito_lore_text tlt
+            JOIN tito_lore tl ON tlt.loreID = tl.loreID
+            WHERE tl.ownerID = %s
+            GROUP BY tlt.loreID, tlt.sequenceNumber ASC;
+        '''
+        res = db.get(query, (owner_id,))
+        if not res:
+            return None
+        return res
+    else:
+        query = '''
+            SELECT tlt.loreID, tlt.sequenceNumber, tlt.loreText
+            from tito_lore_text tlt
+            JOIN tito_lore tl ON tlt.loreID = tl.loreID
+            WHERE tl.ownerID = %s
+            GROUP BY tlt.loreID, tlt.sequenceNumber ASC;
+        '''
+        res = db.get(query, (owner_id,))
+        if not res:
+            return None
+        return res
+
+# Assumes privilege check b4 this call
+def updateTitoLoreText(lore_id: int, sequence_num: int, new_lore_text: str):
+    query = '''
+        UPDATE `tito_lore_text`
+        SET `loreText` = %s
+        WHERE `loreID` = %s AND `sequenceNumber` = %s;
+    '''
+
+    res = db.post(query, (new_lore_text, lore_id, sequence_num))
+    if not res or not res.get('rowcount'):
+        return False
+    return True
+
+def insertTitoLore(owner_id: int, lore_text: [str]):
+    if len(lore_text) != 4:
+        return False
+
+    lore_id_query = '''
+        INSERT INTO `tito_lore` (ownerID)
+        VALUES (%s);
+    '''
+
+    res = db.post(lore_id_query, (owner_id,))
+    if not res or not res.get('rowcount'):
+        return False
+    lore_id = res.get('lastrowid')   
+
+    idx = 1
+    for text in lore_text:
+        query = '''
+            INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText)
+            VALUES (%s, %s, %s);
+        '''
+        res = db.post(query, (lore_id, idx, text))
+        idx += 1
+    if not res or not res.get('rowcount'):
+        return False
+    return True    
+
+def isTitoLoreOwner(owner_id: int, lore_id: int):
+    query = '''
+        SELECT EXISTS(
+            SELECT *
+            FROM tito_lore
+            WHERE loreID = %s AND ownerID = %s;
+        );
+    '''
+
+    res = db.get(query, (lore_id, owner_id), fetchOne=True)
+    if not res:
+        return False
+    return res[0]
 # ================================================
 #
 # Modules-Related

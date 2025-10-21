@@ -71,6 +71,7 @@ WHERE `userID` = 473;
 
 
 
+
 -- Begin migration chatbot sessions
 RENAME TABLE `chatbot_sessions` TO `chatbot_sessions_old`;
 
@@ -82,7 +83,7 @@ CREATE TABLE `chatbot_sessions` (
   `timeChatted` float NOT NULL DEFAULT 0,
   `moduleWordsUsed` int(4) NOT NULL DEFAULT 0,
   `creationTimestamp` timestamp NOT NULL DEFAULT current_timestamp(),
-  `isActiveSession` boolean NOT NULL DEFAULT 0,
+  `isActiveSession` boolean NOT NULL DEFAULT 1,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY (`chatbotSID`),
@@ -96,10 +97,17 @@ UPDATE `chatbot_sessions_old`
 SET `moduleId` = 3
 WHERE `moduleId` = -1;
 
-INSERT IGNORE INTO `chatbot_sessions` (`chatbotSID`, `userID`, `moduleID`, `timeChatted`, `moduleWordsUsed`, `creationTimestamp`)
-SELECT `chatbotId`, `userId`, `moduleId`, `totalTimeChatted`, `totalWordsForModule`, `timestamp`
-FROM `chatbot_sessions_old`;
+-- Done in python
+-- INSERT IGNORE INTO `chatbot_sessions` (`chatbotSID`, `userID`, `moduleID`, `timeChatted`, `moduleWordsUsed`, `creationTimestamp`)
+-- SELECT `chatbotId`, `userId`, `moduleId`, `totalTimeChatted`, `totalWordsForModule`, `timestamp`
+-- FROM `chatbot_sessions_old`
+-- ORDER BY `chatbotId` ASC;
 
+
+-- INSERT IGNORE INTO `chatbot_sessions` (`userID`, `moduleID`, `timeChatted`, `moduleWordsUsed`, `creationTimestamp`)
+-- SELECT `userId`, `moduleId`, `totalTimeChatted`, `totalWordsForModule`, `timestamp`
+-- FROM `chatbot_sessions_old`
+-- ORDER BY `chatbotId` ASC;
 
 -- Begin message migration
 RENAME TABLE `messages` TO `messages_old`;
@@ -152,18 +160,38 @@ CREATE TABLE `tito_class_status` (
   FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
   FOREIGN KEY (`professorID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   PRIMARY KEY (`classID`, `professorID`),
+  KEY (`professorID`),
   KEY (`titoStatus`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- CREATE TRIGGER WHEN A MODULE IS TITO-FIED
+-- Create on delete behavior to default to loreID = 1
 CREATE TABLE `tito_lore` (
-  `loreID` int(4) NOT NULL DEFAULT 1,
-  `classID` int(4) NOT NULL,
-  `moduleID` int(4) NOT NULL,
-  FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`),
-  FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`),
-  PRIMARY KEY (`classID`, `moduleID`)
+  `loreID` int(2) NOT NULL AUTO_INCREMENT,
+  `ownerID` int(5) NOT NULL DEFAULT 2, -- ucf2 / admin
+  FOREIGN KEY (`ownerID`) REFERENCES `user` (`userID`),
+  KEY (`loreID`, `ownerID`),
+  PRIMARY KEY (`loreID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+CREATE TABLE `tito_lore_text` (
+  `loreID` int(2) NOT NULL,
+  `sequenceNumber` int(1) NOT NULL,
+  `loreText` text NOT NULL,
+  FOREIGN KEY (`loreID`) REFERENCES `tito_lore` (`loreID`) ON DELETE CASCADE,
+  PRIMARY KEY (`loreID`, `sequenceNumber`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- CREATE TABLE `tito_lore_assignments` (
+--   `loreID` int(2) NOT NULL DEFAULT 1,
+--   `classID` int(4) NOT NULL,
+--   `moduleID` int(4) NOT NULL,
+--   FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`),
+--   FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`),
+--   KEY (`classID`, `moduleID`),
+--   UNIQUE (`classID`, `moduleID`)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
 
 CREATE TABLE `tito_generated_module` (
   `moduleID` int(4) NOT NULL, 
@@ -187,7 +215,9 @@ CREATE TABLE `tito_module` (
   `loreAssigned` int(2) NOT NULL DEFAULT 1,
   FOREIGN KEY(`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   FOREIGN KEY(`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
+  FOREIGN KEY(`loreAssigned`) REFERENCES `tito_lore` (`loreID`),
   KEY (`classID`,`status`),
+  KEY (`loreAssigned`),
   PRIMARY KEY(`classID`, `moduleID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
@@ -235,6 +265,38 @@ CREATE TABLE `tito_voice_message` (
   UNIQUE (`userID`, `messageID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
+
+
+-- HARDCODE INSERT, REPLACE WITH ACTUAL THINGS
+INSERT INTO `tito_lore` (`ownerID`) VALUES (1);
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 1, "Tito remembers his hometown… but the name is fuzzy.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 2, "Tito recalls speaking another language long ago!");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 3, "A vivid scene returns: a seaside market and familiar voices.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 4, "Tito has fully regained his memory thanks to you!");
+
+INSERT INTO `tito_lore` (`ownerID`) VALUES (2);
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 1, "A name surfaces… maybe ‘Mira’? Tito isn’t sure.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 2, "He remembers a small boat and a song he used to hum.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 3, "Faces blur into focus—market stalls, a blue kite, laughter.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 4, "Everything clicks into place—Tito’s story is whole again!");
+
+INSERT INTO `tito_lore` (`ownerID`) VALUES (3);
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 1, "A torn journal page appears—ink smeared, date missing.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 2, "Another page: a recipe in the margins and a note to self.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 3, "The pages stitch together—directions to somewhere by the pier.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 4, "The journal closes; Tito remembers every chapter.");
+
+INSERT INTO `tito_lore` (`ownerID`) VALUES (4);
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 1, "A sun-faded postcard: ‘Wish you were here…’ The signature is unclear.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 2, "Another postcard shows bright umbrellas and a long pier.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 3, "A final postcard reveals an address Tito once called home.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 4, "All postcards align—Tito knows exactly where he belongs.");
+
+INSERT INTO `tito_lore` (`ownerID`) VALUES (5);
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 1, "A melody returns—just four notes on a breeze.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 2, "Lyrics follow, half in another language he used to speak.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 3, "He can hum the whole tune, and a friend’s voice joins in.");
+INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 4, "The song finishes; the memories return in harmony.");
 
 
 -- Consider IGNORE after INSERT
@@ -306,7 +368,6 @@ BEGIN
 END//
 DELIMITER ;
 
-
 -- When an update of a SINGLE TERM CHANGES, updates `hasMastered` if there is a need to
 DELIMITER //
 CREATE TRIGGER beforeUpdateTermProgress_change_hasMastered
@@ -374,15 +435,15 @@ DELIMITER ;
 
 
 -- Autogenerate a tito-lore assignment to a tito class module
-DELIMITER // 
-CREATE TRIGGER afterInsertOnTitoModule_assignTitoLore
-AFTER INSERT ON `tito_module`
-FOR EACH ROW
-BEGIN
-  INSERT INTO `tito_lore` (`loreID`, `classID`, `moduleID`)
-  VALUES (1, NEW.classID, NEW.moduleID);
-END //
-DELIMITER ;
+-- DELIMITER // 
+-- CREATE TRIGGER afterInsertOnTitoModule_assignTitoLore
+-- AFTER INSERT ON `tito_module`
+-- FOR EACH ROW
+-- BEGIN
+--   INSERT INTO `tito_lore_assignments` (`loreID`, `classID`, `moduleID`)
+--   VALUES (1, NEW.classID, NEW.moduleID);
+-- END //
+-- DELIMITER ;
 
 
 

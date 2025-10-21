@@ -70,26 +70,106 @@ export default function ChatScreen(props: propsInterface) {
     const [ttsSupported, setTtsSupported] = useState(false);
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
-    //effect for cloud bubble
+    //Lore milestone logic with one time trigger (DB-driven)
+    const THRESHOLDS = [25, 50, 75, 100] as const;
+    const prevProgressRef = useRef<number>(-Infinity);
+
+    // Lore loaded from DB
+    type Threshold = 25 | 50 | 75 | 100;
+    const [loreByThreshold, setLoreByThreshold] = useState<Partial<Record<Threshold, string>>>({});
+    const [loreID, setLoreID] = useState<number | null>(null);
+
+    // Reset progression memory when module or lore set changes
+    useEffect(() => {
+      prevProgressRef.current = -Infinity;
+    }, [props.moduleID, loreID]);
+
+    // Detect crossings (use loreID in the key so different sets don't collide)
+    useEffect(() => {
+      if (progress == null || isNaN(progress)) return;
+      if (!loreID) return; // don't show until lore is loaded
+
+      let chosen: number | null = null;
+      for (const t of THRESHOLDS) {
+        const key = `tito_lore_shown_${props.moduleID}_${loreID}_${t}`;
+        const already = typeof window !== "undefined" && localStorage.getItem(key) === "1";
+        if (!already && prevProgressRef.current < t && progress >= t) {
+          if (chosen === null || t > chosen) chosen = t;
+        }
+      }
+
+      if (chosen !== null) {
+        const key = `tito_lore_shown_${props.moduleID}_${loreID}_${chosen}`;
+        try { localStorage.setItem(key, "1"); } catch {}
+        const text = loreByThreshold[chosen as Threshold];
+        if (text) {
+          setMessage(text);
+          setTrigger(Date.now());
+        }
+      }
+
+      prevProgressRef.current = progress;
+    }, [progress, props.moduleID, loreID, loreByThreshold]);
+
+    // Cloud bubble and progress + lore fetch
     useEffect(() => {
       async function fetchProgress() {
-      const res = await fetch("twt/session/getModuleProgress");
-      const data = await res.json();
-      setProgress(data.proficiencyRate);
+        try {
+          const res = await fetch("twt/session/getModuleProgress");
+          const data = await res.json();
+          // data.proficiencyRate is a float 0–100
+          if (typeof data?.proficiencyRate === "number") {
+            setProgress(data.proficiencyRate);
+          }
+        } catch (e) {
+          console.warn("Failed to fetch progress:", e);
+        }
+      }
 
-      if (data.proficiencyRate === 25) {
-        setMessage("Tito remembers his hometown… but the name is fuzzy.");
-        setTrigger(Date.now());
-      } else if (data.proficiencyRate === 50) {
-        setMessage("Tito recalls speaking another language long ago!");
-        setTrigger(Date.now());
-      } else if (data.proficiencyRate === 100) {
-        setMessage("Tito has fully regained his memory thanks to you!");
-        setTrigger(Date.now());
+      async function fetchLoreFromDB() {
+        try {
+          // TODO: replace with your real classID and, if needed, move off /professor/ for student calls
+          const classID = 1; // TEMP
+          const url = `/elleapi/twt/professor/getTitoLore?classID=${classID}&moduleID=${props.moduleID}`;
+
+          // If you have `user.jwt` available (from useUser), include it:
+          const headers: Record<string, string> = { Accept: "application/json" };
+          if (user?.jwt) headers.Authorization = `Bearer ${user.jwt}`;
+
+          const res = await fetch(url, { method: "GET", headers });
+          if (!res.ok) {
+            const body = await res.text();
+            throw new Error(`Lore fetch failed ${res.status}: ${body}`);
+          }
+
+          // Expected: { loreID, loreText: [{ sequenceNumber:1..4, loreText:string }, ...] }
+          const data = await res.json();
+          const items = data?.loreText ?? [];
+          const map: Partial<Record<Threshold, string>> = {};
+
+          for (const row of items) {
+            const t: Threshold | undefined =
+              row.sequenceNumber === 1 ? 25 :
+              row.sequenceNumber === 2 ? 50 :
+              row.sequenceNumber === 3 ? 75 :
+              row.sequenceNumber === 4 ? 100 : undefined;
+            if (t) map[t] = row.loreText;
+          }
+
+          setLoreByThreshold(map);
+          setLoreID(data?.loreID ?? null);
+        } catch (e) {
+          console.error("Lore fetch error:", e);
+          
+          setLoreByThreshold({});
+          setLoreID(null);
+        }
       }
-      }
+
       fetchProgress();
-    }, []);
+      fetchLoreFromDB();
+      // include `user` if you're using user.jwt in headers
+    }, [props.moduleID, user]);
 
     async function handleSendMessageClick() {
 

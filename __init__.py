@@ -146,6 +146,12 @@ from resources.conversationElle.conversation import(
     AssignTitoLore,
     ConversationAudioExport,
     SimpleAudioExport,
+    GetTitoLoreAssignment,
+    UpdateLoreAssignment,
+    CreateTitoLore,
+    UpdateTitoLore,
+    FetchAllOwnedTitoLore,
+    FetchAllUserAudio,
     Testing,
 )
 import os
@@ -393,22 +399,28 @@ api.add_resource(ConversationAudioExport, API_ENDPOINT_PREFIX + "twt/session/exp
 api.add_resource(SimpleAudioExport, API_ENDPOINT_PREFIX + "twt/simple-export")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
 api.add_resource(GetModuleProgress, API_ENDPOINT_PREFIX + "twt/session/getModuleProgress")
+api.add_resource(FetchAllUserAudio, API_ENDPOINT_PREFIX + "twt/session/downloadAllUserAudio")
 
-
-api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/professor/classes")
+api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/session/classes")
+api.add_resource(GetTitoLoreAssignment, API_ENDPOINT_PREFIX + "twt/session/getTitoLore")
 
 api.add_resource(AddTitoModule, API_ENDPOINT_PREFIX + "twt/professor/addModule")
 api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/updateModule")
 api.add_resource(UpdateTitoClass, API_ENDPOINT_PREFIX + "twt/professor/updateClassStatus")
 api.add_resource(GetClassUsers, API_ENDPOINT_PREFIX + "twt/professor/getClassUsers")
-api.add_resource(AssignTitoLore, API_ENDPOINT_PREFIX + "twt/professor/titoLore")
+api.add_resource(UpdateLoreAssignment, API_ENDPOINT_PREFIX + "twt/professor/changeAssignedLore")
+api.add_resource(CreateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/createNewTitoLore")
+api.add_resource(UpdateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/updateTitoLore")
+api.add_resource(FetchAllOwnedTitoLore, API_ENDPOINT_PREFIX + "twt/professor/fetchOwnedTitoLore")
 
 
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")
+
 
 # ===============================================
 # End of ConversAItionELLE endpoints

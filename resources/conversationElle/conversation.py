@@ -12,10 +12,9 @@ import os
 from pydub import AudioSegment
 from .llm_functions import *
 from .utils import *
-from .tito_methods import updateLiveDB
+from .tito_methods import updateLiveDB, merge_user_audio
 from datetime import datetime
 
-USER_VOICE_FOLDER = "user_audio_files/"
 
 # ======================================
 # ++++++ TWT ACCESS APIs ++++++
@@ -51,13 +50,12 @@ class TitoAccess(Resource):
             class_ids = getTitoClasses(userID=get_jwt_identity(), permissionLevel='any', get_classes_type='active')
             if not class_ids:
                 return create_response(success=False, message="User is not enrolled in any active tito classes.", status_code=403)
-            
             tito_modules = []
             for class_id in class_ids:
                 res = getTitoModules(class_id)
                 if not res:
                     return create_response(True, message="Returned user modules", data=[]) 
-                tito_modules.append((class_id[0], res))
+                tito_modules.append((class_id, res))
 
             return create_response(True, message="Returned user modules", data=tito_modules) 
         except Exception as e:
@@ -70,7 +68,7 @@ class ChatbotSessions(Resource):
     def post(self):
         '''
         /elleapi/twt/session/create
-            Enables a user to chat with Tito
+            Enables a user to chat with Tito for a specific class-module
             Returns a chatbotSID
         '''
         user_id = get_jwt_identity()
@@ -93,17 +91,26 @@ class ChatbotSessions(Resource):
 
         # A freechat session
         if module_id == FREE_CHAT_MODULE:
-            return create_response(True, message="Free chat Chatbot session created.", data=createChatbotSession(user_id, FREE_CHAT_MODULE))
+            chatbot_sid = createChatbotSession(user_id, FREE_CHAT_MODULE)
+            warming_thread = threading.Thread(target = prewarm_llm_context, # Uses threading so that LLM may "warm up" for 
+            args = (FREE_CHAT_MODULE, chatbot_sid), daemon = True)          # subsiquent prompts
+            warming_thread.start()
 
+            return create_response(True, message="Free chat Chatbot session created.", data=chatbot_sid)
         
         if not isActiveTitoModule(class_id, module_id):
             return create_response(success=False, message="Chatbot session failed to be created. No available modules", status_code=403)
         
+        # If a module ID is found
         session_id = createChatbotSession(user_id, module_id)
+        warming_thread = threading.Thread(target = prewarm_llm_context, 
+        args = (module_id, session_id), daemon = True)
+        warming_thread.start()
+
         return create_response(True, message="Chatbot session created.", data=session_id)
 
 # NOTE: Ability to send messages should block until receiving back a response
-# stores message to DB and Tito AI And Returns response from Tito
+# TODO: for GET calls, consider sending messages in batches then all at once (better for users with lots of msgs?)
 class UserMessages(Resource):
     @jwt_required
     def post(self):
@@ -171,12 +178,10 @@ class UserMessages(Resource):
             #         tito_response_data = handle_message(message)
             # except Exception as safety_error:
             #     print(f"Safety check failed: {safety_error}")
-            tito_response_data = handle_message(message)
-            
-            tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
+            tito_response = handle_message(message, module_id = module_id)
             
             # TODO: Verify data
-            newTitoMessage(user_id, session_id, tito_response_data.get('response'), module_id)
+            newTitoMessage(user_id, session_id, tito_response, module_id)
 
         except Exception as error:
             print(f"Error communicating with Tito: {error}")
@@ -287,8 +292,8 @@ class UserAudio(Resource):
         #     return create_response(False, message="Failed to store voice message.", status_code=500) 
 
         if not res:
-            return create_response(False, message="Error occurred when inserting vm data into DB.", voiceID=res)
-        return create_response(True, message="Audio message uploaded successfully.", voiceID=res)
+            return create_response(False, message="Error occurred when inserting vm data into DB.")
+        return create_response(True, message="Audio message uploaded successfully.")
 
     @jwt_required
     def get(self):
@@ -314,13 +319,34 @@ class UserAudio(Resource):
 
         filename = getVoiceMessage(user_id, message_id)
         if not filename:
-            return create_response(False, message="File not found", status_code=503)
+            return create_response(False, message="File not found", status_code=404)
 
         file_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id), str(user_id), str(filename))
         if not os.path.exists(file_path):
             return create_response(False, message="File does not exist.", status_code=404)
 
         return send_file(file_path, mimetype="audio/webm")
+
+class FetchAllUserAudio(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            twt/session/downloadAllUserAudio
+            downloads all audio for this user for classID and moduleID
+        '''
+        user_id = get_jwt_identity() 
+        class_id = request.args.get('classID')
+        module_id = request.args.get('moduleID')
+
+        if not class_id or not module_id:
+            return create_response(False, message='missing req params', status_code=400)
+        
+        res = merge_user_audio(class_id, module_id, user_id)
+        if not res:
+            return create_response(False, message='an error has occured when feteching files or no files found', status_code=500)
+        
+        return send_file(res, mimetype="audio/webm")
+
 
 # Unsure if needed as an API
 class ModuleTerms(Resource):
@@ -341,6 +367,10 @@ class ModuleTerms(Resource):
 class GetModuleProgress(Resource):
     @jwt_required
     def get(self):
+        '''
+            /elleapi/twt/session/getModuleProgress
+            gets the module's key term/phrase mastery % progress
+        '''
         user_id = get_jwt_identity()
         module_id = request.args.get('moduleID')
 
@@ -350,18 +380,40 @@ class GetModuleProgress(Resource):
         
         return create_response(True, data=res)
 
+class GetTitoLoreAssignment(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            /elleapi/twt/session/getTitoLore
+            Get the assigned tito lore for the class's module
+            returns tito lore id via data and respective lores
+        '''
+        user_id = get_jwt_identity()
+        class_id = request.args.get('classID')
+        module_id = request.args.get('moduleID')
 
+        if not class_id or not module_id:
+            return create_response(False, message="insufficient params provided.", status_code=403)
+        # Was i high when i wrote this?
+        # if isUserThisAccessLevel(user_id, class_id, 'st'):
+        #     return create_response(False, message="insufficient perms.", status_code=403)
 
-# ========================================
-# ++++++ PROFESSOR + (TAs?) ACCESS ONLY APIs ++++++
-# ========================================
+        res = getClassModuleTitoLore(class_id, module_id)
+        if not res:
+            return create_response(False, message="failed to retrieve tito lore id for class module", status_code=400)
+        
+        lore_texts = getTitoLoreTexts(res)
+        if not lore_texts:
+            return create_response(False, message="failed to retrieve tito lore_texts for class module", status_code=400)
+        
+        return create_response(True, message="returned tito lore id", data=lore_texts, loreID=res)
 
 class Classes(Resource):
     @jwt_required
     def get(self):
         '''
-        /elleapi/twt/professor/classes
-            Gets a professors owned classes
+        /elleapi/twt/session/classes
+            Gets tito_classes according to classType provided
         '''
         user_id = get_jwt_identity()
 
@@ -371,8 +423,12 @@ class Classes(Resource):
         if class_type is None:
             return create_response(False, message="Missing parameters in request.", status_code=400)
 
-        return create_response(True, data=getTitoClasses(user_id, 'pf', class_type))
+        return create_response(True, message='returned classes', data=getTitoClasses(user_id, 'pf', class_type))
  
+# ========================================
+# ++++++ PROFESSOR + (TAs?) ACCESS ONLY APIs ++++++
+# ========================================
+
 # TODO: this might need try catch statements
 class AddTitoModule(Resource):
     @jwt_required
@@ -435,7 +491,7 @@ class UpdateTitoModule(Resource):
             else:
                 if updateTitoModuleStatus(module_id, class_id, update_date=True, start_date=start_date, end_date=end_date):
                     return create_response(True, message="updated start/end dates.")
-        elif status_update_change: 
+        if status_update_change: 
             if updateTitoModuleStatus(module_id, class_id, update_status=True):
                 return create_response(True, message="Changed module status successfully")
 
@@ -481,12 +537,16 @@ class GetClassUsers(Resource):
     def get(self):
         '''
             twt/professor/getClassUsers
+            gets a list of all students in class
         '''
+        user_id = get_jwt_identity()
         class_id = request.args.get('classID')
-        users = getUsersInClass(class_id)
+        if not class_id:
+            return create_response(False, message="invalid params", status_code=403)
+        users = getUsersInClass(class_id, user_id)
         return create_response(message="users retrieved", users=users)
 
-class AssignTitoLore(Resource):
+class UpdateLoreAssignment(Resource):
     @jwt_required
     def post(self):
         '''
@@ -501,33 +561,95 @@ class AssignTitoLore(Resource):
 
         if not class_id or not module_id or not lore_id:
             return create_response(False, message="insufficient params provided.", status_code=403)
-        if not isUserThisAccessLevel(user_id, class_id, 'pf'):
+        if isUserThisAccessLevel(user_id, class_id, 'st'):
             return create_response(False, message="insufficient perms.", status_code=403)
-        if not updateClassModuleTitoLore(class_id, module_id, lore_id):
-            return create_response(False, message="unable to make changes or module already assigned this lore", status_code=500)
+        if not updateClassModuleTitoLoreAssignment(class_id, module_id, lore_id):
+            return create_response(False, message="unable to make changes. module already assigned this lore or given module id doesnt exist", status_code=500)
         return create_response(True, message="successfully updated assigned lore to class module")
     
+class CreateTitoLore(Resource):
+    @jwt_required
+    def post(self):
+        '''
+            creates tito lore tied to this user as the owner
+            required 4 strings to properly create tito lore
+        '''
+        user_id = get_jwt_identity()
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
+        data = request.form
+        lore_1 = data.get('lore_1')
+        lore_2 = data.get('lore_2')
+        lore_3 = data.get('lore_3')
+        lore_4 = data.get('lore_4')
+
+        if not lore_1 or not lore_2 or not lore_3 or not lore_4:
+            return create_response(False, message='insufficient params provided', status_code=404)
+        if not user_permission or user_permission == 'st':
+            return create_response(False, message='insufficient perms', status_code=403)
+        
+        lore_list = []
+        lore_list.append(lore_1)
+        lore_list.append(lore_2)
+        lore_list.append(lore_3)
+        lore_list.append(lore_4)
+
+        res = insertTitoLore(user_id, lore_list)
+        if not res:
+            return create_response(False, message='failed to fully process insert', status_code=500)
+        return create_response(True, message="successfully created tito lore")
+
+class UpdateTitoLore(Resource):
+    @jwt_required
+    def post(self):
+        '''
+            Updating the a singular tito lore (1-4)
+            returns nothing
+        '''
+        user_id = get_jwt_identity()
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
+
+        data = request.form
+        class_id = data.get('classID')
+        module_id = data.get('moduleID')
+        lore_id = data.get('loreID')
+        sequence_num = data.get('sequenceNumber')
+        new_lore_text = data.get('newLoreText')
+
+        if not class_id or not module_id or not lore_id:
+            return create_response(False, message="insufficient params provided.", status_code=403)
+        if not user_permission or user_permission == 'st':
+            return create_response(False, message='insufficient perms', status_code=403)
+        if user_permission != 'su' and isTitoLoreOwner(user_id, lore_id):
+            return create_response(False, message='insufficient perms', status_code=403)
+
+        res = updateTitoLoreText(lore_id, sequence_num, new_lore_text)
+        if not res:
+            return create_response(False, message="failed to update tito lore. probably used the same text", status_code=500)
+        return create_response(True, message='updated tito lore')
+
+class FetchAllOwnedTitoLore(Resource):
     @jwt_required
     def get(self):
         '''
-            Get the assigned tito lore for the class's module
-            returns tito lore id via data
+            Returns a list of tuples containing tito lores owned by this user so they can modify them later:
+                    [ ( loreID, sequenceNumber, loreText ),
+                    ...(...) 
+                    ]
         '''
+
         user_id = get_jwt_identity()
-        class_id = request.args.get('classID')
-        module_id = request.args.get('moduleID')
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
 
-        print(f'{class_id} and {module_id}')
+        if not user_permission or user_permission == 'st':
+            return create_response(False, message="invalid perms", status_code=403)
 
-        if not class_id or not module_id:
-            return create_response(False, message="insufficient params provided.", status_code=403)
-        if not isUserThisAccessLevel(user_id, class_id, 'pf'):
-            return create_response(False, message="insufficient perms.", status_code=403)
-
-        res = getClassModuleTitoLore(class_id, module_id)
+        res = getAllTitoLore(user_id, True if user_permission == 'su' else False)
         if not res:
-            return create_response(False, message="failed to retrieve tito lore id for class module", status_code=400)
-        return create_response(True, message="yes", data=res)
+            return create_response(False, message='failed to retrieve info or user has no owned tito lore', status_code=500)  
+        return create_response(True, message="returned owned tito lores", loreData=res)
 
 # NOTE: Doesnt work due to current implementation
 # class CreateTitoLore(Resource):

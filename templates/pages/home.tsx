@@ -149,7 +149,7 @@ export default function Home() {
                         <div className='col-lg-4'>
                             <h4>Dr. Emily Johnson</h4>
 
-                            <p>Assistant Professor, English</p>
+                            <p>Associate Professor, English</p>
                         </div>
                         <div className='col-lg-4'>
                             <h4>Dr. Amy Giroux</h4>
