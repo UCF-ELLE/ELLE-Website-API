@@ -172,12 +172,16 @@ def merge_user_audio(class_id: int, module_id: int, user_id: int):
     """
     Merge all {userID}_{messageID}.webm files for a given user into one .webm file.
     Looks inside: user_audio_files/{class_id}/{module_id}/{user_id}/
+    
+    Falls back to creating a ZIP file if ffmpeg is not available.
     """
+    import zipfile
+    import shutil
 
     base_dir = Path(USER_VOICE_FOLDER) / str(class_id) / str(module_id) / str(user_id)
     if not base_dir.exists():
+        print(f"Audio directory not found: {base_dir}")
         return None
-        # raise FileNotFoundError(f"Audio directory not found: {base_dir}")
 
     # Collect and sort all .webm files by messageID (numerically)
     files = sorted(
@@ -186,9 +190,29 @@ def merge_user_audio(class_id: int, module_id: int, user_id: int):
     )
 
     if not files:
+        print(f"No .webm files found for user {user_id} in {base_dir}")
         return None
-        # raise FileNotFoundError(f"No .webm files found for user {user_id} in {base_dir}")
 
+    # Check if ffmpeg is available
+    ffmpeg_available = True
+    try:
+        subprocess.run(["ffmpeg", "-version"], capture_output=True, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        ffmpeg_available = False
+        print("ffmpeg not found - will create ZIP file instead")
+
+    if ffmpeg_available:
+        # Use ffmpeg to concatenate audio files
+        return _merge_with_ffmpeg(base_dir, files, user_id)
+    else:
+        # Fallback: create ZIP file with all audio files
+        return _create_audio_zip(base_dir, files, user_id)
+
+
+def _merge_with_ffmpeg(base_dir: Path, files: list, user_id: int):
+    """
+    Merge audio files using ffmpeg
+    """
     # Create temporary list file for ffmpeg
     concat_list = base_dir / "concat_list.txt"
     with open(concat_list, "w") as f:
@@ -209,12 +233,33 @@ def merge_user_audio(class_id: int, module_id: int, user_id: int):
     ]
 
     try:
-        subprocess.run(cmd, check=True, capture_output=True)
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        print(f"Merged {len(files)} audio files → {output_file}")
+        return output_file
     except subprocess.CalledProcessError as e:
-        print("ffmpeg failed:", e.stderr.decode())
-        raise
+        print(f"ffmpeg failed: {e.stderr}")
+        # Fallback to ZIP if ffmpeg fails
+        return _create_audio_zip(base_dir, files, user_id)
     finally:
         concat_list.unlink(missing_ok=True)  # clean up list file
 
-    print(f"Merged {len(files)} audio files → {output_file}")
-    return output_file
+
+def _create_audio_zip(base_dir: Path, files: list, user_id: int):
+    """
+    Create a ZIP file containing all audio files as fallback
+    """
+    import zipfile
+    import time
+    
+    # Create ZIP file with timestamp to avoid conflicts
+    timestamp = int(time.time())
+    zip_file = base_dir / f"{user_id}_audio_{timestamp}.zip"
+    
+    with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for i, file in enumerate(files, 1):
+            # Add with clean naming: message_1.webm, message_2.webm, etc.
+            arc_name = f"message_{i:03d}.webm"
+            zf.write(file, arc_name)
+    
+    print(f"Created ZIP archive with {len(files)} audio files → {zip_file}")
+    return zip_file

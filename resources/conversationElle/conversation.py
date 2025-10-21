@@ -333,6 +333,7 @@ class FetchAllUserAudio(Resource):
         '''
             twt/session/downloadAllUserAudio
             downloads all audio for this user for classID and moduleID
+            Returns either a concatenated .webm file (if ffmpeg available) or a ZIP file with all audio files
         '''
         user_id = get_jwt_identity() 
         class_id = request.args.get('classID')
@@ -341,11 +342,29 @@ class FetchAllUserAudio(Resource):
         if not class_id or not module_id:
             return create_response(False, message='missing req params', status_code=400)
         
+        try:
+            class_id = int(class_id)
+            module_id = int(module_id)
+        except ValueError:
+            return create_response(False, message='invalid parameter format', status_code=400)
+        
+        # Check if user has access to this class
+        if not isUserInClass(user_id, class_id):
+            return create_response(False, message='user does not have access to this class', status_code=403)
+        
         res = merge_user_audio(class_id, module_id, user_id)
         if not res:
-            return create_response(False, message='an error has occured when feteching files or no files found', status_code=500)
+            return create_response(False, message='no audio files found for this user in the specified module', status_code=404)
         
-        return send_file(res, mimetype="audio/webm")
+        # Check if the result is a ZIP file or WEBM file
+        file_extension = str(res).lower()
+        if file_extension.endswith('.zip'):
+            return send_file(res, mimetype="application/zip", as_attachment=True, 
+                           attachment_filename=f"user_{user_id}_module_{module_id}_audio.zip")
+        else:
+            # Assume it's a concatenated WEBM file
+            return send_file(res, mimetype="audio/webm", as_attachment=True,
+                           attachment_filename=f"user_{user_id}_module_{module_id}_audio.webm")
 
 
 # Unsure if needed as an API
@@ -912,8 +931,10 @@ class SimpleAudioExport(Resource):
 class DebugAudioFiles(Resource):
     @jwt_required
     def get(self):
-        from .database import debugGetAllUserVoiceMessages, getAllUserAudioInModule, getConversationAudioFiles
+        from .database import getAllUserAudioInModule, getConversationAudioFiles
         import json
+        import os
+        from pathlib import Path
         
         user_id = get_jwt_identity()
         module_id = request.args.get('moduleID')
@@ -925,28 +946,44 @@ class DebugAudioFiles(Resource):
             "module_id": module_id,
             "class_id": class_id,
             "chatbot_sid": chatbot_sid,
-            "timestamp": str(datetime.now())
+            "timestamp": str(datetime.now()),
+            "ffmpeg_available": False
         }
         
         try:
-            # Get all voice messages for user
-            all_voice_messages = debugGetAllUserVoiceMessages(user_id)
-            debug_data["all_voice_messages_count"] = len(all_voice_messages)
-            debug_data["all_voice_messages"] = all_voice_messages
+            # Check if ffmpeg is available
+            import subprocess
+            try:
+                subprocess.run(["ffmpeg", "-version"], capture_output=True, check=True)
+                debug_data["ffmpeg_available"] = True
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                debug_data["ffmpeg_available"] = False
             
+            # Check file system for audio files
+            if class_id and module_id:
+                audio_dir = Path(USER_VOICE_FOLDER) / str(class_id) / str(module_id) / str(user_id)
+                debug_data["audio_directory"] = str(audio_dir)
+                debug_data["directory_exists"] = audio_dir.exists()
+                
+                if audio_dir.exists():
+                    audio_files = list(audio_dir.glob(f"{user_id}_*.webm"))
+                    debug_data["filesystem_audio_files"] = [f.name for f in audio_files]
+                    debug_data["filesystem_audio_count"] = len(audio_files)
+            
+            # Get database voice messages info
             if module_id:
                 module_id = int(module_id)
-                # Get audio files for module
+                # Get audio files for module from database
                 module_audio = getAllUserAudioInModule(user_id, module_id)
-                debug_data["module_audio_count"] = len(module_audio)
-                debug_data["module_audio"] = module_audio
+                debug_data["database_module_audio_count"] = len(module_audio)
+                debug_data["database_module_audio"] = module_audio
                 
                 if chatbot_sid:
                     chatbot_sid = int(chatbot_sid)
                     # Get audio files for specific conversation
                     conversation_audio = getConversationAudioFiles(user_id, module_id, chatbot_sid)
-                    debug_data["conversation_audio_count"] = len(conversation_audio)
-                    debug_data["conversation_audio"] = conversation_audio
+                    debug_data["database_conversation_audio_count"] = len(conversation_audio)
+                    debug_data["database_conversation_audio"] = conversation_audio
         
             # Write debug data to file
             with open("audio_debug.json", "w") as f:
@@ -1012,3 +1049,10 @@ class DebugAudioFiles(Resource):
 #          except Exception as error:
 #              print(f"Error: {str(error)}")
 #              return {"error": "error"}, 500
+
+
+# Stub class for AssignTitoLore - referenced in __init__.py but not implemented
+class AssignTitoLore(Resource):
+    def post(self):
+        return create_response(False, message='AssignTitoLore not implemented', status_code=501)
+
