@@ -6,6 +6,8 @@ import CardList from './CardList';
 import { Tag } from '@/types/api/terms';
 import { Pasta, QuestionFrame } from '@/types/api/pastagame';
 import PastaModuleCardList from './Pasta/PastaModuleCardList';
+import GeneratedModuleTable from '../../GeneratedModuleTable';
+import { GeneratedModuleContent } from '@/services/AIModuleService';
 
 export default function ModuleCardList({
     currentClass,
@@ -36,6 +38,28 @@ export default function ModuleCardList({
 }) {
     const [activeTab, setActiveTab] = useState('terms');
     const [activePastaTabs, setActivePastaTabs] = useState(['questionFrames']);
+    
+    // Check if this module was AI-generated (simple heuristic: name contains "AI" or has specific pattern)
+    const isAIGeneratedModule = curModule?.name?.toLowerCase().includes('ai') || curModule?.name?.toLowerCase().includes('generated');
+    
+    // Mock AI-generated content - in a real implementation, this would come from the backend
+    const aiGeneratedContent: GeneratedModuleContent = {
+        terms: terms.map(term => ({
+            front: term.front || '',
+            back: term.back || '',
+            type: term.type || 'TERM'
+        })),
+        phrases: phrases.map(phrase => ({
+            front: phrase.front || '',
+            back: phrase.back || '',
+            type: phrase.type || 'PHRASE'
+        }))
+    };
+    
+    const handleAIContentUpdate = (updatedContent: GeneratedModuleContent) => {
+        // This would typically trigger a refresh of the module data
+        updateCurrentModule(curModule, 'update');
+    };
 
     const toggleTab = (tab: string) => {
         if (activeTab !== tab) setActiveTab(tab);
@@ -77,6 +101,24 @@ export default function ModuleCardList({
 
     return (
         <>
+            {isAIGeneratedModule && (terms.length > 0 || phrases.length > 0) && (
+                <Card style={{ marginBottom: '1rem', border: '2px solid #28a745' }}>
+                    <CardHeader 
+                        onClick={() => toggleTab('aiContent')} 
+                        data-event={0}
+                        style={{ backgroundColor: '#d4edda', color: '#155724' }}
+                    >
+                        🤖 AI Generated Content ({aiGeneratedContent.terms.length + (aiGeneratedContent.phrases?.length || 0)} items)
+                    </CardHeader>
+                    <Collapse isOpen={activeTab === 'aiContent'}>
+                        <GeneratedModuleTable 
+                            moduleID={curModule.moduleID} 
+                            content={aiGeneratedContent}
+                            onContentUpdate={handleAIContentUpdate}
+                        />
+                    </Collapse>
+                </Card>
+            )}
             <Card style={{ marginBottom: '1rem' }}>
                 <CardHeader onClick={() => toggleTab('terms')} data-event={1}>
                     Terms

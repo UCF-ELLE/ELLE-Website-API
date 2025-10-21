@@ -55,7 +55,7 @@ def prewarm_llm_context(module_id, session_id):
                     , When a vocab word remark that you remember more and thank for reminding"""
 
             except Exception as error:
-                print(f"Could not load module context: {error}")
+                pass
 
         # Short "warming" message for LLM
         warming_message = "Hi"
@@ -65,63 +65,67 @@ def prewarm_llm_context(module_id, session_id):
         response = requests.post(model_path, json=request, timeout = 30)
 
         if response.status_code == 200:
-            print(f" Pre-Warmed LLM context for module {module_id} (session {session_id})")
+            pass
         else:
-            print(f"Pre-warming got status {response.status_code}")
+            pass
 
     except Exception as error:
-        print(f"Pre-warming falied: {error}")
+        pass
+
 
 def create_module (prompt, term_count, nat_lang, target_lang):
     """
-    Creates a blueprint for a module with an LLM prompt
+    Creates a blueprint for a module with an LLM prompt - fails if AI fails
     """
     try:
         full_prompt = build_module_prompt(prompt, term_count, nat_lang, target_lang)
 
-        llm_response = generate_message("", build_module_prompt)
-
-        parse_terms = parse_llm_response(llm_response)
+        llm_response = generate_message_with_timeout("", full_prompt, timeout=30)
+        
+        if not llm_response:
+            return {
+                "status": "error",
+                "message": "AI failed to generate a response (timeout or connection error)",
+                "terms": []
+            }
+        
+        parsed_terms = parse_llm_response(llm_response)
+        
+        if len(parsed_terms) == 0:
+            return {
+                "status": "error",
+                "message": "AI generated response but no valid terms could be parsed",
+                "terms": []
+            }
+            
+        return {
+            "status": "success",
+            "message": f"AI generated {len(parsed_terms)} terms successfully",
+            "terms": parsed_terms
+        }
 
     except Exception as error:
-        print(f"Module generation error: {error}")
         return {
             "status": "error",
-            "message": str(error),
+            "message": f"AI generation failed with exception: {str(error)}",
             "terms": []
         }
 
 
 def build_module_prompt(prompt, term_count, nat_lang, target_lang):
-    generation_prompt = f"""You are a language education expert creating vocabulary modules.
-                            Task: Generate {term_count} vocabulary terms for a {target_lang} learning module.
+    # Very simple prompt optimized for small models like Phi-3
+    # Start with fewer terms to avoid timeout
+    actual_count = min(term_count, 5)  # Limit to 5 terms initially
+    
+    generation_prompt = f"""Generate {actual_count} basic {target_lang} vocabulary words about {prompt}.
 
-                            Module Description: {prompt}
+Format: english|spanish|noun|feminine
 
-                            Requirements:
-                            - Native Language: {native_lang} (classroom language)
-                            - Target Language: {target_lang} (language being learned)
-                            - Generate exactly {term_count} terms relevant to: "{prompt}"
+Examples:
+mother|madre|noun|feminine
+father|padre|noun|masculine
 
-                            For each term, provide ONE LINE in this EXACT format:
-                            native_word|target_word|part_of_speech|gender
-
-                            Rules:
-                            - Use pipe symbol | as separator
-                            - part_of_speech: NOUN, VERB, ADJ, ADV, PREP, etc.
-                            - gender: masculine, feminine, neutral(all adjectives will be marked this)
-                            - One term per line, no extra text
-
-                            Example for Spanish colors:
-                            red|rojo|adj|neutral
-                            blue|azul|adj|neutral
-
-                            Example for Spanish household Items:
-                            table|mesa|noun|feminine
-                            book|libro|noun|masculine
-
-                            Now generate {term_count} terms for: "{prompt}"
-                            """
+Generate {actual_count} terms:"""
 
     return generation_prompt
 
@@ -135,14 +139,17 @@ def parse_llm_response(llm_response):
 
             if not line or "|" not in line:
                 continue
+            
+            # Remove leading numbers (e.g., "1. animal" -> "animal")
+            line = re.sub(r'^\d+\.\s*', '', line)
 
             term_attributes = line.split("|")
 
-            if len(parts) >= 4:
-                native_word = parts[0].strip()
-                target_word = parts[1].strip()
-                part_of_speech = parts[2].strip()
-                gender = parts[3].strip()
+            if len(term_attributes) >= 4:
+                target_word = term_attributes[0].strip()   # AI puts Spanish first
+                native_word = term_attributes[1].strip()   # AI puts English second
+                part_of_speech = term_attributes[2].strip()
+                gender = term_attributes[3].strip()
 
                 if native_word and target_word:
                     term = {
@@ -153,11 +160,10 @@ def parse_llm_response(llm_response):
                     }
 
                     # if validate_term(term):
-                    terms.addend(term)
+                    terms.append(term)
         return terms
 
     except Exception as error:
-        print(f"Parsing error: {error}")
         return []
 
 # def validate_term(term: Dict):
@@ -167,19 +173,39 @@ def parse_llm_response(llm_response):
 #     required_fields = ['native_word', 'target_word', 'part_of_speech', 'gender']
 #     return all(field in term for field in required_fields)
 
+def generate_message_with_timeout(message, prompt, timeout=30):
+    """
+    Sends API request to the running llama.cpp server with custom timeout.
+    """
+    full_prompt = f"Instruction: {prompt}\nUser: {message}\nAssistant:"
+    request = GenerateRequest(user_text=full_prompt)
+    
+    try:
+        response = requests.post(model_path, json=request, timeout=timeout)
+        response.raise_for_status()
+        response_data = response.json()
+        
+        if "content" in response_data:
+            return response_data["content"]
+        else:
+            return str(response_data)
+            
+    except requests.exceptions.RequestException as e:
+        return None
+    except json.JSONDecodeError as e:
+        return None
+
 def generate_message(message, prompt):
     """
     Sends API request to the running llama.cpp server.
     """
     full_prompt = f"Instruction: {prompt}\nUser: {message}\nAssistant:"
     request = GenerateRequest(user_text=full_prompt)
-    #print("request: ", request)
 
     try:
-        response = requests.post(model_path, json=request, timeout=30)
+        response = requests.post(model_path, json=request, timeout=60)  # 1 minute timeout
         response.raise_for_status()  # Raise an exception for bad status codes
         response_data = response.json()
-        #print("LLM response: ", response_data)
         
         # llama.cpp returns response in "content" field
         if "content" in response_data:
@@ -189,10 +215,8 @@ def generate_message(message, prompt):
             return str(response_data)
             
     except requests.exceptions.RequestException as e:
-        print(f"Request failed: {e}")
         return "Sorry, I'm having trouble connecting to the language model."
     except json.JSONDecodeError as e:
-        print(f"JSON decode error: {e}")
         return "Sorry, I received an invalid response from the language model."
 
 def handle_message(message: str, module_id: int = None, prompt=None):
@@ -210,26 +234,9 @@ def handle_message(message: str, module_id: int = None, prompt=None):
         response = generate_message(message, prompt)
         response = response.strip()
 
-        print(f"[DEBUG] Raw LLM response: {response}")
         
-        # Try to find JSON in the response
-        # if "{" in response and "}" in response:
-        #     json_start = response.index("{")
-        #     json_end = response.index("}") + 1
-        #     json_response = response[json_start:json_end]
-        #     print(f"[DEBUG] Extracted JSON: {json_response}")
-        #     parsed_response = ast.literal_eval(json_response)
-        #     print(f"[DEBUG] Parsed response: {parsed_response}")
-        #     return parsed_response
-        # else:
-        #     # No JSON found, create a response from the raw text
-        #     print(f"[DEBUG] No JSON found, using raw response")
-        #     clean_response = response.strip()
-        #     return {"response": clean_response}
             
     except Exception as e:
-        print(f"[DEBUG] Exception in handle_message: {e}")
-        print(f"[DEBUG] Raw response was: {response if 'response' in locals() else 'No response'}")
         return {"response" : "Sorry, Tito could not understand your message! Please try again."}
     
     return response
@@ -253,7 +260,6 @@ def detect_innapropriate_language(message: str):
         }
         
     except Exception as e:
-        print(f"Content filter error: {e}")
         # Default to appropriate if filter fails
         return {
             "is_appropriate": True,

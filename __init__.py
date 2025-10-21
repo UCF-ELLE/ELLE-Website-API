@@ -153,6 +153,7 @@ from resources.conversationElle.conversation import(
     FetchAllOwnedTitoLore,
     FetchAllUserAudio,
     Testing,
+    AIModuleGeneration,
 )
 import os
 import threading
@@ -420,6 +421,7 @@ api.add_resource(FetchAllOwnedTitoLore, API_ENDPOINT_PREFIX + "twt/professor/fet
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")
+api.add_resource(AIModuleGeneration, API_ENDPOINT_PREFIX + "ai/generate-module")
 
 
 # ===============================================

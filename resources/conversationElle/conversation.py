@@ -177,14 +177,12 @@ class UserMessages(Resource):
             #     else:
             #         tito_response_data = handle_message(message)
             # except Exception as safety_error:
-            #     print(f"Safety check failed: {safety_error}")
             tito_response = handle_message(message, module_id = module_id)
             
             # TODO: Verify data
             newTitoMessage(user_id, session_id, tito_response, module_id)
 
         except Exception as error:
-            print(f"Error communicating with Tito: {error}")
             tito_response = "Sorry, there is a bit of trouble. Please try again!"
             tito_response_data = {"response": tito_response}
 
@@ -210,7 +208,6 @@ class UserMessages(Resource):
                 return create_response(False, message="Missing required paranmeters.", status_code=404)
             return create_response(True, message="Retrieved chat history.", data=fetchModuleChatHistory(user_id, module_id)) 
         except Exception as e:
-            print("[ERROR] In UserMessages @ conversation.py")
             return create_response(False, message=f"Failed to retrieve user's messages. Error: {e}", status_code=504)
 
 class UserAudio(Resource):
@@ -698,7 +695,6 @@ class Testing(Resource):
 class ConversationAudioExport(Resource):
     def options(self):
         """Handle CORS preflight requests"""
-        print(f"\n🔥 [EXPORT-AUDIO] OPTIONS preflight called!")
         return {"message": "CORS preflight OK"}, 200
     
     @jwt_required
@@ -769,9 +765,7 @@ class ConversationAudioExport(Resource):
                 # Test ffmpeg by creating a small audio segment
                 test_audio = AudioSegment.silent(duration=100)  # 100ms of silence
                 ffmpeg_available = True
-                print("ffmpeg is available - will attempt MP3 combining")
             except Exception as ffmpeg_test_error:
-                print(f"ffmpeg not available: {ffmpeg_test_error}")
                 ffmpeg_available = False
                 
             # Try to use AudioSegment for proper audio combining
@@ -798,14 +792,12 @@ class ConversationAudioExport(Resource):
                         combined_audio += audio_segment
                         files_processed += 1
                     except Exception as audio_error:
-                        print(f"Warning: Could not process audio file {filename}: {audio_error}")
                         # Continue with other files instead of breaking
                         if files_processed == 0:
                             # If first file fails, disable ffmpeg
                             ffmpeg_available = False
                 else:
-                    print(f"Warning: Audio file not found: {file_path}")
-            
+                    pass
             # Create output directory if it doesn't exist
             output_dir = os.path.join("temp_exports")
             os.makedirs(output_dir, exist_ok=True)
@@ -820,7 +812,6 @@ class ConversationAudioExport(Resource):
                     combined_audio.export(output_filename, format="mp3")
                     return output_filename
                 except Exception as export_error:
-                    print(f"Error exporting MP3: {export_error}")
                     # Fallback to ZIP if MP3 export fails
                     return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
             else:
@@ -840,14 +831,12 @@ class ConversationAudioExport(Resource):
             #     return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
             
         except Exception as e:
-            print(f"Error combining audio files: {e}")
             # Try fallback ZIP export
             try:
                 output_dir = os.path.join("temp_exports")
                 os.makedirs(output_dir, exist_ok=True)
                 return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
             except Exception as zip_error:
-                print(f"Error creating ZIP fallback: {zip_error}")
                 return None
     
     def _create_zip_export(self, audio_files, user_id, class_id, module_id, filename_prefix):
@@ -1055,4 +1044,196 @@ class DebugAudioFiles(Resource):
 class AssignTitoLore(Resource):
     def post(self):
         return create_response(False, message='AssignTitoLore not implemented', status_code=501)
+
+
+# AI Module Generation endpoint
+class AIModuleGeneration(Resource):
+    @jwt_required
+    def post(self):
+        """
+        /elleapi/ai/generate-module
+        Generates a new module using AI/LLM with specified parameters
+        """
+        try:
+            user_id = get_jwt_identity()
+            claims = get_jwt_claims()
+            permission = claims.get('permission')
+            
+            # Only allow professors, TAs, and super admins to generate modules
+            if permission not in ['pf', 'ta', 'su']:
+                return create_response(False, message="Insufficient permissions to generate modules", status_code=403)
+            
+            data = request.get_json()
+            if not data:
+                return create_response(False, message="No JSON data provided", status_code=400)
+                
+            # Extract parameters
+            name = data.get('name')
+            target_language = data.get('targetLanguage') 
+            native_language = data.get('nativeLanguage')
+            num_terms = data.get('numTerms', 20)
+            group_id = data.get('groupID')
+            complexity = data.get('complexity', 2)
+            
+            # Validate required parameters
+            if not all([name, target_language, native_language]):
+                return create_response(False, message="Missing required parameters: name, targetLanguage, nativeLanguage", status_code=400)
+                
+            # Validate num_terms range
+            if not isinstance(num_terms, int) or num_terms < 5 or num_terms > 100:
+                return create_response(False, message="numTerms must be an integer between 5 and 100", status_code=400)
+            
+            # Use the existing create_module function from llm_functions.py
+            
+            try:
+                module_result = create_module(
+                    prompt=name,
+                    term_count=num_terms,
+                    nat_lang=native_language,
+                    target_lang=target_language
+                )
+                
+            except Exception as generation_error:
+                return create_response(
+                    False, 
+                    message=f"AI generation failed with exception: {str(generation_error)}", 
+                    status_code=500
+                )
+            
+            if not module_result or module_result.get('status') == 'error':
+                error_msg = module_result.get('message') if module_result else 'Unknown error - no response from AI'
+                return create_response(
+                    False, 
+                    message=f"AI generation failed: {error_msg}", 
+                    status_code=500
+                )
+            
+            # Create the actual module in the database
+            from db_utils import postToDB, getFromDB
+            from db import mysql
+            
+            try:
+                conn = mysql.connect()
+                cursor = conn.cursor()
+                
+                # Insert the new module into the database
+                module_insert_query = """
+                    INSERT INTO `module` (`name`, `language`, `complexity`, `userID`, `isPastaModule`) 
+                    VALUES (%s, %s, %s, %s, %s)
+                """
+                
+                cursor.execute(module_insert_query, (
+                    name, 
+                    target_language, 
+                    complexity, 
+                    user_id, 
+                    False  # isPastaModule
+                ))
+                
+                # Get the newly created module ID
+                new_module_id = cursor.lastrowid
+                
+                # Insert each AI-generated term into the database
+                terms_created = 0
+                for term in module_result.get('terms', []):
+                    try:
+                        # Insert term
+                        term_insert_query = """
+                            INSERT INTO `term` (`front`, `back`, `type`, `gender`, `language`) 
+                            VALUES (%s, %s, %s, %s, %s)
+                        """
+                        
+                        cursor.execute(term_insert_query, (
+                            term.get('native_word', ''),   # English word in 'front' field (English column)
+                            term.get('target_word', ''),   # Spanish word in 'back' field (Translated column)
+                            term.get('part_of_speech', 'noun').upper(),
+                            term.get('gender', 'N')[0].upper(),  # First letter: M/F/N
+                            target_language
+                        ))
+                        
+                        term_id = cursor.lastrowid
+                        
+                        # Create a question for this term (MATCH type)
+                        question_insert_query = """
+                            INSERT INTO `question` (`type`, `questionText`) 
+                            VALUES (%s, %s)
+                        """
+                        
+                        cursor.execute(question_insert_query, (
+                            'MATCH',
+                            f"What is '{term.get('native_word', '')}' in {target_language}?"
+                        ))
+                        
+                        question_id = cursor.lastrowid
+                        
+                        # Link question to module
+                        module_question_query = """
+                            INSERT INTO `module_question` (`moduleID`, `questionID`) 
+                            VALUES (%s, %s)
+                        """
+                        
+                        cursor.execute(module_question_query, (new_module_id, question_id))
+                        
+                        # Link term as answer to question
+                        answer_query = """
+                            INSERT INTO `answer` (`questionID`, `termID`) 
+                            VALUES (%s, %s)
+                        """
+                        
+                        cursor.execute(answer_query, (question_id, term_id))
+                        
+                        terms_created += 1
+                        
+                    except Exception as term_error:
+                        continue
+                
+                # Link module to group if specified
+                if group_id and permission != 'su':
+                    group_module_query = """
+                        INSERT INTO `group_module` (`groupID`, `moduleID`) 
+                        VALUES (%s, %s)
+                    """
+                    cursor.execute(group_module_query, (group_id, new_module_id))
+                
+                # Commit all changes
+                conn.commit()
+                
+                # Prepare response data
+                generated_content = {
+                    'terms': module_result.get('terms', []),
+                    'phrases': [],
+                    'questions': []
+                }
+                
+                return create_response(
+                    True,
+                    message=f"AI module '{name}' created successfully with {terms_created} terms!",
+                    data={
+                        'moduleID': new_module_id,
+                        'name': name,
+                        'language': target_language,
+                        'content': generated_content
+                    }
+                )
+                
+            except Exception as db_error:
+                if conn:
+                    conn.rollback()
+                return create_response(
+                    False,
+                    message=f"AI generated content but failed to save to database: {str(db_error)}",
+                    status_code=500
+                )
+            finally:
+                if conn and conn.open:
+                    cursor.close()
+                    conn.close()
+            
+        except Exception as error:
+            return create_response(
+                False, 
+                message="Internal server error during AI module generation", 
+                error=str(error),
+                status_code=500
+            )
 

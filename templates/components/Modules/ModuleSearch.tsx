@@ -15,6 +15,7 @@ import {
 } from 'reactstrap';
 import AddExistingModule from './AddExistingModule';
 import AddModuleForm from './AddModuleForm';
+import FixedAIForm from './FixedAIForm';
 import AdminView from './Views/AdminView';
 import StudentView from './Views/StudentView';
 import SuperAdminView from './Views/SuperAdminView';
@@ -81,17 +82,23 @@ export default function ModuleSearch({
                 </div>
                 <Input style={{ border: 'none' }} placeholder='Search' value={searchDeck} onChange={(e) => updateSearchDeck(e)} />
                 {permissionLevel === 'su' ? (
-                    <div style={{ display: 'flex' }}>
-                        <Button
-                            style={{
-                                backgroundColor: '#3e6184',
-                                borderRadius: '0px 12px 12px 0px'
-                            }}
-                            onClick={() => openAddModuleForm(2)}
-                        >
-                            {' '}
-                            Add Module{' '}
-                        </Button>
+                    <div>
+                        <ButtonDropdown isOpen={addModuleButtonOpen} toggle={() => setAddModuleButtonOpen(!addModuleButtonOpen)}>
+                            <DropdownToggle
+                                style={{
+                                    backgroundColor: '#3e6184',
+                                    borderRadius: '0px 12px 12px 0px',
+                                    height: '100%'
+                                }}
+                                caret
+                            >
+                                Add Module
+                            </DropdownToggle>
+                            <DropdownMenu>
+                                <DropdownItem onClick={() => setOpenForm(2)}> Add New </DropdownItem>
+                                <DropdownItem onClick={() => setOpenForm(3)}> 🤖 Generate with AI </DropdownItem>
+                            </DropdownMenu>
+                        </ButtonDropdown>
                     </div>
                 ) : null}
                 {permissionLevel === 'pf' || permissionLevel === 'ta' ? (
@@ -110,6 +117,7 @@ export default function ModuleSearch({
                             <DropdownMenu>
                                 <DropdownItem onClick={() => setOpenForm(1)}> Add Existing </DropdownItem>
                                 <DropdownItem onClick={() => setOpenForm(2)}> Add New </DropdownItem>
+                                <DropdownItem onClick={() => setOpenForm(3)}> 🤖 Generate with AI </DropdownItem>
                             </DropdownMenu>
                         </ButtonDropdown>
                     </div>
@@ -124,6 +132,14 @@ export default function ModuleSearch({
             </Modal>
             <Collapse isOpen={openForm === 2}>
                 <AddModuleForm updateModuleList={updateModuleList} classOptions={classOptions} currentClass={selectedClass} />
+            </Collapse>
+            <Collapse isOpen={openForm === 3}>
+                <FixedAIForm 
+                    updateModuleList={updateModuleList} 
+                    classOptions={classOptions} 
+                    currentClass={selectedClass}
+                    onClose={() => setOpenForm(0)}
+                />
             </Collapse>
             <Row>
                 <Col>
