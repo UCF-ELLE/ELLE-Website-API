@@ -72,6 +72,100 @@ def prewarm_llm_context(module_id, session_id):
     except Exception as error:
         print(f"Pre-warming falied: {error}")
 
+def create_module (prompt, term_count, nat_lang, target_lang):
+    """
+    Creates a blueprint for a module with an LLM prompt
+    """
+    try:
+        full_prompt = build_module_prompt(prompt, term_count, nat_lang, target_lang)
+
+        llm_response = generate_message("", build_module_prompt)
+
+        parse_terms = parse_llm_response(llm_response)
+
+    except Exception as error:
+        print(f"Module generation error: {error}")
+        return {
+            "status": "error",
+            "message": str(error),
+            "terms": []
+        }
+
+
+def build_module_prompt(prompt, term_count, nat_lang, target_lang):
+    generation_prompt = f"""You are a language education expert creating vocabulary modules.
+                            Task: Generate {term_count} vocabulary terms for a {target_lang} learning module.
+
+                            Module Description: {prompt}
+
+                            Requirements:
+                            - Native Language: {native_lang} (classroom language)
+                            - Target Language: {target_lang} (language being learned)
+                            - Generate exactly {term_count} terms relevant to: "{prompt}"
+
+                            For each term, provide ONE LINE in this EXACT format:
+                            native_word|target_word|part_of_speech|gender
+
+                            Rules:
+                            - Use pipe symbol | as separator
+                            - part_of_speech: NOUN, VERB, ADJ, ADV, PREP, etc.
+                            - gender: masculine, feminine, neutral(all adjectives will be marked this)
+                            - One term per line, no extra text
+
+                            Example for Spanish colors:
+                            red|rojo|adj|neutral
+                            blue|azul|adj|neutral
+
+                            Example for Spanish household Items:
+                            table|mesa|noun|feminine
+                            book|libro|noun|masculine
+
+                            Now generate {term_count} terms for: "{prompt}"
+                            """
+
+    return generation_prompt
+
+def parse_llm_response(llm_response):
+    try:
+        terms = []
+        lines = llm_response.strip().split('\n')
+
+        for line in lines:
+            line = line.strip()
+
+            if not line or "|" not in line:
+                continue
+
+            term_attributes = line.split("|")
+
+            if len(parts) >= 4:
+                native_word = parts[0].strip()
+                target_word = parts[1].strip()
+                part_of_speech = parts[2].strip()
+                gender = parts[3].strip()
+
+                if native_word and target_word:
+                    term = {
+                        "native_word": native_word,
+                        "target_word": target_word,
+                        "part_of_speech": part_of_speech,
+                        "gender": gender
+                    }
+
+                    # if validate_term(term):
+                    terms.addend(term)
+        return terms
+
+    except Exception as error:
+        print(f"Parsing error: {error}")
+        return []
+
+# def validate_term(term: Dict):
+#     """
+#     Validates that a term has all required fields.
+#     """
+#     required_fields = ['native_word', 'target_word', 'part_of_speech', 'gender']
+#     return all(field in term for field in required_fields)
 
 def generate_message(message, prompt):
     """
