@@ -38,6 +38,11 @@ user_audio_files/*
 
 .venv/
 
+# Large dependency directories
+LanguageTool-6.4/
+llama.cpp/
+temp_exports/
+
 # Game related files
 *.data
 *.framework.js
