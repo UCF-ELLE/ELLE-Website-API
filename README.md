@@ -21,3 +21,8 @@
 
 # Suggestions:
   - Preload user audio messages `on message hover`
+
+# Changes on upload to CHDR server:
+  - everything from tito_methods.py except flatten_list and merge_user_audio
+
+  - UPDATE endpoints from elleapi/ to /
