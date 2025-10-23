@@ -426,7 +426,7 @@ def getVoiceMessage(userID: int, messageID: int):
     if hasVoiceMessageExpired(userID, messageID):
         return None
     query = '''
-        SELECT filename, 
+        SELECT filename
         FROM `tito_voice_message` t
         WHERE t.userID = %s AND t.messageID = %s;
     '''
