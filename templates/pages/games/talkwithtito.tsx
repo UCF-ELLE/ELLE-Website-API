@@ -95,9 +95,9 @@ export default function TalkWithTito() {
 
     //Tito pop in
     setTimeout(() => {
-      if (user?.userID === 1 || user?.userID === 445){
+      // if (user?.userID === 1 || user?.userID === 445){
         setIsLoading(!isLoading);
-      }
+      // }
       setIsFading(false); // Restore opacity
     }, 700);
 
@@ -110,9 +110,9 @@ export default function TalkWithTito() {
         setModules(modules);
       };
       loadModules();
-      if (user?.userID === 1 || user?.userID === 445){
+      // if (user?.userID === 1 || user?.userID === 445){
         setIsLoading(false);
-      }
+      // }
     }
   }, [user, userLoading]);
 

@@ -8,6 +8,8 @@ from db_utils import *
 from utils import *
 from datetime import datetime, timedelta
 from exceptions_util import *
+from .conversationElle.database import isThisATitoClass, addNewGroupUserToTitoGroup
+from config import TWT_ENABLED
 import os
 import string
 import random
@@ -59,6 +61,10 @@ class Group(Resource):
                 # Users who creates a class have their accesLevel default to 'pf'
                 gu_query = "INSERT INTO `group_user` (`userID`, `groupID`, `accessLevel`) VALUES (%s, %s, %s)"
                 postToDB(gu_query, (user_id, group_id, 'pf'), conn, cursor)
+
+                if TWT_ENABLED:
+                    if isThisATitoClass(group_id):
+                        addNewGroupUserToTitoGroup(user_id, group_id)
 
                 raise ReturnSuccess("Successfully created the class.", 200)
         except CustomException as error:

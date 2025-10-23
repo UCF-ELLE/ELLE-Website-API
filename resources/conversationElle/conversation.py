@@ -242,6 +242,13 @@ class UserAudio(Resource):
             return create_response(False, message="Failed to upload. Missing required parameters.", status_code=400) 
         if isDuplicateAudioUpload(user_id, message_id):
             return create_response(False, message="User already has uploaded an audio file for this message.", status_code=403)
+        
+        if not doesUserMessageExist(message_id):
+            return create_response(False, message='invalid message id', status_code=403)
+        if not isUserInClass(user_id, class_id):
+            return create_response(False, message='user doesnt belong to this class', status_code=403)
+        if not isModuleInClass(class_id, module_id):
+            return create_response(False, message='invalid module, doesnt belong to this class', status_code=403)
 
         audio_file = request.files.get('audio')
         audio_file.seek(0)
@@ -309,6 +316,12 @@ class UserAudio(Resource):
 
         if not class_id or not message_id or not module_id:
             return create_response(False, message="Missing required query parameters.", status_code=400)
+        if not doesUserMessageExist(message_id):
+            return create_response(False, message='invalid message id', status_code=403)
+        if not isUserInClass(user_id, class_id):
+            return create_response(False, message='user doesnt belong to this class', status_code=403)
+        if not isModuleInClass(class_id, module_id):
+            return create_response(False, message='invalid module, doesnt belong to this class', status_code=403)
 
         filename = getVoiceMessage(user_id, message_id)
         if not filename:
@@ -333,10 +346,16 @@ class FetchAllUserAudio(Resource):
 
         if not class_id or not module_id:
             return create_response(False, message='missing req params', status_code=400)
+        if not isUserInClass(user_id, class_id):
+            return create_response(False, message='user doesnt belong to this class', status_code=403)
+        if not isModuleInClass(class_id, module_id):
+            return create_response(False, message='invalid module, doesnt belong to this class', status_code=403)
+
         res = merge_user_audio(class_id, module_id, user_id)
         if not res:
             return create_response(False, message='an error has occured when feteching files or no files found', status_code=500)
         return send_file(res, mimetype="audio/webm")
+
 
 # Unsure if needed as an API
 class ModuleTerms(Resource):
@@ -406,12 +425,16 @@ class Classes(Resource):
             Gets tito_classes according to classType provided
         '''
         user_id = get_jwt_identity()
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
 
         # Should be either 'all', 'active' or 'inactive'
         class_type = request.args.get('classType')
 
         if class_type is None:
             return create_response(False, message="Missing parameters in request.", status_code=400)
+        if user_permission == 'st':
+            return create_response(False, message="invalid perms", status_code=403)
 
         return create_response(True, message='returned classes', data=getTitoClasses(user_id, 'pf', class_type))
  
