@@ -16,7 +16,7 @@ const checkMockAvailable = async () => {
 // const ELLE_URL = 'https://chdr.cs.ucf.edu/elleapi';
 //const ELLE_URL = 'http://159.65.232.73/elleapi';
 // Connect directly to Flask backend running on port 5050
-const ELLE_URL = 'http://localhost:5050/elleapi';
+export const ELLE_URL = 'http://localhost:5050/elleapi';
 
 
 interface Module {

@@ -1,10 +1,9 @@
 /* Imports */
 import { useState, useEffect, useRef, useCallback, useMemo} from "react";
 import { useUser } from "@/hooks/useAuth";
-import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage, uploadAudioFile} from "@/services/TitoService";
+import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage, uploadAudioFile, ELLE_URL} from "@/services/TitoService";
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
-import SpeechRecognition, {useSpeechRecognition} from "react-speech-recognition";
 import TitoCloudBubble from "@/components/TalkWithTito/TitoCloudBubble";
 
 /* Assets */
@@ -113,40 +112,55 @@ export default function ChatScreen(props: propsInterface) {
 
     // Cloud bubble and progress + lore fetch
     useEffect(() => {
-      async function fetchProgress() {
-        try {
-          const res = await fetch("twt/session/getModuleProgress");
-          const data = await res.json();
-          // data.proficiencyRate is a float 0–100
-          if (typeof data?.proficiencyRate === "number") {
-            setProgress(data.proficiencyRate);
+      if (!user?.jwt) return;
+
+      async function getClassIdForModule(moduleID: number): Promise<string | null> {
+        // Ask backend which classes map to which modules for this user
+        const res = await fetch(`${ELLE_URL}/twt/session/access`, {
+          headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" },
+        });
+        if (!res.ok) return null;
+
+        // Backend returns something like: [[classID, [[moduleID, sequenceID], ...]], ...]
+        const data = await res.json();
+        const pairs = data?.data ?? data;
+        for (const [cID, modulesList] of pairs) {
+          for (const [mID] of modulesList) {
+            if (mID === props.moduleID) return String(cID);
           }
-        } catch (e) {
-          console.warn("Failed to fetch progress:", e);
         }
+        return null;
+      }
+
+      async function fetchProgress() {
+        // If your backend only needs moduleID, this still works;
+        // if it supports classID too, you can append it similarly to lore.
+        const res = await fetch(
+          `${ELLE_URL}/twt/session/getModuleProgress?moduleID=${props.moduleID}`,
+          { headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" } }
+        );
+        if (!res.ok) throw new Error(`Progress fetch failed ${res.status}`);
+        const data = await res.json();
+        if (typeof data?.proficiencyRate === "number") setProgress(data.proficiencyRate);
       }
 
       async function fetchLoreFromDB() {
         try {
-          // TODO: replace with your real classID and, if needed, move off /professor/ for student calls
-          const classID = 1; // TEMP
-          const url = `/elleapi/twt/professor/getTitoLore?classID=${classID}&moduleID=${props.moduleID}`;
+          const classID = await getClassIdForModule(props.moduleID);
+          if (!classID) throw new Error("No classID found for this module");
 
-          // If you have `user.jwt` available (from useUser), include it:
-          const headers: Record<string, string> = { Accept: "application/json" };
-          if (user?.jwt) headers.Authorization = `Bearer ${user.jwt}`;
-
-          const res = await fetch(url, { method: "GET", headers });
+          const res = await fetch(
+            `${ELLE_URL}/twt/session/getTitoLore?classID=${classID}&moduleID=${props.moduleID}`,
+            { headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" } }
+          );
           if (!res.ok) {
             const body = await res.text();
             throw new Error(`Lore fetch failed ${res.status}: ${body}`);
           }
 
-          // Expected: { loreID, loreText: [{ sequenceNumber:1..4, loreText:string }, ...] }
           const data = await res.json();
           const items = data?.loreText ?? [];
           const map: Partial<Record<Threshold, string>> = {};
-
           for (const row of items) {
             const t: Threshold | undefined =
               row.sequenceNumber === 1 ? 25 :
@@ -155,12 +169,10 @@ export default function ChatScreen(props: propsInterface) {
               row.sequenceNumber === 4 ? 100 : undefined;
             if (t) map[t] = row.loreText;
           }
-
           setLoreByThreshold(map);
           setLoreID(data?.loreID ?? null);
         } catch (e) {
           console.error("Lore fetch error:", e);
-          
           setLoreByThreshold({});
           setLoreID(null);
         }
@@ -168,8 +180,16 @@ export default function ChatScreen(props: propsInterface) {
 
       fetchProgress();
       fetchLoreFromDB();
-      // include `user` if you're using user.jwt in headers
     }, [props.moduleID, user]);
+
+    {props.moduleID !== -1 && (
+      <VocabList
+        wordsFront={terms?.map(t => t.questionFront)}
+        wordsBack={terms?.map(t => t.questionBack)}
+        used={terms?.map(t => t.used)}
+        progress={progress}
+      />
+    )}
 
     async function handleSendMessageClick() {
 
