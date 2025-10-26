@@ -327,7 +327,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
     const response = await axios.get(
       `${ELLE_URL}/twt/session/messages`,
       {
-        params: { moduleID: moduleId },
+        params: { moduleID: moduleId , classID: 1 },
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
@@ -402,6 +402,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     formData.append('message', userValue);
     formData.append('chatbotSID', chatbotId.toString());
     formData.append('moduleID', moduleId.toString());
+    formData.append('classID', 1);
     formData.append('isVoiceMessage', '0'); // 0 = false (text message), 1 = true (voice message)
     
     console.log(`[SendMessage] Sending with original session ID: ${chatbotId}`);
@@ -533,7 +534,7 @@ export const exportAudio = async (access_token: string, moduleId: number, chatbo
     
     // Call the audio export endpoint
     const response = await axios.get(
-      `${ELLE_URL}/twt/session/export-audio`,
+      `${ELLE_URL}/twt/session/downloadAllUserAudio`,
       {
         params: { 
           moduleID: moduleId, 
@@ -591,13 +592,13 @@ export const exportModuleAudio = async (access_token: string, moduleId: number, 
     
     // Call the new simple audio export endpoint (no JWT required)
     const response = await axios.get(
-      `${ELLE_URL}/twt/simple-export`,
+      `${ELLE_URL}/twt/session/downloadAllUserAudio`,
       {
         params: { 
           moduleID: moduleId,
           classID: classId 
         },
-        // No Authorization header needed for simple endpoint
+        headers: { Authorization: `Bearer ${access_token}` },
         responseType: 'blob' // Important for file downloads
       }
     );

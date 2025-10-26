@@ -20,6 +20,7 @@ class Group(Resource):
     def post(self):
         data = {}
         data['groupName'] = getParameter("groupName", str, True, "")
+        group_id = 0 # for TWT
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -62,16 +63,15 @@ class Group(Resource):
                 gu_query = "INSERT INTO `group_user` (`userID`, `groupID`, `accessLevel`) VALUES (%s, %s, %s)"
                 postToDB(gu_query, (user_id, group_id, 'pf'), conn, cursor)
 
-                if TWT_ENABLED:
-                    if isThisATitoClass(group_id):
-                        addNewGroupUserToTitoGroup(user_id, group_id)
-
                 raise ReturnSuccess("Successfully created the class.", 200)
         except CustomException as error:
             conn.rollback()
             return error.msg, error.returnCode
         except ReturnSuccess as success:
             conn.commit()
+            if TWT_ENABLED:
+                    if isThisATitoClass(group_id):
+                        addNewGroupUserToTitoGroup(user_id, group_id)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
@@ -192,6 +192,7 @@ class GroupRegister(Resource):
     def post(self):
         data = {}
         data['groupCode'] = getParameter("groupCode", str, True, "")
+        group_id = 0 # for TWT
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -230,6 +231,9 @@ class GroupRegister(Resource):
             return error.msg, error.returnCode
         except ReturnSuccess as success:
             conn.commit()
+            if TWT_ENABLED:
+                    if isThisATitoClass(group_id):
+                        addNewGroupUserToTitoGroup(user_id, group_id)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()

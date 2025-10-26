@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from db_utils import *
 from config import USER_VOICE_FOLDER
+from datetime import datetime
 
 db = DBHelper(mysql)
 
@@ -107,14 +108,14 @@ def addTitoClassStatus():
         if not res2:
             print(f"failed to insert titoclass {insert_data}")
 
-def createNewUserMessageTEST(userID: int, moduleID: int, chatbotSID: int, message: str, isVM: bool, source='user', dateCreated=''):
+def createNewUserMessageTEST(userID: int, moduleID: int, chatbotSID: int, message: str, isVM: bool, source='user', timedateCreated='', dateCreated=''):
     try: 
         query = '''
-            INSERT IGNORE INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage, creationTimestamp)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
+            INSERT IGNORE INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage, creationTimestamp, creationDate)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         '''
 
-        res = db.post(query, (userID, chatbotSID, moduleID, source, message, isVM, dateCreated))
+        res = db.post(query, (userID, chatbotSID, moduleID, source, message, isVM, timedateCreated, dateCreated))
         if not res or not res.get('rowcount', 0):
             return 1
         return 0
@@ -137,12 +138,13 @@ def insertOldMessages():
     
     count = 0
     for uid, sid, mid, src, msg, time in res:
-        res = createNewUserMessageTEST(userID=uid, moduleID=mid, chatbotSID=sid, message=msg, isVM=False, source=src, dateCreated=time)
+        date = time.date()
+        res = createNewUserMessageTEST(userID=uid, moduleID=mid, chatbotSID=sid, message=msg, isVM=False, source=src, timedateCreated=time, dateCreated=date)
         if res:
             count += 1
 
     
-    print(f'final count of msg added: {count}')
+    print(f'final count of msg not added: {count}')
     return
 
 def migrateChatbotSessionsTable():
@@ -172,17 +174,17 @@ def updateLiveDB():
 
 
 def merge_user_audio(class_id: int, module_id: int, user_id: int):
-    """
-    Merge all {userID}_{messageID}.webm files for a given user into one .webm file.
-    Looks inside: user_audio_files/{class_id}/{module_id}/{user_id}/
-    """
+    '''
+        Merge all {userID}_{messageID}.webm files for a given user into one .webm file.
+        Looks inside: user_audio_files/{class_id}/{module_id}/{user_id}/
+    '''
 
     base_dir = Path(USER_VOICE_FOLDER) / str(class_id) / str(module_id) / str(user_id)
     if not base_dir.exists():
         return None
         # raise FileNotFoundError(f"Audio directory not found: {base_dir}")
 
-    # Collect and sort all .webm files by messageID (numerically)
+    # sort all files by messageID
     files = sorted(
         base_dir.glob(f"{user_id}_*.webm"),
         key=lambda f: int(f.stem.split("_")[1])  # extract messageID part
@@ -200,10 +202,10 @@ def merge_user_audio(class_id: int, module_id: int, user_id: int):
 
     output_file = base_dir / f"{user_id}.webm"
 
-    # ffmpeg command (lossless concat)
+    # ffmpeg concat files
     cmd = [
         "ffmpeg",
-        "-y",  # overwrite if exists
+        "-y",
         "-f", "concat",
         "-safe", "0",
         "-i", str(concat_list),
@@ -217,7 +219,6 @@ def merge_user_audio(class_id: int, module_id: int, user_id: int):
         print("ffmpeg failed:", e.stderr.decode())
         raise
     finally:
-        concat_list.unlink(missing_ok=True)  # clean up list file
+        concat_list.unlink(missing_ok=True)  # rm tmp file
 
-    print(f"Merged {len(files)} audio files → {output_file}")
     return output_file

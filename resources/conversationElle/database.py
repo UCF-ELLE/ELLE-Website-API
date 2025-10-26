@@ -31,13 +31,19 @@ def updateTotalTimeChatted(chatbotSID):
 #
 # ================================================
 
+# Have fun trying to understand this mess xd
+# Though i tried to keep it at least somewhat organized, but it's rough...
+# The docs should clear up most of it, and this should be mostly bug-free, though not
+    # the best at error-handling... 
+# Not super fond of Python, nor that well-versed in it it, but prob would've been a good idea to
+    # use string concatenation to reduce some of the SQL queries
+
 # ================================================
 #
 # Session Logic
 #
 # ================================================
 
-# OLD:Revoke any existing and all instances of chatbot sessions & create new session for this user
 # CURRENT: Creates new chatbot_session and returns the sessionID
 def createChatbotSession(userID: int, moduleID: int):
     query_revoke_prev_sessions = '''
@@ -69,7 +75,7 @@ def isValidChatbotSession(userID: int, moduleID: int, chatbotSID: int):
     result = db.get(query, (userID, moduleID, chatbotSID), fetchOne=True)
 
     # TODO: Maybe error here?
-    if not result or not result[0]:
+    if not result or result[0]:
         return False
     return True
 
@@ -82,7 +88,7 @@ def userIsNotAStudent(user_id:int, class_id: int):
         );
     '''
     res = db.get(query, (user_id, class_id), fetchOne=True)
-    if not res or not res[0]:
+    if not res or res[0]:
         return False
     return True
 
@@ -220,15 +226,15 @@ def isUserAStudentInGroup(user_id: int, class_id: int):
 # ================================================
 
 # Gets a single user's messages + LLM responses
-def fetchModuleChatHistory(userID: int, moduleID: int):
+def fetchModuleChatHistory(userID: int, moduleID: int, class_id: int):
     query = '''
             SELECT m.messageID, m.source, m.message, m.creationTimestamp, m.isVoiceMessage
             FROM `messages` m
-            WHERE m.userID = %s AND m.moduleID = %s
+            WHERE m.userID = %s AND m.moduleID = %s AND m.classID = %s
             ORDER BY m.messageID ASC;
         '''
 
-    result = db.get(query, (userID, moduleID))
+    result = db.get(query, (userID, moduleID, class_id))
 
     messages = []
     for row in result:
@@ -244,17 +250,17 @@ def fetchModuleChatHistory(userID: int, moduleID: int):
     return messages
 
 # Name + returns messageID on success, 0 = fail
-def createNewUserMessage(userID: int, moduleID: int, chatbotSID: int, message: str, isVM: bool):
+def createNewUserMessage(userID: int, moduleID: int, chatbotSID: int, message: str, isVM: bool, class_id: int):
     try: 
         if not isValidChatbotSession(userID, moduleID, chatbotSID):
             return 0
 
         query = '''
-            INSERT IGNORE INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage, creationTimestamp)
-            VALUES (%s, %s, %s, 'user', %s, %s, NOW());
+            INSERT IGNORE INTO `messages` (userID, chatbotSID, classID, moduleID, source, message, isVoiceMessage, creationTimestamp)
+            VALUES (%s, %s, %s, %s, 'user', %s, %s, NOW());
         '''
 
-        result = db.post(query, (userID, chatbotSID, moduleID, message, isVM))
+        result = db.post(query, (userID, chatbotSID, class_id, moduleID, message, isVM))
         if result:
             if not result.get("rowcount"):
                 return 0
@@ -468,17 +474,17 @@ def hasVoiceMessageExpired(user_id: int, message_id: int):
 # ================================================
 
 # Stores LLM response
-def newTitoMessage(userID: int, chatbotSID: int, message: str, module_id: int):
+def newTitoMessage(userID: int, chatbotSID: int, class_id: int, message: str, module_id: int):
     is_valid_session = isValidChatbotSession(userID, module_id, chatbotSID)
     if not is_valid_session:
         return False
 
     query = '''
-        INSERT IGNORE INTO `messages` (`userID`, `chatbotSID`, `moduleID`, `source`, `message`, `isVoiceMessage`)
-        VALUES (%s, %s, %s, 'llm', %s, 0);
+        INSERT IGNORE INTO `messages` (`userID`, `chatbotSID`, `classID`, `moduleID`, `source`, `message`, `isVoiceMessage`)
+        VALUES (%s, %s, %s, %s, 'llm', %s, 0);
     '''
 
-    res = db.post(query, (userID, chatbotSID, module_id, message))
+    res = db.post(query, (userID, chatbotSID, class_id, module_id, message))
     if not res:
         return False
     return False if not res.get("rowcount") else True
@@ -803,6 +809,220 @@ def isTitoLoreOwner(owner_id: int, lore_id: int):
     if not res:
         return False
     return res[0]
+
+# TODO: this is a monstrosity, i am sorry... D: i should've used str concat instead 
+def profGetStudentMessages(student_id=None, class_id=None, module_id=None, date_from=None, date_to=None):
+    if not student_id and not module_id and not class_id:
+        return None
+    # get all students for this module
+    if not student_id and module_id and class_id: 
+        if date_from and date_to: # all in range
+
+            try:
+                date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+                date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+            except Exception:
+                return None
+
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `moduleID` = %s AND creationDate >= %s AND creationDate <= %s
+                ORDER BY `userID`, `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, module_id, date_from, date_to))
+            if not res:
+                return None
+            return res
+        elif date_from: # all since X
+            try:
+                date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+            except Exception:
+                return None
+
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `moduleID` = %s AND creationDate >= %s
+                ORDER BY `userID`, `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, module_id, date_from))
+            if not res:
+                return None
+            return res
+        elif date_to: # all to Y
+            try:
+                date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+            except Exception:
+                return None
+
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `moduleID` = %s AND creationDate <= %s
+                ORDER BY `userID`, `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, module_id, date_to))
+            if not res:
+                return None
+            return res
+        else: 
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `moduleID` = %s
+                ORDER BY `userID`, `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, module_id))
+            if not res:
+                return None
+            return res
+    
+    # get a specfic module for this student
+    elif student_id and module_id and class_id: 
+        if date_from and date_to: # get date range
+            try:
+                date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+                date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+            except Exception:
+                return None
+
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `moduleID` = %s AND `userID` = %s AND creationDate >= %s AND creationDate <= %s
+                ORDER BY `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, module_id, student_id, date_from, date_to))
+            if not res:
+                return None
+            return res
+        elif date_from: # since X
+            try:
+                date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+            except Exception:
+                return None
+
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `moduleID` = %s AND `userID` = %s AND creationDate >= %s
+                ORDER BY `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, module_id, student_id, date_from))
+            if not res:
+                return None
+            return res
+        elif date_to:
+            try:
+                date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+            except Exception:
+                return None
+
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `moduleID` = %s AND `userID` = %s AND creationDate <= %s
+                ORDER BY `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, module_id, student_id, date_to))
+            if not res:
+                return None
+            return res
+        else: 
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `moduleID` = %s AND `userID` = %s
+                ORDER BY `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, module_id, student_id))
+            if not res:
+                return None
+            return res
+
+    # everything about student
+    elif student_id and class_id:
+        if date_from and date_to: # get all messages from student in this date range
+            try:
+                date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+                date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+            except Exception:
+                return None
+
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `userID` = %s AND creationDate >= %s AND creationDate <= %s
+                ORDER BY `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, student_id, date_from, date_to))
+            if not res:
+                return None
+            return res
+        elif date_from: # get all messages from student since X date
+            try:
+                date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+            except Exception:
+                return None
+
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `userID` = %s AND creationDate >= %s
+                ORDER BY `moduleID`, `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, student_id, date_from))
+            if not res:
+                return None
+            return res
+        elif date_to: # get all messages from student up to Y date
+            try:
+                date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+            except Exception:
+                return None
+
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND `userID` = %s AND creationDate <= %s
+                ORDER BY `moduleID`, `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, student_id, date_to))
+            if not res:
+                return None
+            return res
+        else:
+            query = '''
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`
+                FROM `messages`
+                WHERE `classID` = %s AND userID = %s
+                ORDER BY `moduleID`, `creationTimestamp`
+                ASC;
+            '''
+            res = db.get(query, (class_id, student_id))
+            if not res:
+                return None
+            return res
+    return None
+
+def getClassMessages(class_id: int):
+
+    return
+
+def getAllMessages():
+    return
 # ================================================
 #
 # Modules-Related
@@ -818,6 +1038,44 @@ def getTitoModules(classID: int, status='active'):
     '''
 
     return db.get(query, (classID, status))
+
+# Returns a list of modules assigned to a classID
+def getClassModules(class_id: int, status='any'):
+    if status == 'active':
+        query = '''
+            SELECT `moduleID`
+            FROM `tito_module`
+            WHERE `classID` = %s AND 'status' = %s
+            ORDER BY `sequenceID`;
+        '''
+        res = db.get(query, (class_id, status))
+        if not res:
+            return []
+        return flatten_list(res)
+    elif status == 'inactive':
+        query = '''
+            SELECT `moduleID`
+            FROM `tito_module`
+            WHERE `classID` = %s AND 'status' = %s
+            ORDER BY `sequenceID`;
+        '''
+        res = db.get(query, (class_id, status))
+        if not res:
+            return []
+        return flatten_list(res)
+    else: # 'any'
+        query = '''
+            SELECT `moduleID`
+            FROM `tito_module`
+            WHERE `classID` = %s
+            ORDER BY `sequenceID`;
+        '''
+        res = db.get(query, (class_id,))
+        if not res:
+            return []
+        return flatten_list(res)
+
+
 
 # TODO: check if this works w/ not instead of not None
 def isActiveTitoModule(classID: int, moduleID: int):

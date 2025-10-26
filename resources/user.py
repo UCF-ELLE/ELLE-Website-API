@@ -309,9 +309,7 @@ class UserRegister(Resource):
         except ReturnSuccess as success:
             conn.commit()
             if TWT_ENABLED and group_id:
-                print("working1")
                 addNewGroupUserToTitoGroup(user_id, group_id)
-                print("working2")
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()

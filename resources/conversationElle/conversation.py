@@ -13,6 +13,7 @@ from pydub import AudioSegment
 from .llm_functions import *
 from .utils import *
 from .tito_methods import updateLiveDB, merge_user_audio
+from datetime import datetime
 
 USER_VOICE_FOLDER = "user_audio_files/"
 
@@ -23,16 +24,15 @@ USER_VOICE_FOLDER = "user_audio_files/"
 # NOTE: data = request.form is for {Content-Type = application/x-www-form-urlencoded} not application/JSON
 # TODO: Free chat AND module-based chats to be worked on
 
-# Check if user can access TWT (Must be enrolled in an active class AND assigned a Tito Module)
+# Check if user can access TWT 
+# (Must be enrolled in an active tito class AND assigned an active Tito Module)
 class TitoAccess(Resource):
     @jwt_required
     def get(self):
         '''
-        /elleapi/twt/session/access
-            Requires server permission to be able to use Talking with Tito (TWT)
-                - Any user of any access_level [pf, ta, st] may be able to use TWT
-                - Returns: active, tito-enabled, class:[modules] where a user has access to 
-                    A (?) list of tuples [(classID, [(tito_module_id, sequence_id)])]
+            /elleapi/twt/session/access
+                - Returns: active, tito-enabled, class->[modules] where a user has access to 
+                    A list of tuples [(classID, [(tito_module_id, sequence_id)])]
                     EX  [
                             (
                                 class_id=1,
@@ -118,15 +118,16 @@ class UserMessages(Resource):
         session_id = data.get('chatbotSID')
         module_id = data.get('moduleID')
         is_vm = data.get('isVoiceMessage')
+        class_id = data.get('classID')
 
         # print(f'{message} and {session_id} and {module_id} and {is_vm}')
 
-        if not session_id or not module_id or not message or is_vm is None:
+        if not session_id or not module_id or not message or is_vm is None or not class_id:
             return create_response(False, message="Missing required parameters.", status_code=404)
 
 
         # Attempts to add message to DB, 0/None = error, success returns msg_id
-        new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id,chatbotSID=session_id, message=message, isVM=is_vm)
+        new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id,chatbotSID=session_id, message=message, isVM=is_vm, class_id=class_id)
         if not new_msg_id:
             return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
 
@@ -148,8 +149,6 @@ class UserMessages(Resource):
                 add_message(message=res, module_id=module_id, user_id=user_id, message_id=0, chatbot_sid=0, update_db=False)
 
             res = updateMessageScore(new_msg_id, msg_score)
-            # print(f"message score is {msg_score}")
-
 
         # TODO: a freechat session ADD SUPPORT FOR IT
         # Send to spacy service to parse key terms if NOT in free chat mode
@@ -173,13 +172,11 @@ class UserMessages(Resource):
             #     print(f"Safety check failed: {safety_error}")
             tito_response = handle_message(message, module_id = module_id)
             
-            print("this1")
             # tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
             print(tito_response)
             
             # TODO: Verify data
-            newTitoMessage(user_id, session_id, tito_response, module_id)
-            print("this3")
+            newTitoMessage(user_id, session_id, class_id, tito_response, module_id)
 
         except Exception as error:
             print(f"Error communicating with Tito: {error}")
@@ -203,10 +200,11 @@ class UserMessages(Resource):
         try:
             data = request.form
             module_id = request.args.get('moduleID')
+            class_id = request.args.get('classID')
             
-            if not module_id:
+            if not module_id or not class_id:
                 return create_response(False, message="Missing required paranmeters.", status_code=404)
-            return create_response(True, message="Retrieved chat history.", data=fetchModuleChatHistory(user_id, module_id)) 
+            return create_response(True, message="Retrieved chat history.", data=fetchModuleChatHistory(user_id, module_id, class_id)) 
         except Exception as e:
             print("[ERROR] In UserMessages @ conversation.py")
             return create_response(False, message=f"Failed to retrieve user's messages. Error: {e}", status_code=504)
@@ -664,17 +662,50 @@ class FetchAllOwnedTitoLore(Resource):
             return create_response(False, message='failed to retrieve info or user has no owned tito lore', status_code=500)  
         return create_response(True, message="returned owned tito lores", loreData=res)
 
-# NOTE: Doesnt work due to current implementation
-# class CreateTitoLore(Resource):
-#     @jwt_required
-#     def post(self):
-#         user_id = get_jwt_identity()
-#         data = request.form
-#         lore_id = data.get('titoLoreID')
+class PFGetStudentMessages(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            Returns a list of messages in json
+        '''
 
-#         if not lore_id:
-#             return create_response(False, message="invalid params", status_code=403)
+        user_id = get_jwt_identity()
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
+
+        student_id = request.args.get('studentID')
+        class_id = request.args.get('classID')
+        module_id = request.args.get('moduleID')
+        filter_date_from = request.args.get('dateFrom')
+        filter_date_to = request.args.get('dateTo')
+
+        if not student_id and not class_id and not module_id:
+            return create_response(False, message='insufficient params provided', status_code=403)
+        if not (module_id and class_id) and not (student_id and class_id):
+            return create_response(False, message='insufficient params provided', status_code=403)
+
         
+        if user_permission == 'st':
+            return create_response(False, message='insufficient perms', status_code=403)
+        if not isUserInClass(user_id, class_id) and not user_permission == 'su':
+            return create_response(False, message='invalid access', status_code=403)
+        if module_id: 
+            if not isTitoModule(class_id, module_id):
+                return create_response(False, message='invalid module request.', status_code=403)
+        
+        # if user_permission == 'su':
+        res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
+        if not res:
+            return create_response(False, message='failed to retrieve modules. may be missing required params', status_code=404)
+
+        # Have to convert sql datetime back to str format
+        newres = []
+        for tup in res:
+            newres.append(tup[:6] + (tup[6].strftime('%Y-%m-%d %H:%M:%S'),) + tup[7:])
+
+        return create_response(True, message='returned messages', data=newres)
+        # else:
+            
 
 # ========================================
 # ++++++ DB MIGRATION TEMPORARY ++++++

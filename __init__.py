@@ -149,6 +149,7 @@ from resources.conversationElle.conversation import(
     UpdateTitoLore,
     FetchAllOwnedTitoLore,
     FetchAllUserAudio,
+    PFGetStudentMessages,
 
     Testing,
 )
@@ -408,13 +409,15 @@ api.add_resource(UpdateLoreAssignment, API_ENDPOINT_PREFIX + "twt/professor/chan
 api.add_resource(CreateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/createNewTitoLore")
 api.add_resource(UpdateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/updateTitoLore")
 api.add_resource(FetchAllOwnedTitoLore, API_ENDPOINT_PREFIX + "twt/professor/fetchOwnedTitoLore")
+api.add_resource(PFGetStudentMessages, API_ENDPOINT_PREFIX + "twt/professor/getStudentMessages")
 
 
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
+
+# Temporary
 api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")
 
 
@@ -440,5 +443,5 @@ if __name__ == "__main__":
         # Monthly clean up to delete old audio files, and expire classes that have since expired
         # Occurs the 1st of every month @ 2:00 AM
         scheduler = BackgroundScheduler()
-        scheduler.add_job(cleanup_expired_groups, 'cron', day=1, hour=2, minute=0)
+        cheduler.add_job(cleanup_expired_groups, 'cron', day_of_week='sun', hour=1, minute=0)
         scheduler.start()
