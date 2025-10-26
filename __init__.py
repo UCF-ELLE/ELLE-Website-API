@@ -443,5 +443,5 @@ if __name__ == "__main__":
         # Monthly clean up to delete old audio files, and expire classes that have since expired
         # Occurs the 1st of every month @ 2:00 AM
         scheduler = BackgroundScheduler()
-        cheduler.add_job(cleanup_expired_groups, 'cron', day_of_week='sun', hour=1, minute=0)
+        scheduler.add_job(cleanup_expired_groups, 'cron', day_of_week='sun', hour=1, minute=0)
         scheduler.start()
