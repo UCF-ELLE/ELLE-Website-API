@@ -65,17 +65,15 @@ def createChatbotSession(userID: int, moduleID: int):
 # TODO: Check logic, test with existing but expired, current and existing nonE, and future nonExist
 def isValidChatbotSession(userID: int, moduleID: int, chatbotSID: int):
     query = '''
-        SELECT EXISTS(
-            SELECT `isActiveSession`
-            FROM `chatbot_sessions`
-            WHERE `userID` = %s AND `moduleID` = %s AND `chatbotSID` = %s
-        );
+        SELECT `isActiveSession`
+        FROM `chatbot_sessions`
+        WHERE `userID` = %s AND `moduleID` = %s AND `chatbotSID` = %s;
     '''
 
     result = db.get(query, (userID, moduleID, chatbotSID), fetchOne=True)
 
     # TODO: Maybe error here?
-    if not result or result[0]:
+    if not result or not result[0]:
         return False
     return True
 
