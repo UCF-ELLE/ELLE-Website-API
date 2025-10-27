@@ -82,6 +82,14 @@ def create_module (prompt, term_count, nat_lang, target_lang):
         llm_response = generate_message("", build_module_prompt)
 
         parse_terms = parse_llm_response(llm_response)
+        
+
+        # "native_word": native_word,
+        #                 "target_word": target_word,
+        #                 "part_of_speech": part_of_speech,
+        #                 "gender": gender
+
+        return parse_terms
 
     except Exception as error:
         print(f"Module generation error: {error}")
@@ -99,7 +107,7 @@ def build_module_prompt(prompt, term_count, nat_lang, target_lang):
                             Module Description: {prompt}
 
                             Requirements:
-                            - Native Language: {native_lang} (classroom language)
+                            - Native Language: {nat_lang} (classroom language)
                             - Target Language: {target_lang} (language being learned)
                             - Generate exactly {term_count} terms relevant to: "{prompt}"
 

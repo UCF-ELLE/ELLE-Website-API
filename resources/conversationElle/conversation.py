@@ -706,6 +706,32 @@ class PFGetStudentMessages(Resource):
         return create_response(True, message='returned messages', data=newres)
         # else:
             
+class GenerateModule(Resource):
+    # @jwt_required
+    def get(self):
+        '''
+            Returns a list of messages in json
+        '''
+
+        # user_id = get_jwt_identity()
+        # claims = get_jwt_claims()
+        # user_permission = claims.get("permission")
+
+        prompt = request.args.get('prompt')
+        term_count = request.args.get('termCount')
+        native_lang = request.args.get('nativeLanguage')
+        target_lang = request.args.get('targetLanguage')
+
+        if not prompt or not term_count or term_count == 0 or not native_lang or not target_lang:
+            return create_response(False, message='insufficient params provided', status_code=400)
+
+
+        res = create_module(prompt, term_count, native_lang, target_lang)
+        if not res:
+            return create_response(False, message='failed to generate module outline', status_code=201)
+
+        return create_response(message='returned sample terms', data=res)
+
 
 # ========================================
 # ++++++ DB MIGRATION TEMPORARY ++++++
