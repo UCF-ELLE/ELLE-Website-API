@@ -23,6 +23,10 @@
   - inserts/updates to `tito` tables
   - in convgrader.py > suggest_grade() figure out how to match errors to key terms
   - CREATE TRIGGER WHEN A MODULE IS TITO-FIED for `tito_lore` table
+  - Remove concatenated user audio files from the fs in the cron scheduler `{userID}.webm`
+
+  - Weird addNewTitoModule() logic in database.py, plz fix
+  - addNewGroupUserToTitoGroup() too
 
 # Suggestions:
   - Preload user audio messages `on message hover`

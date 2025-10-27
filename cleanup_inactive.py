@@ -44,3 +44,6 @@ def cleanup_expired_groups():
         if os.path.exists(class_path) and not os.listdir(class_path):
             print(f"[INFO] Deleting empty class folder: {class_path}")
             os.rmdir(class_path)
+
+def cleanup_old_combined_useraudio_files():
+    return

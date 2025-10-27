@@ -54,7 +54,7 @@ def createChatbotSession(userID: int, moduleID: int):
     db.post(query_revoke_prev_sessions, (userID,))
 
     query = '''
-        INSERT IGNORE INTO `chatbot_sessions` (`userID`, `moduleID`, `isActiveSession`)
+        INSERT INTO `chatbot_sessions` (`userID`, `moduleID`, `isActiveSession`)
         VALUES (%s, %s, 1);
     '''
 
@@ -254,7 +254,7 @@ def createNewUserMessage(userID: int, moduleID: int, chatbotSID: int, message: s
             return 0
 
         query = '''
-            INSERT IGNORE INTO `messages` (userID, chatbotSID, classID, moduleID, source, message, isVoiceMessage, creationTimestamp)
+            INSERT INTO `messages` (userID, chatbotSID, classID, moduleID, source, message, isVoiceMessage, creationTimestamp)
             VALUES (%s, %s, %s, %s, 'user', %s, %s, NOW());
         '''
 
@@ -415,7 +415,7 @@ def updateMisspellings(user_id: int, module_id: int, term_id: int):
 # Expire user audio files 7 months from date of recording for housekeeping
 def storeVoiceMessage(userID: int, messageID: int, filename: str, chatbotSID: int):
     query = '''
-        INSERT IGNORE INTO `tito_voice_message` (userID, messageID, filename, chatbotSID, audioExpireDate)
+        INSERT INTO `tito_voice_message` (userID, messageID, filename, chatbotSID, audioExpireDate)
         VALUES (%s, %s, %s, %s, DATE_ADD(CURDATE(), INTERVAL 7 MONTH));
     '''
     
@@ -478,7 +478,7 @@ def newTitoMessage(userID: int, chatbotSID: int, class_id: int, message: str, mo
         return False
 
     query = '''
-        INSERT IGNORE INTO `messages` (`userID`, `chatbotSID`, `classID`, `moduleID`, `source`, `message`, `isVoiceMessage`)
+        INSERT INTO `messages` (`userID`, `chatbotSID`, `classID`, `moduleID`, `source`, `message`, `isVoiceMessage`)
         VALUES (%s, %s, %s, %s, 'llm', %s, 0);
     '''
 
@@ -507,13 +507,13 @@ def addNewTitoModule(module_id, class_id):
 
     print(res[0])
 
-    db.post("INSERT IGNORE INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
+    db.post("INSERT INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
     # 1. Get ALL users assigned to class (even non students)
     users = db.get("SELECT DISTINCT userID FROM group_user WHERE groupID = %s;", (class_id,))
 
     # 2. Create tito_module_progress for all users
     module_user_pair = [(module_id, user) for user in users]
-    db.post("INSERT IGNORE INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_user_pair)
+    db.post("INSERT INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_user_pair)
 
     # 3. Get all termIDs for this module
     term_ids = db.get(
@@ -532,13 +532,13 @@ def addNewTitoModule(module_id, class_id):
 
     # term_ids = flatten_list(term_ids)
 
-    # 4. Insert IGNORE into tito_term_progress
+    # 4. Insert into tito_term_progress
     term_progress_data = [(user, module_id, term_id) for term_id in term_ids for user in users]
     # for a, b, c in term_progress_data:
         # print(f'{a} to {b} to {c}')
     # print("added titoModule")
     # print(term_progress_data)
-    db.post("INSERT IGNORE INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);", term_progress_data)
+    db.post("INSERT INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);", term_progress_data)
     return 
 
 def addNewGroupUserToTitoGroup(user_id, class_id):
@@ -565,7 +565,7 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
     # 3. Create module progress entries for each module
     module_progress_data = [(m, user_id) for m in module_ids]
     db.post(
-            "INSERT IGNORE INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_progress_data
+            "INSERT INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_progress_data
         )
 
     print(f'module_progress_data: {module_progress_data}')
@@ -591,7 +591,7 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
         if term_ids:
             term_progress_data = [(user_id, module_id, term_id) for term_id in term_ids]
             db.post(
-                "INSERT IGNORE INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);",
+                "INSERT INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);",
                 term_progress_data
             )
 
@@ -649,7 +649,7 @@ def updateTitoClassStatus(user_id: int, class_id: int):
         return False
     return True
 
-def isTitoClass(user_id: int, class_id: int):
+def isTitoClassOwner(user_id: int, class_id: int):
     query = '''
         SELECT EXISTS(
             SELECT * 
@@ -672,7 +672,7 @@ def isThisATitoClass(class_id: int):
 
 def createTitoClass(user_id: int, class_id: int):
     query = '''
-        INSERT IGNORE INTO `tito_class_status` (`classID`, `professorID`, `titoExpirationDate`) 
+        INSERT INTO `tito_class_status` (`classID`, `professorID`, `titoExpirationDate`) 
         VALUES (%s,%s,DATE_ADD(CURDATE(), INTERVAL 12 MONTH));
     '''
     res = db.post(query, (class_id, user_id))
@@ -773,7 +773,7 @@ def insertTitoLore(owner_id: int, lore_text: [str]):
         return False
 
     lore_id_query = '''
-        INSERT IGNORE INTO `tito_lore` (ownerID)
+        INSERT INTO `tito_lore` (ownerID)
         VALUES (%s);
     '''
 
@@ -785,7 +785,7 @@ def insertTitoLore(owner_id: int, lore_text: [str]):
     idx = 1
     for text in lore_text:
         query = '''
-            INSERT IGNORE INTO tito_lore_text (loreID, sequenceNumber, loreText)
+            INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText)
             VALUES (%s, %s, %s);
         '''
         res = db.post(query, (lore_id, idx, text))
@@ -812,7 +812,7 @@ def isTitoLoreOwner(owner_id: int, lore_id: int):
 def profGetStudentMessages(student_id=None, class_id=None, module_id=None, date_from=None, date_to=None):
     if not student_id and not module_id and not class_id:
         return None
-    # get all students for this module
+    # get all students for this module and class
     if not student_id and module_id and class_id: 
         if date_from and date_to: # all in range
 

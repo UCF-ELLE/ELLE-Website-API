@@ -4,7 +4,7 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt_claims
 # from .config import free_prompt
 from config import MAX_AUDIO_SIZE_BYTES, MAX_AUDIO_LENGTH_SEC, FREE_CHAT_MODULE
-from utils import create_response
+from utils import create_response, is_ta
 from .database import * 
 from .spacy_service import add_message
 from .convo_grader import suggest_grade as grade_message
@@ -350,6 +350,7 @@ class FetchAllUserAudio(Resource):
             return create_response(False, message='invalid module, doesnt belong to this class', status_code=403)
 
         res = merge_user_audio(class_id, module_id, user_id)
+        print(res)
         if not res:
             return create_response(False, message='an error has occured when feteching files or no files found', status_code=500)
         return send_file(res, mimetype="audio/webm")
@@ -457,7 +458,7 @@ class AddTitoModule(Resource):
             create_response(False, message="Missing parameters.", status_code=404)
         if not userIsNotAStudent(user_id, class_id):
             return create_response(False, message="user does not have required privileges.", status_code=403)
-        if not isTitoClass(user_id, class_id):
+        if not isTitoClassOwner(user_id, class_id):
             return create_response(False, message="Class is not currently a tito class.", status_code=403)
         if isTitoModule(class_id, module_id):
             return create_response(False, message="module is already a tito module.", status_code=404)
@@ -490,7 +491,7 @@ class UpdateTitoModule(Resource):
             return create_response(False, message="failed to change anything, missing params.")
         if not userIsNotAStudent(user_id, class_id):
             return create_response(False, message="user does not have required privileges.", status_code=403)
-        if not isTitoClass(user_id, class_id):
+        if not isTitoClassOwner(user_id, class_id):
             return create_response(False, message="Class is not currently a tito class.", status_code=403)
         if not isTitoModule(class_id, module_id):
             return create_response(False, message="module is not a tito module.", status_code=403)
@@ -523,7 +524,7 @@ class UpdateTitoClass(Resource):
             return create_response(False, message="invalid params", status_code=403)
         if not userIsNotAStudent(user_id, class_id):
             return create_response(False, message="invalid perms", status_code=403)
-        if not isTitoClass(user_id, class_id):
+        if not isTitoClassOwner(user_id, class_id):
             if createTitoClass(user_id, class_id):
                 return create_response(True, message="Successfully made class into a tito-enabled class")
             else:
@@ -666,7 +667,15 @@ class PFGetStudentMessages(Resource):
     @jwt_required
     def get(self):
         '''
-            Returns a list of messages in json
+            Front end should handle the drop down logic by using the other APIs to feed in info
+            Admins are provided access TO everything, here the logic gets tricky if populating the drop downs
+            
+            Purpose: retrieves user messages according to the provided parameters with the ability to constrain results via date ranges
+
+            dates expected format: str(YYYY-MM-DD)
+
+            TODO: Support paging?
+
         '''
 
         user_id = get_jwt_identity()
@@ -674,29 +683,42 @@ class PFGetStudentMessages(Resource):
         user_permission = claims.get("permission")
 
         student_id = request.args.get('studentID')
-        class_id = request.args.get('classID')
+        class_id = request.args.get('classID') # the minimum requirement, paired with either studentID or moduleID
         module_id = request.args.get('moduleID')
         filter_date_from = request.args.get('dateFrom')
         filter_date_to = request.args.get('dateTo')
 
+        is_ta = False
+        is_tito_class = False
+
+        if user_permission == 'st':
+            return create_response(False, message='insufficient perms', status_code=403)
         if not student_id and not class_id and not module_id:
             return create_response(False, message='insufficient params provided', status_code=403)
         if not (module_id and class_id) and not (student_id and class_id):
             return create_response(False, message='insufficient params provided', status_code=403)
-
-        
-        if user_permission == 'st':
-            return create_response(False, message='insufficient perms', status_code=403)
-        if not isUserInClass(user_id, class_id) and not user_permission == 'su':
-            return create_response(False, message='invalid access', status_code=403)
-        if module_id: 
+        # Check for if user has proper access to resources, either su (access to all), a pf or ta
+        if module_id:
             if not isTitoModule(class_id, module_id):
-                return create_response(False, message='invalid module request.', status_code=403)
-        
-        # if user_permission == 'su':
-        res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
+                return create_response(False, message='Module isnt a tito module', status_code=403)
+            
+            is_ta = is_ta(user_id, class_id)
+            is_tito_class = isTitoClassOwner(user_id, class_id)
+
+            if not is_ta and not isTitoClassOwner and not user_permission == 'su':
+                return create_response(False, message='user doesnt have access to this class and/or module does not belong to provided class', status_code=403)
+        if student_id and not isUserInClass(student_id, class_id):
+            return create_response(False, message='student provided not enrolled in class given', status_code=403)
+
+        res = ''
+        if user_permission == 'su':
+            res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
+        else:
+            if is_ta or is_tito_class: # either the professor or ta of a class authority
+                res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
+
         if not res:
-            return create_response(False, message='failed to retrieve modules. may be missing required params', status_code=404)
+            return create_response(False, message='failed to retrieve modules. may be missing required params or filters were too strict', status_code=404)
 
         # Have to convert sql datetime back to str format
         newres = []
@@ -704,8 +726,16 @@ class PFGetStudentMessages(Resource):
             newres.append(tup[:6] + (tup[6].strftime('%Y-%m-%d %H:%M:%S'),) + tup[7:])
 
         return create_response(True, message='returned messages', data=newres)
-        # else:
-            
+
+class AdminFetchData(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            TBC
+        '''
+        
+        return
+
 class GenerateModule(Resource):
     # @jwt_required
     def get(self):
