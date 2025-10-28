@@ -299,7 +299,7 @@ CREATE TRIGGER addFreeChatModule
 AFTER INSERT ON `tito_class_status`
 FOR EACH ROW
 BEGIN
-  INSERT INTO `tito_module` (moduleID, classID)
+  INSERT IGNORE INTO `tito_module` (moduleID, classID)
   VALUE (74, new.classID);
 END //
 DELIMITER ;
