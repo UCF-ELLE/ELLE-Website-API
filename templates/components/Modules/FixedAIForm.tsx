@@ -97,7 +97,10 @@ export default function FixedAIForm({
                 setTimeout(() => setStatus(false), 5000);
             }
         } catch (error) {
-            setStatusMessage(`Network error: ${error.message || 'Unknown error'}. Please check console for details.`);
+            const errorMessage = error instanceof Error 
+        ? error.message 
+        : String(error) || 'Unknown error';
+            setStatusMessage(`Network error: ${errorMessage || 'Unknown error'}. Please check console for details.`);
             setSuccess(false);
             setTimeout(() => setStatus(false), 5000);
         }
