@@ -8,7 +8,7 @@ ADD UNIQUE (`groupID`, `userID`);
 
 
 -- -- The free chat module
-INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en', 1, 'FREE_CHAT_MODULE');
+-- INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (228, 'en', 1, 'FREE_CHAT_MODULE');
 
 
 -- Update a certain group to have all modules
@@ -16,7 +16,7 @@ INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en',
 -- universal student account
 -- ucf2
 -- cooler
--- Group 1 has ACCESS to ALL MODULES and they are also TITO MODULES
+-- Group 74 has ACCESS to ALL MODULES and they are also TITO MODULES
 -- INSERT INTO group_module (groupID, moduleID)
 -- SELECT DISTINCT 1 AS groupID, m.moduleID 
 -- FROM `module` m;
@@ -24,24 +24,25 @@ INSERT INTO `module` (`moduleID`, `language`, `userID`, `name`) VALUES (3, 'en',
 -- INSERT INTO group_user (userID, groupID, accessLevel)
 -- VALUES (1, 1, 'pf');
 
+-- Insert all modules into class 74
 INSERT IGNORE INTO group_module (moduleID, groupID)
-SELECT DISTINCT moduleID as moduleID, 1
+SELECT DISTINCT moduleID as moduleID, 74
 FROM `module`;
 
-INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
-VALUES (1, 1, 'pf');
+-- INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
+-- VALUES (1, 1, 'pf');
 
 -- INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
 -- SELECT DISTINCT 1, 1, 'pf'
 -- FROM `group_user` gu;
 
-UPDATE `group_user`
-SET `accessLevel` = 'pf'
-WHERE `userID` = 1;
+-- UPDATE `group_user`
+-- SET `accessLevel` = 'pf'
+-- WHERE `userID` = 1;
 
-UPDATE `user`
-SET `permissionGroup` = 'su'
-WHERE `userID` = 1;
+-- UPDATE `user`
+-- SET `permissionGroup` = 'su'
+-- WHERE `userID` = 1;
 
 
 -- REGISTER A NEW USER FIRST BEFORE PROCEEDING
@@ -52,16 +53,16 @@ WHERE `userID` = 1;
 
 
 -- THIS IS THE STUDENT WITH ACCESS TO ALL T-MODULES
-INSERT INTO group_user (userID, groupID, accessLevel)
-VALUES (473, 1, 'st');
+-- INSERT INTO group_user (userID, groupID, accessLevel)
+-- VALUES (473, 1, 'st');
 
-UPDATE `group_user`
-SET `accessLevel` = 'st'
-WHERE `userID` = 473;
+-- UPDATE `group_user`
+-- SET `accessLevel` = 'st'
+-- WHERE `userID` = 473;
 
-UPDATE `user`
-SET `permissionGroup` = 'st'
-WHERE `userID` = 473;
+-- UPDATE `user`
+-- SET `permissionGroup` = 'st'
+-- WHERE `userID` = 473;
 -- REPLACE TO HERE
 
 
@@ -94,7 +95,7 @@ CREATE TABLE `chatbot_sessions` (
 
 -- FIX FREE CHAT ISSUE
 UPDATE `chatbot_sessions_old`
-SET `moduleId` = 3
+SET `moduleId` = 228
 WHERE `moduleId` = -1;
 
 
@@ -127,7 +128,7 @@ CREATE TABLE `messages` (
 
 -- ID = -1 DNE in real db, so replace with an actual module
 UPDATE `messages_old`
-SET `moduleId` = 3
+SET `moduleId` = 228
 WHERE `moduleId` = -1;
 
 
@@ -244,25 +245,25 @@ INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 2, "Tit
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 3, "A vivid scene returns: a seaside market and familiar voices.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (1, 4, "Tito has fully regained his memory thanks to you!");
 
-INSERT INTO `tito_lore` (`ownerID`) VALUES (2);
+INSERT INTO `tito_lore` (`ownerID`) VALUES (1);
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 1, "A name surfaces… maybe ‘Mira’? Tito isn’t sure.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 2, "He remembers a small boat and a song he used to hum.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 3, "Faces blur into focus—market stalls, a blue kite, laughter.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (2, 4, "Everything clicks into place—Tito’s story is whole again!");
 
-INSERT INTO `tito_lore` (`ownerID`) VALUES (3);
+INSERT INTO `tito_lore` (`ownerID`) VALUES (1);
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 1, "A torn journal page appears—ink smeared, date missing.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 2, "Another page: a recipe in the margins and a note to self.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 3, "The pages stitch together—directions to somewhere by the pier.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (3, 4, "The journal closes; Tito remembers every chapter.");
 
-INSERT INTO `tito_lore` (`ownerID`) VALUES (4);
+INSERT INTO `tito_lore` (`ownerID`) VALUES (1);
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 1, "A sun-faded postcard: ‘Wish you were here…’ The signature is unclear.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 2, "Another postcard shows bright umbrellas and a long pier.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 3, "A final postcard reveals an address Tito once called home.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (4, 4, "All postcards align—Tito knows exactly where he belongs.");
 
-INSERT INTO `tito_lore` (`ownerID`) VALUES (5);
+INSERT INTO `tito_lore` (`ownerID`) VALUES (1);
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 1, "A melody returns—just four notes on a breeze.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 2, "Lyrics follow, half in another language he used to speak.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 3, "He can hum the whole tune, and a friend’s voice joins in.");
@@ -293,6 +294,16 @@ BEGIN
 END//
 DELIMITER ;
 
+DELIMITER //
+CREATE TRIGGER addFreeChatModule
+AFTER INSERT ON `tito_class_status`
+FOR EACH ROW
+BEGIN
+  INSERT IGNORE INTO `tito_module` (moduleID, classID)
+  VALUE (74, new.classID);
+END //
+DELIMITER ;
+
 -- When an update of a SINGLE TERM CHANGES, updates `hasMastered` if there is a need to
 DELIMITER //
 CREATE TRIGGER beforeUpdateTermProgress_change_hasMastered
@@ -306,9 +317,6 @@ BEGIN
 END //
 DELIMITER ;
 
-    -- IF OLD.timesUsed < NEW.timesUsed THEN 
-    --   SET NEW.timesUsed = `timesUsed` + (NEW.timesUsed - OLD.timesUsed)
-    -- END IF;
 
 DELIMITER //
 CREATE TRIGGER afterUpdateTermProgress_change_termsMastered
@@ -323,18 +331,6 @@ BEGIN
     END IF;
 END //
 DELIMITER ;
-
--- When creating a new session, invalidates other sessions for this user
--- DELIMITER // 
--- CREATE TRIGGER onSessionCreate_revokeOtherSessions
--- AFTER INSERT ON `chatbot_sessions`
--- FOR EACH ROW
--- BEGIN
---   UPDATE `chatbot_sessions`
---   SET `isActiveSession` = 0
---   WHERE `userID` = NEW.userID;
--- END // 
--- DELIMITER ;
 
 -- When tito_module is created, auto populates the totalTerms
 DELIMITER //
@@ -357,20 +353,6 @@ BEGIN
   SET NEW.totalTerms = term_count;
 END//
 DELIMITER ;
-
-
--- Autogenerate a tito-lore assignment to a tito class module
--- DELIMITER // 
--- CREATE TRIGGER afterInsertOnTitoModule_assignTitoLore
--- AFTER INSERT ON `tito_module`
--- FOR EACH ROW
--- BEGIN
---   INSERT INTO `tito_lore_assignments` (`loreID`, `classID`, `moduleID`)
---   VALUES (1, NEW.classID, NEW.moduleID);
--- END //
--- DELIMITER ;
-
-
 
 
 -- when a new term is added to a module, reupdate totalterm count
@@ -445,23 +427,14 @@ DELIMITER ;
 
 
 DELIMITER // 
-CREATE TRIGGER onClassCreation_insertAdmin
-AFTER INSERT ON `group`
+CREATE TRIGGER onModuleCreation_addToSuperProf
+AFTER INSERT ON `module`
 FOR EACH ROW
 BEGIN
-  INSERT IGNORE INTO `group_user` (`userID`, `groupID`, `accessLevel`)
-  VALUES (1, NEW.groupID, 'pf');
+  INSERT IGNORE INTO `group_module` (`moduleID`, `groupID`)
+  VALUES (new.moduleID, 74);
 END //
 DELIMITER ;
-
-
-
-
-
-
-
-
-
 
 
 
@@ -470,30 +443,5 @@ DELIMITER ;
 -- Clean up UNCOMMENT
 -- DROP TABLE `chatbot_sessions_old`;
 -- DROP TABLE `messages_old`;
-
-
-
--- OLD TRIGGERS
-
--- When an update of a SINGLE TERM CHANGES, updates `hasMastered` if there is a need to
--- DELIMITER //
--- CREATE TRIGGER onUpdateTermProgress_change_hasMastered
--- AFTER UPDATE ON `tito_term_progress`
--- FOR EACH ROW
--- BEGIN
---     IF NEW.timesUsed > 3 AND (NEW.timesMisspelled / NEW.timesUsed) <= 0.25 AND NOT OLD.hasMastered THEN
---         UPDATE `tito_term_progress`
---         SET `hasMastered` = TRUE
---         WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;
---     ELSEIF (NEW.timesMisspelled / NEW.timesUsed) > 0.25 AND OLD.hasMastered THEN
---         UPDATE `tito_term_progress`
---         SET `hasMastered` = FALSE
---         WHERE `userID` = NEW.userID AND `moduleID` = NEW.moduleID AND `termID` = NEW.termID;
---     END IF;
--- END //
--- DELIMITER ;
-
-
-
 
 

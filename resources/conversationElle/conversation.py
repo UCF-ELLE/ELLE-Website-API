@@ -187,10 +187,8 @@ class UserMessages(Resource):
             tito_response = "Sorry, there is a bit of trouble. Please try again!"
             tito_response_data = {"response": tito_response}
 
-        if True: # a successful llm message insert
-            return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id, titoResponse=tito_response)
-        else: 
-            return 
+        return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id, titoResponse=tito_response)
+
 
     @jwt_required
     def get(self):

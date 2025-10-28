@@ -248,6 +248,13 @@ def _merge_with_ffmpeg(base_dir: Path, files: list, user_id: int):
     finally:
         concat_list.unlink(missing_ok=True)  # rm tmp file
 
+def populate_tito_freechat():
+    query = '''
+        INSERT IGNORE INTO tito_module (moduleID, classID)
+        SELECT DISTINCT 228, classID as classID
+        FROM tito_class_status;
+    '''
+
 
 def _create_audio_zip(base_dir: Path, files: list, user_id: int):
     """

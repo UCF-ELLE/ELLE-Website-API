@@ -7,7 +7,7 @@ curr_dir = os.path.dirname(curr_path)
 par_dir = str(Path(curr_dir).parent)
 os.chdir(par_dir)
 #model_path = os.path.join(par_dir, "Qwen2.5-7B-Instruct")
-model_path = "http://127.0.0.1:8080/completion"
+model_path = "http://127.0.0.1:8083/completion"
 #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Using external LLM server, no local device needed
 device = "cpu"
@@ -22,7 +22,7 @@ TOP_P = 0.8
 language_list = ["english", "spanish", "portuguese"]
 level = "College"
 vocal_percent = 0.5
-LANGUAGETOOL_API_URL = "http://127.0.0.1:8081/v2/check"
+LANGUAGETOOL_API_URL = "http://127.0.0.1:8082/v2/check"
 
 
 # Reading list of background files
