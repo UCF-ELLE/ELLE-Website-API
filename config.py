@@ -37,7 +37,7 @@ AUD_RETRIEVE_FOLDER = "/audios/"
 MAX_AUDIO_SIZE_BYTES = 3 * 1024 * 1024 # 3MB user voice files
 MAX_AUDIO_LENGTH_SEC = 90
 FREE_CHAT_MODULE = 228 # Magic `module` for Tito free-chat
-LANGUAGETOOL_API_URL = "http://127.0.0.1:8081/v2/check"
+LANGUAGETOOL_API_URL = "http://127.0.0.1:8082/v2/check"
 # END:
 
 # List of user permission types
