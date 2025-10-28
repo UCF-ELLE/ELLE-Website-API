@@ -277,7 +277,7 @@ export default function GeneratedModuleTable({
                                         type="text"
                                         value={term.front}
                                         onChange={(e) => updateTerm(term.id, 'front', e.target.value)}
-                                        size="sm"
+                                        bsSize="sm"
                                     />
                                 ) : (
                                     <span>{term.front}</span>
@@ -289,7 +289,7 @@ export default function GeneratedModuleTable({
                                         type="text"
                                         value={term.back}
                                         onChange={(e) => updateTerm(term.id, 'back', e.target.value)}
-                                        size="sm"
+                                        bsSize="sm"
                                     />
                                 ) : (
                                     <span>{term.back}</span>
@@ -301,7 +301,7 @@ export default function GeneratedModuleTable({
                                         type="select"
                                         value={term.type}
                                         onChange={(e) => updateTerm(term.id, 'type', e.target.value)}
-                                        size="sm"
+                                        bsSize="sm"
                                     >
                                         <option value="TERM">Term</option>
                                         <option value="PHRASE">Phrase</option>

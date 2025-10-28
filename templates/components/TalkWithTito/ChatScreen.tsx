@@ -21,6 +21,25 @@ import thinkingTito from "@/public/static/images/ConversAItionELLE/respondingTit
 import VocabList from "./VocabList";
 import Messages from "./Messages"
 
+interface SpeechRecognition extends EventTarget {
+  start(): void;
+  stop(): void;
+  abort(): void;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  lang: string;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: Event) => any) | null;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
 interface propsInterface {
     moduleID: number;
     chatbotId?: number;
@@ -112,12 +131,14 @@ export default function ChatScreen(props: propsInterface) {
 
     // Cloud bubble and progress + lore fetch
     useEffect(() => {
-      if (!user?.jwt) return;
+      if (!user || !user.jwt) return;
+
+      const jwt = user.jwt;
 
       async function getClassIdForModule(moduleID: number): Promise<string | null> {
         // Ask backend which classes map to which modules for this user
         const res = await fetch(`${ELLE_URL}/twt/session/access`, {
-          headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" },
+          headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" },
         });
         if (!res.ok) return null;
 
@@ -137,7 +158,7 @@ export default function ChatScreen(props: propsInterface) {
         // if it supports classID too, you can append it similarly to lore.
         const res = await fetch(
           `${ELLE_URL}/twt/session/getModuleProgress?moduleID=${props.moduleID}`,
-          { headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" } }
+          { headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" } }
         );
         if (!res.ok) throw new Error(`Progress fetch failed ${res.status}`);
         const data = await res.json();
@@ -151,7 +172,7 @@ export default function ChatScreen(props: propsInterface) {
 
           const res = await fetch(
             `${ELLE_URL}/twt/session/getTitoLore?classID=${classID}&moduleID=${props.moduleID}`,
-            { headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" } }
+            { headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" } }
           );
           if (!res.ok) {
             const body = await res.text();
@@ -181,15 +202,6 @@ export default function ChatScreen(props: propsInterface) {
       fetchProgress();
       fetchLoreFromDB();
     }, [props.moduleID, user]);
-
-    {props.moduleID !== -1 && (
-      <VocabList
-        wordsFront={terms?.map(t => t.questionFront)}
-        wordsBack={terms?.map(t => t.questionBack)}
-        used={terms?.map(t => t.used)}
-        progress={progress}
-      />
-    )}
 
     async function handleSendMessageClick() {
 
@@ -462,16 +474,17 @@ export default function ChatScreen(props: propsInterface) {
 
         rec.onstart = () => setListening(true);
         rec.onend = () => setListening(false);
-        rec.onerror = (e) => {
+        rec.onerror = (e: Event) => {
           console.warn("STT error:", e);
           setListening(false);
         };
-        rec.onresult = (ev) => {
+        rec.onresult = (ev: Event) => {
+          const event = ev as SpeechRecognitionEvent;
           let interim = "";
           let finalText = "";
-          for (let i = ev.resultIndex; i < ev.results.length; i++) {
-            const chunk = ev.results[i][0].transcript;
-            if (ev.results[i].isFinal) finalText += chunk;
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const chunk = event.results[i][0].transcript;
+            if (event.results[i].isFinal) finalText += chunk;
             else interim += chunk;
           }
           // Apply digit-to-word conversion to interim results
@@ -499,7 +512,7 @@ export default function ChatScreen(props: propsInterface) {
       try {
         recognitionRef.current.start();
         startAudioRecording(); // Also start audio recording
-      } catch (e) {
+      } catch (e: unknown) {
         // Some browsers throw if called twice quickly
         console.warn(e);
       }
@@ -870,7 +883,7 @@ export default function ChatScreen(props: propsInterface) {
             {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
 
             {/*Vocabulary list div*/}
-            {props.moduleID !== -1 && <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={terms?.map(term => (term.used))}/>}
+            {props.moduleID !== -1 && <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={terms?.map(term => (term.used))} progress={progress}/>}
 
             {/*Sent/recieved messages div*/}
             <Messages messages={chatMessages} chatFontSize={props.chatFontSize}/>

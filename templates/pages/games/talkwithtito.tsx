@@ -59,7 +59,7 @@ export default function TalkWithTito() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFading, setIsFading] = useState<boolean>(false);
   const [playClicked, setPlayClicked] = useState<boolean>(false);
-  const [selectedModule, setSelectedModule] = useState<number | null>(null);
+  const [selectedModule, setSelectedModule] = useState<number>(-1);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [userBackgroundFilepath, setUserBackgroundFilepath] = useState<string>("");
   const [userMusicFilepath, setUserMusicFilepath] = useState<string>("");
@@ -75,8 +75,8 @@ export default function TalkWithTito() {
 
   interface Module {
     moduleID: number;
-    name: String;
-    language: String;
+    name: string;
+    language: string;
   }
 
   interface Song {
@@ -132,7 +132,7 @@ export default function TalkWithTito() {
 
   const handleModuleClick = (moduleId: number) => {
     if(selectedModule === moduleId) {
-      setSelectedModule(null);
+      setSelectedModule(-1);
       setAnalyticsActive(false);
       setChatbotId(undefined); // Reset chatbot session when deselecting module
     }
