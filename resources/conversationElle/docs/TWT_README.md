@@ -27,6 +27,7 @@
 
   - Weird addNewTitoModule() logic in database.py, plz fix
   - addNewGroupUserToTitoGroup() too
+  - UpdateTitoClass class 74
 
 # Suggestions:
   - Preload user audio messages `on message hover`

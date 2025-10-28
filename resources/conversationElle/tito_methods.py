@@ -111,8 +111,8 @@ def addTitoClassStatus():
 def createNewUserMessageTEST(userID: int, moduleID: int, chatbotSID: int, message: str, isVM: bool, source='user', timedateCreated='', dateCreated=''):
     try: 
         query = '''
-            INSERT IGNORE INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage, creationTimestamp, creationDate)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+            INSERT IGNORE INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage, creationTimestamp, creationDate, classID)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 74);
         '''
 
         res = db.post(query, (userID, chatbotSID, moduleID, source, message, isVM, timedateCreated, dateCreated))
