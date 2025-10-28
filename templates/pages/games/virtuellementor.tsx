@@ -144,11 +144,11 @@ export default function VirtuELLEMentor() {
             });
             xhr.send(data);
         }
-    }, [UNITY_playerScore, UNITY_sessionID, user]);
+    }, [UNITY_playerScore, UNITY_sessionID, UNITY_pausedTime, user]);
 
-    async function unloadUnityGame() {
+    const unloadUnityGame = useCallback(async () => {
         await unload();
-    }
+    }, [unload]);
 
     useEffect(() => {
         /* Problem: user is in the middle of a Card Game play session and closes the browser. The /session API endpoint was called to start the Session, but
@@ -168,7 +168,7 @@ export default function VirtuELLEMentor() {
             window.removeEventListener('unload', endOngoingSession);
             // router.events.off('routeChangeStart', handleEarlyNavigation);
         };
-    }, [isLoaded]);
+    }, [isLoaded, openWarningDialog, endOngoingSession, unloadUnityGame]);
 
     // Automatically log the user into the Unity Card Game
     useEffect(() => {

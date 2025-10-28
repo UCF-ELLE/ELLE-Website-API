@@ -89,7 +89,7 @@ export default function ChatScreen(props: propsInterface) {
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
     //Lore milestone logic with one time trigger (DB-driven)
-    const THRESHOLDS = [25, 50, 75, 100] as const;
+    const THRESHOLDS = useMemo(() => [25, 50, 75, 100] as const, []);
     const prevProgressRef = useRef<number>(-Infinity);
 
     // Lore loaded from DB
@@ -127,7 +127,7 @@ export default function ChatScreen(props: propsInterface) {
       }
 
       prevProgressRef.current = progress;
-    }, [progress, props.moduleID, loreID, loreByThreshold]);
+    }, [progress, props.moduleID, loreID, loreByThreshold, THRESHOLDS]);
 
     // Cloud bubble and progress + lore fetch
     useEffect(() => {
@@ -393,7 +393,7 @@ export default function ChatScreen(props: propsInterface) {
       type SpeechRecognitionConstructor = new () => SpeechRecognition;
 
       // Convert digits to words function
-      function convertDigitsToWords(text: string): string {
+      const convertDigitsToWords = useCallback((text: string): string => {
         if (!text || typeof text !== 'string') return text;
         
         // Multi-language number mappings
@@ -460,7 +460,7 @@ export default function ChatScreen(props: propsInterface) {
         }
         
         return result;
-      }
+      }, [ttsLang]);
 
       useEffect(() => {
         const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -505,7 +505,7 @@ export default function ChatScreen(props: propsInterface) {
           try { rec.abort(); } catch {}
           recognitionRef.current = null;
         };
-      }, [ttsLang]); // re-init when language changes
+      }, [ttsLang, convertDigitsToWords]); // re-init when language changes
 
     function startListening() {
       if (!sttSupported || !recognitionRef.current || listening) return;
@@ -581,7 +581,7 @@ export default function ChatScreen(props: propsInterface) {
     }
 
     //Sends new timeChatted to backend
-    async function saveTime() {
+    const saveTime = useCallback(async () => {
 
       if(user === undefined || props.chatbotId === undefined || timeChatted === undefined) return; //Returns early if any data is missing
 
@@ -596,7 +596,7 @@ export default function ChatScreen(props: propsInterface) {
         console.log("Failed updating timeSpent")
       }
 
-    }
+    }, [user, props.chatbotId, timeChatted]);
 
     useEffect(() => {
       if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -619,7 +619,7 @@ export default function ChatScreen(props: propsInterface) {
       return () => {
         clearInterval(interval);
       };
-    }, [props.moduleID]);
+    }, [props.moduleID, saveTime]);
 
     //Attempts to Trigger saveTime when user leaves page
     //May be unreliable due to page unloads not always supporting async operations
@@ -631,7 +631,7 @@ export default function ChatScreen(props: propsInterface) {
       return () => {
         window.removeEventListener("beforeunload", handleBeforeUnload);
       }
-    }, []);
+    }, [saveTime]);
 
     //Increments timeChatted each second
     useEffect(() => {
@@ -649,6 +649,7 @@ export default function ChatScreen(props: propsInterface) {
         `${Math.floor((timeChatted % 3600) / 60)}m ` +
         `${Math.floor(timeChatted % 60)}s`
       );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [timeChatted]);
     
     //Test prints timeChatted
@@ -683,6 +684,40 @@ export default function ChatScreen(props: propsInterface) {
         }
         loadTerms();
     }, [props.moduleID, user, userLoading]);
+
+    // Speak function for TTS
+    const speak = useCallback((text: string, opts?: { rate?: number; pitch?: number; lang?: string }) => {
+      if (!ttsSupported || !text?.trim()) return;
+      const lang = opts?.lang ?? ttsLang;
+
+      const u = new SpeechSynthesisUtterance(text);
+      // Enhanced settings for more natural speech
+      u.rate = opts?.rate ?? 0.9;     // Slightly slower for clarity
+      u.pitch = opts?.pitch ?? 1.0;   // Natural pitch
+      u.volume = 0.8;                 // Slightly softer volume
+      u.lang = lang;
+
+      // Use Google US English as default, with fallbacks for other languages
+      const langVoices = voices.filter(v => v.lang?.toLowerCase().startsWith(lang.toLowerCase()));
+      
+      let selectedVoice = null;
+      
+      // For English, prioritize Google US English
+      if (lang.startsWith('en')) {
+        selectedVoice = voices.find(v => v.name === 'Google US English') ||
+                       langVoices.find(v => v.name.includes('Google')) ||
+                       langVoices.find(v => v.name.includes('Zira')) ||
+                       langVoices[0];
+      } else {
+        // For other languages, prefer Google voices
+        selectedVoice = langVoices.find(v => v.name.includes('Google')) || langVoices[0];
+      }
+      
+      if (selectedVoice) u.voice = selectedVoice;
+
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    }, [ttsSupported, ttsLang, voices]);
 
     //Used to initialize chatbot
     useEffect(() => {
@@ -721,7 +756,8 @@ export default function ChatScreen(props: propsInterface) {
             }
         }
         loadChatbot();
-    }, [props.moduleID, user, userLoading, termsLoaded])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.moduleID, user, userLoading, termsLoaded, terms])
     
     // Used to initialize chat messages - reset when module changes
     useEffect(() => {
@@ -769,7 +805,7 @@ export default function ChatScreen(props: propsInterface) {
           }
         }
         loadMessages();
-    }, [props.chatbotId, props.moduleID, user, userLoading]);
+    }, [props.chatbotId, props.moduleID, user, userLoading, speak, ttsSupported]);
 
     //Used to update termScore
     useEffect(() => {
@@ -777,7 +813,8 @@ export default function ChatScreen(props: propsInterface) {
         const numTerms = terms.length;
         const numUsedTerms = terms.filter(term => term.used).length;
         props.setTermScore(numUsedTerms + " / " + numTerms);
-    }, [terms])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [terms, termsLoaded])
 
     //Used to update averageScore
     useEffect(() => {
@@ -787,6 +824,7 @@ export default function ChatScreen(props: propsInterface) {
             messagesWithScore.reduce((sum, msg) => sum + (msg.metadata?.score || 0), 0) / messagesWithScore.length 
             : 0;
         props.setAverageScore(averageScore);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [chatMessages])
 
     // Placeholder animation
@@ -826,41 +864,7 @@ export default function ChatScreen(props: propsInterface) {
       if(titoMood === "thinking"){
         startThinking()
       }
-    }, [titoMood]);
-
-
-    function speak(text: string, opts?: { rate?: number; pitch?: number; lang?: string }) {
-      if (!ttsSupported || !text?.trim()) return;
-      const lang = opts?.lang ?? ttsLang;
-
-      const u = new SpeechSynthesisUtterance(text);
-      // Enhanced settings for more natural speech
-      u.rate = opts?.rate ?? 0.9;     // Slightly slower for clarity
-      u.pitch = opts?.pitch ?? 1.0;   // Natural pitch
-      u.volume = 0.8;                 // Slightly softer volume
-      u.lang = lang;
-
-      // Use Google US English as default, with fallbacks for other languages
-      const langVoices = voices.filter(v => v.lang?.toLowerCase().startsWith(lang.toLowerCase()));
-      
-      let selectedVoice = null;
-      
-      // For English, prioritize Google US English
-      if (lang.startsWith('en')) {
-        selectedVoice = voices.find(v => v.name === 'Google US English') ||
-                       langVoices.find(v => v.name.includes('Google')) ||
-                       langVoices.find(v => v.name.includes('Zira')) ||
-                       langVoices[0];
-      } else {
-        // For other languages, prefer Google voices
-        selectedVoice = langVoices.find(v => v.name.includes('Google')) || langVoices[0];
-      }
-      
-      if (selectedVoice) u.voice = selectedVoice;
-
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    }
+    }, [titoMood, fullPlaceholder]);
 
     // Lore intro bubble on first load
     useEffect(() => {

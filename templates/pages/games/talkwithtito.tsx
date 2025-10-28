@@ -187,7 +187,7 @@ export default function TalkWithTito() {
     if (playlist.length > 0 && currentSongIndex >= 0 && isPlaying) {
       setIsPlaying(true); // Ensure playback starts once the song and playlist are updated
     }
-  }, [playlist, currentSongIndex]);
+  }, [playlist, currentSongIndex, isPlaying]);
   
   // Stops music, sets new song, and restarts music after a second
   const handleNextSong = () => {

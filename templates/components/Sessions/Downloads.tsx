@@ -121,7 +121,7 @@ export function DownloadSessionLogs({earliestDate}: DownloadsProps) {
         link.setAttribute('download', `sessions_${startDate || 'all'}_${endDate || 'all'}_${sortOrder}.csv`);
         document.body.appendChild(link);
         link.click();
-    }, [data, loading, fetchError]);
+    }, [data, loading, fetchError, startDate, endDate, sortOrder]);
 
     const handleDownload = () => {
         if (new Date(startDate) > new Date(endDate)) {

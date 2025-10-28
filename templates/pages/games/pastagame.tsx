@@ -131,9 +131,9 @@ export default function PastaKerfuffELLE() {
         }
     }, [UNITY_playerScore, UNITY_sessionID, user]);
 
-    async function unloadUnityGame() {
+    const unloadUnityGame = useCallback(async () => {
         await unload();
-    }
+    }, [unload]);
 
     useEffect(() => {
         /* Problem: user is in the middle of a Card Game play session and closes the browser. The /session API endpoint was called to start the Session, but
@@ -153,7 +153,7 @@ export default function PastaKerfuffELLE() {
             window.removeEventListener('unload', endOngoingSession);
             // router.events.off('routeChangeStart', handleEarlyNavigation);
         };
-    }, [isLoaded]);
+    }, [isLoaded, openWarningDialog, endOngoingSession, unloadUnityGame]);
 
     // Automatically log the user into the Unity Pasta Game
     // Given that the Unity Pasta Game requires direct access to the user's userID, we must send it to the game along with the JWT
