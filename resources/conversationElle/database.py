@@ -736,7 +736,7 @@ def getAllTitoLore(owner_id: int, isSuperUser=False):
             from tito_lore_text tlt
             JOIN tito_lore tl ON tlt.loreID = tl.loreID
             WHERE tl.ownerID = %s
-            GROUP BY tlt.loreID, tlt.sequenceNumber ASC;
+            ORDER BY tlt.loreID, tlt.sequenceNumber ASC;
         '''
         res = db.get(query, (owner_id,))
         if not res:
@@ -748,7 +748,7 @@ def getAllTitoLore(owner_id: int, isSuperUser=False):
             from tito_lore_text tlt
             JOIN tito_lore tl ON tlt.loreID = tl.loreID
             WHERE tl.ownerID = %s
-            GROUP BY tlt.loreID, tlt.sequenceNumber ASC;
+            ORDER BY tlt.loreID, tlt.sequenceNumber ASC;
         '''
         res = db.get(query, (owner_id,))
         if not res:
