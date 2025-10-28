@@ -1153,6 +1153,51 @@ class AssignTitoLore(Resource):
 # AI Module Generation endpoint
 class AIModuleGeneration(Resource):
     @jwt_required
+    def get(self):
+        """
+        GET method for backward compatibility with query parameters
+        """
+        try:
+            user_id = get_jwt_identity()
+            claims = get_jwt_claims()
+            permission = claims.get('permission')
+            
+            # Only allow professors, TAs, and super admins to generate modules
+            if permission not in ['pf', 'ta', 'su']:
+                return create_response(False, message="Insufficient permissions to generate modules", status_code=403)
+            
+            # Get parameters from query string
+            name = request.args.get('name')
+            target_language = request.args.get('targetLanguage')
+            native_language = request.args.get('nativeLanguage')
+            num_terms = request.args.get('numTerms', 20)
+            group_id = request.args.get('groupID')
+            complexity = request.args.get('complexity', 2)
+            
+            # Convert to int
+            try:
+                num_terms = int(num_terms)
+                complexity = int(complexity)
+                if group_id:
+                    group_id = int(group_id)
+            except ValueError:
+                return create_response(False, message="Invalid number format for numTerms or complexity", status_code=400)
+            
+            # Validate required parameters
+            if not all([name, target_language, native_language]):
+                return create_response(False, message="Missing required parameters: name, targetLanguage, nativeLanguage", status_code=400)
+            
+            # Validate num_terms range
+            if num_terms < 5 or num_terms > 100:
+                return create_response(False, message="numTerms must be between 5 and 100", status_code=400)
+            
+            # Call the same logic as POST
+            return self._generate_module(user_id, name, target_language, native_language, num_terms, group_id, complexity)
+            
+        except Exception as e:
+            return create_response(False, message=f"Error processing request: {str(e)}", status_code=500)
+    
+    @jwt_required
     def post(self):
         """
         /elleapi/ai/generate-module
@@ -1187,6 +1232,21 @@ class AIModuleGeneration(Resource):
             if not isinstance(num_terms, int) or num_terms < 5 or num_terms > 100:
                 return create_response(False, message="numTerms must be an integer between 5 and 100", status_code=400)
             
+            # Call the same logic as GET
+            return self._generate_module(user_id, name, target_language, native_language, num_terms, group_id, complexity)
+            
+        except Exception as e:
+            return create_response(False, message=f"Error processing request: {str(e)}", status_code=500)
+    
+    def _generate_module(self, user_id, name, target_language, native_language, num_terms, group_id, complexity):
+        """
+        Shared method for both GET and POST to generate and save module
+        """
+        try:
+            # Get user permission again for the helper method
+            claims = get_jwt_claims()
+            permission = claims.get('permission')
+            
             # Use the existing create_module function from llm_functions.py
             
             try:
@@ -1204,11 +1264,31 @@ class AIModuleGeneration(Resource):
                     status_code=500
                 )
             
-            if not module_result or module_result.get('status') == 'error':
-                error_msg = module_result.get('message') if module_result else 'Unknown error - no response from AI'
+            # Handle both list (success) and dict (error) responses from create_module
+            if isinstance(module_result, dict) and module_result.get('status') == 'error':
+                error_msg = module_result.get('message', 'Unknown error - no response from AI')
                 return create_response(
                     False, 
                     message=f"AI generation failed: {error_msg}", 
+                    status_code=500
+                )
+            
+            # Convert list to expected format
+            if isinstance(module_result, list):
+                terms_list = module_result
+            elif isinstance(module_result, dict):
+                terms_list = module_result.get('terms', [])
+            else:
+                return create_response(
+                    False, 
+                    message="Invalid response from AI", 
+                    status_code=500
+                )
+            
+            if not terms_list:
+                return create_response(
+                    False, 
+                    message="AI did not generate any terms", 
                     status_code=500
                 )
             
@@ -1239,7 +1319,7 @@ class AIModuleGeneration(Resource):
                 
                 # Insert each AI-generated term into the database
                 terms_created = 0
-                for term in module_result.get('terms', []):
+                for term in terms_list:
                     try:
                         # Insert term
                         term_insert_query = """
@@ -1247,9 +1327,20 @@ class AIModuleGeneration(Resource):
                             VALUES (%s, %s, %s, %s, %s)
                         """
                         
+                        # Clean words - remove any extra text like "- Tutor:", "Response=", etc.
+                        native = term.get('native_word', '').strip()
+                        target = term.get('target_word', '').strip()
+                        
+                        # Remove common LLM artifacts
+                        for prefix in ['- Tutor:', 'Response=', 'Tutor:', '-', 'Student:', 'Assistant:']:
+                            if native.startswith(prefix):
+                                native = native[len(prefix):].strip()
+                            if target.startswith(prefix):
+                                target = target[len(prefix):].strip()
+                        
                         cursor.execute(term_insert_query, (
-                            term.get('native_word', ''),   # English word in 'front' field (English column)
-                            term.get('target_word', ''),   # Spanish word in 'back' field (Translated column)
+                            target,   # Target language (Spanish) in 'front' column (English column display)
+                            native,   # Native language (English) in 'back' column (Translated column display)
                             term.get('part_of_speech', 'noun').upper(),
                             term.get('gender', 'N')[0].upper(),  # First letter: M/F/N
                             target_language
@@ -1304,7 +1395,7 @@ class AIModuleGeneration(Resource):
                 
                 # Prepare response data
                 generated_content = {
-                    'terms': module_result.get('terms', []),
+                    'terms': terms_list,
                     'phrases': [],
                     'questions': []
                 }

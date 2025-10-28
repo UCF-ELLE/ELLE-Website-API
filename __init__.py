@@ -412,7 +412,7 @@ api.add_resource(CreateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/createNewT
 api.add_resource(UpdateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/updateTitoLore")
 api.add_resource(FetchAllOwnedTitoLore, API_ENDPOINT_PREFIX + "twt/professor/fetchOwnedTitoLore")
 api.add_resource(PFGetStudentMessages, API_ENDPOINT_PREFIX + "twt/professor/getStudentMessages")
-api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateModule")
+api.add_resource(AIModuleGeneration, API_ENDPOINT_PREFIX + "twt/professor/generateModule")
 
 
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
@@ -421,7 +421,7 @@ api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateMo
 
 # Temporary
 api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")
-api.add_resource(AIModuleGeneration, API_ENDPOINT_PREFIX + "ai/generate-module")
+# api.add_resource(AIModuleGeneration, API_ENDPOINT_PREFIX + "ai/generate-module")  # Use /twt/professor/generateModule instead
 
 
 # ===============================================

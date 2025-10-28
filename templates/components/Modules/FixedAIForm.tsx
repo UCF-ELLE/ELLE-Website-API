@@ -50,7 +50,7 @@ export default function FixedAIForm({
             };
             
             
-            const response = await fetch('/elleapi/ai/generate-module', {
+            const response = await fetch('/elleapi/twt/professor/generateModule', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

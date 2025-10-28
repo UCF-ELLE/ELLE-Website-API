@@ -127,8 +127,51 @@ def build_module_prompt(prompt, term_count, nat_lang, target_lang):
 def parse_llm_response(llm_response, term_count=5):
     try:
         terms = []
+        
+        # First, check if it's all on one line (malformed output)
+        if '\n' not in llm_response.strip() and llm_response.count('|') > 10:
+            print(f"[DEBUG] Detected single-line format, splitting into groups of 4")
+            # Split by pipe and group every 4 elements
+            all_parts = [p.strip() for p in llm_response.split('|') if p.strip()]
+            
+            # Process in groups of 4: native_word|target_word|pos|gender
+            for i in range(0, len(all_parts), 4):
+                if len(terms) >= term_count:
+                    break
+                    
+                if i + 3 < len(all_parts):
+                    native_word = all_parts[i]
+                    target_word = all_parts[i + 1]
+                    pos = all_parts[i + 2].lower()
+                    gender = all_parts[i + 3].lower()
+                    
+                    # Map gender values
+                    if gender in ['masculine', 'masc', 'm']:
+                        gender = 'masculine'
+                    elif gender in ['feminine', 'fem', 'f']:
+                        gender = 'feminine'
+                    else:
+                        gender = 'neutral'
+                    
+                    # Map POS values
+                    if pos not in ['noun', 'verb', 'adjective', 'adverb', 'preposition']:
+                        pos = 'noun'  # default
+                    
+                    if native_word and target_word and len(native_word) < 30 and len(target_word) < 30:
+                        term = {
+                            "native_word": native_word,
+                            "target_word": target_word,
+                            "part_of_speech": pos,
+                            "gender": gender
+                        }
+                        terms.append(term)
+                        print(f"[DEBUG] ✓ Parsed (single-line): {term}")
+            
+            print(f"[DEBUG] Successfully parsed {len(terms)} terms from single-line format")
+            return terms
+        
+        # Original multi-line parsing
         lines = llm_response.strip().split('\n')
-
         print(f"[DEBUG] Parsing {len(lines)} lines from response")
 
         for line in lines:
@@ -196,6 +239,9 @@ def parse_llm_response(llm_response, term_count=5):
         return terms
 
     except Exception as error:
+        print(f"[DEBUG] Parser error: {error}")
+        import traceback
+        traceback.print_exc()
         return []
 
 # def validate_term(term: Dict):

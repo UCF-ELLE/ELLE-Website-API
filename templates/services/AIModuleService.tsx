@@ -46,7 +46,7 @@ export default class AIModuleService {
     generateModule = async (params: AIModuleGenerationParams, jwt: string) => {
         try {
             const response = await this.instance.post<GeneratedModule>(
-                '/elleapi/ai/generate-module',
+                '/elleapi/twt/professor/generateModule',
                 params,
                 {
                     headers: {
