@@ -13,10 +13,10 @@ model_path = "http://127.0.0.1:8080/completion"
 device = "cpu"
 
 # Generation variables
-MAX_NEW_TOKENS = 1000
-TEMPERATURE = 0.7
-TOP_K = 50
-TOP_P = 0.95
+MAX_NEW_TOKENS = 500
+TEMPERATURE = 0.3
+TOP_K = 20
+TOP_P = 0.8
 
 # Other variables
 language_list = ["english", "spanish", "portuguese"]
@@ -43,7 +43,6 @@ CRITICAL RULES:
 1. ALWAYS respond directly to what the student just said or asked
 2. ALWAYS respond in the SAME language they are using
 3. Keep responses conversational and natural (2-4 sentences)
-4. If you notice grammar/spelling errors, gently mention: "I noticed something seems a bit off in your sentence, but I understand you!"
 
 Remember: Be natural, be encouraging, respond in their language, and keep it conversational!"""
 

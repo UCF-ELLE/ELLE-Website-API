@@ -85,8 +85,10 @@ class ChatbotSessions(Resource):
         # A freechat session
         if module_id == FREE_CHAT_MODULE:
             chatbot_sid = createChatbotSession(user_id, FREE_CHAT_MODULE)
-            warming_thread = threading.Thread(target = prewarm_llm_context, # Uses threading so that LLM may "warm up" for 
-            args = (FREE_CHAT_MODULE, chatbot_sid), daemon = True)          # subsiquent prompts
+            warming_thread = threading.Thread(
+                target = prewarm_llm_context, # Uses threading so that LLM may "warm up" for subsiquent prompts
+                args = (FREE_CHAT_MODULE, chatbot_sid), daemon = True
+            )  
             warming_thread.start()
 
             return create_response(True, message="Free chat Chatbot session created.", data=chatbot_sid)
@@ -96,8 +98,10 @@ class ChatbotSessions(Resource):
         
         # If a module ID is found
         chatbot_sid = createChatbotSession(user_id, module_id)
-        warming_thread = threading.Thread(target = prewarm_llm_context, 
-        args = (module_id, chatbot_sid), daemon = True)
+        warming_thread = threading.Thread(
+            target = prewarm_llm_context, 
+            args = (module_id, chatbot_sid), daemon = True
+        )
         warming_thread.start()
 
         return create_response(True, message="Chatbot session created.", data=chatbot_sid)
@@ -170,7 +174,8 @@ class UserMessages(Resource):
             #         tito_response_data = handle_message(message)
             # except Exception as safety_error:
             #     print(f"Safety check failed: {safety_error}")
-            tito_response = handle_message(message, module_id = module_id)
+            tito_response = handle_message_with_context(message = message, module_id = module_id, session_id = session_id)
+            print(f"[DEBUG] session_id={session_id}, module_id={module_id}")
             
             # tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
             print(tito_response)
