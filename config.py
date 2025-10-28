@@ -7,6 +7,9 @@ load_dotenv()
 # API endpoint prefixes
 API_ENDPOINT_PREFIX = "/elleapi/"
 
+# Enable or disable TWT, DISABLE IF NOT USING IT
+TWT_ENABLED = True
+
 # Database configurations
 MYSQL_DATABASE_USER = os.getenv("MYSQL_DATABASE_USER")
 MYSQL_DATABASE_PASSWORD = os.getenv("MYSQL_DATABASE_PASSWORD")

@@ -4,7 +4,7 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt_claims
 # from .config import free_prompt
 from config import MAX_AUDIO_SIZE_BYTES, MAX_AUDIO_LENGTH_SEC, FREE_CHAT_MODULE
-from utils import create_response
+from utils import create_response, is_ta
 from .database import * 
 from .spacy_service import add_message
 from .convo_grader import suggest_grade as grade_message
@@ -15,6 +15,7 @@ from .utils import *
 from .tito_methods import updateLiveDB, merge_user_audio
 from datetime import datetime
 
+USER_VOICE_FOLDER = "user_audio_files/"
 
 # ======================================
 # ++++++ TWT ACCESS APIs ++++++
@@ -23,16 +24,15 @@ from datetime import datetime
 # NOTE: data = request.form is for {Content-Type = application/x-www-form-urlencoded} not application/JSON
 # TODO: Free chat AND module-based chats to be worked on
 
-# Check if user can access TWT (Must be enrolled in an active class AND assigned a Tito Module)
+# Check if user can access TWT 
+# (Must be enrolled in an active tito class AND assigned an active Tito Module)
 class TitoAccess(Resource):
     @jwt_required
     def get(self):
         '''
-        /elleapi/twt/session/access
-            Requires server permission to be able to use Talking with Tito (TWT)
-                - Any user of any access_level [pf, ta, st] may be able to use TWT
-                - Returns: active, tito-enabled, class:[modules] where a user has access to 
-                    A (?) list of tuples [(classID, [(tito_module_id, sequence_id)])]
+            /elleapi/twt/session/access
+                - Returns: active, tito-enabled, class->[modules] where a user has access to 
+                    A list of tuples [(classID, [(tito_module_id, sequence_id)])]
                     EX  [
                             (
                                 class_id=1,
@@ -50,6 +50,7 @@ class TitoAccess(Resource):
             class_ids = getTitoClasses(userID=get_jwt_identity(), permissionLevel='any', get_classes_type='active')
             if not class_ids:
                 return create_response(success=False, message="User is not enrolled in any active tito classes.", status_code=403)
+            
             tito_modules = []
             for class_id in class_ids:
                 res = getTitoModules(class_id)
@@ -78,22 +79,16 @@ class ChatbotSessions(Resource):
 
         if not module_id or not class_id:
             return create_response(False, message="Missing required parameters.", status_code=404)
-        
-        # Convert to integers
-        try:
-            module_id = int(module_id)
-            class_id = int(class_id)
-        except ValueError:
-            return create_response(False, message="Invalid parameter format.", status_code=400)
-            
         if not isUserInClass(user_id, class_id):
             return create_response(False, message=f"User does not belong to class {class_id}.", status_code=403)
 
         # A freechat session
         if module_id == FREE_CHAT_MODULE:
             chatbot_sid = createChatbotSession(user_id, FREE_CHAT_MODULE)
-            warming_thread = threading.Thread(target = prewarm_llm_context, # Uses threading so that LLM may "warm up" for 
-            args = (FREE_CHAT_MODULE, chatbot_sid), daemon = True)          # subsiquent prompts
+            warming_thread = threading.Thread(
+                target = prewarm_llm_context, # Uses threading so that LLM may "warm up" for subsiquent prompts
+                args = (FREE_CHAT_MODULE, chatbot_sid), daemon = True
+            )  
             warming_thread.start()
 
             return create_response(True, message="Free chat Chatbot session created.", data=chatbot_sid)
@@ -102,12 +97,14 @@ class ChatbotSessions(Resource):
             return create_response(success=False, message="Chatbot session failed to be created. No available modules", status_code=403)
         
         # If a module ID is found
-        session_id = createChatbotSession(user_id, module_id)
-        warming_thread = threading.Thread(target = prewarm_llm_context, 
-        args = (module_id, session_id), daemon = True)
+        chatbot_sid = createChatbotSession(user_id, module_id)
+        warming_thread = threading.Thread(
+            target = prewarm_llm_context, 
+            args = (module_id, chatbot_sid), daemon = True
+        )
         warming_thread.start()
 
-        return create_response(True, message="Chatbot session created.", data=session_id)
+        return create_response(True, message="Chatbot session created.", data=chatbot_sid)
 
 # NOTE: Ability to send messages should block until receiving back a response
 # TODO: for GET calls, consider sending messages in batches then all at once (better for users with lots of msgs?)
@@ -125,15 +122,16 @@ class UserMessages(Resource):
         session_id = data.get('chatbotSID')
         module_id = data.get('moduleID')
         is_vm = data.get('isVoiceMessage')
+        class_id = data.get('classID')
 
         # print(f'{message} and {session_id} and {module_id} and {is_vm}')
 
-        if not session_id or not module_id or not message or is_vm is None:
+        if not session_id or not module_id or not message or is_vm is None or not class_id:
             return create_response(False, message="Missing required parameters.", status_code=404)
 
 
         # Attempts to add message to DB, 0/None = error, success returns msg_id
-        new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id,chatbotSID=session_id, message=message, isVM=is_vm)
+        new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id,chatbotSID=session_id, message=message, isVM=is_vm, class_id=class_id)
         if not new_msg_id:
             return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
 
@@ -155,8 +153,6 @@ class UserMessages(Resource):
                 add_message(message=res, module_id=module_id, user_id=user_id, message_id=0, chatbot_sid=0, update_db=False)
 
             res = updateMessageScore(new_msg_id, msg_score)
-            # print(f"message score is {msg_score}")
-
 
         # TODO: a freechat session ADD SUPPORT FOR IT
         # Send to spacy service to parse key terms if NOT in free chat mode
@@ -177,10 +173,15 @@ class UserMessages(Resource):
             #     else:
             #         tito_response_data = handle_message(message)
             # except Exception as safety_error:
-            tito_response = handle_message(message, module_id = module_id)
+            #     print(f"Safety check failed: {safety_error}")
+            tito_response = handle_message_with_context(message = message, module_id = module_id, session_id = session_id)
+            print(f"[DEBUG] session_id={session_id}, module_id={module_id}")
+            
+            # tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
+            print(tito_response)
             
             # TODO: Verify data
-            newTitoMessage(user_id, session_id, tito_response, module_id)
+            newTitoMessage(user_id, session_id, class_id, tito_response, module_id)
 
         except Exception as error:
             tito_response = "Sorry, there is a bit of trouble. Please try again!"
@@ -203,10 +204,11 @@ class UserMessages(Resource):
         try:
             data = request.form
             module_id = request.args.get('moduleID')
+            class_id = request.args.get('classID')
             
-            if not module_id:
+            if not module_id or not class_id:
                 return create_response(False, message="Missing required paranmeters.", status_code=404)
-            return create_response(True, message="Retrieved chat history.", data=fetchModuleChatHistory(user_id, module_id)) 
+            return create_response(True, message="Retrieved chat history.", data=fetchModuleChatHistory(user_id, module_id, class_id)) 
         except Exception as e:
             return create_response(False, message=f"Failed to retrieve user's messages. Error: {e}", status_code=504)
 
@@ -241,6 +243,13 @@ class UserAudio(Resource):
             return create_response(False, message="Failed to upload. Missing required parameters.", status_code=400) 
         if isDuplicateAudioUpload(user_id, message_id):
             return create_response(False, message="User already has uploaded an audio file for this message.", status_code=403)
+        
+        if not doesUserMessageExist(message_id):
+            return create_response(False, message='invalid message id', status_code=403)
+        if not isUserInClass(user_id, class_id):
+            return create_response(False, message='user doesnt belong to this class', status_code=403)
+        if not isModuleInClass(class_id, module_id):
+            return create_response(False, message='invalid module, doesnt belong to this class', status_code=403)
 
         audio_file = request.files.get('audio')
         audio_file.seek(0)
@@ -253,14 +262,9 @@ class UserAudio(Resource):
         if filesize_bytes > MAX_AUDIO_SIZE_BYTES:
             return create_response(False, message="Failed to upload, file too large.", status_code=400)
         
-        # Try to validate audio duration (optional if ffmpeg not available)
-        try:
-            audio = AudioSegment.from_file(audio_file)
-            if len(audio) / 1000.0 > MAX_AUDIO_LENGTH_SEC:
-                return create_response(False, message="Failed to store audio, file too long.", status_code=400)
-        except Exception as e:
-            # If audio processing fails (e.g., no ffmpeg), skip duration validation
-            print(f"Warning: Audio duration validation skipped due to: {e}")
+        audio = AudioSegment.from_file(audio_file)
+        if len(audio) / 1000.0 > MAX_AUDIO_LENGTH_SEC:
+            return create_response(False, message="Failed to store audio, file too long.", status_code=400)
 
         # Points of failure to accept files
         # TODO: Decide on which implementation to fail to accept file (both?)
@@ -313,6 +317,12 @@ class UserAudio(Resource):
 
         if not class_id or not message_id or not module_id:
             return create_response(False, message="Missing required query parameters.", status_code=400)
+        if not doesUserMessageExist(message_id):
+            return create_response(False, message='invalid message id', status_code=403)
+        if not isUserInClass(user_id, class_id):
+            return create_response(False, message='user doesnt belong to this class', status_code=403)
+        if not isModuleInClass(class_id, module_id):
+            return create_response(False, message='invalid module, doesnt belong to this class', status_code=403)
 
         filename = getVoiceMessage(user_id, message_id)
         if not filename:
@@ -348,8 +358,11 @@ class FetchAllUserAudio(Resource):
         # Check if user has access to this class
         if not isUserInClass(user_id, class_id):
             return create_response(False, message='user does not have access to this class', status_code=403)
+        if not isModuleInClass(class_id, module_id):
+            return create_response(False, message='invalid module, doesnt belong to this class', status_code=403)
         
         res = merge_user_audio(class_id, module_id, user_id)
+        print(res)
         if not res:
             return create_response(False, message='no audio files found for this user in the specified module', status_code=404)
         
@@ -432,12 +445,16 @@ class Classes(Resource):
             Gets tito_classes according to classType provided
         '''
         user_id = get_jwt_identity()
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
 
         # Should be either 'all', 'active' or 'inactive'
         class_type = request.args.get('classType')
 
         if class_type is None:
             return create_response(False, message="Missing parameters in request.", status_code=400)
+        if user_permission == 'st':
+            return create_response(False, message="invalid perms", status_code=403)
 
         return create_response(True, message='returned classes', data=getTitoClasses(user_id, 'pf', class_type))
  
@@ -462,7 +479,7 @@ class AddTitoModule(Resource):
             create_response(False, message="Missing parameters.", status_code=404)
         if not userIsNotAStudent(user_id, class_id):
             return create_response(False, message="user does not have required privileges.", status_code=403)
-        if not isTitoClass(user_id, class_id):
+        if not isTitoClassOwner(user_id, class_id):
             return create_response(False, message="Class is not currently a tito class.", status_code=403)
         if isTitoModule(class_id, module_id):
             return create_response(False, message="module is already a tito module.", status_code=404)
@@ -495,7 +512,7 @@ class UpdateTitoModule(Resource):
             return create_response(False, message="failed to change anything, missing params.")
         if not userIsNotAStudent(user_id, class_id):
             return create_response(False, message="user does not have required privileges.", status_code=403)
-        if not isTitoClass(user_id, class_id):
+        if not isTitoClassOwner(user_id, class_id):
             return create_response(False, message="Class is not currently a tito class.", status_code=403)
         if not isTitoModule(class_id, module_id):
             return create_response(False, message="module is not a tito module.", status_code=403)
@@ -528,7 +545,7 @@ class UpdateTitoClass(Resource):
             return create_response(False, message="invalid params", status_code=403)
         if not userIsNotAStudent(user_id, class_id):
             return create_response(False, message="invalid perms", status_code=403)
-        if not isTitoClass(user_id, class_id):
+        if not isTitoClassOwner(user_id, class_id):
             if createTitoClass(user_id, class_id):
                 return create_response(True, message="Successfully made class into a tito-enabled class")
             else:
@@ -667,17 +684,105 @@ class FetchAllOwnedTitoLore(Resource):
             return create_response(False, message='failed to retrieve info or user has no owned tito lore', status_code=500)  
         return create_response(True, message="returned owned tito lores", loreData=res)
 
-# NOTE: Doesnt work due to current implementation
-# class CreateTitoLore(Resource):
-#     @jwt_required
-#     def post(self):
-#         user_id = get_jwt_identity()
-#         data = request.form
-#         lore_id = data.get('titoLoreID')
+class PFGetStudentMessages(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            Front end should handle the drop down logic by using the other APIs to feed in info
+            Admins are provided access TO everything, here the logic gets tricky if populating the drop downs
+            
+            Purpose: retrieves user messages according to the provided parameters with the ability to constrain results via date ranges
 
-#         if not lore_id:
-#             return create_response(False, message="invalid params", status_code=403)
+            dates expected format: str(YYYY-MM-DD)
+
+            TODO: Support paging?
+
+        '''
+
+        user_id = get_jwt_identity()
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
+
+        student_id = request.args.get('studentID')
+        class_id = request.args.get('classID') # the minimum requirement, paired with either studentID or moduleID
+        module_id = request.args.get('moduleID')
+        filter_date_from = request.args.get('dateFrom')
+        filter_date_to = request.args.get('dateTo')
+
+        is_ta = False
+        is_tito_class = False
+
+        if user_permission == 'st':
+            return create_response(False, message='insufficient perms', status_code=403)
+        if not student_id and not class_id and not module_id:
+            return create_response(False, message='insufficient params provided', status_code=403)
+        if not (module_id and class_id) and not (student_id and class_id):
+            return create_response(False, message='insufficient params provided', status_code=403)
+        # Check for if user has proper access to resources, either su (access to all), a pf or ta
+        if module_id:
+            if not isTitoModule(class_id, module_id):
+                return create_response(False, message='Module isnt a tito module', status_code=403)
+            
+            is_ta = is_ta(user_id, class_id)
+            is_tito_class = isTitoClassOwner(user_id, class_id)
+
+            if not is_ta and not isTitoClassOwner and not user_permission == 'su':
+                return create_response(False, message='user doesnt have access to this class and/or module does not belong to provided class', status_code=403)
+        if student_id and not isUserInClass(student_id, class_id):
+            return create_response(False, message='student provided not enrolled in class given', status_code=403)
+
+        res = ''
+        if user_permission == 'su':
+            res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
+        else:
+            if is_ta or is_tito_class: # either the professor or ta of a class authority
+                res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
+
+        if not res:
+            return create_response(False, message='failed to retrieve modules. may be missing required params or filters were too strict', status_code=404)
+
+        # Have to convert sql datetime back to str format
+        newres = []
+        for tup in res:
+            newres.append(tup[:6] + (tup[6].strftime('%Y-%m-%d %H:%M:%S'),) + tup[7:])
+
+        return create_response(True, message='returned messages', data=newres)
+
+class AdminFetchData(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            TBC
+        '''
         
+        return
+
+class GenerateModule(Resource):
+    # @jwt_required
+    def get(self):
+        '''
+            Returns a list of messages in json
+        '''
+
+        # user_id = get_jwt_identity()
+        # claims = get_jwt_claims()
+        # user_permission = claims.get("permission")
+
+        prompt = request.args.get('prompt')
+        term_count = request.args.get('termCount')
+        native_lang = request.args.get('nativeLanguage')
+        target_lang = request.args.get('targetLanguage')
+
+        if not prompt or not term_count or term_count == 0 or not native_lang or not target_lang:
+            return create_response(False, message='insufficient params provided', status_code=400)
+
+
+        res = create_module(prompt, term_count, native_lang, target_lang)
+        if not res:
+            return create_response(False, message='failed to generate module outline', status_code=201)
+
+        return create_response(message='returned sample terms', data=res)
+
 
 # ========================================
 # ++++++ DB MIGRATION TEMPORARY ++++++
@@ -985,7 +1090,6 @@ class DebugAudioFiles(Resource):
             with open("audio_debug_error.json", "w") as f:
                 json.dump(debug_data, f, indent=2, default=str)
             return create_response(False, message=f"Debug error: {e}", data=debug_data)
-
 
 # ========================================
 # REDO APIS ++++++

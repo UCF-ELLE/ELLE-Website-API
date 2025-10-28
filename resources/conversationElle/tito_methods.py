@@ -1,12 +1,13 @@
 import os
 import subprocess
 from pathlib import Path
-
 from db_utils import *
 from config import USER_VOICE_FOLDER
+from datetime import datetime
 
 db = DBHelper(mysql)
 
+# Useful for the some SQL returns 
 def flatten_list(input: list):
     res = []
     for x in input:
@@ -15,11 +16,8 @@ def flatten_list(input: list):
 
 def addNewTitoModule(module_id, class_id):
     res = db.get("SELECT EXISTS(SELECT * FROM tito_module WHERE moduleID = %s AND classID = %s);", (module_id, class_id), fetchOne=True)
-    if res:
-        if res[0]:
-            return 0
-    else:
-        return 0
+    if res and res[0]:
+        return False
 
     db.post("INSERT IGNORE INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
     # 1. Get ALL users assigned to class (even non students)
@@ -45,15 +43,12 @@ def addNewTitoModule(module_id, class_id):
     )
 
     # term_ids = flatten_list(term_ids)
+    print(f"term ids: {term_ids}")
 
     # 4. Insert into tito_term_progress
     term_progress_data = [(user, module_id, term_id) for term_id in term_ids for user in users]
-    # for a, b, c in term_progress_data:
-        # print(f'{a} to {b} to {c}')
-    # print("added titoModule")
-    # print(term_progress_data)
-    db.post("INSERT IGNORE INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);", term_progress_data)
-    return 
+    res = db.post("INSERT IGNORE INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);", term_progress_data)
+    return False if not res or res.get("rowcount", 0) == 0 else True
 
 def activate_tito_from_existing_sessions():
     # 1. Fetch all module-user pairs from existing chatbot_sessions
@@ -62,7 +57,6 @@ def activate_tito_from_existing_sessions():
         FROM chatbot_sessions;
     ''')
 
-    print(sessions)
     processed_pairs = set()
 
     for module_id, user_id in sessions:
@@ -78,8 +72,9 @@ def activate_tito_from_existing_sessions():
         for (class_id,) in class_ids:
             # 3. Ensure Tito module exists
             x = addNewTitoModule(module_id, class_id)
-            if not x:
+            if x:
                 processed_pairs.add((class_id, module_id))
+                print(f'x is {x} and {class_id} and {module_id}')
 
     # Return list of unique (classID, moduleID) pairs
     return list(processed_pairs)
@@ -94,33 +89,36 @@ def addTitoClassStatus():
     if not res:
         return
     
-    for x in res:
+    for class_id in res:
         query = '''
             SELECT DISTINCT userID
             FROM group_user
             WHERE groupID = %s AND accessLevel = 'pf';
         '''
 
-        res = db.get(query, (x[0],))
-        if not res:
+        user_ids = db.get(query, (class_id[0],))
+        if not user_ids:
             continue
         query = '''
             INSERT IGNORE INTO tito_class_status (classID, professorID, titoExpirationDate)
             VALUES (%s, %s, DATE_ADD(CURDATE(), INTERVAL 12 MONTH));
         '''
-        insert_data = [(x[0], y[0]) for y in res]
-        res = db.post(query, insert_data)
-        if not res:
+        insert_data = [(class_id[0], user_id[0]) for user_id in user_ids]
+        res2 = db.post(query, insert_data)
+        if not res2:
             print(f"failed to insert titoclass {insert_data}")
 
-def createNewUserMessageTEST(userID: int, moduleID: int, chatbotSID: int, message: str, isVM: bool, source='user', dateCreated=''):
+def createNewUserMessageTEST(userID: int, moduleID: int, chatbotSID: int, message: str, isVM: bool, source='user', timedateCreated='', dateCreated=''):
     try: 
         query = '''
-            INSERT IGNORE INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage, creationTimestamp)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
+            INSERT IGNORE INTO `messages` (userID, chatbotSID, moduleID, source, message, isVoiceMessage, creationTimestamp, creationDate)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         '''
 
-        db.post(query, (userID, chatbotSID, moduleID, source, message, isVM, dateCreated))
+        res = db.post(query, (userID, chatbotSID, moduleID, source, message, isVM, timedateCreated, dateCreated))
+        if not res or not res.get('rowcount', 0):
+            return 1
+        return 0
     except Exception as e:
         print(f"[ERROR] Exception has occured when trying to insert message @ createNewUserMessage in database.py. Error: {e}")
         return 0
@@ -137,9 +135,16 @@ def insertOldMessages():
     if not res:
         print('failed to get old messages')
         return
+    
+    count = 0
     for uid, sid, mid, src, msg, time in res:
-        createNewUserMessageTEST(userID=uid, moduleID=mid, chatbotSID=sid, message=msg, isVM=False, source=src, dateCreated=time)
+        date = time.date()
+        res = createNewUserMessageTEST(userID=uid, moduleID=mid, chatbotSID=sid, message=msg, isVM=False, source=src, timedateCreated=time, dateCreated=date)
+        if res:
+            count += 1
 
+    
+    print(f'final count of msg not added: {count}')
     return
 
 def migrateChatbotSessionsTable():
@@ -183,7 +188,7 @@ def merge_user_audio(class_id: int, module_id: int, user_id: int):
         print(f"Audio directory not found: {base_dir}")
         return None
 
-    # Collect and sort all .webm files by messageID (numerically)
+    # sort all files by messageID
     files = sorted(
         base_dir.glob(f"{user_id}_*.webm"),
         key=lambda f: int(f.stem.split("_")[1])  # extract messageID part
@@ -221,10 +226,10 @@ def _merge_with_ffmpeg(base_dir: Path, files: list, user_id: int):
 
     output_file = base_dir / f"{user_id}.webm"
 
-    # ffmpeg command (lossless concat)
+    # ffmpeg concat files
     cmd = [
         "ffmpeg",
-        "-y",  # overwrite if exists
+        "-y",
         "-f", "concat",
         "-safe", "0",
         "-i", str(concat_list),
@@ -241,7 +246,7 @@ def _merge_with_ffmpeg(base_dir: Path, files: list, user_id: int):
         # Fallback to ZIP if ffmpeg fails
         return _create_audio_zip(base_dir, files, user_id)
     finally:
-        concat_list.unlink(missing_ok=True)  # clean up list file
+        concat_list.unlink(missing_ok=True)  # rm tmp file
 
 
 def _create_audio_zip(base_dir: Path, files: list, user_id: int):

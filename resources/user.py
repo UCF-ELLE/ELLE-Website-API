@@ -23,7 +23,7 @@ import json
 import datetime
 import string
 import random
-from config import HAND_PREFERENCES
+from config import HAND_PREFERENCES, TWT_ENABLED
 from resources.conversationElle.database import addNewGroupUserToTitoGroup
 
 
@@ -238,6 +238,9 @@ class UserRegister(Resource):
         data["reason"] = getParameter("reason", str, False, "")
         data["location"] = getParameter("location", str, False, "")
 
+        # required for TWT injection
+        group_id = ''
+
         try:
             conn = mysql.connect()
             cursor = conn.cursor()
@@ -297,7 +300,7 @@ class UserRegister(Resource):
                     group_id = results[0][0]
                     gu_query = "INSERT INTO `group_user` (`userID`, `groupID`, `accessLevel`) VALUES (%s, %s, %s)"
                     postToDB(gu_query, (user_id, group_id, "st"), conn, cursor)
-                    addNewGroupUserToTitoGroup(user_id, group_id)
+                    
 
             raise ReturnSuccess("Successfully registered!", 201)
         except CustomException as error:
@@ -305,6 +308,8 @@ class UserRegister(Resource):
             return error.msg, error.returnCode
         except ReturnSuccess as success:
             conn.commit()
+            if TWT_ENABLED and group_id:
+                addNewGroupUserToTitoGroup(user_id, group_id)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()

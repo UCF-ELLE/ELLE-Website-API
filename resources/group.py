@@ -8,6 +8,8 @@ from db_utils import *
 from utils import *
 from datetime import datetime, timedelta
 from exceptions_util import *
+from .conversationElle.database import isThisATitoClass, addNewGroupUserToTitoGroup
+from config import TWT_ENABLED
 import os
 import string
 import random
@@ -18,6 +20,7 @@ class Group(Resource):
     def post(self):
         data = {}
         data['groupName'] = getParameter("groupName", str, True, "")
+        group_id = 0 # for TWT
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -66,6 +69,9 @@ class Group(Resource):
             return error.msg, error.returnCode
         except ReturnSuccess as success:
             conn.commit()
+            if TWT_ENABLED:
+                    if isThisATitoClass(group_id):
+                        addNewGroupUserToTitoGroup(user_id, group_id)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
@@ -186,6 +192,7 @@ class GroupRegister(Resource):
     def post(self):
         data = {}
         data['groupCode'] = getParameter("groupCode", str, True, "")
+        group_id = 0 # for TWT
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -224,6 +231,9 @@ class GroupRegister(Resource):
             return error.msg, error.returnCode
         except ReturnSuccess as success:
             conn.commit()
+            if TWT_ENABLED:
+                    if isThisATitoClass(group_id):
+                        addNewGroupUserToTitoGroup(user_id, group_id)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()

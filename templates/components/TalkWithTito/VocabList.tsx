@@ -1,7 +1,7 @@
 /* Imports */
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 /* Assets */
 import cloud from "@/public/static/images/ConversAItionELLE/vocab cloud.png";
@@ -11,6 +11,7 @@ interface PropsInterface {
   wordsFront: string[] | undefined;
   wordsBack: string[] | undefined;
   used: boolean[] | undefined;
+  progress: number;
 }
 
 interface WordItemProps {
@@ -39,30 +40,15 @@ function WordItem({ wordFront, wordBack, used }: WordItemProps) {
 }
 
 /* VocabList Component */
-export default function VocabList({ wordsFront, wordsBack, used }: PropsInterface) {
+export default function VocabList({ wordsFront, wordsBack, used, progress }: PropsInterface) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   if (!wordsFront || !wordsBack || !used) return null;
 
-  // Fetch progress directly inside the vocab list so it stays synced
-  useEffect(() => {
-    async function fetchProgress() {
-      try {
-        const res = await fetch("twt/session/getModuleProgress");
-        const data = await res.json();
-        if (data?.proficiencyRate !== undefined) setProgress(data.proficiencyRate);
-      } catch (err) {
-        console.error("Error fetching module progress:", err);
-      }
-    }
-    fetchProgress();
-  }, []);
-
   const sortedWords = wordsFront
     .map((word, index) => ({
-      wordFront: word,
-      wordBack: wordsBack[index] || "",
+      wordFront: wordsBack[index] || "",
+      wordBack: word,
       used: used[index],
       index,
     }))

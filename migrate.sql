@@ -97,59 +97,40 @@ UPDATE `chatbot_sessions_old`
 SET `moduleId` = 3
 WHERE `moduleId` = -1;
 
--- Done in python
--- INSERT IGNORE INTO `chatbot_sessions` (`chatbotSID`, `userID`, `moduleID`, `timeChatted`, `moduleWordsUsed`, `creationTimestamp`)
--- SELECT `chatbotId`, `userId`, `moduleId`, `totalTimeChatted`, `totalWordsForModule`, `timestamp`
--- FROM `chatbot_sessions_old`
--- ORDER BY `chatbotId` ASC;
-
-
--- INSERT IGNORE INTO `chatbot_sessions` (`userID`, `moduleID`, `timeChatted`, `moduleWordsUsed`, `creationTimestamp`)
--- SELECT `userId`, `moduleId`, `totalTimeChatted`, `totalWordsForModule`, `timestamp`
--- FROM `chatbot_sessions_old`
--- ORDER BY `chatbotId` ASC;
 
 -- Begin message migration
 RENAME TABLE `messages` TO `messages_old`;
 
-
-
--- NOTE: Create triggers for grammarScore and keyWordsUsed?
 CREATE TABLE `messages` (
   `messageID` int(4) NOT NULL AUTO_INCREMENT,
   `userID` int(4) NOT NULL,
   `chatbotSID` int(4) NOT NULL,
+  `classID` int(4) NOT NULL DEFAULT 1,
   `moduleID` int(4) NOT NULL,
   `source` ENUM('llm','user') NOT NULL,
   `message` text NOT NULL,
   `creationTimestamp` timestamp NOT NULL DEFAULT current_timestamp(), -- When message was sent
+  `creationDate` date DEFAULT NULL,
   `isVoiceMessage` boolean NOT NULL DEFAULT 0,
   `keyWordsUsed` int(4) NOT NULL DEFAULT 0,
-  `grammarScore` float(4) DEFAULT 0, -- xxx.x%, calculated later asynchronously(?)
+  `grammarScore` float(4) DEFAULT 0, 
   PRIMARY KEY (`messageID`),
+  KEY(`classID`),
+  KEY (`creationDate`),
+  KEY (`userID`, `messageID`),
   KEY (`creationTimestamp`),
+  FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE,
   FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE, 
   FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
   FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- ID = -1 DNE in real db, so replace with an actual module
 UPDATE `messages_old`
 SET `moduleId` = 3
 WHERE `moduleId` = -1;
 
 
--- Migrate data from messages_old into messages (new)
--- INSERT IGNORE INTO `messages` (`messageID`, `userID`, `chatbotSID`, `moduleID`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`, `grammarScore`)
--- SELECT `id`, `userId`, `chatbotId`, `moduleId`, `source`, `value`, `timestamp`, 0, 0
--- FROM `messages_old`;
-
-
--- drop table tito_class_status;
--- drop table tito_generated_module;
--- drop table tito_module;
--- drop table tito_module_progress;
--- drop table tito_term_progress;
--- drop table tito_voice_message;
 
 -- NOTE: Create triggers for titoExpirationDate?
 CREATE TABLE `tito_class_status` (
@@ -181,17 +162,6 @@ CREATE TABLE `tito_lore_text` (
   FOREIGN KEY (`loreID`) REFERENCES `tito_lore` (`loreID`) ON DELETE CASCADE,
   PRIMARY KEY (`loreID`, `sequenceNumber`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
--- CREATE TABLE `tito_lore_assignments` (
---   `loreID` int(2) NOT NULL DEFAULT 1,
---   `classID` int(4) NOT NULL,
---   `moduleID` int(4) NOT NULL,
---   FOREIGN KEY (`classID`) REFERENCES `group` (`groupID`),
---   FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`),
---   KEY (`classID`, `moduleID`),
---   UNIQUE (`classID`, `moduleID`)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
 
 CREATE TABLE `tito_generated_module` (
   `moduleID` int(4) NOT NULL, 
@@ -297,51 +267,6 @@ INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 1, "A m
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 2, "Lyrics follow, half in another language he used to speak.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 3, "He can hum the whole tune, and a friend’s voice joins in.");
 INSERT INTO tito_lore_text (loreID, sequenceNumber, loreText) VALUES (5, 4, "The song finishes; the memories return in harmony.");
-
-
--- Consider IGNORE after INSERT
-
--- -- populate `tito_module`
--- INSERT IGNORE INTO `tito_module` (`moduleID`, `classID`)
--- SELECT DISTINCT msg.moduleID, gu.groupID
--- FROM `messages` msg
--- JOIN `group_user` gu ON msg.userID = gu.userID
--- JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID;
-
-
-
-
--- -- populate `tito_module_progress`
--- INSERT IGNORE INTO `tito_module_progress` (`moduleID`, `userID`)
--- SELECT DISTINCT msg.moduleID, msg.userID
--- FROM `messages` msg
--- JOIN `group_user` gu ON gu.userID = msg.userID
--- JOIN `group_module` gm ON gm.groupID = gu.groupID AND gm.moduleID = msg.moduleID;
-
-
-
-
--- INSERT IGNORE INTO `tito_term_progress` (`userID`, `moduleID`, `termID`, `timesUsed`)
--- SELECT DISTINCT msg.userID, msg.moduleID, t.termID, 0
--- FROM `messages` msg
--- JOIN `module_question` mq ON mq.moduleID = msg.moduleID
--- JOIN `answer` a ON a.questionID = mq.questionID
--- JOIN `term` t ON t.termID = a.termID
--- JOIN `group_user` gu ON gu.userID = msg.userID;
--- -- WHERE gu.accessLevel = 'st';
-
-
-
--- -- Populate tito_class_status table
--- INSERT IGNORE INTO `tito_class_status` (`classID`, `professorID`, `titoStatus`, `titoExpirationDate`)
--- SELECT DISTINCT gu.groupID, gu.userID, 'active', DATE_ADD(NOW(), INTERVAL 1 YEAR)
--- FROM `group_user` gu
--- WHERE gu.accessLevel = 'pf';
-
-
-
-
-
 
 
 
@@ -507,6 +432,19 @@ END //
 DELIMITER ;
 
 DELIMITER // 
+
+CREATE TRIGGER onMessageInsert_setDate
+BEFORE INSERT ON `messages`
+FOR EACH ROW
+BEGIN
+  IF NEW.creationDate IS NULL THEN
+    SET NEW.creationDate = CURDATE();
+  END IF;
+END //
+DELIMITER ;
+
+
+DELIMITER // 
 CREATE TRIGGER onClassCreation_insertAdmin
 AFTER INSERT ON `group`
 FOR EACH ROW
@@ -515,6 +453,10 @@ BEGIN
   VALUES (1, NEW.groupID, 'pf');
 END //
 DELIMITER ;
+
+
+
+
 
 
 
