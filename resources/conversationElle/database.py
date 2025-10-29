@@ -87,8 +87,8 @@ def userIsNotAStudent(user_id:int, class_id: int):
     '''
     res = db.get(query, (user_id, class_id), fetchOne=True)
     if not res or res[0]:
-        return False
-    return True
+        return True
+    return False
 
 
 
@@ -541,6 +541,15 @@ def addNewTitoModule(module_id, class_id):
     db.post("INSERT INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);", term_progress_data)
     return 
 
+def isVoiceMessageCapable(message_id: int, user_id: int):
+    query = '''
+        SELECT EXISTS (SELECT * FROM `messages` WHERE userID = %s AND messageID = %s AND isVoiceMessage = 1);
+    '''
+    res = db.get(query, (user_id, message_id), fetchOne=True)
+    if not res or res[0] == 0:
+        return False
+    return True
+
 def addNewGroupUserToTitoGroup(user_id, class_id):
     """
     When a user is added to a group that already has Tito modules,
@@ -680,6 +689,8 @@ def createTitoClass(user_id: int, class_id: int):
         return False
     if not res.get("rowcount"):
         return False
+
+    
     return True
 
 def updateClassModuleTitoLoreAssignment(class_id: int, module_id: int, new_lore_id: int):
@@ -796,17 +807,17 @@ def insertTitoLore(owner_id: int, lore_text: [str]):
 
 def isTitoLoreOwner(owner_id: int, lore_id: int):
     query = '''
-        SELECT EXISTS(
-            SELECT *
+        SELECT EXISTS (
+            SELECT * 
             FROM tito_lore
-            WHERE loreID = %s AND ownerID = %s;
+            WHERE loreID = %s AND ownerID = %s
         );
     '''
 
     res = db.get(query, (lore_id, owner_id), fetchOne=True)
-    if not res:
+    if not res or res[0] == 0:
         return False
-    return res[0]
+    return True
 
 # TODO: this is a monstrosity, i am sorry... D: i should've used str concat instead 
 def profGetStudentMessages(student_id=None, class_id=None, module_id=None, date_from=None, date_to=None):
@@ -1091,14 +1102,14 @@ def isActiveTitoModule(classID: int, moduleID: int):
 def isTitoModule(class_id: int, module_id: int):
     query = '''
         SELECT EXISTS (
-            SELECT `moduleID`
+            SELECT *
             FROM `tito_module`
             WHERE `classID` = %s AND `moduleID` = %s
         );
     '''
 
     res = db.get(query, (class_id, module_id), fetchOne=True)
-    return False if not res else res[0]
+    return False if not res or res == 0 else True
     
 # Returns pairs of termIDs with the term (str) for a given module
 def getModuleTerms(module_id: int):

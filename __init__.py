@@ -418,6 +418,8 @@ api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateMo
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
+# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 
 # Temporary
 api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")

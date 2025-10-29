@@ -242,6 +242,8 @@ class UserAudio(Resource):
         if isDuplicateAudioUpload(user_id, message_id):
             return create_response(False, message="User already has uploaded an audio file for this message.", status_code=403)
         
+        if not isVoiceMessageCapable(message_id, user_id):
+            return create_response(False, message='invalid request or uploading to non vm message', status_code=403)
         if not doesUserMessageExist(message_id):
             return create_response(False, message='invalid message id', status_code=403)
         if not isUserInClass(user_id, class_id):
@@ -643,21 +645,21 @@ class UpdateTitoLore(Resource):
 
         data = request.form
         class_id = data.get('classID')
-        module_id = data.get('moduleID')
+        # module_id = data.get('moduleID')
         lore_id = data.get('loreID')
         sequence_num = data.get('sequenceNumber')
         new_lore_text = data.get('newLoreText')
 
-        if not class_id or not module_id or not lore_id:
+        if not class_id or not lore_id:
             return create_response(False, message="insufficient params provided.", status_code=403)
         if not user_permission or user_permission == 'st':
             return create_response(False, message='insufficient perms', status_code=403)
-        if user_permission != 'su' and isTitoLoreOwner(user_id, lore_id):
+        if user_permission != 'su' and not isTitoLoreOwner(user_id, lore_id):
             return create_response(False, message='insufficient perms', status_code=403)
-
         res = updateTitoLoreText(lore_id, sequence_num, new_lore_text)
         if not res:
             return create_response(False, message="failed to update tito lore. probably used the same text", status_code=500)
+        print(30)
         return create_response(True, message='updated tito lore')
 
 class FetchAllOwnedTitoLore(Resource):
@@ -707,8 +709,8 @@ class PFGetStudentMessages(Resource):
         filter_date_from = request.args.get('dateFrom')
         filter_date_to = request.args.get('dateTo')
 
-        is_ta = False
-        is_tito_class = False
+        is_ta_flag = False
+        is_tito_class_flag = False
 
         if user_permission == 'st':
             return create_response(False, message='insufficient perms', status_code=403)
@@ -720,11 +722,11 @@ class PFGetStudentMessages(Resource):
         if module_id:
             if not isTitoModule(class_id, module_id):
                 return create_response(False, message='Module isnt a tito module', status_code=403)
-            
-            is_ta = is_ta(user_id, class_id)
-            is_tito_class = isTitoClassOwner(user_id, class_id)
 
-            if not is_ta and not isTitoClassOwner and not user_permission == 'su':
+            is_ta_flag = is_ta(user_id, class_id)
+            is_tito_class_flag = isTitoClassOwner(user_id, class_id)
+
+            if not is_ta_flag and not is_tito_class_flag and not user_permission == 'su':
                 return create_response(False, message='user doesnt have access to this class and/or module does not belong to provided class', status_code=403)
         if student_id and not isUserInClass(student_id, class_id):
             return create_response(False, message='student provided not enrolled in class given', status_code=403)

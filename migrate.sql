@@ -29,8 +29,13 @@ INSERT IGNORE INTO group_module (moduleID, groupID)
 SELECT DISTINCT moduleID as moduleID, 74
 FROM `module`;
 
--- INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
--- VALUES (1, 1, 'pf');
+
+INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
+VALUES (1, 74, 'pf');
+INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
+VALUES (570, 74, 'pf');
+
+
 
 -- INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
 -- SELECT DISTINCT 1, 1, 'pf'
@@ -294,15 +299,7 @@ BEGIN
 END//
 DELIMITER ;
 
-DELIMITER //
-CREATE TRIGGER addFreeChatModule
-AFTER INSERT ON `tito_class_status`
-FOR EACH ROW
-BEGIN
-  INSERT IGNORE INTO `tito_module` (moduleID, classID)
-  VALUE (74, new.classID);
-END //
-DELIMITER ;
+
 
 -- When an update of a SINGLE TERM CHANGES, updates `hasMastered` if there is a need to
 DELIMITER //
@@ -414,7 +411,6 @@ END //
 DELIMITER ;
 
 DELIMITER // 
-
 CREATE TRIGGER onMessageInsert_setDate
 BEFORE INSERT ON `messages`
 FOR EACH ROW
@@ -436,9 +432,27 @@ BEGIN
 END //
 DELIMITER ;
 
+DELIMITER //
+CREATE TRIGGER grantFreechatClass
+AFTER UPDATE ON `group_user`
+FOR EACH ROW
+BEGIN
+  IF NEW.accessLevel = 'pf' AND OLD.accessLevel != 'pf' AND NEW.groupID != 75 THEN
+    INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
+    VALUES (NEW.userID, 75, 'pf');
+  END IF;
+END //
+DELIMITER ;
 
-
-
+DELIMITER //
+CREATE TRIGGER addFreeChatModule
+AFTER INSERT ON `tito_class_status`
+FOR EACH ROW
+BEGIN
+  INSERT IGNORE INTO `tito_module` (moduleID, classID)
+  VALUE (228, new.classID);
+END //
+DELIMITER ;
 
 -- Clean up UNCOMMENT
 -- DROP TABLE `chatbot_sessions_old`;
