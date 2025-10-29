@@ -31,7 +31,7 @@ const nextConfig = {
             {
                 source: '/elleapi/:slug*',
                 destination: 'http://localhost:5050/elleapi/:slug*',
-                basePath: process.env.NODE_ENV === 'production' ? undefined : false
+                basePath: false //process.env.NODE_ENV === 'production' ? undefined : false
             },
             {
                 source: '/images/:slug*',
