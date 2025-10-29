@@ -432,17 +432,6 @@ BEGIN
 END //
 DELIMITER ;
 
-DELIMITER //
-CREATE TRIGGER grantFreechatClass
-AFTER UPDATE ON `group_user`
-FOR EACH ROW
-BEGIN
-  IF NEW.accessLevel = 'pf' AND OLD.accessLevel != 'pf' AND NEW.groupID != 75 THEN
-    INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
-    VALUES (NEW.userID, 75, 'pf');
-  END IF;
-END //
-DELIMITER ;
 
 DELIMITER //
 CREATE TRIGGER addFreeChatModule
