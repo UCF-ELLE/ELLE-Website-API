@@ -153,7 +153,7 @@ from resources.conversationElle.conversation import(
     GenerateModule,
 
     Testing,
-    AIModuleGeneration,
+    # AIModuleGeneration,
 )
 import os
 import threading
@@ -412,7 +412,7 @@ api.add_resource(CreateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/createNewT
 api.add_resource(UpdateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/updateTitoLore")
 api.add_resource(FetchAllOwnedTitoLore, API_ENDPOINT_PREFIX + "twt/professor/fetchOwnedTitoLore")
 api.add_resource(PFGetStudentMessages, API_ENDPOINT_PREFIX + "twt/professor/getStudentMessages")
-api.add_resource(AIModuleGeneration, API_ENDPOINT_PREFIX + "twt/professor/generateModule")
+api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateModule")
 
 
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
