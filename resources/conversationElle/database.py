@@ -574,7 +574,7 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
     # 3. Create module progress entries for each module
     module_progress_data = [(m, user_id) for m in module_ids]
     db.post(
-            "INSERT INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_progress_data
+            "INSERT IGNORE INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_progress_data
         )
 
     print(f'module_progress_data: {module_progress_data}')
@@ -600,7 +600,7 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
         if term_ids:
             term_progress_data = [(user_id, module_id, term_id) for term_id in term_ids]
             db.post(
-                "INSERT INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);",
+                "INSERT IGNORE INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);",
                 term_progress_data
             )
 

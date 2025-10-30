@@ -814,7 +814,10 @@ class GenerateModule(Resource):
 # Disable/Remove AFTER RUNNING ONCE
 class Testing(Resource):
     def get(self):
-        return create_response(res=updateLiveDB())
+        res = updateLiveDB()
+        addNewGroupUserToTitoGroup(570, 74)
+
+        return create_response(res=res)
 
 # ========================================
 # ++++++ CONVERSATION AUDIO EXPORT ++++++
