@@ -1113,7 +1113,7 @@ def isTitoModule(class_id: int, module_id: int):
     '''
 
     res = db.get(query, (class_id, module_id), fetchOne=True)
-    return False if not res or res == 0 else True
+    return False if not res or res[0] == 0 else True
     
 # Returns pairs of termIDs with the term (str) for a given module
 def getModuleTerms(module_id: int):
