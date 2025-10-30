@@ -66,30 +66,19 @@ def create_module(prompt, term_count, nat_lang, target_lang):
             "stop": ["STOP"],
             "stream": False,
             "ignore_eos": True,
-            "cache_prompt": False,
-            "n_discard": -1
+            "cache_prompt": False
         }
 
-        print(f"[DEBUG] Module generation request prompt:\n{full_prompt}\n")
-        print(f"[DEBUG] Request config: {request}\n")
-        print(f"[DEBUG] Sending request to: {model_path}")
-
         try:
-            print("[DEBUG] Making HTTP request...")
             response = requests.post(model_path, json=request, timeout=120)  # 10 second timeout
-            print("[DEBUG] Got response, checking status...")
             response.raise_for_status()
-            print("[DEBUG] Parsing JSON...")
             response_data = response.json()
 
             llm_response = response_data.get("content", "")
             
-            print(f"[DEBUG] Raw LLM Response length: {len(llm_response)}")
-            print(f"[DEBUG] Raw LLM Response:\n{llm_response}\n")
 
             parse_terms = parse_llm_response(llm_response, int(term_count))
             
-            print(f"[DEBUG] Parsed {len(parse_terms)} terms (requested {term_count})\n")
 
             return parse_terms
 
@@ -152,7 +141,6 @@ def parse_llm_response(llm_response, term_count=5):
         
         # First, check if it's all on one line (malformed output)
         if '\n' not in llm_response.strip() and llm_response.count('|') > 10:
-            print(f"[DEBUG] Detected single-line format, splitting into groups of 4")
             # Split by pipe and group every 4 elements
             all_parts = [p.strip() for p in llm_response.split('|') if p.strip()]
             
@@ -182,14 +170,11 @@ def parse_llm_response(llm_response, term_count=5):
                             "gender": gender
                         }
                         terms.append(term)
-                        print(f"[DEBUG] ✓ Parsed (single-line): {term}")
             
-            print(f"[DEBUG] Successfully parsed {len(terms)} terms from single-line format")
             return terms
         
         # Original multi-line parsing
         lines = llm_response.strip().split('\n')
-        print(f"[DEBUG] Parsing {len(lines)} lines from response")
 
         for line in lines:
             line = line.strip()
@@ -206,7 +191,6 @@ def parse_llm_response(llm_response, term_count=5):
 
             # Only process lines with pipes
             if "|" not in line:
-                print(f"[DEBUG] Skipping non-pipe: {line[:50]}")
                 continue
 
             # Remove leading numbers (e.g., "1. " or "1. ")
@@ -250,11 +234,7 @@ def parse_llm_response(llm_response, term_count=5):
                     "gender": gender  # Now returns M, F, or N
                 }
                 terms.append(term)
-                print(f"[DEBUG] ✓ Parsed: {term}")
-            else:
-                print(f"[DEBUG] ✗ Rejected: {parts}")
 
-        print(f"[DEBUG] Successfully parsed {len(terms)} terms (requested {term_count})")
         return terms
 
     except Exception as error:
@@ -369,7 +349,6 @@ def handle_message(message: str, module_id: int = None, prompt=None):
         response = generate_message(message, prompt)
         response = response.strip()
 
-        print(f"[DEBUG] Raw LLM response: {response}")
             
     except Exception as e:
         return {"response" : "Sorry, Tito could not understand your message! Please try again."}
