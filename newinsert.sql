@@ -1,27 +1,17 @@
 
 
 
--- DELIMITER // 
--- CREATE TRIGGER onModuleCreation_addToSuperProf
--- AFTER INSERT ON `module`
--- FOR EACH ROW
--- BEGIN
---   INSERT IGNORE INTO `group_module` (`moduleID`, `groupID`)
---   VALUES (new.moduleID, 74);
--- END //
--- DELIMITER ;
 
--- DELIMITER //
--- CREATE TRIGGER grantFreechatClass
--- AFTER UPDATE ON `group_user`
--- FOR EACH ROW
--- BEGIN
---   IF NEW.accessLevel = 'pf' AND OLD.accessLevel != 'pf' AND NEW.groupID != 75 THEN
---     INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
---     VALUES (NEW.userID, 75, 'pf');
---   END IF;
--- END //
--- DELIMITER ;
+UPDATE user 
+set permissionGroup = 'pf'
+where userID = 570;
+
+update group_user
+set accessLevel = 'pf'
+where userID = 570 AND groupID = 74;
+
+INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
+VALUES (570, 74, 'pf');
 
 DELIMITER //
 CREATE TRIGGER addFreeChatModule
@@ -32,6 +22,10 @@ BEGIN
   VALUE (228, new.classID);
 END //
 DELIMITER ;
+
+INSERT INTO `tito_class_status` (`classID`, `professorID`, `titoExpirationDate`) 
+VALUES (74, 570, DATE_ADD(CURDATE(), INTERVAL 12 MONTH));
+
 
 DROP TABLE tito_voice_message;
 DROP TABLE tito_term_progress;

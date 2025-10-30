@@ -69,22 +69,16 @@ def create_module(prompt, term_count, nat_lang, target_lang):
             "cache_prompt": False
         }
 
-        print(f"[DEBUG] Module generation request prompt:\n{full_prompt}\n")
-        print(f"[DEBUG] Request config: {request}\n")
-
         try:
-            response = requests.post(model_path, json=request, timeout=60)  # 10 second timeout
+            response = requests.post(model_path, json=request, timeout=120)  # 10 second timeout
             response.raise_for_status()
             response_data = response.json()
 
             llm_response = response_data.get("content", "")
             
-            print(f"[DEBUG] Raw LLM Response length: {len(llm_response)}")
-            print(f"[DEBUG] Raw LLM Response:\n{llm_response}\n")
 
             parse_terms = parse_llm_response(llm_response, int(term_count))
             
-            print(f"[DEBUG] Parsed {len(parse_terms)} terms (requested {term_count})\n")
 
             return parse_terms
 
@@ -125,12 +119,28 @@ def build_module_prompt(prompt, term_count, nat_lang, target_lang):
     return generation_prompt
 
 def parse_llm_response(llm_response, term_count=5):
+    """
+    Parse LLM response into structured term data.
+    Returns terms with gender as single letters: M, F, N
+    """
     try:
         terms = []
         
+        # Gender mapping: full words to single letters
+        gender_full_to_short = {
+            'masculine': 'M',
+            'masc': 'M',
+            'm': 'M',
+            'feminine': 'F',
+            'fem': 'F',
+            'f': 'F',
+            'neutral': 'N',
+            'neut': 'N',
+            'n': 'N'
+        }
+        
         # First, check if it's all on one line (malformed output)
         if '\n' not in llm_response.strip() and llm_response.count('|') > 10:
-            print(f"[DEBUG] Detected single-line format, splitting into groups of 4")
             # Split by pipe and group every 4 elements
             all_parts = [p.strip() for p in llm_response.split('|') if p.strip()]
             
@@ -143,15 +153,10 @@ def parse_llm_response(llm_response, term_count=5):
                     native_word = all_parts[i]
                     target_word = all_parts[i + 1]
                     pos = all_parts[i + 2].lower()
-                    gender = all_parts[i + 3].lower()
+                    gender_raw = all_parts[i + 3].lower()
                     
-                    # Map gender values
-                    if gender in ['masculine', 'masc', 'm']:
-                        gender = 'masculine'
-                    elif gender in ['feminine', 'fem', 'f']:
-                        gender = 'feminine'
-                    else:
-                        gender = 'neutral'
+                    # Map gender to single letter
+                    gender = gender_full_to_short.get(gender_raw, 'N')
                     
                     # Map POS values
                     if pos not in ['noun', 'verb', 'adjective', 'adverb', 'preposition']:
@@ -165,14 +170,11 @@ def parse_llm_response(llm_response, term_count=5):
                             "gender": gender
                         }
                         terms.append(term)
-                        print(f"[DEBUG] ✓ Parsed (single-line): {term}")
             
-            print(f"[DEBUG] Successfully parsed {len(terms)} terms from single-line format")
             return terms
         
         # Original multi-line parsing
         lines = llm_response.strip().split('\n')
-        print(f"[DEBUG] Parsing {len(lines)} lines from response")
 
         for line in lines:
             line = line.strip()
@@ -189,7 +191,6 @@ def parse_llm_response(llm_response, term_count=5):
 
             # Only process lines with pipes
             if "|" not in line:
-                print(f"[DEBUG] Skipping non-pipe: {line[:50]}")
                 continue
 
             # Remove leading numbers (e.g., "1. " or "1. ")
@@ -211,12 +212,14 @@ def parse_llm_response(llm_response, term_count=5):
             
             # Extract gender and POS from remaining parts (order might vary)
             remaining = [p.lower() for p in parts[2:]]
-            gender = "neutral"
-            pos = "noun"
+            gender = "N"  # Default to neutral
+            pos = "noun"  # Default to noun
             
             for part in remaining:
-                if part in ['masculine', 'masc', 'feminine', 'fem', 'neutral']:
-                    gender = part if len(part) > 4 else ('masculine' if part == 'masc' else 'feminine' if part == 'fem' else 'neutral')
+                # Check if it's a gender
+                if part in gender_full_to_short:
+                    gender = gender_full_to_short[part]
+                # Check if it's a part of speech
                 elif part in ['noun', 'verb', 'adj', 'adjective', 'adverb', 'prep', 'preposition']:
                     pos = part
 
@@ -228,14 +231,10 @@ def parse_llm_response(llm_response, term_count=5):
                     "native_word": native_word,
                     "target_word": target_word,
                     "part_of_speech": pos,
-                    "gender": gender
+                    "gender": gender  # Now returns M, F, or N
                 }
                 terms.append(term)
-                print(f"[DEBUG] ✓ Parsed: {term}")
-            else:
-                print(f"[DEBUG] ✗ Rejected: {parts}")
 
-        print(f"[DEBUG] Successfully parsed {len(terms)} terms (requested {term_count})")
         return terms
 
     except Exception as error:
@@ -243,6 +242,7 @@ def parse_llm_response(llm_response, term_count=5):
         import traceback
         traceback.print_exc()
         return []
+
 
 # def validate_term(term: Dict):
 #     """
@@ -349,7 +349,6 @@ def handle_message(message: str, module_id: int = None, prompt=None):
         response = generate_message(message, prompt)
         response = response.strip()
 
-        print(f"[DEBUG] Raw LLM response: {response}")
             
     except Exception as e:
         return {"response" : "Sorry, Tito could not understand your message! Please try again."}

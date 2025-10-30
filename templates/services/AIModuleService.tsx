@@ -44,26 +44,30 @@ export default class AIModuleService {
     }
 
     generateModule = async (params: AIModuleGenerationParams, jwt: string) => {
-        try {
-            const response = await this.instance.post<GeneratedModule>(
-                '/elleapi/twt/professor/generateModule',
-                params,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${jwt}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-            return response.data;
-        } catch (err: any) {
-            if (err.response?.data) {
-                return { error: err.response.data.Error || err.response.data.message || 'Module generation failed' } as ApiError;
-            } else {
-                return { error: 'Network error during module generation' } as ApiError;
+    try {
+        // Build URL with query parameters matching AIModuleGeneration class
+        const url = `/elleapi/ai/generate-module?` +
+            `name=${encodeURIComponent(params.name)}&` +
+            `numTerms=${params.numTerms}&` +
+            `nativeLanguage=${params.nativeLanguage}&` +
+            `targetLanguage=${params.targetLanguage}&` +
+            `groupID=${params.groupID || 0}&` +
+            `complexity=${params.complexity || 2}`;
+
+        const response = await this.instance.get<GeneratedModule>(url, {
+            headers: {
+                'Authorization': `Bearer ${jwt}`
             }
+        });
+        return response.data;
+    } catch (err: any) {
+        if (err.response?.data) {
+            return { error: err.response.data.Error || err.response.data.message || 'Module generation failed' } as ApiError;
+        } else {
+            return { error: 'Network error during module generation' } as ApiError;
         }
-    };
+    }
+};
 
     getGenerationStatus = async (taskId: string, jwt: string) => {
         try {

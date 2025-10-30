@@ -21,53 +21,36 @@ ADD UNIQUE (`groupID`, `userID`);
 -- SELECT DISTINCT 1 AS groupID, m.moduleID 
 -- FROM `module` m;
 
--- INSERT INTO group_user (userID, groupID, accessLevel)
--- VALUES (1, 1, 'pf');
 
 -- Insert all modules into class 74
-INSERT IGNORE INTO group_module (moduleID, groupID)
-SELECT DISTINCT moduleID as moduleID, 74
-FROM `module`;
-
-
-INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
-VALUES (1, 74, 'pf');
-INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
-VALUES (570, 74, 'pf');
-
+-- INSERT IGNORE INTO group_module (moduleID, groupID)
+-- SELECT DISTINCT moduleID as moduleID, 74
+-- FROM `module`;
 
 
 -- INSERT IGNORE INTO `group_user` (userID, groupID, accessLevel)
--- SELECT DISTINCT 1, 1, 'pf'
--- FROM `group_user` gu;
+-- VALUES (570, 74, 'pf');
 
--- UPDATE `group_user`
--- SET `accessLevel` = 'pf'
--- WHERE `userID` = 1;
-
--- UPDATE `user`
--- SET `permissionGroup` = 'su'
--- WHERE `userID` = 1;
 
 
 -- REGISTER A NEW USER FIRST BEFORE PROCEEDING
--- LOG IN AND GET THEIR USER ID AND REPLACE '473' WITH THE NEW ID
+-- LOG IN AND GET THEIR USER ID AND REPLACE '572' WITH THE NEW ID
 -- THAT WILL BE YOUR STUDENT ACCOUNT
--- username =  ecstaticseahorse0
+-- username =  chilledUser1
 -- password = 1 
 
 
 -- THIS IS THE STUDENT WITH ACCESS TO ALL T-MODULES
 -- INSERT INTO group_user (userID, groupID, accessLevel)
--- VALUES (473, 1, 'st');
+-- VALUES (572, 1, 'st');
 
 -- UPDATE `group_user`
 -- SET `accessLevel` = 'st'
--- WHERE `userID` = 473;
+-- WHERE `userID` = 572;
 
 -- UPDATE `user`
 -- SET `permissionGroup` = 'st'
--- WHERE `userID` = 473;
+-- WHERE `userID` = 572;
 -- REPLACE TO HERE
 
 
@@ -79,7 +62,7 @@ VALUES (570, 74, 'pf');
 
 
 -- Begin migration chatbot sessions
-RENAME TABLE `chatbot_sessions` TO `chatbot_sessions_old`;
+-- RENAME TABLE `chatbot_sessions` TO `chatbot_sessions_old`;
 
 -- NOTE: Create triggers for grammarScore, isActiveSession, timeChatted and moduleWordsUsed?
 CREATE TABLE `chatbot_sessions` (
@@ -105,7 +88,7 @@ WHERE `moduleId` = -1;
 
 
 -- Begin message migration
-RENAME TABLE `messages` TO `messages_old`;
+-- RENAME TABLE `messages` TO `messages_old`;
 
 CREATE TABLE `messages` (
   `messageID` int(4) NOT NULL AUTO_INCREMENT,

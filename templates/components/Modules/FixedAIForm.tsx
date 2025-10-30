@@ -50,14 +50,21 @@ export default function FixedAIForm({
             };
             
             
-            const response = await fetch('/elleapi/twt/professor/generateModule', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user!.jwt}`
-                },
-                body: JSON.stringify(requestData)
-            });
+            const response = await fetch(
+                    `/elleapi/ai/generate-module?` +
+                    `name=${encodeURIComponent(requestData.name)}&` +
+                    `numTerms=${requestData.numTerms}&` +
+                    `nativeLanguage=${requestData.nativeLanguage}&` +
+                    `targetLanguage=${requestData.targetLanguage}&` +
+                    `groupID=${requestData.groupID || 0}&` +
+                    `complexity=${requestData.complexity}`,
+                    {
+                    method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${user!.jwt}`
+                        }
+                    }
+                );
             
             
             // Handle non-JSON responses (like error pages)

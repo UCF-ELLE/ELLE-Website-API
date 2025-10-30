@@ -14,8 +14,18 @@ from .llm_functions import *
 from .utils import *
 from .tito_methods import updateLiveDB, merge_user_audio
 from datetime import datetime
+import traceback
 
 USER_VOICE_FOLDER = "user_audio_files/"
+
+pos_map = {
+    'noun': 'NN',
+    'verb': 'VR',
+    'adjective': 'AJ',
+    'adverb': 'AV',
+    'preposition': 'PR',
+    'phrase': 'PH'
+}
 
 # ======================================
 # ++++++ TWT ACCESS APIs ++++++
@@ -757,55 +767,61 @@ class AdminFetchData(Resource):
         
         return
 
-class GenerateModule(Resource):
-    # @jwt_required
-    def get(self):
-        '''
-            Returns a list of messages in json
-        '''
+# class GenerateModule(Resource):
+#     # @jwt_required
+#     def get(self):
+#         '''
+#             Returns a list of messages in json
+#         '''
 
-        # user_id = get_jwt_identity()
-        # claims = get_jwt_claims()
-        # user_permission = claims.get("permission")
+#         # user_id = get_jwt_identity()
+#         # claims = get_jwt_claims()
+#         # user_permission = claims.get("permission")
 
-        prompt = request.args.get('prompt')
-        term_count = request.args.get('termCount')
-        native_lang = request.args.get('nativeLanguage')
-        target_lang = request.args.get('targetLanguage')
+#         prompt = request.args.get('prompt')
+#         term_count = request.args.get('termCount')
+#         native_lang = request.args.get('nativeLanguage')
+#         target_lang = request.args.get('targetLanguage')
 
-        if not prompt or not term_count or term_count == 0 or not native_lang or not target_lang:
-            return create_response(False, message='insufficient params provided', status_code=400)
+#         if not prompt or not term_count or term_count == 0 or not native_lang or not target_lang:
+#             return create_response(False, message='insufficient params provided', status_code=400)
 
 
-        res = create_module(prompt, term_count, native_lang, target_lang)
-        if not res:
-            return create_response(False, message='failed to generate module outline', status_code=201)
+#         res = create_module(prompt, term_count, native_lang, target_lang)
+#         if not res:
+#             return create_response(False, message='failed to generate module outline', status_code=201)
 
-        return create_response(message='returned sample terms', data=res)
-class GenerateModule(Resource):
-    @jwt_required
-    def get(self):
-        '''
-            Returns a list of messages in json
-        '''
-        user_id = get_jwt_identity()
-        claims = get_jwt_claims()
-        user_permission = claims.get("permission")
+#         return create_response(message='returned sample terms', data=res)
+# class GenerateModule(Resource):
+#     @jwt_required
+#     def get(self):
+#         '''
+#             Returns a list of messages in json
+#         '''
+#         user_id = get_jwt_identity()
+#         claims = get_jwt_claims()
+#         user_permission = claims.get("permission")
 
-        prompt = request.args.get('prompt')
-        term_count = request.args.get('termCount')
-        native_lang = request.args.get('nativeLanguage')
-        target_lang = request.args.get('targetLanguage')
+#         prompt = request.args.get('name')
+#         term_count = request.args.get('termCount')
+#         native_lang = request.args.get('nativeLanguage')
+#         target_lang = request.args.get('targetLanguage')
 
-        if not prompt or not term_count or term_count == 0 or not native_lang or not target_lang:
-            return create_response(False, message='insufficient params provided', status_code=400)
+#         # DEBUG - print what you received
+#         print(f"[DEBUG] prompt: {prompt}")
+#         print(f"[DEBUG] term_count: {term_count}")
+#         print(f"[DEBUG] native_lang: {native_lang}")
+#         print(f"[DEBUG] target_lang: {target_lang}")
 
-        res = create_module(prompt, term_count, native_lang, target_lang)
+#         if not prompt or not term_count or term_count == 0 or not native_lang or not target_lang:
+#             return create_response(False, message='insufficient params provided', status_code=400)
 
-        if not res:
-            return create_response(False, message='failed to generate module outline', status_code=201)
+#         res = create_module(prompt, term_count, native_lang, target_lang)
 
-        return create_response(message='returned sample terms', data=res)
+#         if not res:
+#             return create_response(False, message='failed to generate module outline', status_code=201)
+
+#         return create_response(message='returned sample terms', data=res)
 
 # ========================================
 # ++++++ DB MIGRATION TEMPORARY ++++++
@@ -814,7 +830,10 @@ class GenerateModule(Resource):
 # Disable/Remove AFTER RUNNING ONCE
 class Testing(Resource):
     def get(self):
-        return create_response(res=updateLiveDB())
+        res = updateLiveDB()
+        addNewGroupUserToTitoGroup(570, 74)
+
+        return create_response(res=res)
 
 # ========================================
 # ++++++ CONVERSATION AUDIO EXPORT ++++++
@@ -1173,285 +1192,300 @@ class AssignTitoLore(Resource):
         return create_response(False, message='AssignTitoLore not implemented', status_code=501)
 
 
-# # AI Module Generation endpoint
-# class AIModuleGeneration(Resource):
-#     @jwt_required
-#     def get(self):
-#         """
-#         GET method for backward compatibility with query parameters
-#         """
-#         try:
-#             user_id = get_jwt_identity()
-#             claims = get_jwt_claims()
-#             permission = claims.get('permission')
+# AI Module Generation endpoint
+class AIModuleGeneration(Resource):
+    @jwt_required
+    def get(self):
+        """
+        GET method for backward compatibility with query parameters
+        """
+        try:
+            user_id = get_jwt_identity()
+            claims = get_jwt_claims()
+            permission = claims.get('permission')
             
-#             # Only allow professors, TAs, and super admins to generate modules
-#             if permission not in ['pf', 'ta', 'su']:
-#                 return create_response(False, message="Insufficient permissions to generate modules", status_code=403)
+            # Only allow professors, TAs, and super admins to generate modules
+            if permission not in ['pf', 'ta', 'su']:
+                return create_response(False, message="Insufficient permissions to generate modules", status_code=403)
             
-#             # Get parameters from query string
-#             name = request.args.get('name')
-#             target_language = request.args.get('targetLanguage')
-#             native_language = request.args.get('nativeLanguage')
-#             num_terms = request.args.get('numTerms', 20)
-#             group_id = request.args.get('groupID')
-#             complexity = request.args.get('complexity', 2)
+            # Get parameters from query string
+            name = request.args.get('name')
+            target_language = request.args.get('targetLanguage')
+            native_language = request.args.get('nativeLanguage')
+            num_terms = request.args.get('numTerms', 20)
+            group_id = request.args.get('groupID')
+            complexity = request.args.get('complexity', 2)
             
-#             # Convert to int
-#             try:
-#                 num_terms = int(num_terms)
-#                 complexity = int(complexity)
-#                 if group_id:
-#                     group_id = int(group_id)
-#             except ValueError:
-#                 return create_response(False, message="Invalid number format for numTerms or complexity", status_code=400)
+            # Convert to int
+            try:
+                num_terms = int(num_terms)
+                complexity = int(complexity)
+                if group_id:
+                    group_id = int(group_id)
+            except ValueError:
+                return create_response(False, message="Invalid number format for numTerms or complexity", status_code=400)
             
-#             # Validate required parameters
-#             if not all([name, target_language, native_language]):
-#                 return create_response(False, message="Missing required parameters: name, targetLanguage, nativeLanguage", status_code=400)
+            # Validate required parameters
+            if not all([name, target_language, native_language]):
+                return create_response(False, message="Missing required parameters: name, targetLanguage, nativeLanguage", status_code=400)
             
-#             # Validate num_terms range
-#             if num_terms < 5 or num_terms > 100:
-#                 return create_response(False, message="numTerms must be between 5 and 100", status_code=400)
+            # Validate num_terms range
+            if num_terms < 5 or num_terms > 100:
+                return create_response(False, message="numTerms must be between 5 and 100", status_code=400)
             
-#             # Call the same logic as POST
-#             return self._generate_module(user_id, name, target_language, native_language, num_terms, group_id, complexity)
+            # Call the same logic as POST
+            return self._generate_module(user_id, name, target_language, native_language, num_terms, group_id, complexity)
             
-#         except Exception as e:
-#             return create_response(False, message=f"Error processing request: {str(e)}", status_code=500)
+        except Exception as e:
+            return create_response(False, message=f"Error processing request: {str(e)}", status_code=500)
     
-#     @jwt_required
-#     def post(self):
-#         """
-#         /elleapi/ai/generate-module
-#         Generates a new module using AI/LLM with specified parameters
-#         """
-#         try:
-#             user_id = get_jwt_identity()
-#             claims = get_jwt_claims()
-#             permission = claims.get('permission')
+    @jwt_required
+    def post(self):
+        """
+        /elleapi/ai/generate-module
+        Generates a new module using AI/LLM with specified parameters
+        """
+        try:
+            user_id = get_jwt_identity()
+            claims = get_jwt_claims()
+            permission = claims.get('permission')
             
-#             # Only allow professors, TAs, and super admins to generate modules
-#             if permission not in ['pf', 'ta', 'su']:
-#                 return create_response(False, message="Insufficient permissions to generate modules", status_code=403)
+            # Only allow professors, TAs, and super admins to generate modules
+            if permission not in ['pf', 'ta', 'su']:
+                return create_response(False, message="Insufficient permissions to generate modules", status_code=403)
             
-#             data = request.get_json()
-#             if not data:
-#                 return create_response(False, message="No JSON data provided", status_code=400)
+            data = request.get_json()
+            if not data:
+                return create_response(False, message="No JSON data provided", status_code=400)
                 
-#             # Extract parameters
-#             name = data.get('name')
-#             target_language = data.get('targetLanguage') 
-#             native_language = data.get('nativeLanguage')
-#             num_terms = data.get('numTerms', 20)
-#             group_id = data.get('groupID')
-#             complexity = data.get('complexity', 2)
+            # Extract parameters
+            name = data.get('name')
+            target_language = data.get('targetLanguage') 
+            native_language = data.get('nativeLanguage')
+            num_terms = data.get('numTerms', 20)
+            group_id = data.get('groupID')
+            complexity = data.get('complexity', 2)
             
-#             # Validate required parameters
-#             if not all([name, target_language, native_language]):
-#                 return create_response(False, message="Missing required parameters: name, targetLanguage, nativeLanguage", status_code=400)
+            # Validate required parameters
+            if not all([name, target_language, native_language]):
+                return create_response(False, message="Missing required parameters: name, targetLanguage, nativeLanguage", status_code=400)
                 
-#             # Validate num_terms range
-#             if not isinstance(num_terms, int) or num_terms < 5 or num_terms > 100:
-#                 return create_response(False, message="numTerms must be an integer between 5 and 100", status_code=400)
+            # Validate num_terms range
+            if not isinstance(num_terms, int) or num_terms < 5 or num_terms > 100:
+                return create_response(False, message="numTerms must be an integer between 5 and 100", status_code=400)
             
-#             # Call the same logic as GET
-#             return self._generate_module(user_id, name, target_language, native_language, num_terms, group_id, complexity)
+            # Call the same logic as GET
+            return self._generate_module(user_id, name, target_language, native_language, num_terms, group_id, complexity)
             
-#         except Exception as e:
-#             return create_response(False, message=f"Error processing request: {str(e)}", status_code=500)
+        except Exception as e:
+            return create_response(False, message=f"Error processing request: {str(e)}", status_code=500)
     
-#     def _generate_module(self, user_id, name, target_language, native_language, num_terms, group_id, complexity):
-#         """
-#         Shared method for both GET and POST to generate and save module
-#         """
-#         try:
-#             # Get user permission again for the helper method
-#             claims = get_jwt_claims()
-#             permission = claims.get('permission')
+    def _generate_module(self, user_id, name, target_language, native_language, num_terms, group_id, complexity):
+        """
+        Shared method for both GET and POST to generate and save module
+        """
+        try:
+            # Get user permission again for the helper method
+            claims = get_jwt_claims()
+            permission = claims.get('permission')
             
-#             # Use the existing create_module function from llm_functions.py
+            # Use the existing create_module function from llm_functions.py
             
-#             try:
-#                 module_result = create_module(
-#                     prompt=name,
-#                     term_count=num_terms,
-#                     nat_lang=native_language,
-#                     target_lang=target_language
-#                 )
+            try:
+                module_result = create_module(
+                    prompt=name,
+                    term_count=num_terms,
+                    nat_lang=native_language,
+                    target_lang=target_language
+                )
                 
-#             except Exception as generation_error:
-#                 return create_response(
-#                     False, 
-#                     message=f"AI generation failed with exception: {str(generation_error)}", 
-#                     status_code=500
-#                 )
+            except Exception as generation_error:
+                return create_response(
+                    False, 
+                    message=f"AI generation failed with exception: {str(generation_error)}", 
+                    status_code=500
+                )
             
-#             # Handle both list (success) and dict (error) responses from create_module
-#             if isinstance(module_result, dict) and module_result.get('status') == 'error':
-#                 error_msg = module_result.get('message', 'Unknown error - no response from AI')
-#                 return create_response(
-#                     False, 
-#                     message=f"AI generation failed: {error_msg}", 
-#                     status_code=500
-#                 )
+            # Handle both list (success) and dict (error) responses from create_module
+            if isinstance(module_result, dict) and module_result.get('status') == 'error':
+                error_msg = module_result.get('message', 'Unknown error - no response from AI')
+                return create_response(
+                    False, 
+                    message=f"AI generation failed: {error_msg}", 
+                    status_code=500
+                )
             
-#             # Convert list to expected format
-#             if isinstance(module_result, list):
-#                 terms_list = module_result
-#             elif isinstance(module_result, dict):
-#                 terms_list = module_result.get('terms', [])
-#             else:
-#                 return create_response(
-#                     False, 
-#                     message="Invalid response from AI", 
-#                     status_code=500
-#                 )
+            # Convert list to expected format
+            if isinstance(module_result, list):
+                terms_list = module_result
+            elif isinstance(module_result, dict):
+                terms_list = module_result.get('terms', [])
+            else:
+                return create_response(
+                    False, 
+                    message="Invalid response from AI", 
+                    status_code=500
+                )
             
-#             if not terms_list:
-#                 return create_response(
-#                     False, 
-#                     message="AI did not generate any terms", 
-#                     status_code=500
-#                 )
+            if not terms_list:
+                return create_response(
+                    False, 
+                    message="AI did not generate any terms", 
+                    status_code=500
+                )
             
-#             # Create the actual module in the database
-#             from db_utils import postToDB, getFromDB
-#             from db import mysql
+            # Create the actual module in the database
+            from db_utils import postToDB, getFromDB
+            from db import mysql
             
-#             try:
-#                 conn = mysql.connect()
-#                 cursor = conn.cursor()
+            try:
+                conn = mysql.connect()
+                cursor = conn.cursor()
                 
-#                 # Insert the new module into the database
-#                 module_insert_query = """
-#                     INSERT INTO `module` (`name`, `language`, `complexity`, `userID`, `isPastaModule`) 
-#                     VALUES (%s, %s, %s, %s, %s)
-#                 """
+                # Insert the new module into the database
+                module_insert_query = """
+                    INSERT INTO `module` (`name`, `language`, `complexity`, `userID`, `isPastaModule`) 
+                    VALUES (%s, %s, %s, %s, %s)
+                """
                 
-#                 cursor.execute(module_insert_query, (
-#                     name, 
-#                     target_language, 
-#                     complexity, 
-#                     user_id, 
-#                     False  # isPastaModule
-#                 ))
+                cursor.execute(module_insert_query, (
+                    name, 
+                    target_language, 
+                    complexity, 
+                    user_id, 
+                    False  # isPastaModule
+                ))
                 
-#                 # Get the newly created module ID
-#                 new_module_id = cursor.lastrowid
+                # Get the newly created module ID
+                new_module_id = cursor.lastrowid
                 
-#                 # Insert each AI-generated term into the database
-#                 terms_created = 0
-#                 for term in terms_list:
-#                     try:
-#                         # Insert term
-#                         term_insert_query = """
-#                             INSERT INTO `term` (`front`, `back`, `type`, `gender`, `language`) 
-#                             VALUES (%s, %s, %s, %s, %s)
-#                         """
+                # Insert each AI-generated term into the database
+                terms_created = 0
+                for term in terms_list:
+                    try:
+                        native = term.get('native_word', '').strip()
+                        target = term.get('target_word', '').strip()
+                        pos_full = term.get('part_of_speech', 'noun').lower()
+                        pos_short = pos_map.get(pos_full, 'NN')
+                        pos = term.get('part_of_speech', 'noun').upper()
+                        gender = term.get('gender', 'N')
+        
+                        print(f"[DEBUG DB] Processing term #{terms_created + 1}: native='{native}', target='{target}', pos='{pos}', gender='{gender}'")
+        
+                        # Insert term
+                        term_insert_query = """
+                            INSERT INTO `term` (`front`, `back`, `type`, `gender`, `language`) 
+                            VALUES (%s, %s, %s, %s, %s)
+                        """
                         
-#                         # Clean words - remove any extra text like "- Tutor:", "Response=", etc.
-#                         native = term.get('native_word', '').strip()
-#                         target = term.get('target_word', '').strip()
+                        # Clean words - remove any extra text like "- Tutor:", "Response=", etc.
+                        native = term.get('native_word', '').strip()
+                        target = term.get('target_word', '').strip()
                         
-#                         # Remove common LLM artifacts
-#                         for prefix in ['- Tutor:', 'Response=', 'Tutor:', '-', 'Student:', 'Assistant:']:
-#                             if native.startswith(prefix):
-#                                 native = native[len(prefix):].strip()
-#                             if target.startswith(prefix):
-#                                 target = target[len(prefix):].strip()
+                        # # Remove common LLM artifacts
+                        # for prefix in ['- Tutor:', 'Response=', 'Tutor:', '-', 'Student:', 'Assistant:']:
+                        #     if native.startswith(prefix):
+                        #         native = native[len(prefix):].strip()
+                        #     if target.startswith(prefix):
+                        #         target = target[len(prefix):].strip()
+
+                        print(f"[DEBUG DB] Executing: INSERT term with values ('{target}', '{native}', '{pos}', '{gender}', '{target_language}')")
+                        cursor.execute(term_insert_query, (
+                            target,   # Target language (Spanish) in 'front' column (English column display)
+                            native,   # Native language (English) in 'back' column (Translated column display)
+                            pos_short,
+                            gender,  # First letter: M/F/N
+                            target_language
+                        ))
+                        print(f"[DEBUG DB] ✓ Term inserted, lastrowid: {cursor.lastrowid}")
+
+                        term_id = cursor.lastrowid
                         
-#                         cursor.execute(term_insert_query, (
-#                             target,   # Target language (Spanish) in 'front' column (English column display)
-#                             native,   # Native language (English) in 'back' column (Translated column display)
-#                             term.get('part_of_speech', 'noun').upper(),
-#                             term.get('gender', 'N')[0].upper(),  # First letter: M/F/N
-#                             target_language
-#                         ))
+                        # Create a question for this term (MATCH type)
+                        question_insert_query = """
+                            INSERT INTO `question` (`type`, `questionText`) 
+                            VALUES (%s, %s)
+                        """
                         
-#                         term_id = cursor.lastrowid
+                        cursor.execute(question_insert_query, (
+                            'MATCH',
+                            f"What is '{term.get('native_word', '')}' in {target_language}?"
+                        ))
                         
-#                         # Create a question for this term (MATCH type)
-#                         question_insert_query = """
-#                             INSERT INTO `question` (`type`, `questionText`) 
-#                             VALUES (%s, %s)
-#                         """
+                        question_id = cursor.lastrowid
                         
-#                         cursor.execute(question_insert_query, (
-#                             'MATCH',
-#                             f"What is '{term.get('native_word', '')}' in {target_language}?"
-#                         ))
+                        # Link question to module
+                        module_question_query = """
+                            INSERT INTO `module_question` (`moduleID`, `questionID`) 
+                            VALUES (%s, %s)
+                        """
                         
-#                         question_id = cursor.lastrowid
+                        cursor.execute(module_question_query, (new_module_id, question_id))
                         
-#                         # Link question to module
-#                         module_question_query = """
-#                             INSERT INTO `module_question` (`moduleID`, `questionID`) 
-#                             VALUES (%s, %s)
-#                         """
+                        # Link term as answer to question
+                        answer_query = """
+                            INSERT INTO `answer` (`questionID`, `termID`) 
+                            VALUES (%s, %s)
+                        """
                         
-#                         cursor.execute(module_question_query, (new_module_id, question_id))
+                        cursor.execute(answer_query, (question_id, term_id))
                         
-#                         # Link term as answer to question
-#                         answer_query = """
-#                             INSERT INTO `answer` (`questionID`, `termID`) 
-#                             VALUES (%s, %s)
-#                         """
-                        
-#                         cursor.execute(answer_query, (question_id, term_id))
-                        
-#                         terms_created += 1
-                        
-#                     except Exception as term_error:
-#                         continue
+                        terms_created += 1
+                        print(f"[DEBUG DB] ✓ Successfully created term record #{terms_created}")
+
+                    except Exception as term_error:
+                        print(f"[ERROR DB] Failed to insert term {term}: {term_error}")
+                        traceback.print_exc()
+                        continue
+                print(f"[DEBUG DB] Loop completed. Total terms created: {terms_created}")
+
+                # Link module to group if specified
+                if group_id and permission != 'su':
+                    group_module_query = """
+                        INSERT INTO `group_module` (`groupID`, `moduleID`) 
+                        VALUES (%s, %s)
+                    """
+                    cursor.execute(group_module_query, (group_id, new_module_id))
                 
-#                 # Link module to group if specified
-#                 if group_id and permission != 'su':
-#                     group_module_query = """
-#                         INSERT INTO `group_module` (`groupID`, `moduleID`) 
-#                         VALUES (%s, %s)
-#                     """
-#                     cursor.execute(group_module_query, (group_id, new_module_id))
+                # Commit all changes
+                conn.commit()
                 
-#                 # Commit all changes
-#                 conn.commit()
+                # Prepare response data
+                generated_content = {
+                    'terms': terms_list,
+                    'phrases': [],
+                    'questions': []
+                }
                 
-#                 # Prepare response data
-#                 generated_content = {
-#                     'terms': terms_list,
-#                     'phrases': [],
-#                     'questions': []
-#                 }
+                return create_response(
+                    True,
+                    message=f"AI module '{name}' created successfully with {terms_created} terms!",
+                    data={
+                        'moduleID': new_module_id,
+                        'name': name,
+                        'language': target_language,
+                        'content': generated_content
+                    }
+                )
                 
-#                 return create_response(
-#                     True,
-#                     message=f"AI module '{name}' created successfully with {terms_created} terms!",
-#                     data={
-#                         'moduleID': new_module_id,
-#                         'name': name,
-#                         'language': target_language,
-#                         'content': generated_content
-#                     }
-#                 )
-                
-#             except Exception as db_error:
-#                 if conn:
-#                     conn.rollback()
-#                 return create_response(
-#                     False,
-#                     message=f"AI generated content but failed to save to database: {str(db_error)}",
-#                     status_code=500
-#                 )
-#             finally:
-#                 if conn and conn.open:
-#                     cursor.close()
-#                     conn.close()
+            except Exception as db_error:
+                if conn:
+                    conn.rollback()
+                return create_response(
+                    False,
+                    message=f"AI generated content but failed to save to database: {str(db_error)}",
+                    status_code=500
+                )
+            finally:
+                if conn and conn.open:
+                    cursor.close()
+                    conn.close()
             
-#         except Exception as error:
-#             return create_response(
-#                 False, 
-#                 message="Internal server error during AI module generation", 
-#                 error=str(error),
-#                 status_code=500
-#             )
+        except Exception as error:
+            return create_response(
+                False, 
+                message="Internal server error during AI module generation", 
+                error=str(error),
+                status_code=500
+            )
 
