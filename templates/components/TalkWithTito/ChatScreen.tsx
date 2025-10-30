@@ -195,7 +195,12 @@ export default function ChatScreen(props: propsInterface) {
       async function fetchLoreFromDB() {
         try {
           const classID = await getClassIdForModule(props.moduleID);
-          if (!classID) throw new Error("No classID found for this module");
+          if (!classID) {
+            console.warn(`[Lore] No classID found for module ${props.moduleID} - lore feature will not be available`);
+            setLoreByThreshold({});
+            setLoreID(null);
+            return;
+          }
 
           const res = await fetch(
             `${ELLE_URL}/twt/session/getTitoLore?classID=${classID}&moduleID=${props.moduleID}`,
@@ -256,7 +261,8 @@ export default function ChatScreen(props: propsInterface) {
 
       fetchProgress();
       fetchLoreFromDB();
-    }, [props.moduleID, user]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.moduleID, user?.jwt]);
 
     async function handleSendMessageClick() {
 
@@ -792,9 +798,9 @@ export default function ChatScreen(props: propsInterface) {
 
     //Used to initialize chatbot
     useEffect(() => {
-        if(userLoading || !user || !termsLoaded) return; // Returns if not ready to execute
+        if(userLoading || !user || !termsLoaded || terms.length === 0) return; // Returns if not ready to execute
         
-        console.log(`[ChatScreen] Initializing chatbot for module ${props.moduleID}`);
+        console.log(`[ChatScreen] Initializing chatbot for module ${props.moduleID}`, { termsLength: terms.length });
         
         const loadChatbot = async () => {
             console.log(`[ChatScreen] Calling getChatbot for module ${props.moduleID}`);
@@ -828,7 +834,7 @@ export default function ChatScreen(props: propsInterface) {
         }
         loadChatbot();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.moduleID, user, userLoading])
+    }, [props.moduleID, user?.jwt, termsLoaded])
     
     // Used to initialize chat messages - reset when module changes
     useEffect(() => {
@@ -958,7 +964,14 @@ export default function ChatScreen(props: propsInterface) {
             {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
 
             {/*Vocabulary list div*/}
-            {props.moduleID !== -1 && progress !== undefined && <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={terms?.map(term => (term.used))} progress={progress}/>}
+            {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
+              <VocabList 
+                wordsFront={terms.map(term => (term.questionFront))} 
+                wordsBack={terms.map(term => (term.questionBack))} 
+                used={terms.map(term => (term.used))} 
+                progress={progress}
+              />
+            )}
 
             {/*Sent/recieved messages div*/}
             <Messages messages={chatMessages} chatFontSize={props.chatFontSize}/>
