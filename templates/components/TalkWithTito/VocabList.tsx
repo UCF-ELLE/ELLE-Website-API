@@ -120,6 +120,7 @@ export default function VocabList({ wordsFront, wordsBack, used, progress }: Pro
       <div
         className={`absolute top-[82px] z-[19] w-[277px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-[55px] mt-1 flex flex-col items-center transition-all duration-300 ease-in-out overflow-hidden
         ${isExpanded ? "h-[20em] opacity-100" : "h-0 opacity-0"}`}
+        style={{ visibility: isExpanded ? "visible" : "hidden" }}
       >
         <div className="overflow-auto w-full">
           {sortedWords.map(({ wordFront, wordBack, used, index }) => (

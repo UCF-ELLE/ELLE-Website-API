@@ -81,7 +81,7 @@ export default function ChatScreen(props: propsInterface) {
     const [userMessage, setUserMessage] = useState<string>("");
     const [titoMood, setTitoMood] = useState("neutral");
     const [timeChatted, setTimeChatted] = useState<number | undefined>(undefined);
-    const [progress, setProgress] = useState(0);
+    const [progress, setProgress] = useState<number | undefined>(undefined);
     const [message, setMessage] = useState("");
     const [trigger, setTrigger] = useState(0);
     // --- TTS state + helpers ---
@@ -108,6 +108,7 @@ export default function ChatScreen(props: propsInterface) {
       if (!loreID) return; // don't show until lore is loaded
 
       let chosen: number | null = null;
+
       for (const t of THRESHOLDS) {
         const key = `tito_lore_shown_${props.moduleID}_${loreID}_${t}`;
         const already = typeof window !== "undefined" && localStorage.getItem(key) === "1";
@@ -123,6 +124,9 @@ export default function ChatScreen(props: propsInterface) {
         if (text) {
           setMessage(text);
           setTrigger(Date.now());
+          console.log(`[Lore] Showing ${chosen}% lore`, { progress, chosen, text });
+        } else {
+          console.log(`[Lore] No lore text for ${chosen}%`);
         }
       }
 
@@ -153,10 +157,12 @@ export default function ChatScreen(props: propsInterface) {
         totalTerms    = Number(data?.totalTerms ?? data?.total ?? data?.count);
       }
 
-      const pct =
+      let pct =
         Number.isFinite(termsMastered) && Number.isFinite(totalTerms) && totalTerms > 0
           ? Math.round((100 * Number(termsMastered)) / Number(totalTerms))
           : 0;
+
+      pct = Math.max(0, Math.min(100, pct));
 
       setProgress(pct);
       console.log("[fetchProgress]", { termsMastered, totalTerms, pct });
@@ -200,29 +206,56 @@ export default function ChatScreen(props: propsInterface) {
             throw new Error(`Lore fetch failed ${res.status}: ${body}`);
           }
 
-          const data = await res.json();
-          const items = data?.loreText ?? [];
+          const payload = await res.json();
+
+          // Expect: payload.data is an array of 4 strings in sequence order (1..4)
+          const arr: string[] = Array.isArray(payload?.data)
+            ? payload.data
+            : Array.isArray(payload) ? payload : [];
+
+          console.log("[Lore] Normalized data array", { length: arr.length, arr });
+
+          const seqToThreshold: Threshold[] = [25, 50, 75, 100];
           const map: Partial<Record<Threshold, string>> = {};
-          for (const row of items) {
-            const t: Threshold | undefined =
-              row.sequenceNumber === 1 ? 25 :
-              row.sequenceNumber === 2 ? 50 :
-              row.sequenceNumber === 3 ? 75 :
-              row.sequenceNumber === 4 ? 100 : undefined;
-            if (t) map[t] = row.loreText;
+
+          arr.forEach((txt, i) => {
+            const t = seqToThreshold[i];
+            if (t && typeof txt === "string") {
+              const clean = txt.trim();
+              console.log("[Lore] Mapping item", { index: i, threshold: t, raw: txt, clean });
+              if (clean) map[t] = clean;
+            }
+          });
+
+          // Log which thresholds we have (and which we don't)
+          const have = Object.keys(map).map(Number);
+          const missing = seqToThreshold.filter(t => !have.includes(t));
+          if (missing.length) {
+            console.warn("[Lore] Missing thresholds", { missing, have, map });
+          } else {
+            console.log("[Lore] All thresholds mapped OK", { have, map });
           }
+
           setLoreByThreshold(map);
-          setLoreID(data?.loreID ?? null);
+          const idNum = Number(payload?.loreID);
+          setLoreID(Number.isFinite(idNum) ? idNum : null);
+
+          console.log("[Lore] Loaded", {
+            loreID: Number.isFinite(idNum) ? idNum : null,
+            thresholds: Object.keys(map),
+            map,
+            raw: payload,
+          });
         } catch (e) {
           console.error("Lore fetch error:", e);
           setLoreByThreshold({});
           setLoreID(null);
         }
+
       }
 
       fetchProgress();
       fetchLoreFromDB();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.moduleID, user]);
 
     async function handleSendMessageClick() {
@@ -326,6 +359,19 @@ export default function ChatScreen(props: propsInterface) {
                 used: term.used || sendMessageResponse.termsUsed.includes(term.questionFront)
             }))
             setTerms(newTerms);
+
+            {
+              const usedCount  = newTerms.filter(t => t.used).length;
+              const totalCount = newTerms.length || 0;
+              const pctLocal =
+                totalCount > 0 ? Math.max(0, Math.min(100, Math.round((100 * usedCount) / totalCount))) : 0;
+
+              // Only bump if it actually changes (avoids noise)
+              if (pctLocal !== progress) {
+                console.log("[progress] optimistic local", { usedCount, totalCount, pctLocal });
+                setProgress(pctLocal);
+              }
+            }
 
             await fetchProgress();
 
@@ -912,7 +958,7 @@ export default function ChatScreen(props: propsInterface) {
             {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
 
             {/*Vocabulary list div*/}
-            {props.moduleID !== -1 && <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={terms?.map(term => (term.used))} progress={progress}/>}
+            {props.moduleID !== -1 && progress !== undefined && <VocabList wordsFront={terms?.map(term => (term.questionFront))} wordsBack={terms?.map(term => (term.questionBack))} used={terms?.map(term => (term.used))} progress={progress}/>}
 
             {/*Sent/recieved messages div*/}
             <Messages messages={chatMessages} chatFontSize={props.chatFontSize}/>

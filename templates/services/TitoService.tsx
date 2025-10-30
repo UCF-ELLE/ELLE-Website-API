@@ -572,7 +572,7 @@ export const incrementTime = async (access_token: string, userId: number, chatbo
 
   // Use real API - For now, just return success since this endpoint doesn't exist yet
   // TODO: Implement time tracking endpoint in backend if needed
-  console.log("[TitoService] Skipping incrementTime - endpoint not implemented in Tito backend");
+  //console.log("[TitoService] Skipping incrementTime - endpoint not implemented in Tito backend");
   return 200; // Return success code
 }
 
