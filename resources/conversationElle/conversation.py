@@ -84,24 +84,29 @@ class ChatbotSessions(Resource):
         '''
         user_id = get_jwt_identity()
         data = request.form
-        module_id = data.get("moduleID")
+        module_id = int(data.get("moduleID"))
         class_id = data.get("classID")
+
+        if module_id == FREE_CHAT_MODULE:
+            module_id = REAL_FREE_CHAT_MODULE
+
 
         if not module_id or not class_id:
             return create_response(False, message="Missing required parameters.", status_code=404)
-        if not isUserInClass(user_id, class_id):
-            return create_response(False, message=f"User does not belong to class {class_id}.", status_code=403)
-
+        if int(module_id) != REAL_FREE_CHAT_MODULE:
+            print("hello")
+            if not isUserInClass(user_id, class_id):
+                return create_response(False, message=f"User does not belong to class {class_id}.", status_code=403)
         # A freechat session
-        if module_id == FREE_CHAT_MODULE:
-            chatbot_sid = createChatbotSession(user_id, FREE_CHAT_MODULE)
+        if module_id == REAL_FREE_CHAT_MODULE:
+            # chatbot_sid = createChatbotSession(user_id, REAL_FREE_CHAT_MODULE)
             warming_thread = threading.Thread(
                 target = prewarm_llm_context, # Uses threading so that LLM may "warm up" for subsiquent prompts
-                args = (FREE_CHAT_MODULE, chatbot_sid), daemon = True
+                args = (REAL_FREE_CHAT_MODULE, REAL_FREE_CHAT_MODULE), daemon = True
             )  
             warming_thread.start()
 
-            return create_response(True, message="Free chat Chatbot session created.", data=chatbot_sid)
+            return create_response(True, message="Free chat Chatbot session created.", data=createChatbotSession(user_id, REAL_FREE_CHAT_MODULE))
         
         if not isActiveTitoModule(class_id, module_id):
             return create_response(success=False, message="Chatbot session failed to be created. No available modules", status_code=403)
@@ -130,9 +135,13 @@ class UserMessages(Resource):
         data = request.form
         message = data.get('message')
         session_id = data.get('chatbotSID')
-        module_id = data.get('moduleID')
+        module_id = int(data.get('moduleID'))
         is_vm = data.get('isVoiceMessage')
         class_id = data.get('classID')
+
+        is_free_chat = False
+        if module_id == FREE_CHAT_MODULE:
+            is_free_chat = True
 
         # print(f'{message} and {session_id} and {module_id} and {is_vm}')
 
@@ -141,15 +150,23 @@ class UserMessages(Resource):
 
 
         # Attempts to add message to DB, 0/None = error, success returns msg_id
-        new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id,chatbotSID=session_id, message=message, isVM=is_vm, class_id=class_id)
-        if not new_msg_id:
+        new_msg_id = ''
+        if module_id != is_free_chat:
+            print("Hello")
+            new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id,chatbotSID=session_id, message=message, isVM=is_vm, class_id=class_id)
+            updateTotalTimeChatted(session_id)
+        if not new_msg_id and not is_free_chat:
+            print(module_id)
+            print(f'{True if new_msg_id else False} and {True if module_id else False}')
             return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
 
-        updateTotalTimeChatted(session_id)
 
         # Rate messages grammar
-        msg_graded = grade_message (message=message)
-        if msg_graded:
+        msg_graded = ''
+        if module_id != REAL_FREE_CHAT_MODULE:
+            msg_graded = grade_message (message=message)
+        
+        if msg_graded and module_id != REAL_FREE_CHAT_MODULE:
             msg_score = msg_graded.get("suggested_grade")
             matches = msg_graded.get("errors")
             # print(matches)
@@ -166,7 +183,7 @@ class UserMessages(Resource):
 
         # TODO: a freechat session ADD SUPPORT FOR IT
         # Send to spacy service to parse key terms if NOT in free chat mode
-        if module_id != FREE_CHAT_MODULE:
+        if module_id != REAL_FREE_CHAT_MODULE:
             add_message(message, module_id, user_id, new_msg_id, session_id)
 
         # TODO:
@@ -191,12 +208,13 @@ class UserMessages(Resource):
             print(tito_response)
             
             # TODO: Verify data
-            newTitoMessage(user_id, session_id, class_id, tito_response, module_id)
+            if module_id != REAL_FREE_CHAT_MODULE:
+                newTitoMessage(user_id, session_id, class_id, tito_response, module_id)
 
         except Exception as error:
             tito_response = "Sorry, there is a bit of trouble. Please try again!"
             tito_response_data = {"response": tito_response}
-
+        
         return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id, titoResponse=tito_response)
 
 
@@ -211,12 +229,15 @@ class UserMessages(Resource):
 
         try:
             data = request.form
-            module_id = request.args.get('moduleID')
+            module_id = int(request.args.get('moduleID'))
             class_id = request.args.get('classID')
             
             if not module_id or not class_id:
                 return create_response(False, message="Missing required paranmeters.", status_code=404)
-            return create_response(True, message="Retrieved chat history.", data=fetchModuleChatHistory(user_id, module_id, class_id)) 
+            res = []
+            if module_id != FREE_CHAT_MODULE:
+                res = fetchModuleChatHistory(user_id, module_id, class_id)
+            return create_response(True, message="Retrieved chat history.", data=res) 
         except Exception as e:
             return create_response(False, message=f"Failed to retrieve user's messages. Error: {e}", status_code=504)
 
@@ -400,7 +421,7 @@ class ModuleTerms(Resource):
         if not module_id:
             return create_response(False, message="improper moduleID given.", status_code=403)
         if module_id == FREE_CHAT_MODULE:
-            return create_response(False, message="module is a freechat module, no terms stored", status_code=400)
+            return create_response(False, message="module is a freechat module, no terms stored", status_code=201)
         return create_response(True, message=f"Retrieved module terms from module {module_id}", data=getModuleTerms(module_id))
 
 class GetModuleProgress(Resource):
@@ -411,10 +432,14 @@ class GetModuleProgress(Resource):
             gets the module's key term/phrase mastery % progress
         '''
         user_id = get_jwt_identity()
-        module_id = request.args.get('moduleID')
+        module_id = int(request.args.get('moduleID'))
+
 
         if not module_id:
             return create_response(False, message="insufficient params provided", status_code=403)
+        if module_id == FREE_CHAT_MODULE:
+            return create_response(False, message="module is a freechat module, no terms stored", status_code=201, data=[])
+        
         res = getUserModuleProgress(user_id, module_id)
         
         return create_response(True, data=res)
@@ -557,6 +582,7 @@ class UpdateTitoClass(Resource):
             return create_response(False, message="invalid perms", status_code=403)
         if not isTitoClassOwner(user_id, class_id):
             if createTitoClass(user_id, class_id):
+                addNewGroupUserToTitoGroup(user_id, class_id)
                 return create_response(True, message="Successfully made class into a tito-enabled class")
             else:
                 return create_response(False, message="Failed to make class a Tito class. Valve please fix...", status_code=500)

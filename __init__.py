@@ -152,7 +152,7 @@ from resources.conversationElle.conversation import(
     PFGetStudentMessages,
     # GenerateModule,
 
-    Testing,
+    # Testing,
     AIModuleGeneration,
 )
 import os
@@ -422,7 +422,7 @@ api.add_resource(PFGetStudentMessages, API_ENDPOINT_PREFIX + "twt/professor/getS
 # api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
 
 # Temporary
-api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")
+# api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")
 api.add_resource(AIModuleGeneration, API_ENDPOINT_PREFIX + "ai/generate-module")  # Use /twt/professor/generateModule instead
 
 

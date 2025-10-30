@@ -36,7 +36,8 @@ AUD_RETRIEVE_FOLDER = "/audios/"
 # START: ConversAItionELLE-specific magic nums 
 MAX_AUDIO_SIZE_BYTES = 3 * 1024 * 1024 # 3MB user voice files
 MAX_AUDIO_LENGTH_SEC = 90
-FREE_CHAT_MODULE = 228 # Magic `module` for Tito free-chat
+FREE_CHAT_MODULE = int(-1) # Magic `module` for Tito free-chat
+REAL_FREE_CHAT_MODULE = int(228)
 LANGUAGETOOL_API_URL = "http://127.0.0.1:8082/v2/check"
 # END:
 
