@@ -214,7 +214,7 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
     });
     
     const accessData = accessResponse.data.data || [];
-    let classID = '1'; // Default fallback
+    let classID: string | null = null;
     
     // Find the class that contains this module
     for (const [cID, modulesList] of accessData) {
@@ -224,7 +224,13 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
           break;
         }
       }
-      if (classID !== '1') break; // Found the class, exit outer loop
+      if (classID !== null) break; // Found the class, exit outer loop
+    }
+    
+    // If no classID found, this module isn't assigned to any class for this user
+    if (classID === null) {
+      console.error(`[getChatbot] Module ${moduleId} is not assigned to any class for this user`);
+      return null;
     }
     
     console.log(`[getChatbot] Using classID: ${classID} for moduleID: ${moduleId}`);
@@ -305,7 +311,7 @@ interface ChatMessage {
 type GetMessagesResponse = ChatMessage[];
 
 // getMessages (GET)
-export const getMessages = async (access_token: string, userId: number, chatbotId: number, moduleId?: number): Promise<GetMessagesResponse | null> => {
+export const getMessages = async (access_token: string, userId: number, chatbotId: number, moduleId?: number, classId?: number): Promise<GetMessagesResponse | null> => {
   // First try to use mock if available
   // const mockModule = await checkMockAvailable();
   // if (mockModule && mockModule.mockGetMessages) {
@@ -322,12 +328,36 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
       return [];
     }
     
-    console.log(`[getMessages] Fetching messages for userId: ${userId}, moduleId: ${moduleId}`);
+    console.log(`[getMessages] Fetching messages for userId: ${userId}, moduleId: ${moduleId}, classId: ${classId}`);
+    
+    // Dynamically determine classID if not provided
+    let finalClassId = classId;
+    if (!finalClassId) {
+      const accessResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+      const accessData = accessResponse.data.data || [];
+      for (const [cID, modulesList] of accessData) {
+        for (const [mID, sequenceID] of modulesList) {
+          if (mID === moduleId) {
+            finalClassId = cID;
+            break;
+          }
+        }
+        if (finalClassId) break;
+      }
+    }
+    
+    // If no classID found, cannot fetch messages
+    if (!finalClassId) {
+      console.error(`[getMessages] Could not determine classID for module ${moduleId}`);
+      return [];
+    }
     
     const response = await axios.get(
       `${ELLE_URL}/twt/session/messages`,
       {
-        params: { moduleID: moduleId , classID: 1 },
+        params: { moduleID: moduleId , classID: finalClassId },
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
@@ -382,7 +412,7 @@ interface SendMessageResponse {
 }
 
 // sendMessage (POST)
-export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, userValue: string, terms: string[], termsUsed: string[]): Promise<SendMessageResponse | null> => {
+export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, userValue: string, terms: string[], termsUsed: string[], classId?: number): Promise<SendMessageResponse | null> => {
   console.log("sendMessage sending:");
   console.log({ userId, chatbotId, moduleId, userValue, terms, termsUsed });
   
@@ -397,15 +427,45 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
 
   // Use real API - single attempt with original session
   try {
+    // Dynamically determine classID if not provided
+    let finalClassId = classId;
+    if (!finalClassId) {
+      const accessResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+      const accessData = accessResponse.data.data || [];
+      for (const [cID, modulesList] of accessData) {
+        for (const [mID, sequenceID] of modulesList) {
+          if (mID === moduleId) {
+            finalClassId = cID;
+            break;
+          }
+        }
+        if (finalClassId) break;
+      }
+    }
+    
+    // If no classID found, cannot send message
+    if (!finalClassId) {
+      console.error(`[sendMessage] Could not determine classID for module ${moduleId}`);
+      return {
+        llmResponse: "Unable to send message - module is not assigned to a class.",
+        termsUsed: [],
+        titoConfused: false,
+        messageID: undefined,
+        metadata: {}
+      };
+    }
+    
     // Create form data to match backend expectations
     const formData = new FormData();
     formData.append('message', userValue);
     formData.append('chatbotSID', chatbotId.toString());
     formData.append('moduleID', moduleId.toString());
-    formData.append('classID', "1");
+    formData.append('classID', finalClassId.toString());
     formData.append('isVoiceMessage', '0'); // 0 = false (text message), 1 = true (voice message)
     
-    console.log(`[SendMessage] Sending with original session ID: ${chatbotId}`);
+    console.log(`[SendMessage] Sending with original session ID: ${chatbotId}, classID: ${finalClassId}`);
     
     const response = await axios.post(
       `${ELLE_URL}/twt/session/messages`,

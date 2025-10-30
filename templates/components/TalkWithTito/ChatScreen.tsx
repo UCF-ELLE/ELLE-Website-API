@@ -781,7 +781,7 @@ export default function ChatScreen(props: propsInterface) {
         }
         loadChatbot();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.moduleID, user, userLoading, termsLoaded])
+    }, [props.moduleID, user, userLoading])
     
     // Used to initialize chat messages - reset when module changes
     useEffect(() => {
