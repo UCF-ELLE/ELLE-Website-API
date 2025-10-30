@@ -153,7 +153,7 @@ from resources.conversationElle.conversation import(
     GenerateModule,
 
     Testing,
-    # AIModuleGeneration,
+    AIModuleGeneration,
 )
 import os
 import threading
@@ -423,7 +423,7 @@ api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateMo
 
 # Temporary
 api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")
-# api.add_resource(AIModuleGeneration, API_ENDPOINT_PREFIX + "ai/generate-module")  # Use /twt/professor/generateModule instead
+api.add_resource(AIModuleGeneration, API_ENDPOINT_PREFIX + "ai/generate-module")  # Use /twt/professor/generateModule instead
 
 
 # ===============================================

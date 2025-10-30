@@ -66,15 +66,20 @@ def create_module(prompt, term_count, nat_lang, target_lang):
             "stop": ["STOP"],
             "stream": False,
             "ignore_eos": True,
-            "cache_prompt": False
+            "cache_prompt": False,
+            "n_discard": -1
         }
 
         print(f"[DEBUG] Module generation request prompt:\n{full_prompt}\n")
         print(f"[DEBUG] Request config: {request}\n")
+        print(f"[DEBUG] Sending request to: {model_path}")
 
         try:
-            response = requests.post(model_path, json=request, timeout=60)  # 10 second timeout
+            print("[DEBUG] Making HTTP request...")
+            response = requests.post(model_path, json=request, timeout=120)  # 10 second timeout
+            print("[DEBUG] Got response, checking status...")
             response.raise_for_status()
+            print("[DEBUG] Parsing JSON...")
             response_data = response.json()
 
             llm_response = response_data.get("content", "")
@@ -125,8 +130,25 @@ def build_module_prompt(prompt, term_count, nat_lang, target_lang):
     return generation_prompt
 
 def parse_llm_response(llm_response, term_count=5):
+    """
+    Parse LLM response into structured term data.
+    Returns terms with gender as single letters: M, F, N
+    """
     try:
         terms = []
+        
+        # Gender mapping: full words to single letters
+        gender_full_to_short = {
+            'masculine': 'M',
+            'masc': 'M',
+            'm': 'M',
+            'feminine': 'F',
+            'fem': 'F',
+            'f': 'F',
+            'neutral': 'N',
+            'neut': 'N',
+            'n': 'N'
+        }
         
         # First, check if it's all on one line (malformed output)
         if '\n' not in llm_response.strip() and llm_response.count('|') > 10:
@@ -143,15 +165,10 @@ def parse_llm_response(llm_response, term_count=5):
                     native_word = all_parts[i]
                     target_word = all_parts[i + 1]
                     pos = all_parts[i + 2].lower()
-                    gender = all_parts[i + 3].lower()
+                    gender_raw = all_parts[i + 3].lower()
                     
-                    # Map gender values
-                    if gender in ['masculine', 'masc', 'm']:
-                        gender = 'masculine'
-                    elif gender in ['feminine', 'fem', 'f']:
-                        gender = 'feminine'
-                    else:
-                        gender = 'neutral'
+                    # Map gender to single letter
+                    gender = gender_full_to_short.get(gender_raw, 'N')
                     
                     # Map POS values
                     if pos not in ['noun', 'verb', 'adjective', 'adverb', 'preposition']:
@@ -211,12 +228,14 @@ def parse_llm_response(llm_response, term_count=5):
             
             # Extract gender and POS from remaining parts (order might vary)
             remaining = [p.lower() for p in parts[2:]]
-            gender = "neutral"
-            pos = "noun"
+            gender = "N"  # Default to neutral
+            pos = "noun"  # Default to noun
             
             for part in remaining:
-                if part in ['masculine', 'masc', 'feminine', 'fem', 'neutral']:
-                    gender = part if len(part) > 4 else ('masculine' if part == 'masc' else 'feminine' if part == 'fem' else 'neutral')
+                # Check if it's a gender
+                if part in gender_full_to_short:
+                    gender = gender_full_to_short[part]
+                # Check if it's a part of speech
                 elif part in ['noun', 'verb', 'adj', 'adjective', 'adverb', 'prep', 'preposition']:
                     pos = part
 
@@ -228,7 +247,7 @@ def parse_llm_response(llm_response, term_count=5):
                     "native_word": native_word,
                     "target_word": target_word,
                     "part_of_speech": pos,
-                    "gender": gender
+                    "gender": gender  # Now returns M, F, or N
                 }
                 terms.append(term)
                 print(f"[DEBUG] ✓ Parsed: {term}")
@@ -243,6 +262,7 @@ def parse_llm_response(llm_response, term_count=5):
         import traceback
         traceback.print_exc()
         return []
+
 
 # def validate_term(term: Dict):
 #     """
