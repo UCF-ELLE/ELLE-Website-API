@@ -242,6 +242,8 @@ class UserAudio(Resource):
         if isDuplicateAudioUpload(user_id, message_id):
             return create_response(False, message="User already has uploaded an audio file for this message.", status_code=403)
         
+        if not isVoiceMessageCapable(message_id, user_id):
+            return create_response(False, message='invalid request or uploading to non vm message', status_code=403)
         if not doesUserMessageExist(message_id):
             return create_response(False, message='invalid message id', status_code=403)
         if not isUserInClass(user_id, class_id):
@@ -643,21 +645,21 @@ class UpdateTitoLore(Resource):
 
         data = request.form
         class_id = data.get('classID')
-        module_id = data.get('moduleID')
+        # module_id = data.get('moduleID')
         lore_id = data.get('loreID')
         sequence_num = data.get('sequenceNumber')
         new_lore_text = data.get('newLoreText')
 
-        if not class_id or not module_id or not lore_id:
+        if not class_id or not lore_id:
             return create_response(False, message="insufficient params provided.", status_code=403)
         if not user_permission or user_permission == 'st':
             return create_response(False, message='insufficient perms', status_code=403)
-        if user_permission != 'su' and isTitoLoreOwner(user_id, lore_id):
+        if user_permission != 'su' and not isTitoLoreOwner(user_id, lore_id):
             return create_response(False, message='insufficient perms', status_code=403)
-
         res = updateTitoLoreText(lore_id, sequence_num, new_lore_text)
         if not res:
             return create_response(False, message="failed to update tito lore. probably used the same text", status_code=500)
+        print(30)
         return create_response(True, message='updated tito lore')
 
 class FetchAllOwnedTitoLore(Resource):
@@ -707,8 +709,8 @@ class PFGetStudentMessages(Resource):
         filter_date_from = request.args.get('dateFrom')
         filter_date_to = request.args.get('dateTo')
 
-        is_ta = False
-        is_tito_class = False
+        is_ta_flag = False
+        is_tito_class_flag = False
 
         if user_permission == 'st':
             return create_response(False, message='insufficient perms', status_code=403)
@@ -720,11 +722,11 @@ class PFGetStudentMessages(Resource):
         if module_id:
             if not isTitoModule(class_id, module_id):
                 return create_response(False, message='Module isnt a tito module', status_code=403)
-            
-            is_ta = is_ta(user_id, class_id)
-            is_tito_class = isTitoClassOwner(user_id, class_id)
 
-            if not is_ta and not isTitoClassOwner and not user_permission == 'su':
+            is_ta_flag = is_ta(user_id, class_id)
+            is_tito_class_flag = isTitoClassOwner(user_id, class_id)
+
+            if not is_ta_flag and not is_tito_class_flag and not user_permission == 'su':
                 return create_response(False, message='user doesnt have access to this class and/or module does not belong to provided class', status_code=403)
         if student_id and not isUserInClass(student_id, class_id):
             return create_response(False, message='student provided not enrolled in class given', status_code=403)
@@ -780,7 +782,30 @@ class GenerateModule(Resource):
             return create_response(False, message='failed to generate module outline', status_code=201)
 
         return create_response(message='returned sample terms', data=res)
+class GenerateModule(Resource):
+    @jwt_required
+    def get(self):
+        '''
+            Returns a list of messages in json
+        '''
+        user_id = get_jwt_identity()
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
 
+        prompt = request.args.get('prompt')
+        term_count = request.args.get('termCount')
+        native_lang = request.args.get('nativeLanguage')
+        target_lang = request.args.get('targetLanguage')
+
+        if not prompt or not term_count or term_count == 0 or not native_lang or not target_lang:
+            return create_response(False, message='insufficient params provided', status_code=400)
+
+        res = create_module(prompt, term_count, native_lang, target_lang)
+
+        if not res:
+            return create_response(False, message='failed to generate module outline', status_code=201)
+
+        return create_response(message='returned sample terms', data=res)
 
 # ========================================
 # ++++++ DB MIGRATION TEMPORARY ++++++
@@ -795,299 +820,299 @@ class Testing(Resource):
 # ++++++ CONVERSATION AUDIO EXPORT ++++++
 # ========================================
 
-class ConversationAudioExport(Resource):
-    def options(self):
-        """Handle CORS preflight requests"""
-        return {"message": "CORS preflight OK"}, 200
+# class ConversationAudioExport(Resource):
+#     def options(self):
+#         """Handle CORS preflight requests"""
+#         return {"message": "CORS preflight OK"}, 200
     
-    @jwt_required
-    def get(self):
-        '''
-        /elleapi/twt/session/export-audio
-            Exports all audio files from a user's conversation in a specific module
-            Creates a ZIP file with all audio messages
+#     @jwt_required
+#     def get(self):
+#         '''
+#         /elleapi/twt/session/export-audio
+#             Exports all audio files from a user's conversation in a specific module
+#             Creates a ZIP file with all audio messages
             
-            Parameters:
-            - moduleID: The module ID
-            - chatbotSID: (optional) Specific session ID, if not provided exports all audio from module
-            - classID: The class ID
-        '''
-        try:
-            user_id = get_jwt_identity()
-            module_id = request.args.get('moduleID')
-            chatbot_sid = request.args.get('chatbotSID')
-            class_id = request.args.get('classID')
+#             Parameters:
+#             - moduleID: The module ID
+#             - chatbotSID: (optional) Specific session ID, if not provided exports all audio from module
+#             - classID: The class ID
+#         '''
+#         try:
+#             user_id = get_jwt_identity()
+#             module_id = request.args.get('moduleID')
+#             chatbot_sid = request.args.get('chatbotSID')
+#             class_id = request.args.get('classID')
             
-            if not module_id or not class_id:
-                return create_response(False, message="Missing required parameters (moduleID, classID).", status_code=400)
+#             if not module_id or not class_id:
+#                 return create_response(False, message="Missing required parameters (moduleID, classID).", status_code=400)
             
-            # Convert to integers
-            module_id = int(module_id)
-            class_id = int(class_id)
-            if chatbot_sid:
-                chatbot_sid = int(chatbot_sid)
+#             # Convert to integers
+#             module_id = int(module_id)
+#             class_id = int(class_id)
+#             if chatbot_sid:
+#                 chatbot_sid = int(chatbot_sid)
             
-            # Check if user has access to this class and module
-            if not isUserInClass(user_id, class_id):
-                return create_response(False, message="User does not have access to this class.", status_code=403)
+#             # Check if user has access to this class and module
+#             if not isUserInClass(user_id, class_id):
+#                 return create_response(False, message="User does not have access to this class.", status_code=403)
             
-            # Get audio files for the conversation
-            if chatbot_sid:
-                audio_files = getConversationAudioFiles(user_id, module_id, chatbot_sid)
-                filename_prefix = f"conversation_{user_id}_{module_id}_{chatbot_sid}"
-            else:
-                audio_files = getAllUserAudioInModule(user_id, module_id)
-                filename_prefix = f"module_audio_{user_id}_{module_id}"
+#             # Get audio files for the conversation
+#             if chatbot_sid:
+#                 audio_files = getConversationAudioFiles(user_id, module_id, chatbot_sid)
+#                 filename_prefix = f"conversation_{user_id}_{module_id}_{chatbot_sid}"
+#             else:
+#                 audio_files = getAllUserAudioInModule(user_id, module_id)
+#                 filename_prefix = f"module_audio_{user_id}_{module_id}"
             
-            if not audio_files:
-                return create_response(False, message="No audio files found for this conversation.", status_code=404)
+#             if not audio_files:
+#                 return create_response(False, message="No audio files found for this conversation.", status_code=404)
             
-            # Create ZIP file with clean naming
-            output_filename = self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix)
+#             # Create ZIP file with clean naming
+#             output_filename = self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix)
                 
-            if not output_filename:
-                return create_response(False, message="Failed to create audio export.", status_code=500)
+#             if not output_filename:
+#                 return create_response(False, message="Failed to create audio export.", status_code=500)
             
-            # Return the ZIP file
-            return send_file(output_filename, 
-                           mimetype="application/zip", 
-                           as_attachment=True, 
-                           attachment_filename=f"{filename_prefix}_audio_files.zip")
+#             # Return the ZIP file
+#             return send_file(output_filename, 
+#                            mimetype="application/zip", 
+#                            as_attachment=True, 
+#                            attachment_filename=f"{filename_prefix}_audio_files.zip")
             
-        except Exception as e:
-            return create_response(False, message="Internal server error during audio export.", status_code=500)
+#         except Exception as e:
+#             return create_response(False, message="Internal server error during audio export.", status_code=500)
     
-    def _combine_audio_files(self, audio_files, user_id, class_id, module_id, filename_prefix):
-        '''
-        Combine multiple audio files into a single MP3 file or create a ZIP file
-        Returns the path to the combined file
-        '''
-        try:
-            # Check if ffmpeg is available
-            try:
-                # Test ffmpeg by creating a small audio segment
-                test_audio = AudioSegment.silent(duration=100)  # 100ms of silence
-                ffmpeg_available = True
-            except Exception as ffmpeg_test_error:
-                ffmpeg_available = False
+#     def _combine_audio_files(self, audio_files, user_id, class_id, module_id, filename_prefix):
+#         '''
+#         Combine multiple audio files into a single MP3 file or create a ZIP file
+#         Returns the path to the combined file
+#         '''
+#         try:
+#             # Check if ffmpeg is available
+#             try:
+#                 # Test ffmpeg by creating a small audio segment
+#                 test_audio = AudioSegment.silent(duration=100)  # 100ms of silence
+#                 ffmpeg_available = True
+#             except Exception as ffmpeg_test_error:
+#                 ffmpeg_available = False
                 
-            # Try to use AudioSegment for proper audio combining
-            combined_audio = AudioSegment.empty()
+#             # Try to use AudioSegment for proper audio combining
+#             combined_audio = AudioSegment.empty()
             
-            files_processed = 0
-            for audio_file in audio_files:
-                filename, message_id, timestamp = audio_file[0], audio_file[1], audio_file[2]
+#             files_processed = 0
+#             for audio_file in audio_files:
+#                 filename, message_id, timestamp = audio_file[0], audio_file[1], audio_file[2]
                 
-                # Construct the full path to the audio file
-                file_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id), str(user_id), filename)
-                file_path = os.path.normpath(file_path)  # Normalize path for current OS
+#                 # Construct the full path to the audio file
+#                 file_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id), str(user_id), filename)
+#                 file_path = os.path.normpath(file_path)  # Normalize path for current OS
                 
-                if os.path.exists(file_path):
-                    try:
-                        # Load the audio file and add it to the combination
-                        audio_segment = AudioSegment.from_file(file_path)
+#                 if os.path.exists(file_path):
+#                     try:
+#                         # Load the audio file and add it to the combination
+#                         audio_segment = AudioSegment.from_file(file_path)
                         
-                        # Add a small silence between files (0.5 seconds)
-                        if len(combined_audio) > 0:
-                            silence = AudioSegment.silent(duration=500)  # 500ms of silence
-                            combined_audio += silence
+#                         # Add a small silence between files (0.5 seconds)
+#                         if len(combined_audio) > 0:
+#                             silence = AudioSegment.silent(duration=500)  # 500ms of silence
+#                             combined_audio += silence
                         
-                        combined_audio += audio_segment
-                        files_processed += 1
-                    except Exception as audio_error:
-                        # Continue with other files instead of breaking
-                        if files_processed == 0:
-                            # If first file fails, disable ffmpeg
-                            ffmpeg_available = False
-                else:
-                    pass
-            # Create output directory if it doesn't exist
-            output_dir = os.path.join("temp_exports")
-            os.makedirs(output_dir, exist_ok=True)
+#                         combined_audio += audio_segment
+#                         files_processed += 1
+#                     except Exception as audio_error:
+#                         # Continue with other files instead of breaking
+#                         if files_processed == 0:
+#                             # If first file fails, disable ffmpeg
+#                             ffmpeg_available = False
+#                 else:
+#                     pass
+#             # Create output directory if it doesn't exist
+#             output_dir = os.path.join("temp_exports")
+#             os.makedirs(output_dir, exist_ok=True)
             
-            # Try MP3 combining first, fallback to ZIP if it fails
-            if ffmpeg_available and len(combined_audio) > 0:
-                # Create output filename
-                output_filename = os.path.join(output_dir, f"{filename_prefix}.mp3")
+#             # Try MP3 combining first, fallback to ZIP if it fails
+#             if ffmpeg_available and len(combined_audio) > 0:
+#                 # Create output filename
+#                 output_filename = os.path.join(output_dir, f"{filename_prefix}.mp3")
                 
-                # Export as MP3
-                try:
-                    combined_audio.export(output_filename, format="mp3")
-                    return output_filename
-                except Exception as export_error:
-                    # Fallback to ZIP if MP3 export fails
-                    return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
-            else:
-                # Fallback: create a ZIP file with all individual audio files
-                return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
+#                 # Export as MP3
+#                 try:
+#                     combined_audio.export(output_filename, format="mp3")
+#                     return output_filename
+#                 except Exception as export_error:
+#                     # Fallback to ZIP if MP3 export fails
+#                     return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
+#             else:
+#                 # Fallback: create a ZIP file with all individual audio files
+#                 return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
             
-            # Original MP3 combining code (commented out for debugging)
-            # if ffmpeg_available and len(combined_audio) > 0:
-            #     # Create output filename
-            #     output_filename = os.path.join(output_dir, f"{filename_prefix}.mp3")
-            #     
-            #     # Export as MP3
-            #     combined_audio.export(output_filename, format="mp3")
-            #     return output_filename
-            # else:
-            #     # Fallback: create a ZIP file with all individual audio files
-            #     return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
+#             # Original MP3 combining code (commented out for debugging)
+#             # if ffmpeg_available and len(combined_audio) > 0:
+#             #     # Create output filename
+#             #     output_filename = os.path.join(output_dir, f"{filename_prefix}.mp3")
+#             #     
+#             #     # Export as MP3
+#             #     combined_audio.export(output_filename, format="mp3")
+#             #     return output_filename
+#             # else:
+#             #     # Fallback: create a ZIP file with all individual audio files
+#             #     return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
             
-        except Exception as e:
-            # Try fallback ZIP export
-            try:
-                output_dir = os.path.join("temp_exports")
-                os.makedirs(output_dir, exist_ok=True)
-                return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
-            except Exception as zip_error:
-                return None
+#         except Exception as e:
+#             # Try fallback ZIP export
+#             try:
+#                 output_dir = os.path.join("temp_exports")
+#                 os.makedirs(output_dir, exist_ok=True)
+#                 return self._create_zip_export(audio_files, user_id, class_id, module_id, filename_prefix, output_dir)
+#             except Exception as zip_error:
+#                 return None
     
-    def _create_zip_export(self, audio_files, user_id, class_id, module_id, filename_prefix):
-        '''
-        Create a ZIP file containing all audio files with clean naming
-        '''
-        import zipfile
-        import time
+#     def _create_zip_export(self, audio_files, user_id, class_id, module_id, filename_prefix):
+#         '''
+#         Create a ZIP file containing all audio files with clean naming
+#         '''
+#         import zipfile
+#         import time
         
-        # Create output directory
-        output_dir = "temp_exports"
-        os.makedirs(output_dir, exist_ok=True)
+#         # Create output directory
+#         output_dir = "temp_exports"
+#         os.makedirs(output_dir, exist_ok=True)
         
-        # Add timestamp to prevent caching
-        timestamp = int(time.time())
-        zip_filename = os.path.join(output_dir, f"{filename_prefix}_{timestamp}.zip")
+#         # Add timestamp to prevent caching
+#         timestamp = int(time.time())
+#         zip_filename = os.path.join(output_dir, f"{filename_prefix}_{timestamp}.zip")
         
-        with zipfile.ZipFile(zip_filename, 'w') as zipf:
-            for i, audio_file in enumerate(audio_files):
-                filename, message_id, timestamp = audio_file[0], audio_file[1], audio_file[2]
+#         with zipfile.ZipFile(zip_filename, 'w') as zipf:
+#             for i, audio_file in enumerate(audio_files):
+#                 filename, message_id, timestamp = audio_file[0], audio_file[1], audio_file[2]
                 
-                # Construct the full path to the audio file
-                file_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id), str(user_id), filename)
-                file_path = os.path.normpath(file_path)
+#                 # Construct the full path to the audio file
+#                 file_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id), str(user_id), filename)
+#                 file_path = os.path.normpath(file_path)
                 
-                if os.path.exists(file_path):
-                    # Add file to ZIP with clean naming: message_1.webm, message_2.webm, etc.
-                    file_extension = os.path.splitext(filename)[1]
-                    zip_name = f"message_{i+1}{file_extension}"
-                    zipf.write(file_path, zip_name)
+#                 if os.path.exists(file_path):
+#                     # Add file to ZIP with clean naming: message_1.webm, message_2.webm, etc.
+#                     file_extension = os.path.splitext(filename)[1]
+#                     zip_name = f"message_{i+1}{file_extension}"
+#                     zipf.write(file_path, zip_name)
         
-        return zip_filename
+#         return zip_filename
 
 
-# Audio export endpoint for module conversations
-class SimpleAudioExport(Resource):
-    def get(self):
-        try:
-            # Get parameters
-            user_id = 1  # TODO: Replace with get_jwt_identity() when JWT is restored
-            module_id = int(request.args.get('moduleID', 3))
-            class_id = int(request.args.get('classID', 1))
+# # Audio export endpoint for module conversations
+# class SimpleAudioExport(Resource):
+#     def get(self):
+#         try:
+#             # Get parameters
+#             user_id = 1  # TODO: Replace with get_jwt_identity() when JWT is restored
+#             module_id = int(request.args.get('moduleID', 3))
+#             class_id = int(request.args.get('classID', 1))
             
-            # Get audio files for the module
-            audio_files = getAllUserAudioInModule(user_id, module_id)
+#             # Get audio files for the module
+#             audio_files = getAllUserAudioInModule(user_id, module_id)
             
-            if not audio_files:
-                return create_response(False, message="No audio files found for this module.", status_code=404)
+#             if not audio_files:
+#                 return create_response(False, message="No audio files found for this module.", status_code=404)
             
-            # Create ZIP with clean naming
-            import zipfile
-            import time
+#             # Create ZIP with clean naming
+#             import zipfile
+#             import time
             
-            output_dir = "temp_exports"
-            os.makedirs(output_dir, exist_ok=True)
+#             output_dir = "temp_exports"
+#             os.makedirs(output_dir, exist_ok=True)
             
-            # Add timestamp to prevent caching
-            timestamp = int(time.time())
-            zip_filename = os.path.join(output_dir, f"audio_export_{timestamp}.zip")
+#             # Add timestamp to prevent caching
+#             timestamp = int(time.time())
+#             zip_filename = os.path.join(output_dir, f"audio_export_{timestamp}.zip")
             
-            with zipfile.ZipFile(zip_filename, 'w') as zipf:
-                for i, audio_file in enumerate(audio_files):
-                    filename = audio_file[0]
-                    file_path = os.path.join("user_audio_files", str(class_id), str(module_id), str(user_id), filename)
+#             with zipfile.ZipFile(zip_filename, 'w') as zipf:
+#                 for i, audio_file in enumerate(audio_files):
+#                     filename = audio_file[0]
+#                     file_path = os.path.join("user_audio_files", str(class_id), str(module_id), str(user_id), filename)
                     
-                    if os.path.exists(file_path):
-                        file_extension = os.path.splitext(filename)[1]
-                        new_name = f"message_{i+1}{file_extension}"
-                        zipf.write(file_path, new_name)
+#                     if os.path.exists(file_path):
+#                         file_extension = os.path.splitext(filename)[1]
+#                         new_name = f"message_{i+1}{file_extension}"
+#                         zipf.write(file_path, new_name)
             
-            # Return the ZIP file
-            return send_file(zip_filename, 
-                           mimetype="application/zip", 
-                           as_attachment=True, 
-                           attachment_filename="audio_messages.zip")
+#             # Return the ZIP file
+#             return send_file(zip_filename, 
+#                            mimetype="application/zip", 
+#                            as_attachment=True, 
+#                            attachment_filename="audio_messages.zip")
                            
-        except Exception as e:
-            return create_response(False, message="Internal server error during audio export.", status_code=500)
+#         except Exception as e:
+#             return create_response(False, message="Internal server error during audio export.", status_code=500)
 
-# Debug endpoint to check audio files and write to file
-class DebugAudioFiles(Resource):
-    @jwt_required
-    def get(self):
-        from .database import getAllUserAudioInModule, getConversationAudioFiles
-        import json
-        import os
-        from pathlib import Path
+# # Debug endpoint to check audio files and write to file
+# class DebugAudioFiles(Resource):
+#     @jwt_required
+#     def get(self):
+#         from .database import getAllUserAudioInModule, getConversationAudioFiles
+#         import json
+#         import os
+#         from pathlib import Path
         
-        user_id = get_jwt_identity()
-        module_id = request.args.get('moduleID')
-        class_id = request.args.get('classID')
-        chatbot_sid = request.args.get('chatbotSID')
+#         user_id = get_jwt_identity()
+#         module_id = request.args.get('moduleID')
+#         class_id = request.args.get('classID')
+#         chatbot_sid = request.args.get('chatbotSID')
         
-        debug_data = {
-            "user_id": user_id,
-            "module_id": module_id,
-            "class_id": class_id,
-            "chatbot_sid": chatbot_sid,
-            "timestamp": str(datetime.now()),
-            "ffmpeg_available": False
-        }
+#         debug_data = {
+#             "user_id": user_id,
+#             "module_id": module_id,
+#             "class_id": class_id,
+#             "chatbot_sid": chatbot_sid,
+#             "timestamp": str(datetime.now()),
+#             "ffmpeg_available": False
+#         }
         
-        try:
-            # Check if ffmpeg is available
-            import subprocess
-            try:
-                subprocess.run(["ffmpeg", "-version"], capture_output=True, check=True)
-                debug_data["ffmpeg_available"] = True
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                debug_data["ffmpeg_available"] = False
+#         try:
+#             # Check if ffmpeg is available
+#             import subprocess
+#             try:
+#                 subprocess.run(["ffmpeg", "-version"], capture_output=True, check=True)
+#                 debug_data["ffmpeg_available"] = True
+#             except (subprocess.CalledProcessError, FileNotFoundError):
+#                 debug_data["ffmpeg_available"] = False
             
-            # Check file system for audio files
-            if class_id and module_id:
-                audio_dir = Path(USER_VOICE_FOLDER) / str(class_id) / str(module_id) / str(user_id)
-                debug_data["audio_directory"] = str(audio_dir)
-                debug_data["directory_exists"] = audio_dir.exists()
+#             # Check file system for audio files
+#             if class_id and module_id:
+#                 audio_dir = Path(USER_VOICE_FOLDER) / str(class_id) / str(module_id) / str(user_id)
+#                 debug_data["audio_directory"] = str(audio_dir)
+#                 debug_data["directory_exists"] = audio_dir.exists()
                 
-                if audio_dir.exists():
-                    audio_files = list(audio_dir.glob(f"{user_id}_*.webm"))
-                    debug_data["filesystem_audio_files"] = [f.name for f in audio_files]
-                    debug_data["filesystem_audio_count"] = len(audio_files)
+#                 if audio_dir.exists():
+#                     audio_files = list(audio_dir.glob(f"{user_id}_*.webm"))
+#                     debug_data["filesystem_audio_files"] = [f.name for f in audio_files]
+#                     debug_data["filesystem_audio_count"] = len(audio_files)
             
-            # Get database voice messages info
-            if module_id:
-                module_id = int(module_id)
-                # Get audio files for module from database
-                module_audio = getAllUserAudioInModule(user_id, module_id)
-                debug_data["database_module_audio_count"] = len(module_audio)
-                debug_data["database_module_audio"] = module_audio
+#             # Get database voice messages info
+#             if module_id:
+#                 module_id = int(module_id)
+#                 # Get audio files for module from database
+#                 module_audio = getAllUserAudioInModule(user_id, module_id)
+#                 debug_data["database_module_audio_count"] = len(module_audio)
+#                 debug_data["database_module_audio"] = module_audio
                 
-                if chatbot_sid:
-                    chatbot_sid = int(chatbot_sid)
-                    # Get audio files for specific conversation
-                    conversation_audio = getConversationAudioFiles(user_id, module_id, chatbot_sid)
-                    debug_data["database_conversation_audio_count"] = len(conversation_audio)
-                    debug_data["database_conversation_audio"] = conversation_audio
+#                 if chatbot_sid:
+#                     chatbot_sid = int(chatbot_sid)
+#                     # Get audio files for specific conversation
+#                     conversation_audio = getConversationAudioFiles(user_id, module_id, chatbot_sid)
+#                     debug_data["database_conversation_audio_count"] = len(conversation_audio)
+#                     debug_data["database_conversation_audio"] = conversation_audio
         
-            # Write debug data to file
-            with open("audio_debug.json", "w") as f:
-                json.dump(debug_data, f, indent=2, default=str)
+#             # Write debug data to file
+#             with open("audio_debug.json", "w") as f:
+#                 json.dump(debug_data, f, indent=2, default=str)
             
-            return create_response(True, message="Debug data written to audio_debug.json", data=debug_data)
+#             return create_response(True, message="Debug data written to audio_debug.json", data=debug_data)
             
-        except Exception as e:
-            debug_data["error"] = str(e)
-            with open("audio_debug_error.json", "w") as f:
-                json.dump(debug_data, f, indent=2, default=str)
-            return create_response(False, message=f"Debug error: {e}", data=debug_data)
+#         except Exception as e:
+#             debug_data["error"] = str(e)
+#             with open("audio_debug_error.json", "w") as f:
+#                 json.dump(debug_data, f, indent=2, default=str)
+#             return create_response(False, message=f"Debug error: {e}", data=debug_data)
 
 # ========================================
 # REDO APIS ++++++
@@ -1148,285 +1173,285 @@ class AssignTitoLore(Resource):
         return create_response(False, message='AssignTitoLore not implemented', status_code=501)
 
 
-# AI Module Generation endpoint
-class AIModuleGeneration(Resource):
-    @jwt_required
-    def get(self):
-        """
-        GET method for backward compatibility with query parameters
-        """
-        try:
-            user_id = get_jwt_identity()
-            claims = get_jwt_claims()
-            permission = claims.get('permission')
+# # AI Module Generation endpoint
+# class AIModuleGeneration(Resource):
+#     @jwt_required
+#     def get(self):
+#         """
+#         GET method for backward compatibility with query parameters
+#         """
+#         try:
+#             user_id = get_jwt_identity()
+#             claims = get_jwt_claims()
+#             permission = claims.get('permission')
             
-            # Only allow professors, TAs, and super admins to generate modules
-            if permission not in ['pf', 'ta', 'su']:
-                return create_response(False, message="Insufficient permissions to generate modules", status_code=403)
+#             # Only allow professors, TAs, and super admins to generate modules
+#             if permission not in ['pf', 'ta', 'su']:
+#                 return create_response(False, message="Insufficient permissions to generate modules", status_code=403)
             
-            # Get parameters from query string
-            name = request.args.get('name')
-            target_language = request.args.get('targetLanguage')
-            native_language = request.args.get('nativeLanguage')
-            num_terms = request.args.get('numTerms', 20)
-            group_id = request.args.get('groupID')
-            complexity = request.args.get('complexity', 2)
+#             # Get parameters from query string
+#             name = request.args.get('name')
+#             target_language = request.args.get('targetLanguage')
+#             native_language = request.args.get('nativeLanguage')
+#             num_terms = request.args.get('numTerms', 20)
+#             group_id = request.args.get('groupID')
+#             complexity = request.args.get('complexity', 2)
             
-            # Convert to int
-            try:
-                num_terms = int(num_terms)
-                complexity = int(complexity)
-                if group_id:
-                    group_id = int(group_id)
-            except ValueError:
-                return create_response(False, message="Invalid number format for numTerms or complexity", status_code=400)
+#             # Convert to int
+#             try:
+#                 num_terms = int(num_terms)
+#                 complexity = int(complexity)
+#                 if group_id:
+#                     group_id = int(group_id)
+#             except ValueError:
+#                 return create_response(False, message="Invalid number format for numTerms or complexity", status_code=400)
             
-            # Validate required parameters
-            if not all([name, target_language, native_language]):
-                return create_response(False, message="Missing required parameters: name, targetLanguage, nativeLanguage", status_code=400)
+#             # Validate required parameters
+#             if not all([name, target_language, native_language]):
+#                 return create_response(False, message="Missing required parameters: name, targetLanguage, nativeLanguage", status_code=400)
             
-            # Validate num_terms range
-            if num_terms < 5 or num_terms > 100:
-                return create_response(False, message="numTerms must be between 5 and 100", status_code=400)
+#             # Validate num_terms range
+#             if num_terms < 5 or num_terms > 100:
+#                 return create_response(False, message="numTerms must be between 5 and 100", status_code=400)
             
-            # Call the same logic as POST
-            return self._generate_module(user_id, name, target_language, native_language, num_terms, group_id, complexity)
+#             # Call the same logic as POST
+#             return self._generate_module(user_id, name, target_language, native_language, num_terms, group_id, complexity)
             
-        except Exception as e:
-            return create_response(False, message=f"Error processing request: {str(e)}", status_code=500)
+#         except Exception as e:
+#             return create_response(False, message=f"Error processing request: {str(e)}", status_code=500)
     
-    @jwt_required
-    def post(self):
-        """
-        /elleapi/ai/generate-module
-        Generates a new module using AI/LLM with specified parameters
-        """
-        try:
-            user_id = get_jwt_identity()
-            claims = get_jwt_claims()
-            permission = claims.get('permission')
+#     @jwt_required
+#     def post(self):
+#         """
+#         /elleapi/ai/generate-module
+#         Generates a new module using AI/LLM with specified parameters
+#         """
+#         try:
+#             user_id = get_jwt_identity()
+#             claims = get_jwt_claims()
+#             permission = claims.get('permission')
             
-            # Only allow professors, TAs, and super admins to generate modules
-            if permission not in ['pf', 'ta', 'su']:
-                return create_response(False, message="Insufficient permissions to generate modules", status_code=403)
+#             # Only allow professors, TAs, and super admins to generate modules
+#             if permission not in ['pf', 'ta', 'su']:
+#                 return create_response(False, message="Insufficient permissions to generate modules", status_code=403)
             
-            data = request.get_json()
-            if not data:
-                return create_response(False, message="No JSON data provided", status_code=400)
+#             data = request.get_json()
+#             if not data:
+#                 return create_response(False, message="No JSON data provided", status_code=400)
                 
-            # Extract parameters
-            name = data.get('name')
-            target_language = data.get('targetLanguage') 
-            native_language = data.get('nativeLanguage')
-            num_terms = data.get('numTerms', 20)
-            group_id = data.get('groupID')
-            complexity = data.get('complexity', 2)
+#             # Extract parameters
+#             name = data.get('name')
+#             target_language = data.get('targetLanguage') 
+#             native_language = data.get('nativeLanguage')
+#             num_terms = data.get('numTerms', 20)
+#             group_id = data.get('groupID')
+#             complexity = data.get('complexity', 2)
             
-            # Validate required parameters
-            if not all([name, target_language, native_language]):
-                return create_response(False, message="Missing required parameters: name, targetLanguage, nativeLanguage", status_code=400)
+#             # Validate required parameters
+#             if not all([name, target_language, native_language]):
+#                 return create_response(False, message="Missing required parameters: name, targetLanguage, nativeLanguage", status_code=400)
                 
-            # Validate num_terms range
-            if not isinstance(num_terms, int) or num_terms < 5 or num_terms > 100:
-                return create_response(False, message="numTerms must be an integer between 5 and 100", status_code=400)
+#             # Validate num_terms range
+#             if not isinstance(num_terms, int) or num_terms < 5 or num_terms > 100:
+#                 return create_response(False, message="numTerms must be an integer between 5 and 100", status_code=400)
             
-            # Call the same logic as GET
-            return self._generate_module(user_id, name, target_language, native_language, num_terms, group_id, complexity)
+#             # Call the same logic as GET
+#             return self._generate_module(user_id, name, target_language, native_language, num_terms, group_id, complexity)
             
-        except Exception as e:
-            return create_response(False, message=f"Error processing request: {str(e)}", status_code=500)
+#         except Exception as e:
+#             return create_response(False, message=f"Error processing request: {str(e)}", status_code=500)
     
-    def _generate_module(self, user_id, name, target_language, native_language, num_terms, group_id, complexity):
-        """
-        Shared method for both GET and POST to generate and save module
-        """
-        try:
-            # Get user permission again for the helper method
-            claims = get_jwt_claims()
-            permission = claims.get('permission')
+#     def _generate_module(self, user_id, name, target_language, native_language, num_terms, group_id, complexity):
+#         """
+#         Shared method for both GET and POST to generate and save module
+#         """
+#         try:
+#             # Get user permission again for the helper method
+#             claims = get_jwt_claims()
+#             permission = claims.get('permission')
             
-            # Use the existing create_module function from llm_functions.py
+#             # Use the existing create_module function from llm_functions.py
             
-            try:
-                module_result = create_module(
-                    prompt=name,
-                    term_count=num_terms,
-                    nat_lang=native_language,
-                    target_lang=target_language
-                )
+#             try:
+#                 module_result = create_module(
+#                     prompt=name,
+#                     term_count=num_terms,
+#                     nat_lang=native_language,
+#                     target_lang=target_language
+#                 )
                 
-            except Exception as generation_error:
-                return create_response(
-                    False, 
-                    message=f"AI generation failed with exception: {str(generation_error)}", 
-                    status_code=500
-                )
+#             except Exception as generation_error:
+#                 return create_response(
+#                     False, 
+#                     message=f"AI generation failed with exception: {str(generation_error)}", 
+#                     status_code=500
+#                 )
             
-            # Handle both list (success) and dict (error) responses from create_module
-            if isinstance(module_result, dict) and module_result.get('status') == 'error':
-                error_msg = module_result.get('message', 'Unknown error - no response from AI')
-                return create_response(
-                    False, 
-                    message=f"AI generation failed: {error_msg}", 
-                    status_code=500
-                )
+#             # Handle both list (success) and dict (error) responses from create_module
+#             if isinstance(module_result, dict) and module_result.get('status') == 'error':
+#                 error_msg = module_result.get('message', 'Unknown error - no response from AI')
+#                 return create_response(
+#                     False, 
+#                     message=f"AI generation failed: {error_msg}", 
+#                     status_code=500
+#                 )
             
-            # Convert list to expected format
-            if isinstance(module_result, list):
-                terms_list = module_result
-            elif isinstance(module_result, dict):
-                terms_list = module_result.get('terms', [])
-            else:
-                return create_response(
-                    False, 
-                    message="Invalid response from AI", 
-                    status_code=500
-                )
+#             # Convert list to expected format
+#             if isinstance(module_result, list):
+#                 terms_list = module_result
+#             elif isinstance(module_result, dict):
+#                 terms_list = module_result.get('terms', [])
+#             else:
+#                 return create_response(
+#                     False, 
+#                     message="Invalid response from AI", 
+#                     status_code=500
+#                 )
             
-            if not terms_list:
-                return create_response(
-                    False, 
-                    message="AI did not generate any terms", 
-                    status_code=500
-                )
+#             if not terms_list:
+#                 return create_response(
+#                     False, 
+#                     message="AI did not generate any terms", 
+#                     status_code=500
+#                 )
             
-            # Create the actual module in the database
-            from db_utils import postToDB, getFromDB
-            from db import mysql
+#             # Create the actual module in the database
+#             from db_utils import postToDB, getFromDB
+#             from db import mysql
             
-            try:
-                conn = mysql.connect()
-                cursor = conn.cursor()
+#             try:
+#                 conn = mysql.connect()
+#                 cursor = conn.cursor()
                 
-                # Insert the new module into the database
-                module_insert_query = """
-                    INSERT INTO `module` (`name`, `language`, `complexity`, `userID`, `isPastaModule`) 
-                    VALUES (%s, %s, %s, %s, %s)
-                """
+#                 # Insert the new module into the database
+#                 module_insert_query = """
+#                     INSERT INTO `module` (`name`, `language`, `complexity`, `userID`, `isPastaModule`) 
+#                     VALUES (%s, %s, %s, %s, %s)
+#                 """
                 
-                cursor.execute(module_insert_query, (
-                    name, 
-                    target_language, 
-                    complexity, 
-                    user_id, 
-                    False  # isPastaModule
-                ))
+#                 cursor.execute(module_insert_query, (
+#                     name, 
+#                     target_language, 
+#                     complexity, 
+#                     user_id, 
+#                     False  # isPastaModule
+#                 ))
                 
-                # Get the newly created module ID
-                new_module_id = cursor.lastrowid
+#                 # Get the newly created module ID
+#                 new_module_id = cursor.lastrowid
                 
-                # Insert each AI-generated term into the database
-                terms_created = 0
-                for term in terms_list:
-                    try:
-                        # Insert term
-                        term_insert_query = """
-                            INSERT INTO `term` (`front`, `back`, `type`, `gender`, `language`) 
-                            VALUES (%s, %s, %s, %s, %s)
-                        """
+#                 # Insert each AI-generated term into the database
+#                 terms_created = 0
+#                 for term in terms_list:
+#                     try:
+#                         # Insert term
+#                         term_insert_query = """
+#                             INSERT INTO `term` (`front`, `back`, `type`, `gender`, `language`) 
+#                             VALUES (%s, %s, %s, %s, %s)
+#                         """
                         
-                        # Clean words - remove any extra text like "- Tutor:", "Response=", etc.
-                        native = term.get('native_word', '').strip()
-                        target = term.get('target_word', '').strip()
+#                         # Clean words - remove any extra text like "- Tutor:", "Response=", etc.
+#                         native = term.get('native_word', '').strip()
+#                         target = term.get('target_word', '').strip()
                         
-                        # Remove common LLM artifacts
-                        for prefix in ['- Tutor:', 'Response=', 'Tutor:', '-', 'Student:', 'Assistant:']:
-                            if native.startswith(prefix):
-                                native = native[len(prefix):].strip()
-                            if target.startswith(prefix):
-                                target = target[len(prefix):].strip()
+#                         # Remove common LLM artifacts
+#                         for prefix in ['- Tutor:', 'Response=', 'Tutor:', '-', 'Student:', 'Assistant:']:
+#                             if native.startswith(prefix):
+#                                 native = native[len(prefix):].strip()
+#                             if target.startswith(prefix):
+#                                 target = target[len(prefix):].strip()
                         
-                        cursor.execute(term_insert_query, (
-                            target,   # Target language (Spanish) in 'front' column (English column display)
-                            native,   # Native language (English) in 'back' column (Translated column display)
-                            term.get('part_of_speech', 'noun').upper(),
-                            term.get('gender', 'N')[0].upper(),  # First letter: M/F/N
-                            target_language
-                        ))
+#                         cursor.execute(term_insert_query, (
+#                             target,   # Target language (Spanish) in 'front' column (English column display)
+#                             native,   # Native language (English) in 'back' column (Translated column display)
+#                             term.get('part_of_speech', 'noun').upper(),
+#                             term.get('gender', 'N')[0].upper(),  # First letter: M/F/N
+#                             target_language
+#                         ))
                         
-                        term_id = cursor.lastrowid
+#                         term_id = cursor.lastrowid
                         
-                        # Create a question for this term (MATCH type)
-                        question_insert_query = """
-                            INSERT INTO `question` (`type`, `questionText`) 
-                            VALUES (%s, %s)
-                        """
+#                         # Create a question for this term (MATCH type)
+#                         question_insert_query = """
+#                             INSERT INTO `question` (`type`, `questionText`) 
+#                             VALUES (%s, %s)
+#                         """
                         
-                        cursor.execute(question_insert_query, (
-                            'MATCH',
-                            f"What is '{term.get('native_word', '')}' in {target_language}?"
-                        ))
+#                         cursor.execute(question_insert_query, (
+#                             'MATCH',
+#                             f"What is '{term.get('native_word', '')}' in {target_language}?"
+#                         ))
                         
-                        question_id = cursor.lastrowid
+#                         question_id = cursor.lastrowid
                         
-                        # Link question to module
-                        module_question_query = """
-                            INSERT INTO `module_question` (`moduleID`, `questionID`) 
-                            VALUES (%s, %s)
-                        """
+#                         # Link question to module
+#                         module_question_query = """
+#                             INSERT INTO `module_question` (`moduleID`, `questionID`) 
+#                             VALUES (%s, %s)
+#                         """
                         
-                        cursor.execute(module_question_query, (new_module_id, question_id))
+#                         cursor.execute(module_question_query, (new_module_id, question_id))
                         
-                        # Link term as answer to question
-                        answer_query = """
-                            INSERT INTO `answer` (`questionID`, `termID`) 
-                            VALUES (%s, %s)
-                        """
+#                         # Link term as answer to question
+#                         answer_query = """
+#                             INSERT INTO `answer` (`questionID`, `termID`) 
+#                             VALUES (%s, %s)
+#                         """
                         
-                        cursor.execute(answer_query, (question_id, term_id))
+#                         cursor.execute(answer_query, (question_id, term_id))
                         
-                        terms_created += 1
+#                         terms_created += 1
                         
-                    except Exception as term_error:
-                        continue
+#                     except Exception as term_error:
+#                         continue
                 
-                # Link module to group if specified
-                if group_id and permission != 'su':
-                    group_module_query = """
-                        INSERT INTO `group_module` (`groupID`, `moduleID`) 
-                        VALUES (%s, %s)
-                    """
-                    cursor.execute(group_module_query, (group_id, new_module_id))
+#                 # Link module to group if specified
+#                 if group_id and permission != 'su':
+#                     group_module_query = """
+#                         INSERT INTO `group_module` (`groupID`, `moduleID`) 
+#                         VALUES (%s, %s)
+#                     """
+#                     cursor.execute(group_module_query, (group_id, new_module_id))
                 
-                # Commit all changes
-                conn.commit()
+#                 # Commit all changes
+#                 conn.commit()
                 
-                # Prepare response data
-                generated_content = {
-                    'terms': terms_list,
-                    'phrases': [],
-                    'questions': []
-                }
+#                 # Prepare response data
+#                 generated_content = {
+#                     'terms': terms_list,
+#                     'phrases': [],
+#                     'questions': []
+#                 }
                 
-                return create_response(
-                    True,
-                    message=f"AI module '{name}' created successfully with {terms_created} terms!",
-                    data={
-                        'moduleID': new_module_id,
-                        'name': name,
-                        'language': target_language,
-                        'content': generated_content
-                    }
-                )
+#                 return create_response(
+#                     True,
+#                     message=f"AI module '{name}' created successfully with {terms_created} terms!",
+#                     data={
+#                         'moduleID': new_module_id,
+#                         'name': name,
+#                         'language': target_language,
+#                         'content': generated_content
+#                     }
+#                 )
                 
-            except Exception as db_error:
-                if conn:
-                    conn.rollback()
-                return create_response(
-                    False,
-                    message=f"AI generated content but failed to save to database: {str(db_error)}",
-                    status_code=500
-                )
-            finally:
-                if conn and conn.open:
-                    cursor.close()
-                    conn.close()
+#             except Exception as db_error:
+#                 if conn:
+#                     conn.rollback()
+#                 return create_response(
+#                     False,
+#                     message=f"AI generated content but failed to save to database: {str(db_error)}",
+#                     status_code=500
+#                 )
+#             finally:
+#                 if conn and conn.open:
+#                     cursor.close()
+#                     conn.close()
             
-        except Exception as error:
-            return create_response(
-                False, 
-                message="Internal server error during AI module generation", 
-                error=str(error),
-                status_code=500
-            )
+#         except Exception as error:
+#             return create_response(
+#                 False, 
+#                 message="Internal server error during AI module generation", 
+#                 error=str(error),
+#                 status_code=500
+#             )
 
