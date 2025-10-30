@@ -222,6 +222,7 @@ export default function ChatScreen(props: propsInterface) {
 
       fetchProgress();
       fetchLoreFromDB();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.moduleID, user]);
 
     async function handleSendMessageClick() {

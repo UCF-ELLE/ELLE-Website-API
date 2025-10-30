@@ -761,9 +761,17 @@ class AddModuleGroup(Resource):
 
     @jwt_required
     def post(self):
+        from flask import request
+        
+        # Parse JSON directly from request body
+        json_data = request.get_json(silent=True) or {}
+        
         data = {}
-        data["moduleID"] = getParameter("moduleID", int, True)
-        data["groupID"] = getParameter("groupID", int, True)
+        data["moduleID"] = json_data.get("moduleID")
+        data["groupID"] = json_data.get("groupID")
+        
+        if not data["moduleID"] or not data["groupID"]:
+            return errorMessage("moduleID and groupID are required"), 400
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:

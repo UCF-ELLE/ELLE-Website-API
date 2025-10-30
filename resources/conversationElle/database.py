@@ -108,23 +108,27 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
     if permissionLevel == 'pf':
         if get_classes_type == 'active':
             query = '''
-                SELECT DISTINCT classID
+                SELECT DISTINCT classID, titoStatus
                 FROM tito_class_status
                 WHERE professorID = %s AND titoStatus = 'active';
             '''
         elif get_classes_type == 'all':
             query = '''
-                SELECT DISTINCT classID
+                SELECT DISTINCT classID, titoStatus
                 FROM tito_class_status
                 WHERE professorID = %s;
             '''
         else:
             query = '''
-                SELECT DISTINCT classID
+                SELECT DISTINCT classID, titoStatus
                 FROM tito_class_status
                 WHERE professorID = %s AND titoStatus = 'inactive';
             '''
-        return flatten_list(db.get(query, (userID,)))
+        # Return as list of dicts with classID and status
+        results = db.get(query, (userID,))
+        if not results:
+            return []
+        return [{'classID': row[0], 'status': row[1]} for row in results]
     # Otherwise, retrieves gets ACTIVE classes assigned to a TWT user
     elif permissionLevel == 'st':
         query = '''

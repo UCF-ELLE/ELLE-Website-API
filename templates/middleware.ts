@@ -32,5 +32,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/games/:path+', '/login', '/signup', '/profile']
+    matcher: ['/games/:path+', '/login', '/signup', '/profile', '/prof/:path*']
 };

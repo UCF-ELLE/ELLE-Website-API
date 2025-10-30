@@ -447,7 +447,7 @@ def cross_plat_path(unixpath):
 
 def getParameter(parameter_name, what_type, is_required=True, help="Parameter Error"):
     parser = reqparse.RequestParser()
-    parser.add_argument(parameter_name, type=what_type, required=is_required, help=help)
+    parser.add_argument(parameter_name, type=what_type, required=is_required, help=help, location=['json', 'form', 'values'])
     data = parser.parse_args()
     return data[parameter_name]
 

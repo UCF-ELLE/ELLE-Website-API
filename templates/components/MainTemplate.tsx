@@ -76,6 +76,11 @@ export default function Template(props: { permission?: string }) {
                                     <Link href="/classroster">Class Roster</Link>
                                 </li>
                             )}
+                            {(props.permission === 'pf' || props.permission === 'su') && (
+                                <li>
+                                    <Link href="/prof">Professor Console</Link>
+                                </li>
+                            )}
                             {props.permission && (
                                 <>
                                     <li>
@@ -145,6 +150,11 @@ export default function Template(props: { permission?: string }) {
                     {props.permission === 'pf' && (
                         <li>
                             <Link href="/classroster" onClick={handleLinkClick}>Class Roster</Link>
+                        </li>
+                    )}
+                    {(props.permission === 'pf' || props.permission === 'su') && (
+                        <li>
+                            <Link href="/prof" onClick={handleLinkClick}>Professor Console</Link>
                         </li>
                     )}
                     {props.permission && (
