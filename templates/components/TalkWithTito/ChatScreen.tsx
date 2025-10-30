@@ -129,6 +129,39 @@ export default function ChatScreen(props: propsInterface) {
       prevProgressRef.current = progress;
     }, [progress, props.moduleID, loreID, loreByThreshold, THRESHOLDS]);
 
+    // Fetch termsMastered/total and update progress (%)
+    const fetchProgress = useCallback(async () => {
+      if (!user?.jwt) return;
+
+      const res = await fetch(
+        `${ELLE_URL}/twt/session/getModuleProgress?moduleID=${props.moduleID}`,
+        { headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" } }
+      );
+      if (!res.ok) throw new Error(`Progress fetch failed ${res.status}`);
+
+      const body = await res.json();
+      const data = body?.data ?? body;
+
+      let termsMastered: number | undefined;
+      let totalTerms: number | undefined;
+
+      if (Array.isArray(data) && data.length >= 2) {
+        termsMastered = Number(data[0]);
+        totalTerms   = Number(data[1]);
+      } else {
+        termsMastered = Number(data?.termsMastered ?? data?.mastered ?? data?.used ?? data?.completed);
+        totalTerms    = Number(data?.totalTerms ?? data?.total ?? data?.count);
+      }
+
+      const pct =
+        Number.isFinite(termsMastered) && Number.isFinite(totalTerms) && totalTerms > 0
+          ? Math.round((100 * Number(termsMastered)) / Number(totalTerms))
+          : 0;
+
+      setProgress(pct);
+      console.log("[fetchProgress]", { termsMastered, totalTerms, pct });
+    }, [user?.jwt, props.moduleID]);
+
     // Cloud bubble and progress + lore fetch
     useEffect(() => {
       if (!user || !user.jwt) return;
@@ -151,18 +184,6 @@ export default function ChatScreen(props: propsInterface) {
           }
         }
         return null;
-      }
-
-      async function fetchProgress() {
-        // If your backend only needs moduleID, this still works;
-        // if it supports classID too, you can append it similarly to lore.
-        const res = await fetch(
-          `${ELLE_URL}/twt/session/getModuleProgress?moduleID=${props.moduleID}`,
-          { headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" } }
-        );
-        if (!res.ok) throw new Error(`Progress fetch failed ${res.status}`);
-        const data = await res.json();
-        if (typeof data?.proficiencyRate === "number") setProgress(data.proficiencyRate);
       }
 
       async function fetchLoreFromDB() {
@@ -234,6 +255,7 @@ export default function ChatScreen(props: propsInterface) {
           terms.map(term => term.questionFront), 
           terms.filter(term => term.used === true).map(term => term.questionFront)
         );
+
         
         // Upload audio file if this was a voice message
         console.log('[ChatScreen] Checking audio upload conditions:', { 
@@ -303,6 +325,8 @@ export default function ChatScreen(props: propsInterface) {
                 used: term.used || sendMessageResponse.termsUsed.includes(term.questionFront)
             }))
             setTerms(newTerms);
+
+            await fetchProgress();
 
             // Automatically speak Tito's response
             if (sendMessageResponse.llmResponse && ttsSupported) {
@@ -585,12 +609,12 @@ export default function ChatScreen(props: propsInterface) {
 
       if(user === undefined || props.chatbotId === undefined || timeChatted === undefined) return; //Returns early if any data is missing
 
-      console.log("Attempting to update timeSpent");
+      //console.log("Attempting to update timeSpent");
 
       const result = await incrementTime(user.jwt, user.userID, props.chatbotId, 0, timeChatted / 3600);
 
       if(result === 200) {
-        console.log("Success updating timeSpent");
+        //console.log("Success updating timeSpent");
       }
       else {
         console.log("Failed updating timeSpent")

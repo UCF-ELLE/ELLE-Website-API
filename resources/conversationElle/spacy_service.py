@@ -30,9 +30,9 @@ from .database import *
 # python -m spacy download es_core_news_sm
 
 # Set to True when trying to debug the chronological ordering of events
-DEBUG_TRACING_FLAG = False
+DEBUG_TRACING_FLAG = True
 # Set to True when you want to view useful debugging info on all processes here 
-SYSTEM_LOGGING_FLAG = False
+SYSTEM_LOGGING_FLAG = True
 
 
 # TODO: predownload spacy language models on ELLE server
@@ -77,8 +77,10 @@ def add_message(message: str, module_id: int, user_id: int, message_id: int, cha
             return
 
         MESSAGE_QUEUE.put((message, module_id, user_id, message_id, chatbot_sid, update_db))
-    except Exception as e:
-        print(f"[ERROR] Failed to add message {message_id} to queue: Error: {e}")
+    except Exception as err:
+        print("[ERROR] Failure occurred while trying to process message in spacy_service.py:", err)
+        import traceback; traceback.print_exc()
+        return {}  # <- IMPORTANT: don't crash the worker thread
 
     if SYSTEM_LOGGING_FLAG:
         print(f"[QUEUE] Added message for user {user_id} to process for key terms")
@@ -104,7 +106,7 @@ def load_language(lang_code: str):
             if SYSTEM_LOGGING_FLAG:
                 print(f"[INFO] NLP in use {NLP}")
                 print(f"[INFO] Loaded spaCy model '{SPACY_MODELS[lang_code]}' for language '{lang_code}'")
-        except OSError:
+        except Exception as e:
             print(f"[WARN] Failed while loading model '{SPACY_MODELS[lang_code]}'.Falling back to '{DEFAULT_LANGUAGE_CODE}'. \n{e}")
             NLP = spacy.load(SPACY_MODELS[DEFAULT_LANGUAGE_CODE])
             CURRENT_LANGUAGE = DEFAULT_LANGUAGE_CODE
@@ -317,8 +319,10 @@ def spacy_service():
                 if DEBUG_TRACING_FLAG:
                     print("[CHRONOLOGY] END OF MESSAGE PROCESSING: Updating used key terms/phrases @ update_words_used()")
                 updateWordsUsed(matches, user_id, module_id)
-        except Exception as e:
-            print(f"[ERROR] Failure occurred while trying to process message in spacy_service.py: error: {e}")
+        except Exception as err:
+            print("[ERROR] Failure occurred while trying to process message in spacy_service.py:", err)
+            import traceback; traceback.print_exc()
+            return {}  # <- IMPORTANT: don't crash the worker thread
         finally:
             MESSAGE_QUEUE.task_done()
 
