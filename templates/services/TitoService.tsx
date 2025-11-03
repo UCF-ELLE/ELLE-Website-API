@@ -208,32 +208,40 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
     console.log(`[getChatbot] Creating session for userId: ${userId}, moduleId: ${moduleId}`);
     console.log({ userId, moduleId, terms });
     
-    // First get available classes to find the right classID for this module
-    const accessResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
-      headers: { Authorization: `Bearer ${access_token}` }
-    });
-    
-    const accessData = accessResponse.data.data || [];
+    // Free chat (moduleId -1) doesn't require a class
+    const isFreeChat = moduleId === -1;
     let classID: string | null = null;
     
-    // Find the class that contains this module
-    for (const [cID, modulesList] of accessData) {
-      for (const [mID, sequenceID] of modulesList) {
-        if (mID === moduleId) {
-          classID = cID.toString();
-          break;
+    if (!isFreeChat) {
+      // First get available classes to find the right classID for this module
+      const accessResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+      
+      const accessData = accessResponse.data.data || [];
+      
+      // Find the class that contains this module
+      for (const [cID, modulesList] of accessData) {
+        for (const [mID, sequenceID] of modulesList) {
+          if (mID === moduleId) {
+            classID = cID.toString();
+            break;
+          }
         }
+        if (classID !== null) break; // Found the class, exit outer loop
       }
-      if (classID !== null) break; // Found the class, exit outer loop
+      
+      // If no classID found, this module isn't assigned to any class for this user
+      if (classID === null) {
+        console.error(`[getChatbot] Module ${moduleId} is not assigned to any class for this user`);
+        return null;
+      }
+      
+      console.log(`[getChatbot] Using classID: ${classID} for moduleID: ${moduleId}`);
+    } else {
+      console.log(`[getChatbot] Free chat mode - no class required`);
+      classID = '0'; // Dummy value for free chat
     }
-    
-    // If no classID found, this module isn't assigned to any class for this user
-    if (classID === null) {
-      console.error(`[getChatbot] Module ${moduleId} is not assigned to any class for this user`);
-      return null;
-    }
-    
-    console.log(`[getChatbot] Using classID: ${classID} for moduleID: ${moduleId}`);
     
     // Create form data to match backend expectations
     const formData = new FormData();
@@ -330,9 +338,12 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
     
     console.log(`[getMessages] Fetching messages for userId: ${userId}, moduleId: ${moduleId}, classId: ${classId}`);
     
-    // Dynamically determine classID if not provided
+    // Free chat doesn't require classID
+    const isFreeChat = moduleId === -1;
     let finalClassId = classId;
-    if (!finalClassId) {
+    
+    if (!isFreeChat && !finalClassId) {
+      // Dynamically determine classID if not provided
       const accessResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
         headers: { Authorization: `Bearer ${access_token}` }
       });
@@ -346,12 +357,15 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
         }
         if (finalClassId) break;
       }
-    }
-    
-    // If no classID found, cannot fetch messages
-    if (!finalClassId) {
-      console.error(`[getMessages] Could not determine classID for module ${moduleId}`);
-      return [];
+      
+      // If no classID found, cannot fetch messages
+      if (!finalClassId) {
+        console.error(`[getMessages] Could not determine classID for module ${moduleId}`);
+        return [];
+      }
+    } else if (isFreeChat && !finalClassId) {
+      // For free chat, use dummy classID
+      finalClassId = 0;
     }
     
     const response = await axios.get(
@@ -427,9 +441,12 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
 
   // Use real API - single attempt with original session
   try {
-    // Dynamically determine classID if not provided
+    // Free chat doesn't require classID
+    const isFreeChat = moduleId === -1;
     let finalClassId = classId;
-    if (!finalClassId) {
+    
+    if (!isFreeChat && !finalClassId) {
+      // Dynamically determine classID if not provided
       const accessResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
         headers: { Authorization: `Bearer ${access_token}` }
       });
@@ -443,18 +460,21 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
         }
         if (finalClassId) break;
       }
-    }
-    
-    // If no classID found, cannot send message
-    if (!finalClassId) {
-      console.error(`[sendMessage] Could not determine classID for module ${moduleId}`);
-      return {
-        llmResponse: "Unable to send message - module is not assigned to a class.",
-        termsUsed: [],
-        titoConfused: false,
-        messageID: undefined,
-        metadata: {}
-      };
+      
+      // If no classID found, cannot send message
+      if (!finalClassId) {
+        console.error(`[sendMessage] Could not determine classID for module ${moduleId}`);
+        return {
+          llmResponse: "Unable to send message - module is not assigned to a class.",
+          termsUsed: [],
+          titoConfused: false,
+          messageID: undefined,
+          metadata: {}
+        };
+      }
+    } else if (isFreeChat && !finalClassId) {
+      // For free chat, use dummy classID
+      finalClassId = 0;
     }
     
     // Create form data to match backend expectations

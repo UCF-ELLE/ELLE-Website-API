@@ -58,8 +58,9 @@ class TitoAccess(Resource):
         '''
         try:
             class_ids = getTitoClasses(userID=get_jwt_identity(), permissionLevel='any', get_classes_type='active')
+            # Return empty array if no classes - allows free chat access
             if not class_ids:
-                return create_response(success=False, message="User is not enrolled in any active tito classes.", status_code=403)
+                return create_response(success=True, message="Returned user modules", data=[])
             
             tito_modules = []
             for class_id in class_ids:
@@ -68,7 +69,7 @@ class TitoAccess(Resource):
                     return create_response(True, message="Returned user modules", data=[]) 
                 tito_modules.append((class_id, res))
 
-            return create_response(True, message="Returned user modules", data=tito_modules) 
+            return create_response(True, message="Returned user modules", data=tito_modules)
         except Exception as e:
             print(f"Error occurred: {e} when trying to access TitoAccess @ conversation.py")
             return create_response(False, message="Internal server error. Please try again later.", error=str(e), status_code=500) 
@@ -90,23 +91,21 @@ class ChatbotSessions(Resource):
         if module_id == FREE_CHAT_MODULE:
             module_id = REAL_FREE_CHAT_MODULE
 
-
-        if not module_id or not class_id:
-            return create_response(False, message="Missing required parameters.", status_code=404)
-        if int(module_id) != REAL_FREE_CHAT_MODULE:
-            print("hello")
-            if not isUserInClass(user_id, class_id):
-                return create_response(False, message=f"User does not belong to class {class_id}.", status_code=403)
-        # A freechat session
+        # Free chat doesn't require class_id or class enrollment
         if module_id == REAL_FREE_CHAT_MODULE:
-            # chatbot_sid = createChatbotSession(user_id, REAL_FREE_CHAT_MODULE)
+            # A freechat session - anyone can access
             warming_thread = threading.Thread(
                 target = prewarm_llm_context, # Uses threading so that LLM may "warm up" for subsiquent prompts
                 args = (REAL_FREE_CHAT_MODULE, REAL_FREE_CHAT_MODULE), daemon = True
             )  
             warming_thread.start()
-
             return create_response(True, message="Free chat Chatbot session created.", data=createChatbotSession(user_id, REAL_FREE_CHAT_MODULE))
+        
+        # For non-free chat modules, class_id is required
+        if not module_id or not class_id:
+            return create_response(False, message="Missing required parameters.", status_code=404)
+        if not isUserInClass(user_id, class_id):
+            return create_response(False, message=f"User does not belong to class {class_id}.", status_code=403)
         
         if not isActiveTitoModule(class_id, module_id):
             return create_response(success=False, message="Chatbot session failed to be created. No available modules", status_code=403)
@@ -142,23 +141,25 @@ class UserMessages(Resource):
         is_free_chat = False
         if module_id == FREE_CHAT_MODULE:
             is_free_chat = True
+            module_id = REAL_FREE_CHAT_MODULE
 
-        # print(f'{message} and {session_id} and {module_id} and {is_vm}')
-
-        if not session_id or not module_id or not message or is_vm is None or not class_id:
+        # Free chat doesn't require class_id
+        if not session_id or not module_id or not message or is_vm is None:
             return create_response(False, message="Missing required parameters.", status_code=404)
+        
+        # For non-free chat, class_id is required
+        if module_id != REAL_FREE_CHAT_MODULE and not class_id:
+            return create_response(False, message="Missing required parameters (class_id required for module chat).", status_code=404)
 
 
         # Attempts to add message to DB, 0/None = error, success returns msg_id
+        # Free chat doesn't store messages in DB
         new_msg_id = ''
-        if module_id != is_free_chat:
-            print("Hello")
-            new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id,chatbotSID=session_id, message=message, isVM=is_vm, class_id=class_id)
+        if not is_free_chat:
+            new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id, chatbotSID=session_id, message=message, isVM=is_vm, class_id=class_id)
             updateTotalTimeChatted(session_id)
-        if not new_msg_id and not is_free_chat:
-            print(module_id)
-            print(f'{True if new_msg_id else False} and {True if module_id else False}')
-            return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
+            if not new_msg_id:
+                return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
 
 
         # Rate messages grammar
