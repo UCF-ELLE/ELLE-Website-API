@@ -132,6 +132,19 @@ function AnimELLEModal(props: {}) {
         setDevicePixelRatio(window.devicePixelRatio);
     }, [user, userLoading]);
 
+    // This will run when the user presses the back button and detaches the game
+    useEffect(() => {
+        const handleRouteChange = () => {
+            detachGame();
+        }
+
+        router.events.on('beforeHistoryChange', handleRouteChange);
+
+        return () => {
+            router.events.off('beforeHistoryChange', handleRouteChange);
+        };
+    }, [router, detachGame]);
+
     // Sometimes the Unity window looks blurry on Retina screens. This fixes that.
     // Taken from https://react-unity-webgl.dev/docs/advanced-examples/dynamic-device-pixel-ratio
     const [devicePixelRatio, setDevicePixelRatio] = useState<number>();
@@ -167,9 +180,9 @@ function AnimELLEModal(props: {}) {
     }, [UNITY_playerScore, UNITY_sessionID, user?.jwt]);
 
     // Async function that unloads game
-    const unloadUnityGame = useCallback(async () => {
+    async function unloadUnityGame() {
         await unload();
-    }, [unload]);
+    }
 
     useEffect(() => {
         /* Problem: user is in the middle of a Card Game play session and closes the browser. The /session API endpoint was called to start the Session, but
@@ -189,32 +202,7 @@ function AnimELLEModal(props: {}) {
             window.removeEventListener("unload", endOngoingSession);
             // router.events.off('routeChangeStart', handleEarlyNavigation);
         };
-    }, [isLoaded, openWarningDialog, endOngoingSession, unloadUnityGame]);
-
-    // Async function that will detach the game's files from the frontend and end the player's session
-    const detachGame = useCallback(async () => {
-        if (UNITY_userIsPlayingGame) {
-            // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
-            sendMessage("GameManager", "LeavingPageEvents");
-        }
-
-        await UNSAFE__unityInstance?.Quit();
-
-        setUnmountFlag(true);
-    }, [UNITY_userIsPlayingGame, sendMessage, UNSAFE__unityInstance]);
-
-    // This will run when the user presses the back button and detaches the game
-    useEffect(() => {
-        const handleRouteChange = () => {
-            detachGame();
-        }
-
-        router.events.on('beforeHistoryChange', handleRouteChange);
-
-        return () => {
-            router.events.off('beforeHistoryChange', handleRouteChange);
-        };
-    }, [router, detachGame]);
+    }, [isLoaded]);
 
     // Automatically log the user into ACWW
     useEffect(() => {
@@ -236,6 +224,18 @@ function AnimELLEModal(props: {}) {
             }
         }
     }, [isLoaded, userLoading, user?.jwt, sendMessage]);
+
+    // Async function that will detach the game's files from the frontend and end the player's session
+    async function detachGame() {
+        if (UNITY_userIsPlayingGame) {
+            // Get the player's current score, sessionID, and amount of paused time to prepare to end their session automatically
+            sendMessage("GameManager", "LeavingPageEvents");
+        }
+
+        await UNSAFE__unityInstance?.Quit();
+
+        setUnmountFlag(true);
+    }
 
     function openHandler() {
         console.log(window.innerHeight);
