@@ -16,19 +16,17 @@ export default class AuthService {
     protected readonly instance: AxiosInstance;
     public constructor() {
         this.instance = axios.create({
-            baseURL: 'http://localhost:5050',  // Point to Flask backend
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
     }
 
     login = async (username: string, password: string) => {
         try {
-            // Send form-encoded data as string for Flask-RESTful reqparse compatibility
-            const formData = `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
-            
-            const res = await this.instance.post('/elleapi/login', formData, {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
+            const res = await this.instance.post('/elleapi/login', {
+                username,
+                password
             });
             const decoded = jwtDecode(res.data.access_token) as decodedJWT;
             const permission = decoded.user_claims.permission;
@@ -41,13 +39,8 @@ export default class AuthService {
             } as AuthUser;
         } catch (err: any) {
             if (err.response !== undefined) {
-                console.log('login error - status:', err.response.status);
-                console.log('login error - data:', err.response.data);
-                console.log('login error - headers:', err.response.headers);
-                return { error: err.response.data.Error || err.response.data.message } as ApiError;
-            } else {
-                console.log('login error - no response:', err.message);
-                return { error: 'Network error' } as ApiError;
+                console.log('login error', err.response.data);
+                return { error: err.response.data.Error } as ApiError;
             }
         }
     };
