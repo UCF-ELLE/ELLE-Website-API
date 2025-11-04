@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 
-const API_BASE = process.env.NEXT_PUBLIC_ELLE_API_BASE || 'http://localhost:5050/elleapi';
+const API_BASE = process.env.NEXT_PUBLIC_ELLE_API_BASE || 'https://chdr.cs.ucf.edu';
 
 export class ApiClient {
     private getToken(): string | undefined {

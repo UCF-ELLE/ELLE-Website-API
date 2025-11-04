@@ -39,7 +39,7 @@ export default class AIModuleService {
     
     public constructor() {
         this.instance = axios.create({
-            baseURL: 'http://localhost:5050', // Point to Flask backend
+            baseURL: 'https://chdr.cs.ucf.edu', // Point to Flask backend
         });
     }
 

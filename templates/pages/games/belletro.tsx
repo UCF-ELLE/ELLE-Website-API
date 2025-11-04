@@ -169,9 +169,9 @@ export default function BELLEtro() {
         }
     }, [UNITY_mostFrequentHand, UNITY_currentAnte, UNITY_sessionID, user]);
 
-    const unloadUnityGame = useCallback(async () => {
+    async function unloadUnityGame() {
         await unload();
-    }, [unload]);
+    }
 
     useEffect(() => {
         /* Problem: user is in the middle of a Card Game play session and closes the browser. The /session API endpoint was called to start the Session, but
@@ -194,7 +194,7 @@ export default function BELLEtro() {
             window.removeEventListener('unload', endOngoingSession);
             // router.events.off('routeChangeStart', handleEarlyNavigation);
         };
-    }, [isLoaded, openWarningDialog, sendQuestionInfo, endOngoingSession, unloadUnityGame]);
+    }, [isLoaded]);
 
     // Automatically log the user into the Unity Card Game
     useEffect(() => {

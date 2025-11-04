@@ -31,7 +31,7 @@ const nextConfig = {
             {
                 source: '/elleapi/:slug*',
                 destination: 'http://localhost:5050/elleapi/:slug*',
-                basePath: false //process.env.NODE_ENV === 'production' ? undefined : false
+                basePath: process.env.NODE_ENV === 'production' ? undefined : false
             },
             {
                 source: '/images/:slug*',
@@ -45,4 +45,4 @@ const nextConfig = {
     }
 };
 
-module.exports = nextConfig
+module.exports = nextConfig;
