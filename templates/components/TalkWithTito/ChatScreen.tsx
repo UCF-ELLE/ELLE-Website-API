@@ -798,9 +798,11 @@ export default function ChatScreen(props: propsInterface) {
 
     //Used to initialize chatbot
     useEffect(() => {
-        if(userLoading || !user || !termsLoaded || terms.length === 0) return; // Returns if not ready to execute
+        // For free chat (moduleID === -1), we don't need terms to initialize chatbot
+        const isFreeChat = props.moduleID === -1;
+        if(userLoading || !user || !termsLoaded || (!isFreeChat && terms.length === 0)) return; // Returns if not ready to execute
         
-        console.log(`[ChatScreen] Initializing chatbot for module ${props.moduleID}`, { termsLength: terms.length });
+        console.log(`[ChatScreen] Initializing chatbot for module ${props.moduleID}`, { termsLength: terms.length, isFreeChat });
         
         const loadChatbot = async () => {
             console.log(`[ChatScreen] Calling getChatbot for module ${props.moduleID}`);
