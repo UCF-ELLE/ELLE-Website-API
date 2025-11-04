@@ -482,7 +482,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     formData.append('message', userValue);
     formData.append('chatbotSID', chatbotId.toString());
     formData.append('moduleID', moduleId.toString());
-    formData.append('classID', finalClassId.toString());
+    formData.append('classID', finalClassId?.toString()??"");
     formData.append('isVoiceMessage', '0'); // 0 = false (text message), 1 = true (voice message)
     
     console.log(`[SendMessage] Sending with original session ID: ${chatbotId}, classID: ${finalClassId}`);
