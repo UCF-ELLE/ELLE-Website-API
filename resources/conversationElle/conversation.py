@@ -1467,7 +1467,7 @@ class AIModuleGeneration(Resource):
                 print(f"[DEBUG DB] Loop completed. Total terms created: {terms_created}")
 
                 # Link module to group if specified
-                if group_id and permission != 'su':
+                if group_id:
                     group_module_query = """
                         INSERT INTO `group_module` (`groupID`, `moduleID`) 
                         VALUES (%s, %s)

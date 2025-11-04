@@ -77,6 +77,7 @@ export default function TalkWithTito() {
     moduleID: number;
     name: string;
     language: string;
+    isTitoEnabled?: boolean;
   }
 
   interface Song {
@@ -106,8 +107,11 @@ export default function TalkWithTito() {
   useEffect(() => {
     if (!userLoading && user) {
       const loadModules = async () => {
-        const modules = await fetchModules(user?.jwt);
-        setModules(modules);
+        const allModules = await fetchModules(user?.jwt);
+        // Filter to only show Tito-enabled modules
+        const titoModules = allModules?.filter(m => m.isTitoEnabled) || [];
+        console.log('[TalkWithTito] Loaded modules:', { total: allModules?.length, titoEnabled: titoModules.length });
+        setModules(titoModules);
       };
       loadModules();
       // if (user?.userID === 1 || user?.userID === 445){

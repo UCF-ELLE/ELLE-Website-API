@@ -119,15 +119,39 @@ export default function ModulesPage() {
             
             setModuleClassMap(classMap);
             
-            // Load active status from localStorage (this is UI-only state)
-            const savedActiveStatus = localStorage.getItem('moduleActiveStatus');
-            if (savedActiveStatus) {
-                try {
-                    setModuleActiveStatus(JSON.parse(savedActiveStatus));
-                } catch (e) {
-                    console.error('Failed to parse active status');
-                }
+            // Fetch active status from backend using the access endpoint
+            // This endpoint returns active modules only (status='active')
+            const activeStatusMap: Record<number, boolean> = {};
+            try {
+                const accessResponse = await apiClient.get<any>('/twt/session/access');
+                const accessData = accessResponse?.data || [];
+                
+                // accessData format: [[classID, [[moduleID, sequenceID], ...]], ...]
+                accessData.forEach((classEntry: any) => {
+                    if (Array.isArray(classEntry) && classEntry.length >= 2) {
+                        const [classId, modulesList] = classEntry;
+                        if (Array.isArray(modulesList)) {
+                            modulesList.forEach((moduleTuple: any) => {
+                                if (Array.isArray(moduleTuple) && moduleTuple.length >= 1) {
+                                    const moduleId = moduleTuple[0];
+                                    activeStatusMap[moduleId] = true; // Module is active
+                                }
+                            });
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to fetch active module status:', err);
             }
+            
+            // Mark all other Tito modules as inactive if not in the active list
+            titoModuleSet.forEach(moduleId => {
+                if (!(moduleId in activeStatusMap)) {
+                    activeStatusMap[moduleId] = false;
+                }
+            });
+            
+            setModuleActiveStatus(activeStatusMap);
             
             // Transform the data to match our interface
             // Create one entry per module-class combination
@@ -187,30 +211,35 @@ export default function ModulesPage() {
             formData.append('classID', selectedModule.classID.toString());
             formData.append('isStatusUpdate', 'true');
 
-            await fetch('/elleapi/twt/professor/updateModule', {
+            const response = await fetch('/elleapi/twt/professor/updateModule', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('jwt')}`,
+                    'Authorization': `Bearer ${user?.jwt}`,
                 },
                 body: formData,
             });
             
-            // Update the active status in state immediately
-            const newActiveStatus = { ...moduleActiveStatus };
-            // If undefined, default to true (active), then toggle
-            const currentStatus = newActiveStatus[selectedModule.moduleID] ?? true;
-            newActiveStatus[selectedModule.moduleID] = !currentStatus;
-            setModuleActiveStatus(newActiveStatus);
-            localStorage.setItem('moduleActiveStatus', JSON.stringify(newActiveStatus));
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to toggle status (${response.status}): ${errorText}`);
+            }
             
-            console.log('Toggled module', selectedModule.moduleID, 'from', currentStatus, 'to', !currentStatus);
-            
-            setSuccess('Module status toggled successfully!');
+            // Close modal and clear selection first
             setShowStatusModal(false);
             setSelectedModule(null);
-            fetchModules();
+            
+            // Show success message
+            setSuccess('Module status toggled successfully! Refreshing...');
+            
+            // Wait a moment for backend to commit, then refresh
+            setTimeout(async () => {
+                await fetchModules();
+                setSuccess('Module status updated!');
+            }, 500);
         } catch (err) {
+            console.error('Toggle status error:', err);
             setError(err instanceof Error ? err.message : 'Failed to toggle Tito status');
+            setShowStatusModal(false);
         }
     };
 
