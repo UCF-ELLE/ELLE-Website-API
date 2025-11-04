@@ -997,6 +997,12 @@ export default function ChatScreen(props: propsInterface) {
                         disabled={titoMood === "thinking"}
                         value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
                         onChange={(e) => setUserMessage(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSendMessageClick();
+                            }
+                        }}
                     />
                     {/* controls column: Mic + Language */}
                   <div className="ml-2 flex items-center justify-center w-12 h-8 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium">
@@ -1033,15 +1039,19 @@ export default function ChatScreen(props: propsInterface) {
                     <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
                   </button>
                   </div>
-                    {/* Language cycle (appears below the TTS button) */}
-                      <button
-                        type="button"
-                        onClick={cycleLang}
-                        className="ml-2 flex items-center justify-center w-12 h-12 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium"
-                        title={`Change TTS language (${SUPPORTED_LANGS.find(l => l.code === ttsLang)?.label})`}
+                    {/* Language dropdown */}
+                    <select
+                        value={ttsLang}
+                        onChange={(e) => setTtsLang(e.target.value)}
+                        className="ml-2 flex items-center justify-center w-16 h-12 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium cursor-pointer"
+                        title="Select TTS language"
                       >
-                        🌐 {SUPPORTED_LANGS.find(l => l.code === ttsLang)?.short}
-                      </button>
+                        {SUPPORTED_LANGS.map((lang) => (
+                          <option key={lang.code} value={lang.code}>
+                            🌐 {lang.short}
+                          </option>
+                        ))}
+                      </select>
                     <button onClick={handleSendMessageClick} className="ml-2">
                         <Image src={sendMessageIcon} className="w-full h-full rounded-full" alt="Send message" />
                     </button>
