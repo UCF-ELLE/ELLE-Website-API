@@ -1134,6 +1134,14 @@ def getModuleTerms(module_id: int):
         return []
     return res
 
+def getTermProgress(user_id: int, module_id: int):
+    query = '''
+        SELECT termID, hasMastered, timesUsed, timesMisspelled
+        FROM tito_term_progress
+        WHERE userID = %s AND moduleID = %s;
+    '''
+    return db.get(query, (user_id, module_id))
+    
 def getModuleLanguage(module_id: int):
     query = '''
         SELECT t.language

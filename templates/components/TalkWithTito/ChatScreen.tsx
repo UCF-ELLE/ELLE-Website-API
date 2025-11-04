@@ -84,6 +84,8 @@ export default function ChatScreen(props: propsInterface) {
     const [progress, setProgress] = useState<number | undefined>(undefined);
     const [message, setMessage] = useState("");
     const [trigger, setTrigger] = useState(0);
+    const [masteredSet, setMasteredSet] = useState<Set<number>>(new Set());
+    const [masteredTermIDs, setMasteredTermIDs] = useState<number[]>([]);
     // --- TTS state + helpers ---
     const [ttsSupported, setTtsSupported] = useState(false);
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -132,6 +134,38 @@ export default function ChatScreen(props: propsInterface) {
 
       prevProgressRef.current = progress;
     }, [progress, props.moduleID, loreID, loreByThreshold, THRESHOLDS]);
+
+    const fetchMasteredTermIDs = useCallback(async () => {
+      if (!user?.jwt) return;
+      const url = `${ELLE_URL}/twt/session/getTermProgress?moduleID=${props.moduleID}`;
+
+      try {
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" },
+        });
+
+        if (!res.ok) {
+          const bodyText = await res.text().catch(() => "<no text>");
+          console.error("[Mastery] fetch failed", { status: res.status, url, bodyText });
+          setMasteredSet(new Set());
+          setMasteredTermIDs([]);     // <- keep both in sync
+          return;
+        }
+
+        const payload = await res.json().catch(() => ({}));
+        const data = payload?.data ?? payload ?? {};
+        const ids: number[] = Array.isArray(data.masteredIDs) ? data.masteredIDs.map(Number) : [];
+
+        setMasteredSet(new Set(ids));
+        setMasteredTermIDs(ids);      // <- actually fill this state now
+        console.log("[Mastery] masteredIDs =", ids);
+      } catch (err) {
+        console.error("[Mastery] unexpected error calling", url, err);
+        setMasteredSet(new Set());
+        setMasteredTermIDs([]);
+      }
+    }, [user?.jwt, props.moduleID]);
+
 
     // Fetch termsMastered/total and update progress (%)
     const fetchProgress = useCallback(async () => {
@@ -260,9 +294,10 @@ export default function ChatScreen(props: propsInterface) {
       }
 
       fetchProgress();
+      fetchMasteredTermIDs();
       fetchLoreFromDB();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.moduleID, user?.jwt]);
+    }, [props.moduleID, user?.jwt, fetchProgress, fetchMasteredTermIDs]);
 
     async function handleSendMessageClick() {
 
@@ -380,6 +415,7 @@ export default function ChatScreen(props: propsInterface) {
             }
 
             await fetchProgress();
+            await fetchMasteredTermIDs();
 
             // Automatically speak Tito's response
             if (sendMessageResponse.llmResponse && ttsSupported) {
@@ -439,18 +475,6 @@ export default function ChatScreen(props: propsInterface) {
       const i = SUPPORTED_LANGS.findIndex(l => l.code === ttsLang);
       const next = SUPPORTED_LANGS[(i + 1) % SUPPORTED_LANGS.length];
       setTtsLang(next.code);
-
-      //Trigger TitoCloudBubble for testing
-      if (next.code === "es-ES") {
-        setMessage("Tito remembers his hometown… but the name is fuzzy.");
-        setTrigger(Date.now());
-      } else if (next.code === "fr-FR") {
-        setMessage("Tito recalls speaking another language long ago!");
-        setTrigger(Date.now());
-      } else if (next.code === "pt-BR") {
-        setMessage("Tito has fully regained his memory thanks to you!");
-        setTrigger(Date.now());
-      }
     }
 
 
@@ -972,6 +996,8 @@ export default function ChatScreen(props: propsInterface) {
                 wordsBack={terms.map(term => (term.questionBack))} 
                 used={terms.map(term => (term.used))} 
                 progress={progress}
+                termIDs={terms.map(t => t.termID)}
+                masteredTermIDs={masteredTermIDs}
               />
             )}
 

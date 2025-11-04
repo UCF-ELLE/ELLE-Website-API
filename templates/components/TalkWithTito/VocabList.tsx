@@ -12,22 +12,24 @@ interface PropsInterface {
   wordsBack: string[] | undefined;
   used: boolean[] | undefined;
   progress: number;
+  termIDs: number[];
+  masteredTermIDs?: number[];
 }
 
 interface WordItemProps {
   wordFront: string;
   wordBack: string;
-  used: boolean;
+  isMastered: boolean;
 }
 
 /* WordItem Component */
-function WordItem({ wordFront, wordBack, used }: WordItemProps) {
+function WordItem({ wordFront, wordBack, isMastered }: WordItemProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
       style={{
-        textDecoration: used ? "line-through" : "none",
+        textDecoration: isMastered ? "line-through" : "none",
         fontWeight: isHovered ? "bold" : "normal",
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -40,19 +42,24 @@ function WordItem({ wordFront, wordBack, used }: WordItemProps) {
 }
 
 /* VocabList Component */
-export default function VocabList({ wordsFront, wordsBack, used, progress }: PropsInterface) {
+export default function VocabList({ wordsFront, wordsBack, used, progress, termIDs, masteredTermIDs }: PropsInterface) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const mastered = new Set(masteredTermIDs ?? []);
+  //console.log("[VocabList] masteredTermIDs =", masteredTermIDs, "termIDs =", termIDs);
 
-  if (!wordsFront || !wordsBack || !used) return null;
+  if (!wordsFront || !wordsBack || !used || !termIDs) return null;
 
   const sortedWords = wordsFront
-    .map((word, index) => ({
-      wordFront: wordsBack[index] || "",
-      wordBack: word,
-      used: used[index],
-      index,
-    }))
-    .sort((a, b) => Number(a.used) - Number(b.used));
+    .map((word, index) => {
+      const isMastered = mastered.has(termIDs[index]);
+      return {
+        wordFront: wordsBack[index] || "",
+        wordBack: word,
+        isMastered,
+        index,
+      }
+    })
+    .sort((a, b) => Number(a.isMastered) - Number(b.isMastered));
 
   return (
     <div className="inter-font absolute top-1 right-[-18em] w-fit h-fit flex flex-col items-center">
@@ -120,15 +127,14 @@ export default function VocabList({ wordsFront, wordsBack, used, progress }: Pro
       <div
         className={`absolute top-[82px] z-[19] w-[277px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-[55px] mt-1 flex flex-col items-center transition-all duration-300 ease-in-out overflow-hidden
         ${isExpanded ? "h-[20em] opacity-100" : "h-0 opacity-0"}`}
-        style={{ visibility: isExpanded ? "visible" : "hidden" }}
       >
         <div className="overflow-auto w-full">
-          {sortedWords.map(({ wordFront, wordBack, used, index }) => (
+          {sortedWords.map(({ wordFront, wordBack, isMastered, index }) => (
             <WordItem
               key={index}
               wordFront={wordFront}
               wordBack={wordBack}
-              used={used}
+              isMastered={isMastered}
             />
           ))}
         </div>

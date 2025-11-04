@@ -150,6 +150,7 @@ from resources.conversationElle.conversation import(
     FetchAllOwnedTitoLore,
     FetchAllUserAudio,
     PFGetStudentMessages,
+    GetTermProgress,
     # GenerateModule,
 
     # Testing,
@@ -412,6 +413,7 @@ api.add_resource(CreateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/createNewT
 api.add_resource(UpdateTitoLore, API_ENDPOINT_PREFIX + "twt/professor/updateTitoLore")
 api.add_resource(FetchAllOwnedTitoLore, API_ENDPOINT_PREFIX + "twt/professor/fetchOwnedTitoLore")
 api.add_resource(PFGetStudentMessages, API_ENDPOINT_PREFIX + "twt/professor/getStudentMessages")
+api.add_resource(GetTermProgress, "/elleapi/twt/session/getTermProgress")
 # api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateModule")
 
 

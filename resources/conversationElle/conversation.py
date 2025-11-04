@@ -424,6 +424,52 @@ class ModuleTerms(Resource):
         if module_id == FREE_CHAT_MODULE:
             return create_response(False, message="module is a freechat module, no terms stored", status_code=201)
         return create_response(True, message=f"Retrieved module terms from module {module_id}", data=getModuleTerms(module_id))
+        
+class GetTermProgress(Resource):
+    @jwt_required
+    def get(self):
+        """
+        /elleapi/twt/session/getTermProgress?moduleID=###
+        Returns:
+        {
+          masteredIDs: number[],
+          usedIDs: number[],
+          progressByTerm: { [termID]: { hasMastered, timesUsed, timesMisspelled } }
+        }
+        """
+        user_id = get_jwt_identity()
+        module_id = request.args.get('moduleID', type=int)
+
+        if not module_id:
+            return create_response(False, message="moduleID required", status_code=400)
+
+        rows = getTermProgress(user_id, module_id)  # <- from database.py
+        if not rows:
+            return create_response(True, data={"masteredIDs": [], "usedIDs": [], "progressByTerm": {}})
+
+        progress_by_term = {}
+        mastered_ids = []
+        used_ids = []
+
+        for (term_id, has_mastered, times_used, times_misspelled) in rows:
+            term_id = int(term_id)
+            rec = {
+                "hasMastered": int(has_mastered) if has_mastered is not None else 0,
+                "timesUsed": int(times_used) if times_used is not None else 0,
+                "timesMisspelled": int(times_misspelled) if times_misspelled is not None else 0
+            }
+            progress_by_term[term_id] = rec
+            if rec["hasMastered"] == 1:
+                mastered_ids.append(term_id)
+            if rec["timesUsed"] > 0:
+                used_ids.append(term_id)
+
+        return create_response(True, data={
+            "masteredIDs": mastered_ids,
+            "usedIDs": used_ids,
+            "progressByTerm": progress_by_term
+        })
+
 
 class GetModuleProgress(Resource):
     @jwt_required
