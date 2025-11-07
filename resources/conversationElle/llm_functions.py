@@ -12,6 +12,26 @@ import os
 import requests 
 import threading
 
+# Mappings to shorten llm generation for database insertion
+gender_full_to_short = {
+    'masculine': 'M',
+    'masc': 'M',
+    'm': 'M',
+    'feminine': 'F',
+    'fem': 'F',
+    'f': 'F',
+    'neutral': 'N',
+    'neut': 'N',
+    'n': 'N'
+}
+
+pos_full_to_short = {
+    'noun': 'NN',
+    'adjective': 'AJ',
+    'adverb': 'AV',
+    'verb': 'VR',
+    'phrase': 'PH'
+}
 
 def prewarm_llm_context(module_id, session_id):
     """
@@ -126,19 +146,6 @@ def parse_llm_response(llm_response, term_count=5):
     try:
         terms = []
         
-        # Gender mapping: full words to single letters
-        gender_full_to_short = {
-            'masculine': 'M',
-            'masc': 'M',
-            'm': 'M',
-            'feminine': 'F',
-            'fem': 'F',
-            'f': 'F',
-            'neutral': 'N',
-            'neut': 'N',
-            'n': 'N'
-        }
-        
         # First, check if it's all on one line (malformed output)
         if '\n' not in llm_response.strip() and llm_response.count('|') > 10:
             # Split by pipe and group every 4 elements
@@ -152,15 +159,16 @@ def parse_llm_response(llm_response, term_count=5):
                 if i + 3 < len(all_parts):
                     native_word = all_parts[i]
                     target_word = all_parts[i + 1]
-                    pos = all_parts[i + 2].lower()
+                    pos_raw = all_parts[i + 2].lower()
                     gender_raw = all_parts[i + 3].lower()
                     
                     # Map gender to single letter
                     gender = gender_full_to_short.get(gender_raw, 'N')
+                    pos = pos_full_to_short.get(pos_raw, 'N')
                     
                     # Map POS values
-                    if pos not in ['noun', 'verb', 'adjective', 'adverb', 'preposition']:
-                        pos = 'noun'  # default
+                    if pos not in ['NN', 'VR', 'AJ', 'AV', 'PH']:
+                        pos = 'NN'  # default
                     
                     if native_word and target_word and len(native_word) < 30 and len(target_word) < 30:
                         term = {
@@ -213,15 +221,15 @@ def parse_llm_response(llm_response, term_count=5):
             # Extract gender and POS from remaining parts (order might vary)
             remaining = [p.lower() for p in parts[2:]]
             gender = "N"  # Default to neutral
-            pos = "noun"  # Default to noun
+            pos = "NN"  # Default to noun
             
             for part in remaining:
                 # Check if it's a gender
                 if part in gender_full_to_short:
                     gender = gender_full_to_short[part]
                 # Check if it's a part of speech
-                elif part in ['noun', 'verb', 'adj', 'adjective', 'adverb', 'prep', 'preposition']:
-                    pos = part
+                elif part in pos_full_to_short:
+                    pos = pos_full_to_short[part]
 
             # Basic validation
             if (native_word and target_word and 
