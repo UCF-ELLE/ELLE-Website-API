@@ -199,6 +199,7 @@ export default function ChatScreen(props: propsInterface) {
       pct = Math.max(0, Math.min(100, pct));
 
       setProgress(pct);
+      props.setTermScore(`${Number(termsMastered ?? 0)} / ${Number(totalTerms ?? 0)}`);
       console.log("[fetchProgress]", { termsMastered, totalTerms, pct });
     }, [user?.jwt, props.moduleID]);
 
@@ -909,15 +910,6 @@ export default function ChatScreen(props: propsInterface) {
         }
         loadMessages();
     }, [props.chatbotId, props.moduleID, user, userLoading, speak, ttsSupported]);
-
-    //Used to update termScore
-    useEffect(() => {
-        if(!termsLoaded) return;
-        const numTerms = terms.length;
-        const numUsedTerms = terms.filter(term => term.used).length;
-        props.setTermScore(numUsedTerms + " / " + numTerms);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [terms, termsLoaded])
 
     //Used to update averageScore
     useEffect(() => {
