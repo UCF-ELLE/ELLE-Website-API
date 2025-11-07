@@ -290,7 +290,7 @@ CREATE TRIGGER beforeUpdateTermProgress_change_hasMastered
 BEFORE UPDATE ON `tito_term_progress`
 FOR EACH ROW
 BEGIN
-    IF (NEW.timesUsed > 3) AND ((NEW.timesMisspelled / NEW.timesUsed) <= 0.25) AND (OLD.hasMastered = 0) THEN
+    IF (NEW.timesUsed > 0) AND (OLD.hasMastered = 0) THEN
       SET NEW.hasMastered = 1;
     END IF;
 
