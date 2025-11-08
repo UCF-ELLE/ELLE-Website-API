@@ -162,6 +162,14 @@ def parse_llm_response(llm_response, term_count=5):
                     pos_raw = all_parts[i + 2].lower()
                     gender_raw = all_parts[i + 3].lower()
                     
+                    # Clean up words - remove explanations and artifacts
+                    native_word = re.split(r'[\-:\[\(]', native_word)[0].strip()
+                    target_word = re.split(r'[\-:\[\(]', target_word)[0].strip()
+                    
+                    # Remove response= or similar patterns
+                    native_word = re.sub(r'^(response|answer|output|result)\s*=\s*', '', native_word, flags=re.IGNORECASE)
+                    target_word = re.sub(r'^(response|answer|output|result)\s*=\s*', '', target_word, flags=re.IGNORECASE)
+                    
                     # Map gender to single letter
                     gender = gender_full_to_short.get(gender_raw, 'N')
                     pos = pos_full_to_short.get(pos_raw, 'N')
@@ -170,7 +178,7 @@ def parse_llm_response(llm_response, term_count=5):
                     if pos not in ['NN', 'VR', 'AJ', 'AV', 'PH']:
                         pos = 'NN'  # default
                     
-                    if native_word and target_word and len(native_word) < 30 and len(target_word) < 30:
+                    if native_word and target_word and len(native_word) < 30 and len(target_word) < 30 and len(native_word) > 1 and len(target_word) > 1:
                         term = {
                             "native_word": native_word,
                             "target_word": target_word,
@@ -218,6 +226,15 @@ def parse_llm_response(llm_response, term_count=5):
             native_word = parts[0]
             target_word = parts[1]
             
+            # Clean up native_word and target_word - remove explanations and artifacts
+            # Remove anything after a dash, colon, bracket, or parenthesis
+            native_word = re.split(r'[\-:\[\(]', native_word)[0].strip()
+            target_word = re.split(r'[\-:\[\(]', target_word)[0].strip()
+            
+            # Remove response= or similar patterns
+            native_word = re.sub(r'^(response|answer|output|result)\s*=\s*', '', native_word, flags=re.IGNORECASE)
+            target_word = re.sub(r'^(response|answer|output|result)\s*=\s*', '', target_word, flags=re.IGNORECASE)
+            
             # Extract gender and POS from remaining parts (order might vary)
             remaining = [p.lower() for p in parts[2:]]
             gender = "N"  # Default to neutral
@@ -231,9 +248,10 @@ def parse_llm_response(llm_response, term_count=5):
                 elif part in pos_full_to_short:
                     pos = pos_full_to_short[part]
 
-            # Basic validation
+            # Basic validation - ensure words are clean and reasonable length
             if (native_word and target_word and 
-                len(native_word) < 30 and len(target_word) < 30):  # Not a copy
+                len(native_word) < 30 and len(target_word) < 30 and
+                len(native_word) > 1 and len(target_word) > 1):  # Not a copy
                 
                 term = {
                     "native_word": native_word,

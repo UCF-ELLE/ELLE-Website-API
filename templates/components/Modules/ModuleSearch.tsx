@@ -133,14 +133,17 @@ export default function ModuleSearch({
             <Collapse isOpen={openForm === 2}>
                 <AddModuleForm updateModuleList={updateModuleList} classOptions={classOptions} currentClass={selectedClass} />
             </Collapse>
-            <Collapse isOpen={openForm === 3}>
-                <FixedAIForm 
-                    updateModuleList={updateModuleList} 
-                    classOptions={classOptions} 
-                    currentClass={selectedClass}
-                    onClose={() => setOpenForm(0)}
-                />
-            </Collapse>
+            <Modal isOpen={openForm === 3} size="xl">
+                <ModalHeader toggle={() => setOpenForm(0)}>🤖 Generate Module with AI</ModalHeader>
+                <ModalBody>
+                    <FixedAIForm 
+                        updateModuleList={updateModuleList} 
+                        classOptions={classOptions} 
+                        currentClass={selectedClass}
+                        onClose={() => setOpenForm(0)}
+                    />
+                </ModalBody>
+            </Modal>
             <Row>
                 <Col>
                     {permissionLevel === 'st' ? <StudentView modules={dynamicModules} updateCurrentModule={updateCurrentModule} /> : null}
