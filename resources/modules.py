@@ -455,7 +455,7 @@ class Module(Resource):
 
             if group_id:
                 # Linking the newly created module to the group associated with the groupID
-                query = """INSERT INTO `group_module` (`moduleID`, `groupID`) 
+                query = """INSERT IGNORE INTO `group_module` (`moduleID`, `groupID`) 
                         VALUES (%s, %s)"""
                 postToDB(query, (moduleID[0][0], group_id))
 
