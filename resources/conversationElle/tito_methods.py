@@ -42,7 +42,6 @@ def addNewTitoModule(module_id, class_id):
         ''', (module_id, module_id)
     )
 
-    # term_ids = flatten_list(term_ids)
     print(f"term ids: {term_ids}")
 
     # 4. Insert into tito_term_progress

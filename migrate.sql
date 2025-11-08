@@ -284,18 +284,7 @@ DELIMITER ;
 
 
 
--- When an update of a SINGLE TERM CHANGES, updates `hasMastered` if there is a need to
-DELIMITER //
-CREATE TRIGGER beforeUpdateTermProgress_change_hasMastered
-BEFORE UPDATE ON `tito_term_progress`
-FOR EACH ROW
-BEGIN
-    IF (NEW.timesUsed > 0) AND (OLD.hasMastered = 0) THEN
-      SET NEW.hasMastered = 1;
-    END IF;
 
-END //
-DELIMITER ;
 
 
 DELIMITER //
@@ -312,27 +301,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- When tito_module is created, auto populates the totalTerms
-DELIMITER //
-CREATE TRIGGER beforeInsertOntitoModule_update_totalTerms
-BEFORE INSERT ON `tito_module`
-FOR EACH ROW
-BEGIN
-  DECLARE term_count INT DEFAULT 0;
 
-  -- Count unique terms assigned to this module
-  SELECT COUNT(DISTINCT t.termID)
-  INTO term_count
-  FROM `module_question` mq
-  JOIN answer a ON mq.questionID = a.questionID
-  JOIN term t ON a.termID = t.termID
-  WHERE mq.moduleID = NEW.moduleID;
-
-  -- Update the totalTerms for the inserted record
-
-  SET NEW.totalTerms = term_count;
-END//
-DELIMITER ;
 
 
 -- when a new term is added to a module, reupdate totalterm count
@@ -416,18 +385,111 @@ END //
 DELIMITER ;
 
 
+
+
+-- UPDATES
+-- When an update of a SINGLE TERM CHANGES, updates `hasMastered` if there is a need to
+
 DELIMITER //
 CREATE TRIGGER addFreeChatModule
 AFTER INSERT ON `tito_class_status`
 FOR EACH ROW
 BEGIN
   INSERT IGNORE INTO `tito_module` (moduleID, classID)
-  VALUE (228, new.classID);
+  VALUES (228, new.classID);
 END //
 DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER beforeUpdateTermProgress_change_hasMastered
+BEFORE UPDATE ON `tito_term_progress`
+FOR EACH ROW
+BEGIN
+    IF (NEW.timesUsed > 0) AND (OLD.hasMastered = 0) THEN
+      SET NEW.hasMastered = 1;
+    END IF;
+
+END //
+DELIMITER ;
+
+
+-- DELIMITER //
+-- CREATE TRIGGER titofy_module
+-- AFTER INSERT ON `group_module`
+-- FOR EACH ROW
+-- BEGIN
+--   INSERT IGNORE INTO `tito_module` (moduleID, classID)
+--   VALUES (NEW.moduleID, new.groupID);
+-- END //
+-- DELIMITER ;
+
+-- When tito_module is created, auto populates the totalTerms
+DELIMITER //
+CREATE TRIGGER beforeInsertOntitoModule_update_totalTerms
+BEFORE INSERT ON `tito_module`
+FOR EACH ROW
+BEGIN
+  DECLARE term_count INT DEFAULT 0;
+  -- Count unique terms assigned to this module
+  SELECT COUNT(DISTINCT t.termID)
+  INTO term_count
+  FROM `module_question` mq
+  JOIN answer a ON mq.questionID = a.questionID
+  JOIN term t ON a.termID = t.termID
+  WHERE mq.moduleID = NEW.moduleID;
+
+  -- Update the totalTerms for the inserted record
+  SET NEW.totalTerms = term_count;
+
+
+  IF OLD.startDate = NULL THEN
+    SET NEW.startDate = CURDATE();
+  END IF;
+  IF OLD.endDate = NULL THEN
+    SET NEW.endDate = DATE_ADD(NEW.startDate, INTERVAL 1 YEAR); 
+  END IF;
+END//
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER titofy_class_onCreate
+AFTER INSERT ON `group_user`
+FOR EACH ROW
+BEGIN
+  IF NEW.accessLevel = 'pf' THEN
+    INSERT IGNORE INTO `tito_class_status` (`classID`, `professorID`, `titoExpirationDate`) 
+    VALUES (NEW.groupID, NEW.userID, DATE_ADD(CURDATE(), INTERVAL 1 YEAR));
+  END IF;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER titofy_class_onUpdate
+AFTER UPDATE ON `group_user`
+FOR EACH ROW
+BEGIN
+  IF OLD.accessLevel != 'pf' AND NEW.accessLevel = 'pf' THEN
+    INSERT IGNORE INTO `tito_class_status` (`classID`, `professorID`, `titoExpirationDate`) 
+    VALUES (NEW.groupID, NEW.userID, DATE_ADD(CURDATE(), INTERVAL 1 YEAR));
+  END IF;
+END //
+DELIMITER ;
+
 
 -- Clean up UNCOMMENT
 -- DROP TABLE `chatbot_sessions_old`;
 -- DROP TABLE `messages_old`;
 
 
+DROP TRIGGER onClassStatusUpdate_updateModulesStatus;
+DROP TRIGGER afterUpdateTermProgress_change_termsMastered;
+DROP TRIGGER afterInsertOnModuleQuestion_update_totalTerms;
+DROP TRIGGER afterDeleteOnModuleQuestion_update_totalTerms;
+DROP TRIGGER onMessageUpdate_update_chatbotSessions;
+DROP TRIGGER onMessageInsert_setDate;
+DROP TRIGGER onModuleCreation_addToSuperProf;
+DROP TRIGGER addFreeChatModule;
+DROP TRIGGER beforeUpdateTermProgress_change_hasMastered;
+DROP TRIGGER beforeInsertOntitoModule_update_totalTerms;
+DROP TRIGGER titofy_class_onCreate;
+DROP TRIGGER titofy_class_onUpdate;

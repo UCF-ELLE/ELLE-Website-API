@@ -8,7 +8,7 @@ from db_utils import *
 from utils import *
 from datetime import datetime, timedelta
 from exceptions_util import *
-from .conversationElle.database import isThisATitoClass, addNewGroupUserToTitoGroup
+from .conversationElle.database import addNewGroupUserToTitoGroup
 from config import TWT_ENABLED
 import os
 import string
@@ -24,6 +24,8 @@ class Group(Resource):
         permission, user_id = validate_permissions()
         if not permission or not user_id:
             return errorMessage("Invalid user"), 401
+
+        group_id = 0
 
         try:
             conn = mysql.connect()
@@ -64,10 +66,12 @@ class Group(Resource):
 
                 raise ReturnSuccess("Successfully created the class.", 200)
         except CustomException as error:
-            conn.rollback()
+            conn.rollback()                
             return error.msg, error.returnCode
         except ReturnSuccess as success:
             conn.commit()
+            if TWT_ENABLED:
+                addNewGroupUserToTitoGroup(user_id, group_id)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
@@ -228,8 +232,7 @@ class GroupRegister(Resource):
         except ReturnSuccess as success:
             conn.commit()
             if TWT_ENABLED:
-                    if isThisATitoClass(group_id):
-                        addNewGroupUserToTitoGroup(user_id, group_id)
+                addNewGroupUserToTitoGroup(user_id, group_id)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()

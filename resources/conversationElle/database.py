@@ -32,8 +32,8 @@ def updateTotalTimeChatted(chatbotSID):
 # ================================================
 
 # Have fun trying to understand this mess xd
-# Though i tried to keep it at least somewhat organized, but it's rough...
-# The docs should clear up most of it, and this should be mostly bug-free, though not
+# Though i tried to keep it at least somewhat organized, but it's rough with all the raw SQL 
+# The docs should clear up most of it, and this should be (hopefully, but prob not) mostly bug-free, though not
     # the best at error-handling... 
 # Not super fond of Python, nor that well-versed in it it, but prob would've been a good idea to
     # use string concatenation to reduce some of the SQL queries
@@ -498,6 +498,10 @@ def newTitoMessage(userID: int, chatbotSID: int, class_id: int, message: str, mo
 #
 # ================================================
 
+def titofy_module(module_id: int, class_id: int):
+    res = db.post("INSERT IGNORE INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
+
+
 # TODO: Check if tito_module method required?
 # TODO: create DB safety checks?
 # TODO: create methods for when a new user joins the group [URGENT]
@@ -509,15 +513,13 @@ def addNewTitoModule(module_id, class_id):
     else:
         return 0
 
-    print(res[0])
-
-    db.post("INSERT INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
+    db.post("INSERT IGNORE INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
     # 1. Get ALL users assigned to class (even non students)
     users = db.get("SELECT DISTINCT userID FROM group_user WHERE groupID = %s;", (class_id,))
 
     # 2. Create tito_module_progress for all users
     module_user_pair = [(module_id, user) for user in users]
-    db.post("INSERT INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_user_pair)
+    db.post("INSERT IGNORE INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_user_pair)
 
     # 3. Get all termIDs for this module
     term_ids = db.get(
@@ -534,15 +536,9 @@ def addNewTitoModule(module_id, class_id):
         ''', (module_id, module_id)
     )
 
-    # term_ids = flatten_list(term_ids)
-
     # 4. Insert into tito_term_progress
     term_progress_data = [(user, module_id, term_id) for term_id in term_ids for user in users]
-    # for a, b, c in term_progress_data:
-        # print(f'{a} to {b} to {c}')
-    # print("added titoModule")
-    # print(term_progress_data)
-    db.post("INSERT INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);", term_progress_data)
+    db.post("INSERT IGNORE INTO tito_term_progress (userID, moduleID, termID) VALUES (%s, %s, %s);", term_progress_data)
     return 
 
 def isVoiceMessageCapable(message_id: int, user_id: int):
@@ -554,12 +550,24 @@ def isVoiceMessageCapable(message_id: int, user_id: int):
         return False
     return True
 
+def assignNewTermToModuleUsers(module_id: int, term_id: int):
+    query = '''
+        INSERT IGNORE INTO tito_term_progress (moduleID, termID, userID)
+        SELECT DISTINCT %s, %s, t.userID
+        FROM tito_module_progress t
+        where t.moduleID = %s;
+    '''
+
+    db.post(query, (module_id, term_id, module_id))
+
+
+
 def addNewGroupUserToTitoGroup(user_id, class_id):
-    """
+    '''
     When a user is added to a group that already has Tito modules,
     insert tito_module_progress and tito_term_progress for them.
-    """
-    # 1. Check if this class is an active Tito class
+    '''
+    # 1. Check if this class is an existing Tito class
     class_check = db.get(
         "SELECT EXISTS (SELECT * FROM tito_class_status WHERE classID = %s LIMIT 1);", (class_id,), fetchOne=True
     )
@@ -586,18 +594,19 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
     # 4. For each module, get its termIDs and add term progress
     for module_id in module_ids:
         print(f'cur module: {module_id}')
-        
+
         term_ids = flatten_list(db.get(
             '''
                 SELECT DISTINCT t.termID
                 FROM (
                     SELECT DISTINCT questionID, moduleID
                     FROM module_question
+                    WHERE moduleID = %s
                 ) mq
                 JOIN answer a ON mq.questionID = a.questionID
                 JOIN term t ON a.termID = t.termID
                 WHERE mq.moduleID = %s;
-            ''', (module_id,)
+            ''', (module_id, module_id)
         ))
         # Assign terms to user
         print(f'cur terms: {term_ids}')
@@ -1224,13 +1233,13 @@ def getAvgGrammarScoreModule(user_id: int, module_id: int):
 # # Call once in a while or when terms are inserted/deleted
 # # TODO: create a timed daemon to schedule this for all modules
 # def updateTMPTotalTerms(module_id: int):
-#     term_count_query = """
+#     term_count_query = '''
 #         SELECT COUNT(DISTINCT t.termID)
 #         FROM module_question mq
 #         JOIN answer a ON mq.questionID = a.questionID
 #         JOIN term t ON a.termID = t.termID
 #         WHERE mq.moduleID = %s;
-#     """
+#     '''
 #     term_count = db.get(term_count_query, (module_id,), fetchOne=True)
 
 #     error_flag = False
@@ -1239,11 +1248,11 @@ def getAvgGrammarScoreModule(user_id: int, module_id: int):
 
 #     total_terms = term_count[0]
 
-#     update_query = """
+#     update_query = '''
 #         UPDATE tito_module
 #         SET totalTerms = %s
 #         WHERE moduleID = %s;
-#     """
+#     '''
 #     res = db.post(update_query, (total_terms, module_id))
     
 #     print(f"[UPDATE] Module {module_id}: totalTerms set to {total_terms} ")

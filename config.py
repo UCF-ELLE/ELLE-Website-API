@@ -7,7 +7,7 @@ load_dotenv()
 # API endpoint prefixes
 API_ENDPOINT_PREFIX = "/elleapi/"
 
-# Enable or disable TWT, DISABLE IF NOT USING IT
+# Enable or disable TWT, DISABLE IF NOT USING IT. otherwise causes errors due to missing requirements
 TWT_ENABLED = True
 
 # Database configurations

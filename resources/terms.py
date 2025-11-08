@@ -4,8 +4,9 @@ from flask import request
 from config import (
     IMAGE_EXTENSIONS, AUDIO_EXTENSIONS, TEMP_DELETE_FOLDER,
     TEMP_UPLOAD_FOLDER, IMG_UPLOAD_FOLDER, AUD_UPLOAD_FOLDER,
-    IMG_RETRIEVE_FOLDER, AUD_RETRIEVE_FOLDER
+    IMG_RETRIEVE_FOLDER, AUD_RETRIEVE_FOLDER, TWT_ENABLED
     )
+from resources.conversationElle.database import assignNewTermToModuleUsers
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
@@ -111,6 +112,9 @@ class Term(Resource):
 
         if permission == 'st' and not is_ta(user_id, data['groupID']):
             return errorMessage("User not authorized to create terms"), 400
+
+        tito_term = False
+        maxID = -1
 
         # Create imageID and audioID fields to keep track of uploads
         data['imageID'] = None
@@ -284,6 +288,7 @@ class Term(Resource):
                                 addNewTags([indiv_tag], str(data['termID']), conn, cursor)
                 raise ReturnSuccess("Term Modified: " + str(data['termID']), 201)
             else:
+                tito_term = True
                 query = "SELECT MAX(`termID`) FROM `term`"
                 result = getFromDB(query, None, conn, cursor)
 
@@ -325,6 +330,8 @@ class Term(Resource):
             return error.msg, error.returnCode
         except ReturnSuccess as success:
             conn.commit()
+            if TWT_ENABLED and tito_term and data['moduleID'] and maxID > 0:
+                assignNewTermToModuleUsers(data['moduleID'], maxID)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
