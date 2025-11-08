@@ -30,22 +30,39 @@ from .database import *
 # python -m spacy download es_core_news_sm
 
 # Set to True when trying to debug the chronological ordering of events
-DEBUG_TRACING_FLAG = True
+DEBUG_TRACING_FLAG = False
 # Set to True when you want to view useful debugging info on all processes here 
-SYSTEM_LOGGING_FLAG = True
+SYSTEM_LOGGING_FLAG = False
 
 
 # TODO: predownload spacy language models on ELLE server
 # Map 2-letter language codes to spaCy model names, also found in the `terms`.`language` column
 SPACY_MODELS = {
-    "en": "en_core_web_sm",
-    "es": "es_core_news_sm",
-    "fr": "fr_core_news_sm",
-    "de": "de_core_news_sm",
-    "zh": "zh_core_web_sm",  # Chinese
-    "pt": "pt_core_news_sm",
-    # TODO: extend for other models
-}
+    "ca": "ca_core_news_sm",  # Catalan; Valencian
+    "zh": "zh_core_web_sm",   # Chinese
+    "hr": "hr_core_news_sm",  # Croatian
+    "da": "da_core_news_sm",  # Danish
+    "nl": "nl_core_news_sm",  # Dutch; Flemish
+    "en": "en_core_web_sm",   # English
+    "fi": "fi_core_news_sm",  # Finnish
+    "fr": "fr_core_news_sm",  # French
+    "de": "de_core_news_sm",  # German
+    "el": "el_core_news_sm",  # Greek
+    "it": "it_core_news_sm",  # Italian
+    "ja": "ja_core_news_sm",  # Japanese
+    "ko": "ko_core_news_sm",  # Korean
+    "lt": "lt_core_news_sm",  # Lithuanian
+    "mk": "mk_core_news_sm",  # Macedonian
+    "nb": "nb_core_news_sm",  # Norwegian Bokmål
+    "pl": "pl_core_news_sm",  # Polish
+    "pt": "pt_core_news_sm",  # Portuguese
+    "ro": "ro_core_news_sm",  # Romanian
+    "ru": "ru_core_news_sm",  # Russian
+    "sl": "sl_core_news_sm",  # Slovenian
+    "es": "es_core_news_sm",  # Spanish
+    "sv": "sv_core_news_sm",  # Swedish
+    "uk": "uk_core_news_sm",  # Ukrainian
+} # Expand later down the line if newer models come out
 
 DEFAULT_LANGUAGE_CODE = "en" # english
 CURRENT_LANGUAGE = DEFAULT_LANGUAGE_CODE
@@ -74,7 +91,12 @@ def add_message(message: str, module_id: int, user_id: int, message_id: int, cha
     try:
         # THIS SHOULD NOT HAPPEN!!!
         if module_id == FREE_CHAT_MODULE:
-            return
+            return {}
+
+        # Can't process messages whose language models don't exist
+        if not SPACY_MODELS.get(getModuleLanguageCode(module_id), None):
+            print("Error in retrieving spacy module for this language")
+            return {}
 
         MESSAGE_QUEUE.put((message, module_id, user_id, message_id, chatbot_sid, update_db))
     except Exception as err:

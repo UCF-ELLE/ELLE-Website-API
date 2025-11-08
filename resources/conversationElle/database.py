@@ -1177,6 +1177,16 @@ def isModuleInClass(class_id: int, module_id:int):
         return False
     return res[0]
 
+def getModuleLanguageCode(module_id: int):
+    query = '''
+        SELECT language FROM module where moduleID = %s;
+    '''
+    res = db.get(query, (module_id,), fetchOne=True)
+    if not res or not res[0]:
+        print(f"{res} {res[0]} this is for language code")
+        return None
+    return res[0]
+
 # ================================================
 #
 # Data/Progress-related
