@@ -16,6 +16,20 @@ export interface GeneratedTerm {
     questionType?: 'MATCH' | 'PHRASE';  // Professor can assign this
 }
 
+// Legacy interface for backward compatibility with other components
+export interface GeneratedModuleContent {
+    terms: Array<{
+        front: string;
+        back: string;
+        type: string;
+    }>;
+    phrases?: Array<{
+        front: string;
+        back: string;
+        type?: string;
+    }>;
+}
+
 export interface ModuleCreationData {
     name: string;
     language: string;

@@ -185,6 +185,8 @@ export default function AIModuleGenerationForm({
             setStatusMessage(`AI module "${moduleName}" created successfully with ${approvedTerms.length} terms!`);
             setSuccess(true);
             setCreatingModule(false);
+            setShowReview(false);
+            setGeneratedTerms(null);
             onShowStatus();
             
         } catch (error) {

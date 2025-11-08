@@ -120,15 +120,29 @@ export default function FixedAIForm({
         
         try {
             // Step 2a: Create the module
-            const groupID = permissionLevel === 'su' ? undefined : 
+            const groupID = permissionLevel === 'su' ? 0 : 
                            (currentClass.value === 0 ? classState?.value : currentClass.value);
             
-            const moduleData = {
+            // Validate that non-superadmins have a groupID
+            if (permissionLevel !== 'su' && !groupID) {
+                setStatusMessage('Please select a class before creating the module.');
+                setSuccess(false);
+                setCreatingModule(false);
+                setStatus(true);
+                setTimeout(() => setStatus(false), 3000);
+                return;
+            }
+            
+            const moduleData: any = {
                 name: moduleName,
                 language: targetLanguage.value!,
-                complexity: 2,
-                ...(groupID && { groupID })
+                complexity: 2
             };
+            
+            // Only add groupID if it's not 0 (for superadmin)
+            if (groupID && groupID !== 0) {
+                moduleData.groupID = groupID;
+            }
 
             const moduleResult = await aiModuleService.createModule(moduleData, user!.jwt);
             
@@ -184,6 +198,8 @@ export default function FixedAIForm({
             setSuccess(true);
             setCreatingModule(false);
             setStatus(true);
+            setShowReview(false);
+            setGeneratedTerms(null);
             
             setTimeout(() => {
                 setStatus(false);
@@ -197,8 +213,6 @@ export default function FixedAIForm({
                 setClassState(undefined);
                 setSuccess(false);
                 setStatusMessage('');
-                setShowReview(false);
-                setGeneratedTerms(null);
                 onClose();
             }, 3000);
             
