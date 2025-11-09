@@ -442,11 +442,12 @@ BEGIN
   SET NEW.totalTerms = term_count;
 
 
-  IF OLD.startDate = NULL THEN
+  IF NEW.startDate IS NULL THEN
     SET NEW.startDate = CURDATE();
   END IF;
-  IF OLD.endDate = NULL THEN
-    SET NEW.endDate = DATE_ADD(NEW.startDate, INTERVAL 1 YEAR); 
+
+  IF NEW.endDate IS NULL THEN
+    SET NEW.endDate = DATE_ADD(NEW.startDate, INTERVAL 1 YEAR);
   END IF;
 END//
 DELIMITER ;
@@ -479,17 +480,3 @@ DELIMITER ;
 -- Clean up UNCOMMENT
 -- DROP TABLE `chatbot_sessions_old`;
 -- DROP TABLE `messages_old`;
-
-
-DROP TRIGGER onClassStatusUpdate_updateModulesStatus;
-DROP TRIGGER afterUpdateTermProgress_change_termsMastered;
-DROP TRIGGER afterInsertOnModuleQuestion_update_totalTerms;
-DROP TRIGGER afterDeleteOnModuleQuestion_update_totalTerms;
-DROP TRIGGER onMessageUpdate_update_chatbotSessions;
-DROP TRIGGER onMessageInsert_setDate;
-DROP TRIGGER onModuleCreation_addToSuperProf;
-DROP TRIGGER addFreeChatModule;
-DROP TRIGGER beforeUpdateTermProgress_change_hasMastered;
-DROP TRIGGER beforeInsertOntitoModule_update_totalTerms;
-DROP TRIGGER titofy_class_onCreate;
-DROP TRIGGER titofy_class_onUpdate;

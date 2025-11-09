@@ -455,7 +455,7 @@ class Module(Resource):
 
             if group_id:
                 # Linking the newly created module to the group associated with the groupID
-                query = """INSERT INTO `group_module` (`moduleID`, `groupID`) 
+                query = """INSERT IGNORE INTO `group_module` (`moduleID`, `groupID`) 
                         VALUES (%s, %s)"""
                 postToDB(query, (moduleID[0][0], group_id))
 
@@ -465,9 +465,8 @@ class Module(Resource):
             return error.msg, error.returnCode
         except ReturnSuccess as success:
             conn.commit()
-            if TWT_ENABLED and group_id and group_id > 0:
-                titofy_module(moduleID[0][0], group_id)
-                addNewGroupUserToTitoGroup(user_id, group_id)
+            if TWT_ENABLED and group_id:
+                addNewTitoModule(moduleID[0][0], group_id)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
