@@ -77,6 +77,15 @@ export default function FixedAIForm({
             return;
         }
 
+        // Check if non-superadmin has selected a class
+        if (permissionLevel !== 'su' && currentClass.value === 0 && !classState?.value) {
+            setStatusMessage('Please select a class before generating terms');
+            setSuccess(false);
+            setStatus(true);
+            setTimeout(() => setStatus(false), 3000);
+            return;
+        }
+
         setLoading(true);
         setStatusMessage('Generating terms with AI...');
 

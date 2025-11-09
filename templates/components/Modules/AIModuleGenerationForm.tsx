@@ -76,6 +76,14 @@ export default function AIModuleGenerationForm({
             return;
         }
 
+        // Check if non-superadmin has selected a class
+        if (permissionLevel !== 'su' && currentClass.value === 0 && !classState?.value) {
+            setStatusMessage('Please select a class before generating terms');
+            setSuccess(false);
+            onShowStatus();
+            return;
+        }
+
         setLoading(true);
         setStatusMessage('Generating terms with AI...');
 
