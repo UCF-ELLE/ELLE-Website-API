@@ -6,7 +6,7 @@ from config import (
     TEMP_UPLOAD_FOLDER, IMG_UPLOAD_FOLDER, AUD_UPLOAD_FOLDER,
     IMG_RETRIEVE_FOLDER, AUD_RETRIEVE_FOLDER, TWT_ENABLED
     )
-from resources.conversationElle.database import assignNewTermToModuleUsers
+from resources.conversationElle.database import assignNewTermToModuleUsers, updateModuleTermCount
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
@@ -332,6 +332,7 @@ class Term(Resource):
             conn.commit()
             if TWT_ENABLED and tito_term and data['moduleID'] and maxID > 0:
                 assignNewTermToModuleUsers(data['moduleID'], maxID)
+                updateModuleTermCount(data['moduleID'])
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()

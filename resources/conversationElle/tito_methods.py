@@ -238,7 +238,7 @@ def _merge_with_ffmpeg(base_dir: Path, files: list, user_id: int):
 
     try:
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print(f"Merged {len(files)} audio files → {output_file}")
+        print(f"Merged {len(files)} audio files {output_file}")
         return output_file
     except subprocess.CalledProcessError as e:
         print(f"ffmpeg failed: {e.stderr}")
@@ -272,5 +272,5 @@ def _create_audio_zip(base_dir: Path, files: list, user_id: int):
             arc_name = f"message_{i:03d}.webm"
             zf.write(file, arc_name)
     
-    print(f"Created ZIP archive with {len(files)} audio files → {zip_file}")
+    print(f"Created ZIP archive with {len(files)} audio files {zip_file}")
     return zip_file

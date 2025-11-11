@@ -8,7 +8,7 @@ from exceptions_util import *
 from db import mysql
 from db_utils import *
 from utils import *
-from resources.conversationElle.database import addNewTitoModule, assignNewTermToModuleUsers, titofy_module, addNewGroupUserToTitoGroup
+from resources.conversationElle.database import addNewTitoModule, assignNewTermToModuleUsers, titofy_module, addNewGroupUserToTitoGroup, updateModuleTermCount
 import os.path
 
 
@@ -668,6 +668,8 @@ class AttachQuestion(Resource):
             return error.msg, error.returnCode
         except ReturnSuccess as success:
             conn.commit()
+            if TWT_ENABLED:
+                updateModuleTermCount(module_id)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()
@@ -754,6 +756,7 @@ class AttachTerm(Resource):
             conn.commit()
             if TWT_ENABLED:
                 assignNewTermToModuleUsers(module_id, term_id)
+                updateModuleTermCount(module_id)
             return success.msg, success.returnCode
         except Exception as error:
             conn.rollback()

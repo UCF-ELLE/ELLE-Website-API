@@ -353,6 +353,32 @@ def updateMessageScore(msg_id: int, score: int):
     res = db.post(query, (score, msg_id))
     return False if not res else True
 
+def countTermsInModule(module_id: int):
+    query = '''
+        SELECT COUNT(DISTINCT t.termID)
+        FROM `module_question` mq
+        JOIN answer a ON mq.questionID = a.questionID
+        JOIN term t ON a.termID = t.termID
+        WHERE mq.moduleID = %s;
+    '''
+
+    res = db.get(query, (module_id,), fetchOne=True)
+    if not res or not res[0]:
+        return 0
+    else:
+        return res[0]
+
+def updateModuleTermCount(module_id: int):
+    term_ct = countTermsInModule(module_id)
+    query = '''
+        UPDATE tito_module
+        SET totalTerms = %s
+        WHERE moduleID = %s;
+    '''
+
+    db.post(query, (term_ct, module_id))
+
+
 # NOTE: THIS IS deprecated by A TRIGGER 
     # def updateTermProgress(user_id: int, module_id: int, term_id: int):
     #     query = '''
