@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 from .config import *
-from config import FREE_CHAT_MODULE
+from config import FREE_CHAT_MODULE, REAL_FREE_CHAT_MODULE
 from .database import getModuleTerms, getModuleLanguage
 # from .convo_grader import *
 import ast
@@ -300,7 +300,7 @@ def build_enhanced_prompt(module_id: int = None):
     """
     Builds the enhanced prompt with module context.
     """
-    if module_id == FREE_CHAT_MODULE or module_id is None:
+    if module_id == FREE_CHAT_MODULE or module_id == REAL_FREE_CHAT_MODULE or module_id is None:
         return free_prompt
 
     enhanced_prompt = main_prompt
