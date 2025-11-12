@@ -683,14 +683,6 @@ class UpdateTitoClass(Resource):
 
         return create_response(True, message="updated tito class status")
         
-class GetStudentMessages(Resource):
-    @jwt_required
-    def get(self):
-        '''
-            For professors to fetch messages of a student?
-            TODO:
-        '''
-        return
 
 class GetClassUsers(Resource):
     @jwt_required
@@ -714,7 +706,8 @@ class UpdateLoreAssignment(Resource):
             returns nothing
         '''
         user_id = get_jwt_identity()
-        data = request.form
+        data = request.get_json()
+
         class_id = data.get('classID')
         module_id = data.get('moduleID')
         lore_id = data.get('loreID')
@@ -739,13 +732,12 @@ class CreateTitoLore(Resource):
         user_id = get_jwt_identity()
         claims = get_jwt_claims()
         user_permission = claims.get("permission")
-        data = request.form
+        data = request.get_json()
         
         if not user_permission or user_permission == 'st':
             return create_response(False, message='insufficient perms', status_code=403)
+        body = data.get('body', None)
         
-        # Check if using new format (body parameter)
-        body = data.get('body')
         if body:
             # Split body by double newlines to get 4 parts
             lore_parts = [part.strip() for part in body.split('\n\n') if part.strip()]
@@ -760,6 +752,7 @@ class CreateTitoLore(Resource):
             lore_list = lore_parts
         else:
             # Use legacy format (4 separate parameters)
+            data = request.form
             lore_1 = data.get('lore_1')
             lore_2 = data.get('lore_2')
             lore_3 = data.get('lore_3')
@@ -774,14 +767,14 @@ class CreateTitoLore(Resource):
         if not any(lore_list):
             return create_response(False, message='lore text cannot be empty', status_code=400)
 
-        res = insertTitoLore(user_id, lore_list)
-        if not res:
-            return create_response(False, message='failed to fully process insert', status_code=500)
+        lore_id = insertTitoLore(user_id, lore_list)
+        if not lore_id:
+            return create_response(False, message='failed to fully create lore', status_code=500)
         
         # Get the newly created lore ID
-        lore_id = getLastCreatedLoreID(user_id)
-        if not lore_id:
-            return create_response(False, message='lore created but failed to retrieve ID', status_code=500)
+        # lore_id = getLastCreatedLoreID(user_id)
+        # if not lore_id:
+            # return create_response(False, message='lore created but failed to retrieve ID', status_code=500)
             
         return create_response(True, message="successfully created tito lore", loreID=lore_id)
 
@@ -868,7 +861,7 @@ class PFGetStudentMessages(Resource):
             return create_response(False, message='insufficient perms', status_code=403)
         if not student_id and not class_id and not module_id:
             return create_response(False, message='insufficient params provided', status_code=403)
-        if not (module_id and class_id) and not (student_id and class_id):
+        if not class_id:
             return create_response(False, message='insufficient params provided', status_code=403)
         # Check for if user has proper access to resources, either su (access to all), a pf or ta
         if module_id:
@@ -885,18 +878,25 @@ class PFGetStudentMessages(Resource):
 
         res = ''
         if user_permission == 'su':
+            print(2)
             res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
         else:
+            print(3)
             if is_ta or is_tito_class: # either the professor or ta of a class authority
                 res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
+            print(4)
 
         if not res:
             return create_response(False, message='failed to retrieve modules. may be missing required params or filters were too strict', status_code=404)
 
         # Have to convert sql datetime back to str format
         newres = []
+        idx = 0
+        print(res)
         for tup in res:
             newres.append(tup[:6] + (tup[6].strftime('%Y-%m-%d %H:%M:%S'),) + tup[7:])
+            print(newres[idx])
+            idx += 1
 
         return create_response(True, message='returned messages', data=newres)
 
