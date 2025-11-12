@@ -162,6 +162,8 @@ class UserMessages(Resource):
         if module_id != REAL_FREE_CHAT_MODULE and not class_id:
             return create_response(False, message="Missing required parameters (class_id required for module chat).", status_code=404)
 
+        if len(message.split()) < 2:
+            return create_response(False, message="Sentence too short. try again", status_code=403)
 
         # Attempts to add message to DB, 0/None = error, success returns msg_id
         # Free chat doesn't store messages in DB
@@ -262,16 +264,6 @@ class UserAudio(Resource):
             NOTE: File must be < 3MB AND < 90 seconds long
             filename pattern -> {userID}_{messageID}.webm
             File-system pattern ~/class_id/module_id/user_id/"user_id_message_id.webm"
-            
-            TODO: Audio parsing
-
-        curl -X POST http://127.0.0.1:5050/elleapi/twt/session/audio \
-        -H "Authorization: Bearer {JWT_HERE}" \
-        -F "messageID=291" \
-        -F "chatbotSID=80" \
-        -F "classID=1" \
-        -F "moduleID=1" \
-        -F "audio=@1.webm"
         '''
         user_id = get_jwt_identity()
         data = request.form
@@ -828,6 +820,7 @@ class FetchAllOwnedTitoLore(Resource):
         if not res:
             return create_response(False, message='failed to retrieve info or user has no owned tito lore', status_code=500)  
         return create_response(True, message="returned owned tito lores", loreData=res)
+
 
 class PFGetStudentMessages(Resource):
     @jwt_required
