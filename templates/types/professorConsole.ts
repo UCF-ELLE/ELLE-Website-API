@@ -16,9 +16,9 @@ export interface ModuleItem {
 
 export interface TitoLore {
     loreID: number;
-    title: string;
-    tags: string[];
-    body: string;
+    title: string; // Display-only, generated from loreID (e.g., "Lore #123")
+    tags: string[]; // Display-only, not stored in backend
+    body: string; // Combined text from all 4 lore_text entries
     assignedTo?: {
         classID?: number;
         moduleID?: number;

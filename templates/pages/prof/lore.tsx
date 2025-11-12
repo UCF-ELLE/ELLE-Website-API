@@ -76,7 +76,6 @@ export default function LorePage() {
             const filtered = loreItems.filter(
                 (lore) =>
                     lore.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    lore.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
                     lore.body.toLowerCase().includes(searchQuery.toLowerCase())
             );
             setFilteredLore(filtered);
@@ -131,39 +130,41 @@ export default function LorePage() {
     const handleEdit = (lore: TitoLore) => {
         setEditingLore(lore);
         setLoreForm({
-            title: lore.title,
-            tags: lore.tags.join(', '),
+            title: '', // Not used, but kept for form state consistency
+            tags: '', // Not used, but kept for form state consistency
             body: lore.body,
         });
         setShowEditorModal(true);
     };
 
     const handleSaveLore = async () => {
-        if (!loreForm.title || !loreForm.body) {
-            setError('Title and body are required');
+        if (!loreForm.body) {
+            setError('Body is required');
             return;
         }
 
         try {
-            const tags = loreForm.tags.split(',').map((t) => t.trim()).filter(Boolean);
-            
             if (editingLore) {
-                // Update existing
-                await apiClient.post('/twt/professor/updateTitoLore', {
-                    loreID: editingLore.loreID,
-                    title: loreForm.title,
-                    tags,
-                    body: loreForm.body,
-                });
+                // Update existing - need to update each of the 4 lore parts
+                // Split the body into parts by double newlines
+                const loreParts = loreForm.body.split('\n\n').filter(Boolean);
+                
+                // Update each part (up to 4)
+                for (let i = 0; i < Math.min(loreParts.length, 4); i++) {
+                    await apiClient.post('/twt/professor/updateTitoLore', {
+                        classID: editingLore.assignedTo?.classID || 0, // Required by backend but not used
+                        loreID: editingLore.loreID,
+                        sequenceNumber: i + 1,
+                        newLoreText: loreParts[i],
+                    });
+                }
                 setSuccess('Lore updated successfully!');
             } else {
-                // Create new
-                await apiClient.post('/twt/professor/createNewTitoLore', {
-                    title: loreForm.title,
-                    tags,
+                // Create new - only send body parameter
+                const response = await apiClient.post<{ loreID: number }>('/twt/professor/createNewTitoLore', {
                     body: loreForm.body,
                 });
-                setSuccess('Lore created successfully!');
+                setSuccess(`Lore created successfully! (ID: ${response.loreID})`);
             }
 
             setShowEditorModal(false);
@@ -297,7 +298,7 @@ export default function LorePage() {
                         <InputGroup>
                             <Input
                                 type="text"
-                                placeholder="Search by title, tags, or content..."
+                                placeholder="Search by ID, title, or content..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -329,7 +330,7 @@ export default function LorePage() {
                                     <tr>
                                         <th>ID</th>
                                         <th>Title</th>
-                                        <th>Tags</th>
+                                        <th>Preview</th>
                                         <th>Assigned To</th>
                                         <th>Actions</th>
                                     </tr>
@@ -340,11 +341,9 @@ export default function LorePage() {
                                             <td>{lore.loreID}</td>
                                             <td>{lore.title}</td>
                                             <td>
-                                                {lore.tags.map((tag) => (
-                                                    <Badge key={tag} color="info" className="me-1">
-                                                        {tag}
-                                                    </Badge>
-                                                ))}
+                                                <span className="text-muted" style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                                                    {lore.body.substring(0, 100)}{lore.body.length > 100 ? '...' : ''}
+                                                </span>
                                             </td>
                                             <td>
                                                 {lore.assignedTo?.classID && (
@@ -387,26 +386,10 @@ export default function LorePage() {
                     {editingLore ? 'Edit Lore' : 'Create New Lore'}
                 </ModalHeader>
                 <ModalBody>
-                    <FormGroup>
-                        <Label for="title">Title *</Label>
-                        <Input
-                            id="title"
-                            type="text"
-                            value={loreForm.title}
-                            onChange={(e) => setLoreForm({ ...loreForm, title: e.target.value })}
-                            placeholder="Enter lore title"
-                        />
-                    </FormGroup>
-                    <FormGroup>
-                        <Label for="tags">Tags (comma-separated)</Label>
-                        <Input
-                            id="tags"
-                            type="text"
-                            value={loreForm.tags}
-                            onChange={(e) => setLoreForm({ ...loreForm, tags: e.target.value })}
-                            placeholder="e.g., grammar, vocabulary, culture"
-                        />
-                    </FormGroup>
+                    <div className="alert alert-info" role="alert">
+                        <strong>Note:</strong> Lore content should be structured with clear sections separated by double line breaks.
+                        Each lore consists of up to 4 text sections that Tito will use during conversations.
+                    </div>
                     <FormGroup>
                         <div className="d-flex justify-content-between align-items-center mb-2">
                             <Label for="body" className="mb-0">

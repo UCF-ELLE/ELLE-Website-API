@@ -426,7 +426,7 @@ interface SendMessageResponse {
 }
 
 // sendMessage (POST)
-export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, userValue: string, terms: string[], termsUsed: string[], classId?: number): Promise<SendMessageResponse | null> => {
+export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, userValue: string, terms: string[], termsUsed: string[], classId?: number, isVoiceMessage?: boolean): Promise<SendMessageResponse | null> => {
   console.log("sendMessage sending:");
   console.log({ userId, chatbotId, moduleId, userValue, terms, termsUsed });
   
@@ -483,7 +483,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     formData.append('chatbotSID', chatbotId.toString());
     formData.append('moduleID', moduleId.toString());
     formData.append('classID', finalClassId?.toString()??"");
-    formData.append('isVoiceMessage', '0'); // 0 = false (text message), 1 = true (voice message)
+    formData.append('isVoiceMessage', isVoiceMessage ? '1' : '0'); // 0 = false (text message), 1 = true (voice message)
     
     console.log(`[SendMessage] Sending with original session ID: ${chatbotId}, classID: ${finalClassId}`);
     

@@ -86,6 +86,7 @@ export default function ChatScreen(props: propsInterface) {
     const [trigger, setTrigger] = useState(0);
     const [masteredSet, setMasteredSet] = useState<Set<number>>(new Set());
     const [masteredTermIDs, setMasteredTermIDs] = useState<number[]>([]);
+    const [classID, setClassID] = useState<string | null>(null);
     // --- TTS state + helpers ---
     const [ttsSupported, setTtsSupported] = useState(false);
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -229,16 +230,20 @@ export default function ChatScreen(props: propsInterface) {
 
       async function fetchLoreFromDB() {
         try {
-          const classID = await getClassIdForModule(props.moduleID);
-          if (!classID) {
+          const classIDForModule = await getClassIdForModule(props.moduleID);
+          if (!classIDForModule) {
             console.warn(`[Lore] No classID found for module ${props.moduleID} - lore feature will not be available`);
             setLoreByThreshold({});
             setLoreID(null);
+            setClassID(null);
             return;
           }
+          
+          // Store classID for use in audio uploads
+          setClassID(classIDForModule);
 
           const res = await fetch(
-            `${ELLE_URL}/twt/session/getTitoLore?classID=${classID}&moduleID=${props.moduleID}`,
+            `${ELLE_URL}/twt/session/getTitoLore?classID=${classIDForModule}&moduleID=${props.moduleID}`,
             { headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" } }
           );
           if (!res.ok) {
@@ -329,7 +334,9 @@ export default function ChatScreen(props: propsInterface) {
           props.moduleID, 
           messageToSend, 
           terms.map(term => term.questionFront), 
-          terms.filter(term => term.used === true).map(term => term.questionFront)
+          terms.filter(term => term.used === true).map(term => term.questionFront),
+          undefined, // classId
+          wasVoiceMessage // isVoiceMessage flag
         );
 
         
@@ -346,12 +353,37 @@ export default function ChatScreen(props: propsInterface) {
           messageId = sendMessageResponse.messageID;
           console.log('[ChatScreen] Audio upload starting for message ID:', messageId);
           if (messageId) {
+            // Use the stored classID, or fetch it if not available
+            let uploadClassID = classID;
+            if (!uploadClassID && props.moduleID !== -1) {
+              console.log('[ChatScreen] classID not available, fetching...');
+              const res = await fetch(`${ELLE_URL}/twt/session/access`, {
+                headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" },
+              });
+              if (res.ok) {
+                const data = await res.json();
+                const pairs = data?.data ?? data;
+                for (const [cID, modulesList] of pairs) {
+                  for (const [mID] of modulesList) {
+                    if (mID === props.moduleID) {
+                      uploadClassID = String(cID);
+                      break;
+                    }
+                  }
+                  if (uploadClassID) break;
+                }
+              }
+            }
+            
+            // Default to 1 if we still can't get classID (for free chat or fallback)
+            const finalClassID = uploadClassID ? parseInt(uploadClassID) : 1;
+            
             try {
               const uploadResult = await uploadAudioFile(
                 user.jwt,
                 messageId,
                 props.chatbotId,
-                1, // classID - defaulting to 1
+                finalClassID,
                 props.moduleID,
                 audioBlob
               );
@@ -625,6 +657,12 @@ export default function ChatScreen(props: propsInterface) {
       try {
         recognitionRef.current.stop();
         stopAudioRecording(); // Also stop audio recording
+        // Auto-send the message after stopping recording
+        setTimeout(() => {
+          if (userMessage.trim()) {
+            handleSendMessageClick();
+          }
+        }, 100); // Small delay to ensure audio recording has fully stopped
       } catch {}
     }
     

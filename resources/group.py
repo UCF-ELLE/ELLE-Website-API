@@ -343,6 +343,117 @@ class UsersInGroup(Resource):
             if(conn.open):
                 cursor.close()
                 conn.close()
+    
+    # Add a user to a group
+    @jwt_required
+    def post(self):
+        data = {}
+        data['groupID'] = getParameter("groupID", int, True, "Invalid groupID format")
+        data['userID'] = getParameter("userID", int, True, "Invalid userID format")
+        data['accessLevel'] = getParameter("accessLevel", str, False, "")
+        
+        # Default to 'st' if no access level provided
+        if not data['accessLevel']:
+            data['accessLevel'] = 'st'
+        else:
+            data['accessLevel'] = data['accessLevel'][:2]
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+        
+        # Only superadmins/professors can add users to a group
+        if permission == 'st':
+            return errorMessage("User cannot add users to a group."), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            
+            # Check if the user exists
+            user_query = "SELECT `userID` FROM `user` WHERE `userID` = %s"
+            user_results = getFromDB(user_query, data['userID'], conn, cursor)
+            if not user_results:
+                raise CustomException("User not found.", 404)
+            
+            # Check if the group exists
+            group_query = "SELECT `groupID` FROM `group` WHERE `groupID` = %s"
+            group_results = getFromDB(group_query, data['groupID'], conn, cursor)
+            if not group_results:
+                raise CustomException("Group not found.", 404)
+            
+            # Check if user is already in the group
+            dupe_query = "SELECT `userID` FROM `group_user` WHERE `groupID`= %s AND `userID`= %s"
+            dupe_results = getFromDB(dupe_query, (data['groupID'], data['userID']), conn, cursor)
+            
+            if dupe_results:
+                raise CustomException("User is already in this group.", 400)
+            
+            # Insert the user into the group
+            insert_query = "INSERT INTO `group_user` (`userID`, `groupID`, `accessLevel`) VALUES (%s, %s, %s)"
+            postToDB(insert_query, (data['userID'], data['groupID'], data['accessLevel']), conn, cursor)
+            
+            raise ReturnSuccess("Successfully added user to group.", 200)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            if TWT_ENABLED:
+                addNewGroupUserToTitoGroup(data['userID'], data['groupID'])
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if(conn.open):
+                cursor.close()
+                conn.close()
+    
+    # Remove a user from a group
+    @jwt_required
+    def delete(self):
+        data = {}
+        data['groupID'] = getParameter("groupID", int, True, "Invalid groupID format")
+        data['userID'] = getParameter("userID", int, True, "Invalid userID format")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+        
+        # Only superadmins/professors can remove users from a group
+        if permission == 'st':
+            return errorMessage("User cannot remove users from a group."), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            
+            # Check if user is in the group
+            check_query = "SELECT `userID` FROM `group_user` WHERE `groupID`= %s AND `userID`= %s"
+            check_results = getFromDB(check_query, (data['groupID'], data['userID']), conn, cursor)
+            
+            if not check_results:
+                raise CustomException("User is not in this group.", 404)
+            
+            # Delete the user from the group
+            delete_query = "DELETE FROM `group_user` WHERE `groupID`= %s AND `userID`= %s"
+            deleteFromDB(delete_query, (data['groupID'], data['userID']), conn, cursor)
+            
+            raise ReturnSuccess("Successfully removed user from group.", 200)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if(conn.open):
+                cursor.close()
+                conn.close()
 
 class GenerateGroupCode(Resource):
     @jwt_required

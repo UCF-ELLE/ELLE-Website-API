@@ -280,8 +280,8 @@ export default function ClassesPage() {
             
             const userId = selectedUser ? selectedUser.value : parseInt(newStudentId);
             
-            // Add student to class using elevateaccess endpoint
-            await apiClient.post('/elevateaccess', {
+            // Add student to class using usersingroup endpoint
+            await apiClient.post('/usersingroup', {
                 userID: userId,
                 groupID: selectedClass.classID,
                 accessLevel: 'st',
@@ -291,6 +291,8 @@ export default function ClassesPage() {
             setNewStudentId('');
             setSelectedUser(null);
             await fetchStudents(selectedClass.classID);
+            // Refresh the classes list to update student count
+            fetchClasses();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to add student. Make sure the user ID is valid.');
         }
@@ -307,6 +309,8 @@ export default function ClassesPage() {
             
             setSuccess('Student removed successfully!');
             await fetchStudents(selectedClass.classID);
+            // Refresh the classes list to update student count
+            fetchClasses();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to remove student');
         }

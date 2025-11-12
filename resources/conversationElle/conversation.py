@@ -58,7 +58,7 @@ class TitoAccess(Resource):
         '''
         try:
             class_ids = getTitoClasses(userID=get_jwt_identity(), permissionLevel='any', get_classes_type='active')
-            # Return empty array if no classes - allows free chat access
+            # Return empty array if no classes - user cannot access TWT (including free chat)
             if not class_ids:
                 return create_response(success=True, message="Returned user modules", data=[])
             
@@ -91,9 +91,14 @@ class ChatbotSessions(Resource):
         if module_id == FREE_CHAT_MODULE:
             module_id = REAL_FREE_CHAT_MODULE
 
-        # Free chat doesn't require class_id or class enrollment
+        # Free chat requires user to be enrolled in at least one TWT-enabled class
         if module_id == REAL_FREE_CHAT_MODULE:
-            # A freechat session - anyone can access
+            # Check if user has access to any TWT-enabled classes
+            user_classes = getTitoClasses(userID=user_id, permissionLevel='any', get_classes_type='active')
+            if not user_classes:
+                return create_response(False, message="Access denied. You must be enrolled in a TWT-enabled class to use free chat.", status_code=403)
+            
+            # User is enrolled in at least one TWT class, allow free chat access
             warming_thread = threading.Thread(
                 target = prewarm_llm_context, # Uses threading so that LLM may "warm up" for subsiquent prompts
                 args = (REAL_FREE_CHAT_MODULE, REAL_FREE_CHAT_MODULE), daemon = True
@@ -143,9 +148,15 @@ class UserMessages(Resource):
             is_free_chat = True
             module_id = REAL_FREE_CHAT_MODULE
 
-        # Free chat doesn't require class_id
+        # Validate parameters
         if not session_id or not module_id or not message or is_vm is None:
             return create_response(False, message="Missing required parameters.", status_code=404)
+        
+        # For free chat, verify user is enrolled in at least one TWT-enabled class
+        if module_id == REAL_FREE_CHAT_MODULE:
+            user_classes = getTitoClasses(userID=user_id, permissionLevel='any', get_classes_type='active')
+            if not user_classes:
+                return create_response(False, message="Access denied. You must be enrolled in a TWT-enabled class to use free chat.", status_code=403)
         
         # For non-free chat, class_id is required
         if module_id != REAL_FREE_CHAT_MODULE and not class_id:
@@ -543,6 +554,25 @@ class Classes(Resource):
 # ++++++ PROFESSOR + (TAs?) ACCESS ONLY APIs ++++++
 # ========================================
 
+# Helper function to get the most recently created lore ID for a user
+def getLastCreatedLoreID(user_id: int):
+    """
+    Retrieves the most recently created lore ID for a given user.
+    This is used as a workaround since insertTitoLore doesn't return the lore_id.
+    """
+    query = '''
+        SELECT loreID 
+        FROM tito_lore 
+        WHERE ownerID = %s 
+        ORDER BY loreID DESC 
+        LIMIT 1;
+    '''
+    from .database import db
+    res = db.get(query, (user_id,), fetchOne=True)
+    if not res or not res[0]:
+        return None
+    return res[0]
+
 # TODO: this might need try catch statements
 class AddTitoModule(Resource):
     @jwt_required
@@ -687,32 +717,58 @@ class CreateTitoLore(Resource):
     def post(self):
         '''
             creates tito lore tied to this user as the owner
-            required 4 strings to properly create tito lore
+            accepts either:
+            - 4 separate strings (lore_1, lore_2, lore_3, lore_4)
+            - a single body string that will be split into 4 parts by double newlines
         '''
         user_id = get_jwt_identity()
         claims = get_jwt_claims()
         user_permission = claims.get("permission")
         data = request.form
-        lore_1 = data.get('lore_1')
-        lore_2 = data.get('lore_2')
-        lore_3 = data.get('lore_3')
-        lore_4 = data.get('lore_4')
-
-        if not lore_1 or not lore_2 or not lore_3 or not lore_4:
-            return create_response(False, message='insufficient params provided', status_code=404)
+        
         if not user_permission or user_permission == 'st':
             return create_response(False, message='insufficient perms', status_code=403)
         
-        lore_list = []
-        lore_list.append(lore_1)
-        lore_list.append(lore_2)
-        lore_list.append(lore_3)
-        lore_list.append(lore_4)
+        # Check if using new format (body parameter)
+        body = data.get('body')
+        if body:
+            # Split body by double newlines to get 4 parts
+            lore_parts = [part.strip() for part in body.split('\n\n') if part.strip()]
+            if len(lore_parts) < 4:
+                # If less than 4 parts, pad with the last part or empty strings
+                while len(lore_parts) < 4:
+                    lore_parts.append(lore_parts[-1] if lore_parts else '')
+            # If more than 4 parts, combine extras into the 4th part
+            elif len(lore_parts) > 4:
+                lore_parts[3] = '\n\n'.join(lore_parts[3:])
+                lore_parts = lore_parts[:4]
+            lore_list = lore_parts
+        else:
+            # Use legacy format (4 separate parameters)
+            lore_1 = data.get('lore_1')
+            lore_2 = data.get('lore_2')
+            lore_3 = data.get('lore_3')
+            lore_4 = data.get('lore_4')
+            
+            if not lore_1 or not lore_2 or not lore_3 or not lore_4:
+                return create_response(False, message='insufficient params provided', status_code=404)
+            
+            lore_list = [lore_1, lore_2, lore_3, lore_4]
+        
+        # Validate that we have text
+        if not any(lore_list):
+            return create_response(False, message='lore text cannot be empty', status_code=400)
 
         res = insertTitoLore(user_id, lore_list)
         if not res:
             return create_response(False, message='failed to fully process insert', status_code=500)
-        return create_response(True, message="successfully created tito lore")
+        
+        # Get the newly created lore ID
+        lore_id = getLastCreatedLoreID(user_id)
+        if not lore_id:
+            return create_response(False, message='lore created but failed to retrieve ID', status_code=500)
+            
+        return create_response(True, message="successfully created tito lore", loreID=lore_id)
 
 class UpdateTitoLore(Resource):
     @jwt_required

@@ -431,10 +431,14 @@ response header
 
 ### 16. **POST /elleapi/twt/professor/createNewTitoLore**
 - **Purpose**: creates tito lore tied to this user as the owner
-- **Notes**: 
+- **Notes**: Accepts either 4 separate strings OR a single body parameter that will be split into 4 parts
 - **Request body** (JSON)
 ```JSON
 {
+  // Option 1: Single body parameter (recommended)
+  "body": "text content separated by double newlines"
+  
+  // Option 2: Legacy format with 4 separate parameters
   "lore_1": "text1",
   "lore_2": "text2",
   "lore_3": "text3",
@@ -446,7 +450,8 @@ response header
 ```JSON
 {
   "success": true or false,
-  "message": "text"
+  "message": "text",
+  "loreID": int // The ID of the newly created lore
 }
 ```
 
