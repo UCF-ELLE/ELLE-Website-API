@@ -66,6 +66,7 @@ export default function TalkWithTito() {
   const [AIChoice, setAIChoice] = useState<boolean>(false)
   const [userChatFont, setUserChatFont] = useState<string>("");
   const [analyticsActive, setAnalyticsActive] = useState<boolean>(false);
+  const [ttsMuted, setTtsMuted] = useState<boolean>(false);
   const { user, loading: userLoading } = useUser();
   const [timeSpent, setTimeSpent] = useState<string>("Loading...");
   const [termScore, setTermScore] = useState<string>("Loading...");
@@ -292,9 +293,11 @@ export default function TalkWithTito() {
               onSetPlaylist={handlePlaylist}
               onSetFont={handleFontSize}
               onSetAIChoice={setAIChoice}
+              onSetTtsMuted={setTtsMuted}
               parentPlaylist = {playlist} 
               parentFont = {userChatFont}
               titoMusicChoice={AIChoice}
+              ttsMuted={ttsMuted}
             />
           )}
           {!playClicked ? (
@@ -380,7 +383,7 @@ export default function TalkWithTito() {
                   <ChatScreen 
                     moduleID={selectedModule} setUserBackgroundFilepath={setUserBackgroundFilepath} setUserMusicFilepath={setUserMusicFilepath} 
                     setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} 
-                    setChatbotId={setChatbotId} chatFontSize={chatFont} setTimeSpent={setTimeSpent}/>
+                    setChatbotId={setChatbotId} chatFontSize={chatFont} setTimeSpent={setTimeSpent} ttsMuted={ttsMuted}/>
                 </div>
               )}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">

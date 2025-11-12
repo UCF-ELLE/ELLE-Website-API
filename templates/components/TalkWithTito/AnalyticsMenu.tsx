@@ -27,12 +27,18 @@ export default function AnalyticsMenu(props: propsInterface) {
     async function handleExportAudioClick() {
         if(!user || !props.moduleId) return;
         const classId = props.classId || 1; // Default to class 1 if not provided
-        // Export all audio from this module (not just current session)
-        const exportAudioResult = await exportModuleAudio(user.jwt, props.moduleId, classId);
-        if(exportAudioResult === ":)") {
-            console.log("Audio export successful!");
-        } else {
-            console.log("Failed to export audio");
+        
+        try {
+            // Export all audio from this module (not just current session)
+            const exportAudioResult = await exportModuleAudio(user.jwt, props.moduleId, classId);
+            if(exportAudioResult === ":)") {
+                console.log("Audio export successful!");
+            } else {
+                console.log("Failed to export audio - this may be because no voice messages have been recorded yet");
+            }
+        } catch (error) {
+            // Catch any unexpected errors to prevent error boundary triggers
+            console.error("Unexpected error during audio export:", error);
         }
     }
 

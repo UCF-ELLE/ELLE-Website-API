@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import Image from "next/image";
 import settingsBackground from "@/public/static/images/ConversAItionELLE/SettingsBackground.png";
+import muteIcon from "@/public/static/images/ConversAItionELLE/mute.png";
+import volumeIcon from "@/public/static/images/ConversAItionELLE/volume.png";
 // import infoIcon from "@/public/static/images/ConversAItionELLE/info.png"
 
 // Song List
@@ -28,9 +30,11 @@ interface propsInterface{
   apply: () => void;
   onSetFont: (chatFont:string) => void;
   onSetAIChoice: (AIChoice:boolean) => void;
+  onSetTtsMuted: (ttsMuted:boolean) => void;
   titoMusicChoice: boolean;
   parentPlaylist: Song[];
   parentFont: string;
+  ttsMuted: boolean;
 }
 
 // Fisher-Yates shuffle function
@@ -44,7 +48,7 @@ function shuffleArray<T>(playlist: T[]): T[] {
 }
 
 export default function Settings(props: propsInterface) {
-  const {apply, onSetPlaylist, onSetFont, onSetAIChoice, parentPlaylist, parentFont, titoMusicChoice} = props;
+  const {apply, onSetPlaylist, onSetFont, onSetAIChoice, onSetTtsMuted, parentPlaylist, parentFont, titoMusicChoice, ttsMuted} = props;
 
   const [playlist, setPlaylist] = useState<Song[]>([])
   const [chatFont, setChatFont] = useState<string>("medium")
@@ -81,6 +85,10 @@ export default function Settings(props: propsInterface) {
   const handleAIChoice = () => {
     onSetAIChoice(!titoMusicChoice);
     
+  }
+
+  const handleTtsMute = () => {
+    onSetTtsMuted(!ttsMuted);
   }
 
   useEffect (() => {
@@ -151,6 +159,26 @@ export default function Settings(props: propsInterface) {
                   <option value="large" className="text-lg">Large</option>
                   <option value="xl" className="text-xl">XL</option>
               </select>
+              </div>
+            </div>
+            <div className="w-full flex mt-4">
+              <div className="select-none p-2 ml-8 w-fit flex flex-nowrap items-center">
+                <div className="text-xl md:text-3xl font-semibold mr-4 irish-grover">Tito Voice (TTS):</div>
+                <button 
+                  onClick={handleTtsMute}
+                  className="bg-[#EEEEEE] hover:bg-[#DDDDDD] p-3 rounded-md transition flex items-center gap-2"
+                  title={ttsMuted ? "Unmute Tito's voice" : "Mute Tito's voice"}
+                >
+                  <span className="text-2xl">🤖</span>
+                  <Image 
+                    src={ttsMuted ? muteIcon : volumeIcon} 
+                    alt={ttsMuted ? "Muted" : "Unmuted"} 
+                    className="w-6 h-6"
+                  />
+                  <span className="text-sm font-medium text-[#2D3648]">
+                    {ttsMuted ? "Muted" : "Enabled"}
+                  </span>
+                </button>
               </div>
             </div>
           </div>

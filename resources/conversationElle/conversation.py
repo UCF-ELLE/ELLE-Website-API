@@ -279,13 +279,18 @@ class UserAudio(Resource):
         chatbot_sid = data.get('chatbotSID')
         class_id = data.get('classID')
         module_id = data.get("moduleID")
+        
+        print(f"[AUDIO UPLOAD] Received request: user={user_id}, msg={message_id}, class={class_id}, module={module_id}, session={chatbot_sid}")
 
         if not message_id or not chatbot_sid or not class_id or not module_id:
-            return create_response(False, message="Failed to upload. Missing required parameters.", status_code=400) 
+            print(f"[AUDIO UPLOAD] Missing parameters")
+            return create_response(False, message="Failed to upload. Missing required parameters.", status_code=400)
         if isDuplicateAudioUpload(user_id, message_id):
+            print(f"[AUDIO UPLOAD] Duplicate upload detected")
             return create_response(False, message="User already has uploaded an audio file for this message.", status_code=403)
         
         if not isVoiceMessageCapable(message_id, user_id):
+            print(f"[AUDIO UPLOAD] Message {message_id} is not voice-message-capable")
             return create_response(False, message='invalid request or uploading to non vm message', status_code=403)
         if not doesUserMessageExist(message_id):
             return create_response(False, message='invalid message id', status_code=403)
@@ -305,9 +310,16 @@ class UserAudio(Resource):
         if filesize_bytes > MAX_AUDIO_SIZE_BYTES:
             return create_response(False, message="Failed to upload, file too large.", status_code=400)
         
-        audio = AudioSegment.from_file(audio_file)
-        if len(audio) / 1000.0 > MAX_AUDIO_LENGTH_SEC:
-            return create_response(False, message="Failed to store audio, file too long.", status_code=400)
+        # Validate audio length (requires ffmpeg)
+        try:
+            audio = AudioSegment.from_file(audio_file)
+            if len(audio) / 1000.0 > MAX_AUDIO_LENGTH_SEC:
+                return create_response(False, message="Failed to store audio, file too long.", status_code=400)
+        except Exception as e:
+            # If ffmpeg is not available or audio parsing fails, skip length validation
+            print(f"[WARNING] Audio length validation skipped (ffmpeg may not be installed): {str(e)}")
+            # Reset file pointer after failed read attempt
+            audio_file.seek(0)
 
         # Points of failure to accept files
         # TODO: Decide on which implementation to fail to accept file (both?)
@@ -325,11 +337,14 @@ class UserAudio(Resource):
         try:
             audio_file.seek(0)
             audio_file.save(file_path)
+            print(f"[AUDIO UPLOAD] File saved successfully to: {file_path}")
         except Exception as e:
+            print(f"[AUDIO UPLOAD] File save failed: {str(e)}")
             return create_response(False, message=f"Failed to save audio file: {str(e)}", status_code=500)
 
         # Store to DB if successfully stored in Server
         res = storeVoiceMessage(user_id, message_id, filename, chatbot_sid)
+        print(f"[AUDIO UPLOAD] DB storage result: {res}")
 
         # TODO: Create a way to test if file actually written, maybe search up the file and see if exists
         # if not is_stored:

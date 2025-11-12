@@ -183,8 +183,11 @@ def merge_user_audio(class_id: int, module_id: int, user_id: int):
     import shutil
 
     base_dir = Path(USER_VOICE_FOLDER) / str(class_id) / str(module_id) / str(user_id)
+    print(f"[AUDIO MERGE] Looking for audio in: {base_dir}")
+    print(f"[AUDIO MERGE] Directory exists: {base_dir.exists()}")
+    
     if not base_dir.exists():
-        print(f"Audio directory not found: {base_dir}")
+        print(f"[AUDIO MERGE] Audio directory not found: {base_dir}")
         return None
 
     # sort all files by messageID
@@ -192,9 +195,11 @@ def merge_user_audio(class_id: int, module_id: int, user_id: int):
         base_dir.glob(f"{user_id}_*.webm"),
         key=lambda f: int(f.stem.split("_")[1])  # extract messageID part
     )
+    
+    print(f"[AUDIO MERGE] Found {len(files)} audio files: {[f.name for f in files]}")
 
     if not files:
-        print(f"No .webm files found for user {user_id} in {base_dir}")
+        print(f"[AUDIO MERGE] No .webm files found for user {user_id} in {base_dir}")
         return None
 
     # Check if ffmpeg is available

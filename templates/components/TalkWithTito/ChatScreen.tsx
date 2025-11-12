@@ -50,6 +50,7 @@ interface propsInterface {
     setAverageScore: React.Dispatch<React.SetStateAction<number>>;
     setTimeSpent: React.Dispatch<React.SetStateAction<string>>;
     chatFontSize: string;
+    ttsMuted: boolean;
 }
 
 interface Term {
@@ -345,14 +346,16 @@ export default function ChatScreen(props: propsInterface) {
           sendMessageResponse: !!sendMessageResponse, 
           wasVoiceMessage, 
           audioBlob: !!audioBlob,
-          audioBlobSize: audioBlob ? audioBlob.size : 0
+          audioBlobSize: audioBlob ? audioBlob.size : 0,
+          messageID: sendMessageResponse?.messageID
         });
         
         let messageId: number | undefined;
         if (sendMessageResponse && wasVoiceMessage && audioBlob) {
           messageId = sendMessageResponse.messageID;
           console.log('[ChatScreen] Audio upload starting for message ID:', messageId);
-          if (messageId) {
+          // Only proceed with audio upload if we have a valid messageID
+          if (messageId && typeof messageId === 'number' && messageId > 0) {
             // Use the stored classID, or fetch it if not available
             let uploadClassID = classID;
             if (!uploadClassID && props.moduleID !== -1) {
@@ -391,6 +394,10 @@ export default function ChatScreen(props: propsInterface) {
             } catch (error) {
               console.error('[ChatScreen] Failed to upload audio:', error);
             }
+          } else {
+            // MessageID is missing or invalid - can't upload audio
+            console.warn('[ChatScreen] Audio upload skipped - no valid messageID received from server');
+            console.warn('[ChatScreen] This typically happens when the message failed to save or Tito had an error responding');
           }
           // Reset voice message state
           setWasVoiceMessage(false);
@@ -398,6 +405,11 @@ export default function ChatScreen(props: propsInterface) {
           console.log('[ChatScreen] Audio upload process completed, states reset');
         } else {
           console.log('[ChatScreen] Audio upload skipped - conditions not met');
+          // Still reset voice message state if conditions weren't met
+          if (wasVoiceMessage) {
+            setWasVoiceMessage(false);
+            setAudioBlob(null);
+          }
         }
 
         //Makes sure API call is succesful (it returns null if it isn't)
@@ -450,8 +462,8 @@ export default function ChatScreen(props: propsInterface) {
             await fetchProgress();
             await fetchMasteredTermIDs();
 
-            // Automatically speak Tito's response
-            if (sendMessageResponse.llmResponse && ttsSupported) {
+            // Automatically speak Tito's response (only if not muted)
+            if (sendMessageResponse.llmResponse && ttsSupported && !props.ttsMuted) {
                 // Add a small delay to let the UI update before speaking
                 setTimeout(() => {
                     speak(sendMessageResponse.llmResponse);
@@ -933,8 +945,8 @@ export default function ChatScreen(props: propsInterface) {
               setChatMessages([instructionMessage, ...newMessages]);
               
               // Speak the welcome message automatically when chat loads for first time
-              // Only if there are no previous messages (new conversation)
-              if (newMessages.length === 0 && ttsSupported && instructionMessage.value) {
+              // Only if there are no previous messages (new conversation) and TTS is not muted
+              if (newMessages.length === 0 && ttsSupported && instructionMessage.value && !props.ttsMuted) {
                   setTimeout(() => {
                       speak(instructionMessage.value);
                   }, 1000); // Wait 1 second to let everything load
@@ -1046,11 +1058,11 @@ export default function ChatScreen(props: propsInterface) {
                 </div>
                 <div className="w-[85%] flex items-center justify-center ">
                     <textarea 
-                        placeholder = {titoMood === "thinking" ? "Tito is thinking..." : "Type here..."}
+                        placeholder = {titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
                         className="w-[85%] h-[70%] bg-white rounded p-1 resize-none overflow-y-auto"
 
-                        style={{pointerEvents: titoMood === "thinking" ? "none" : "auto", opacity: titoMood === "thinking" ? 0.75 : 1, fontWeight: titoMood === "thinking" ? "bold" : "normal"}}
-                        disabled={titoMood === "thinking"}
+                        style={{pointerEvents: titoMood === "thinking" || listening ? "none" : "auto", opacity: titoMood === "thinking" || listening ? 0.75 : 1, fontWeight: titoMood === "thinking" ? "bold" : "normal"}}
+                        disabled={titoMood === "thinking" || listening}
                         value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
                         onChange={(e) => setUserMessage(e.target.value)}
                         onKeyDown={(e) => {

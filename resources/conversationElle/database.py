@@ -230,8 +230,10 @@ def isUserAStudentInGroup(user_id: int, class_id: int):
 # Gets a single user's messages + LLM responses
 def fetchModuleChatHistory(userID: int, moduleID: int, class_id: int):
     query = '''
-            SELECT m.messageID, m.source, m.message, m.creationTimestamp, m.isVoiceMessage
+            SELECT m.messageID, m.source, m.message, m.creationTimestamp, 
+                   CASE WHEN tvm.messageID IS NOT NULL THEN 1 ELSE 0 END as hasAudio
             FROM `messages` m
+            LEFT JOIN `tito_voice_message` tvm ON m.messageID = tvm.messageID AND m.userID = tvm.userID
             WHERE m.userID = %s AND m.moduleID = %s AND m.classID = %s
             ORDER BY m.messageID ASC;
         '''

@@ -495,7 +495,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
           Authorization: `Bearer ${access_token}`,
           'Content-Type': 'multipart/form-data'
         },
-        timeout: 30000 // 30 seconds timeout
+        timeout: 65000 // 65 seconds timeout (backend has 60s + buffer)
       }
     );
     
@@ -676,7 +676,8 @@ export const exportModuleAudio = async (access_token: string, moduleId: number, 
       {
         params: { 
           moduleID: moduleId,
-          classID: classId 
+          classID: classId,
+          _t: Date.now() // Cache-busting timestamp
         },
         headers: { Authorization: `Bearer ${access_token}` },
         responseType: 'blob' // Important for file downloads
@@ -713,10 +714,13 @@ export const exportModuleAudio = async (access_token: string, moduleId: number, 
       
       // Handle specific error cases
       if (error.response?.status === 404) {
-        console.log("[TitoService] No audio files found for this module");
+        console.log("[TitoService] No audio files found for this module - this is normal if no voice messages were sent");
+      } else if (error.response?.status === 403) {
+        console.error("[TitoService] Access denied - user may not have permission to access this module");
       }
     }
     
+    // Return failure indicator but don't rethrow
     return ":("; // Failed
   }
 };
@@ -761,7 +765,17 @@ export const uploadAudioFile = async (
     if (axios.isAxiosError(error)) {
       console.error('Status:', error.response?.status);
       console.error('Response Data:', error.response?.data);
+      
+      // Provide specific error messages based on status code
+      if (error.response?.status === 403) {
+        console.error('[TitoService] Audio upload forbidden - possible invalid message/session');
+      } else if (error.response?.status === 400) {
+        console.error('[TitoService] Audio upload bad request - missing or invalid parameters');
+      } else if (error.response?.status === 500) {
+        console.error('[TitoService] Server error during audio upload');
+      }
     }
+    // Return false to indicate failure, but don't rethrow the error
     return false;
   }
 };
