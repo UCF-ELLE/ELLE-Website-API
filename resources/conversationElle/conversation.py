@@ -696,8 +696,12 @@ class UpdateLoreAssignment(Resource):
             return create_response(False, message="insufficient params provided.", status_code=403)
         if isUserThisAccessLevel(user_id, class_id, 'st'):
             return create_response(False, message="insufficient perms.", status_code=403)
-        if not updateClassModuleTitoLoreAssignment(class_id, module_id, lore_id):
-            return create_response(False, message="unable to make changes. module already assigned this lore or given module id doesnt exist", status_code=500)
+        
+        result = updateClassModuleTitoLoreAssignment(class_id, module_id, lore_id)
+        if result == 0:
+            return create_response(False, message="invalid lore ID provided", status_code=400)
+        if not result:
+            return create_response(False, message="unable to assign lore. check that the module exists in the class and try again", status_code=400)
         return create_response(True, message="successfully updated assigned lore to class module")
     
 # class FetchClassModules(Resource):

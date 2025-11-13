@@ -57,6 +57,11 @@ export default function LorePage() {
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingModules, setLoadingModules] = useState(false);
 
+    // Remove Confirmation Modal
+    const [showRemoveModal, setShowRemoveModal] = useState(false);
+    const [loreToRemove, setLoreToRemove] = useState<TitoLore | null>(null);
+    const [assignmentToRemove, setAssignmentToRemove] = useState<{ classID: number; moduleID: number } | null>(null);
+
     useEffect(() => {
         if (!loading && !hasConsoleAccess(user?.permissionGroup)) {
             router.push('/login');
@@ -91,19 +96,22 @@ export default function LorePage() {
         try {
             setLoadingLore(true);
             setError(null);
-            // Backend returns { loreData: [(loreID, sequenceNumber, loreText), ...] }
-            const response = await apiClient.get<{ loreData: [number, number, string][] }>('/twt/professor/fetchOwnedTitoLore');
+            // Backend returns { loreData: [(loreID, sequenceNumber, loreText, classID, moduleID), ...] }
+            const response = await apiClient.get<{ loreData: [number, number, string, number | null, number | null][] }>('/twt/professor/fetchOwnedTitoLore');
             
-            // Group by loreID and transform into TitoLore objects
-            const loreMap = new Map<number, { texts: string[] }>();
+            // Group by loreID and collect all assignments
+            const loreMap = new Map<number, { texts: string[], assignments: Set<string> }>();
             
-            (response.loreData || []).forEach(([loreID, sequenceNumber, loreText]) => {
+            (response.loreData || []).forEach(([loreID, sequenceNumber, loreText, classID, moduleID]) => {
                 if (!loreMap.has(loreID)) {
-                    loreMap.set(loreID, { texts: [] });
+                    loreMap.set(loreID, { texts: [], assignments: new Set() });
                 }
-                // Ensure texts array is large enough
                 const loreItem = loreMap.get(loreID)!;
                 loreItem.texts[sequenceNumber - 1] = loreText;
+                // Collect unique class/module assignments
+                if (classID && moduleID) {
+                    loreItem.assignments.add(`${classID}-${moduleID}`);
+                }
             });
             
             // Convert map to TitoLore array
@@ -112,7 +120,10 @@ export default function LorePage() {
                 title: `Lore #${loreID}`,
                 tags: [],
                 body: data.texts.filter(Boolean).join('\n\n'),
-                assignedTo: {},
+                assignments: Array.from(data.assignments).map(assignment => {
+                    const [classID, moduleID] = assignment.split('-').map(Number);
+                    return { classID, moduleID };
+                }),
             }));
             
             setLoreItems(transformedLore);
@@ -240,11 +251,20 @@ export default function LorePage() {
     const handleAssignLore = async () => {
         if (!selectedLore) return;
 
+        // Validate that both class and module are selected
+        if (!assignTo.classID || !assignTo.moduleID) {
+            setError('Please select both a class and a module');
+            return;
+        }
+
         try {
+            const classID = parseInt(assignTo.classID);
+            const moduleID = parseInt(assignTo.moduleID);
+
             await apiClient.post('/twt/professor/changeAssignedLore', {
                 loreID: selectedLore.loreID,
-                classID: assignTo.classID ? parseInt(assignTo.classID) : undefined,
-                moduleID: assignTo.moduleID ? parseInt(assignTo.moduleID) : undefined,
+                classID,
+                moduleID,
             });
             setSuccess('Lore assignment updated!');
             setShowAssignModal(false);
@@ -256,19 +276,41 @@ export default function LorePage() {
         }
     };
 
+    const handleRemoveAssignment = (lore: TitoLore, classID: number, moduleID: number) => {
+        setLoreToRemove(lore);
+        setAssignmentToRemove({ classID, moduleID });
+        setShowRemoveModal(true);
+    };
+
+    const confirmRemoveAssignment = async () => {
+        if (!assignmentToRemove) {
+            return;
+        }
+
+        try {
+            // Set loreAssigned back to default value (1)
+            await apiClient.post('/twt/professor/changeAssignedLore', {
+                loreID: 1, // Default lore ID
+                classID: assignmentToRemove.classID,
+                moduleID: assignmentToRemove.moduleID,
+            });
+            setSuccess('Lore assignment removed!');
+            setShowRemoveModal(false);
+            setLoreToRemove(null);
+            setAssignmentToRemove(null);
+            fetchLore();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to remove lore assignment');
+            setShowRemoveModal(false);
+        }
+    };
+
     const handleOpenAssignModal = (lore: TitoLore) => {
         setSelectedLore(lore);
-        setAssignTo({
-            classID: lore.assignedTo?.classID?.toString(),
-            moduleID: lore.assignedTo?.moduleID?.toString(),
-        });
+        setAssignTo({});
         setShowAssignModal(true);
         // Fetch classes when modal opens
         fetchAvailableClasses();
-        // If there's an existing class assignment, fetch its modules
-        if (lore.assignedTo?.classID) {
-            fetchAvailableModules(lore.assignedTo.classID.toString());
-        }
     };
 
     if (loading || !hasConsoleAccess(user?.permissionGroup)) {
@@ -360,15 +402,28 @@ export default function LorePage() {
                                                 </span>
                                             </td>
                                             <td>
-                                                {lore.assignedTo?.classID && (
-                                                    <Badge color="primary" className="me-1">
-                                                        Class {lore.assignedTo.classID}
-                                                    </Badge>
-                                                )}
-                                                {lore.assignedTo?.moduleID && (
-                                                    <Badge color="success">Module {lore.assignedTo.moduleID}</Badge>
-                                                )}
-                                                {!lore.assignedTo?.classID && !lore.assignedTo?.moduleID && (
+                                                {lore.assignments && lore.assignments.length > 0 ? (
+                                                    <div className="d-flex flex-column gap-1">
+                                                        {lore.assignments.map((assignment, idx) => (
+                                                            <div key={`${assignment.classID}-${assignment.moduleID}`} className="d-flex align-items-center gap-1">
+                                                                <Badge color="primary" className="me-1">
+                                                                    Class {assignment.classID}
+                                                                </Badge>
+                                                                <Badge color="success" className="me-1">
+                                                                    Module {assignment.moduleID}
+                                                                </Badge>
+                                                                <button
+                                                                    className="btn btn-sm btn-outline-danger"
+                                                                    onClick={() => handleRemoveAssignment(lore, assignment.classID, assignment.moduleID)}
+                                                                    title="Remove this assignment"
+                                                                    style={{ padding: '0.1rem 0.3rem', fontSize: '0.75rem' }}
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
                                                     <span className="text-muted">Unassigned</span>
                                                 )}
                                             </td>
@@ -536,6 +591,31 @@ export default function LorePage() {
                     </Button>
                     <Button color="primary" onClick={handleAssignLore}>
                         Update Assignment
+                    </Button>
+                </ModalFooter>
+            </Modal>
+
+            {/* Remove Confirmation Modal */}
+            <Modal isOpen={showRemoveModal} toggle={() => setShowRemoveModal(false)}>
+                <ModalHeader toggle={() => setShowRemoveModal(false)}>Confirm Removal</ModalHeader>
+                <ModalBody>
+                    <p>
+                        Are you sure you want to remove <strong>{loreToRemove?.title}</strong> from:
+                    </p>
+                    <ul>
+                        <li><strong>Class:</strong> {assignmentToRemove?.classID}</li>
+                        <li><strong>Module:</strong> {assignmentToRemove?.moduleID}</li>
+                    </ul>
+                    <p className="text-muted small">
+                        The module will be assigned back to the default lore (ID: 1).
+                    </p>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setShowRemoveModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button color="danger" onClick={confirmRemoveAssignment}>
+                        Remove Assignment
                     </Button>
                 </ModalFooter>
             </Modal>

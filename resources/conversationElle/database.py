@@ -700,16 +700,31 @@ def updateClassModuleTitoLoreAssignment(class_id: int, module_id: int, new_lore_
     if not res or not res[0]:
         return 0
     
+    # Check if the tito_module record exists
+    check_query = '''
+        SELECT EXISTS(
+            SELECT * FROM tito_module 
+            WHERE moduleID = %s AND classID = %s
+        );
+    '''
+    res = db.get(check_query, (module_id, class_id), fetchOne=True)
+    if not res or not res[0]:
+        return False  # Module not set up for this class
+    
+    # UPDATE the lore assignment
     query = '''
-        UPDATE `tito_module` 
-        SET `loreAssigned` = %s
-        WHERE `classID` = %s AND `moduleID` = %s;
+        UPDATE tito_module
+        SET loreAssigned = %s
+        WHERE classID = %s AND moduleID = %s;
     '''
 
-    res = db.post(query, (new_lore_id, class_id, module_id))
-    if not res or not res.get('rowcount'):
+    try:
+        res = db.post(query, (new_lore_id, class_id, module_id))
+        if not res or res.get('rowcount') == 0:
+            return False
+        return True
+    except Exception as e:
         return False
-    return True
 
 def getClassModuleTitoLore(class_id: int, module_id: int):
     query = '''
@@ -737,30 +752,20 @@ def getTitoLoreTexts(tito_lore_id: int):
     return flatten_list(res)
 
 def getAllTitoLore(owner_id: int, isSuperUser=False):
-    if isSuperUser:
-        query = '''
-            SELECT tlt.loreID, tlt.sequenceNumber, tlt.loreText
-            from tito_lore_text tlt
-            JOIN tito_lore tl ON tlt.loreID = tl.loreID
-            WHERE tl.ownerID = %s
-            ORDER BY tlt.loreID, tlt.sequenceNumber ASC;
-        '''
-        res = db.get(query, (owner_id,))
-        if not res:
-            return None
-        return res
-    else:
-        query = '''
-            SELECT tlt.loreID, tlt.sequenceNumber, tlt.loreText
-            from tito_lore_text tlt
-            JOIN tito_lore tl ON tlt.loreID = tl.loreID
-            WHERE tl.ownerID = %s
-            ORDER BY tlt.loreID, tlt.sequenceNumber ASC;
-        '''
-        res = db.get(query, (owner_id,))
-        if not res:
-            return None
-        return res
+    # Query to get lore text with ALL assignment information
+    # This returns multiple rows per lore if it's assigned to multiple modules
+    query = '''
+        SELECT tlt.loreID, tlt.sequenceNumber, tlt.loreText, tm.classID, tm.moduleID
+        FROM tito_lore_text tlt
+        JOIN tito_lore tl ON tlt.loreID = tl.loreID
+        LEFT JOIN tito_module tm ON tl.loreID = tm.loreAssigned
+        WHERE tl.ownerID = %s
+        ORDER BY tlt.loreID, tlt.sequenceNumber ASC, tm.classID, tm.moduleID;
+    '''
+    res = db.get(query, (owner_id,))
+    if not res:
+        return None
+    return res
 
 # Assumes privilege check b4 this call
 def updateTitoLoreText(lore_id: int, sequence_num: int, new_lore_text: str):
