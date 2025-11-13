@@ -42,6 +42,7 @@ interface SpeechRecognitionEvent extends Event {
 
 interface propsInterface {
     moduleID: number;
+    moduleLanguage?: string; // Language code of the module (e.g., 'es', 'fr', 'pt')
     chatbotId?: number;
     setChatbotId: React.Dispatch<React.SetStateAction<number | undefined>>
     setUserBackgroundFilepath: React.Dispatch<React.SetStateAction<string>>;
@@ -526,6 +527,20 @@ export default function ChatScreen(props: propsInterface) {
       setTtsLang(next.code);
     }
 
+    // Map module language codes to speech recognition language codes
+    const getSTTLangCode = (moduleLang: string): string => {
+      const langMap: { [key: string]: string } = {
+        'es': 'es-ES',
+        'fr': 'fr-FR',
+        'pt': 'pt-BR',
+        'en': 'en-US'
+      };
+      return langMap[moduleLang.toLowerCase()] || 'en-US';
+    };
+
+    // For non-free chat modules, use target language for STT; for free chat, use TTS language
+    const sttLang = props.moduleID === -1 ? ttsLang : (props.moduleLanguage ? getSTTLangCode(props.moduleLanguage) : ttsLang);
+
 
       // --- Speech-to-Text (STT) ---
       const [sttSupported, setSttSupported] = useState(false);
@@ -580,7 +595,7 @@ export default function ChatScreen(props: propsInterface) {
           }
         };
 
-        const currentLangMap = numberMappings[ttsLang] || numberMappings['en-US'];
+        const currentLangMap = numberMappings[sttLang] || numberMappings['en-US'];
         let result = text;
         
         try {
@@ -612,7 +627,7 @@ export default function ChatScreen(props: propsInterface) {
         }
         
         return result;
-      }, [ttsLang]);
+      }, [sttLang]);
 
       useEffect(() => {
         const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -622,7 +637,7 @@ export default function ChatScreen(props: propsInterface) {
         rec.continuous = true;         // keep listening continuously until manually stopped
         rec.interimResults = true;     // show partial words as you speak
         rec.maxAlternatives = 1;
-        rec.lang = ttsLang;            // use the same language you're cycling (EN/ES/FR/PT)
+        rec.lang = sttLang;            // use target language for non-free chat, TTS language for free chat
 
         rec.onstart = () => setListening(true);
         rec.onend = () => {
@@ -681,7 +696,7 @@ export default function ChatScreen(props: propsInterface) {
           try { rec.abort(); } catch {}
           recognitionRef.current = null;
         };
-      }, [ttsLang, convertDigitsToWords]); // re-init when language changes
+      }, [sttLang, convertDigitsToWords]); // re-init when STT language changes
 
     function startListening() {
       if (!sttSupported || !recognitionRef.current || listening) return;
@@ -1149,19 +1164,21 @@ export default function ChatScreen(props: propsInterface) {
                     <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
                   </button>
                   </div>
-                    {/* Language dropdown */}
-                    <select
-                        value={ttsLang}
-                        onChange={(e) => setTtsLang(e.target.value)}
-                        className="ml-2 flex items-center justify-center w-16 h-12 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium cursor-pointer"
-                        title="Select TTS language"
-                      >
-                        {SUPPORTED_LANGS.map((lang) => (
-                          <option key={lang.code} value={lang.code}>
-                            🌐 {lang.short}
-                          </option>
-                        ))}
-                      </select>
+                    {/* Language dropdown - only show in free chat mode */}
+                    {props.moduleID === -1 && (
+                      <select
+                          value={ttsLang}
+                          onChange={(e) => setTtsLang(e.target.value)}
+                          className="ml-2 flex items-center justify-center w-16 h-12 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium cursor-pointer"
+                          title="Select speech language for TTS and STT"
+                        >
+                          {SUPPORTED_LANGS.map((lang) => (
+                            <option key={lang.code} value={lang.code}>
+                              🌐 {lang.short}
+                            </option>
+                          ))}
+                        </select>
+                    )}
                     <button onClick={handleSendMessageClick} className="ml-2">
                         <Image src={sendMessageIcon} className="w-full h-full rounded-full" alt="Send message" />
                     </button>

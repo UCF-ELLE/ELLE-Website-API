@@ -59,74 +59,49 @@ export default function MessagesPage() {
             setLoadingMessages(true);
             setError(null);
             
-            // Use TitoAccess endpoint to get modules for the class
-            const accessData = await apiClient.get<{ data: any[] }>('/twt/session/access');
-            const classModulePairs = accessData.data || [];
+            // Build query parameters - single API call for all messages in the class
+            const queryParams = new URLSearchParams();
+            queryParams.append('classID', filters.classID);
             
-            // Filter to only the requested class
-            const requestedClassData = classModulePairs.find(
-                ([classID]: [number, any]) => classID === parseInt(filters.classID)
+            if (filters.studentID) {
+                queryParams.append('studentID', filters.studentID);
+            }
+            if (filters.startDate) {
+                queryParams.append('dateFrom', filters.startDate);
+            }
+            if (filters.endDate) {
+                queryParams.append('dateTo', filters.endDate);
+            }
+            
+            // Single API call - backend returns all messages sorted by moduleID, userID, creationTimestamp
+            const messagesData = await apiClient.get<{ data: any[] }>(
+                `/twt/professor/getStudentMessages?${queryParams.toString()}`
             );
             
-            if (!requestedClassData) {
-                setMessages([]);
-                setError(`No modules found for Class ID ${filters.classID}`);
-                setLoadingMessages(false);
-                return;
-            }
+            // Get read messages from localStorage
+            const readMessages = JSON.parse(localStorage.getItem('readMessages') || '[]');
             
-            const [classID, modules] = requestedClassData;
-            const allMessages: StudentMessage[] = [];
-            
-            // Fetch messages for each module in the class
-            for (const [moduleID, sequenceID] of modules) {
-                try {
-                    const queryParams = new URLSearchParams();
-                    queryParams.append('classID', classID.toString());
-                    queryParams.append('moduleID', moduleID.toString());
-                    
-                    if (filters.studentID) {
-                        queryParams.append('studentID', filters.studentID);
-                    }
-                    if (filters.startDate) {
-                        queryParams.append('dateFrom', filters.startDate);
-                    }
-                    if (filters.endDate) {
-                        queryParams.append('dateTo', filters.endDate);
-                    }
-                    
-                    const messagesData = await apiClient.get<{ data: any[] }>(
-                        `/twt/professor/getStudentMessages?${queryParams.toString()}`
-                    );
-                    
-                    // Get read messages from localStorage
-                    const readMessages = JSON.parse(localStorage.getItem('readMessages') || '[]');
-                    
-                    // Transform tuple data to messages
-                    // API returns: [userID, chatbotSID, keywordsUsed, grammarScore, source, message, creationTimestamp, isVoiceMessage]
-                    const messages = (messagesData.data || [])
-                        .filter((m: any) => m[4] === 'user')  // Only show user messages, not LLM messages
-                        .map((m: any, idx: number) => {
-                            // Create unique message identifier
-                            const messageKey = `${classID}-${moduleID}-${m[0]}-${m[6]}`;
-                            return {
-                                messageID: allMessages.length + idx,
-                                messageKey: messageKey,
-                                studentID: m[0],  // userID
-                                studentName: `Student ${m[0]}`,  // We don't have name in response
-                                classID: classID,
-                                className: `Class ${classID}`,
-                                message: m[5],  // message column
-                                timestamp: m[6] || new Date().toISOString(),  // creationTimestamp
-                                isRead: readMessages.includes(messageKey),
-                            };
-                        });
-                    
-                    allMessages.push(...messages);
-                } catch (moduleErr) {
-                    console.warn(`Failed to fetch messages for class ${classID}, module ${moduleID}:`, moduleErr);
-                }
-            }
+            // Transform tuple data to messages
+            // API returns: [userID, chatbotSID, keywordsUsed, grammarScore, source, message, creationTimestamp, isVoiceMessage, moduleID, classID]
+            const allMessages: StudentMessage[] = (messagesData.data || [])
+                .filter((m: any) => m[4] === 'user')  // Only show user messages, not LLM messages
+                .map((m: any, idx: number) => {
+                    // Create unique message identifier
+                    const moduleID = m[8];  // moduleID from response
+                    const classID = parseInt(filters.classID);
+                    const messageKey = `${classID}-${moduleID}-${m[0]}-${m[6]}`;
+                    return {
+                        messageID: idx,
+                        messageKey: messageKey,
+                        studentID: m[0],  // userID
+                        studentName: `Student ${m[0]}`,  // We don't have name in response
+                        classID: classID,
+                        className: `Class ${classID}`,
+                        message: m[5],  // message column
+                        timestamp: m[6] || new Date().toISOString(),  // creationTimestamp
+                        isRead: readMessages.includes(messageKey),
+                    };
+                });
             
             // Sort messages by timestamp (newest first)
             allMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
