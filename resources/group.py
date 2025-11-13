@@ -350,13 +350,6 @@ class UsersInGroup(Resource):
         data = {}
         data['groupID'] = getParameter("groupID", int, True, "Invalid groupID format")
         data['userID'] = getParameter("userID", int, True, "Invalid userID format")
-        data['accessLevel'] = getParameter("accessLevel", str, False, "")
-        
-        # Default to 'st' if no access level provided
-        if not data['accessLevel']:
-            data['accessLevel'] = 'st'
-        else:
-            data['accessLevel'] = data['accessLevel'][:2]
 
         permission, user_id = validate_permissions()
         if not permission or not user_id:
@@ -391,7 +384,7 @@ class UsersInGroup(Resource):
             
             # Insert the user into the group
             insert_query = "INSERT INTO `group_user` (`userID`, `groupID`, `accessLevel`) VALUES (%s, %s, %s)"
-            postToDB(insert_query, (data['userID'], data['groupID'], data['accessLevel']), conn, cursor)
+            postToDB(insert_query, (data['userID'], data['groupID'], 'st'), conn, cursor)
             
             raise ReturnSuccess("Successfully added user to group.", 200)
         except CustomException as error:
@@ -539,7 +532,7 @@ class GetGroupModules(Resource):
                                SELECT * FROM module WHERE moduleID IN %s
                                """
                 
-                print(group_modules)
+                # print(group_modules)
                 
                 modules = getFromDB(
                     module_query, (moduleIds,), conn, cursor
@@ -548,7 +541,7 @@ class GetGroupModules(Resource):
                 if modules:
                     convertedModules = []
 
-                    print(modules)
+                    # print(modules)
 
                     for module in modules:
                         convertedModules.append(convertModuleToJSON(module))
