@@ -9,9 +9,14 @@
 ## TWT Notes:
   - `tito_module` overlaps `ucf2` with existing professor's for their classes, causing duplicate (?) classes to be created 
     - >Solution: Have only 1 class with all modules? therefore update the migrate script + triggers and stuff
+  - `spacy_service.py` supports only 24 languages, so only the languages listed under `SPACY_MODELS` will be allowed
 
 ## Known flaws:
   - when uploading voice audio, doesnt check for if the `messageID` exists
+
+## Potential flaws:
+  - Term miscount when adding new terms 
+    - currently hijacks existing APIs that are known to associate terms to modules, but if done outside or missed to include certain APIs counters will be misaligned
   
 
 ## TODO:

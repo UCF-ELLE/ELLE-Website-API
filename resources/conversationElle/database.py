@@ -129,7 +129,6 @@ def getTitoClasses(userID: int, permissionLevel: str, get_classes_type='all'):
         if not results:
             return []
         return [{'classID': row[0], 'status': row[1]} for row in results]
-    # Otherwise, retrieves gets ACTIVE classes assigned to a TWT user
     elif permissionLevel == 'st':
         query = '''
             SELECT g.groupID

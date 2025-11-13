@@ -447,13 +447,29 @@ export default function TalkWithTito() {
           </p>
         </div>
         <div className="info-box inter-font">
-          <h1 className="inter-font">Credits</h1>
-          <h3>John Fletcher Cabreara</h3>
-          <h3>Layne Mazur</h3>
-          <h3>Julianne Tomlinson</h3>
-          <h3>Tina Tran</h3>
-          <h3>Kylee Weener</h3>
-          <h3>Logan Witte</h3>
+          <h1 className="inter-font mb-4 text-2xl font-bold">Credits</h1>
+
+          <div className="grid grid-cols-2 gap-8 text-lg">
+            {/* Part 1 */}
+            <div>
+              <h2 className="font-semibold mb-2">Part 1</h2>
+                <h3>John Fletcher Cabreara</h3>
+                <h3>Layne Mazur</h3>
+                <h3>Julianne Tomlinson</h3>
+                <h3>Tina Tran</h3>
+                <h3>Kylee Weener</h3>
+                <h3>Logan Witte</h3>
+            </div>
+
+            {/* Part 2 */}
+            <div>
+              <h2 className="font-semibold mb-2">Part 2</h2>
+              <h3>Joshua Jarquin</h3>
+              <h3>Fedor Kudinov</h3>
+              <h3>Rodrigo Peixoto</h3>
+              <h3>Wesley Underwood</h3>
+            </div>
+          </div>
         </div>
       </div>
       <div className="info-container">

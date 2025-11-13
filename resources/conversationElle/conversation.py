@@ -531,7 +531,7 @@ class Classes(Resource):
         # Should be either 'all', 'active' or 'inactive'
         class_type = request.args.get('classType')
 
-        if class_type is None:
+        if class_type is None or class_type not in ['all', 'active', 'inactive']:
             return create_response(False, message="Missing parameters in request.", status_code=400)
         if user_permission == 'st':
             return create_response(False, message="invalid perms", status_code=403)
@@ -693,6 +693,20 @@ class UpdateLoreAssignment(Resource):
             return create_response(False, message="unable to make changes. module already assigned this lore or given module id doesnt exist", status_code=500)
         return create_response(True, message="successfully updated assigned lore to class module")
     
+# class FetchClassModules(Resource):
+#     @jwt_required
+#     def get(self):
+#         user_id = get_jwt_identity()
+
+#         res = 
+
+#         if not res:
+#             create_response(False, message='failed to retrieve information', status_code=400)
+
+#         create_response()
+
+
+
 class CreateTitoLore(Resource):
     @jwt_required
     def post(self):
@@ -801,6 +815,7 @@ class FetchAllOwnedTitoLore(Resource):
         if not res:
             return create_response(False, message='failed to retrieve info or user has no owned tito lore', status_code=500)  
         return create_response(True, message="returned owned tito lores", loreData=res)
+
 
 
 class PFGetStudentMessages(Resource):
