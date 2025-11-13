@@ -281,14 +281,13 @@ def parse_llm_response(llm_response, term_count=5):
 def handle_message_with_context(message: str, module_id: int, session_id: int):
     """
     Handle a chat message with module context.
-    During pre-warm, the system prompt is cached in llama.cpp.
-    Subsequent messages ONLY send: Student: {message}\n\nTito:
-    This way the cached prompt is reused without re-evaluation.
+    Includes the full system prompt with each message since prompt caching
+    may not be reliable.
     """
     try:
-        # Only send the message, not the system prompt
-        # The system prompt was already cached during pre-warm
-        full_prompt = f"Student: {message}\n\nTito:"
+        # Build the full prompt including system context
+        base_prompt = build_enhanced_prompt(module_id)
+        full_prompt = f"{base_prompt}\n\nStudent: {message}\n\nTito:"
         response = generate_message_direct(full_prompt)
         return response.strip()
         

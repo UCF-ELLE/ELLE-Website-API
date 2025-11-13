@@ -641,22 +641,8 @@ export default function ChatScreen(props: propsInterface) {
 
         rec.onstart = () => setListening(true);
         rec.onend = () => {
-          console.log('[STT] Recognition ended, flag value:', shouldAutoSendRef.current);
+          console.log('[STT] Recognition ended');
           setListening(false);
-          // Auto-send after recognition ends if we captured speech
-          setTimeout(() => {
-            console.log('[STT] onend auto-send check, flag value:', shouldAutoSendRef.current, 'message:', latestUserMessageRef.current);
-            if (shouldAutoSendRef.current && latestUserMessageRef.current.trim()) {
-              console.log('[STT] Auto-sending from onend with message:', latestUserMessageRef.current);
-              // Pass message directly to avoid state sync issues
-              const messageToSend = latestUserMessageRef.current;
-              handleSendMessageClick(messageToSend);
-              shouldAutoSendRef.current = false;
-              latestUserMessageRef.current = '';
-            } else {
-              console.log('[STT] NOT auto-sending - no message captured');
-            }
-          }, 100); // Short delay to ensure final result is processed
         };
         rec.onerror = (e: Event) => {
           console.warn("STT error:", e);
@@ -685,9 +671,7 @@ export default function ChatScreen(props: propsInterface) {
             setUserMessage(newMessage);
             latestUserMessageRef.current = newMessage; // Store in ref for reliable access
             setInterimSTT("");
-            // Set flag to auto-send when speech recognition ends
-            shouldAutoSendRef.current = true;
-            console.log('[STT] Auto-send flag set to true, message stored:', newMessage);
+            console.log('[STT] Message stored:', newMessage);
           }
         };
 
@@ -702,9 +686,8 @@ export default function ChatScreen(props: propsInterface) {
       if (!sttSupported || !recognitionRef.current || listening) return;
       console.log('[STT] startListening called');
       try {
-        shouldAutoSendRef.current = false; // Reset flag when starting new recording
         latestUserMessageRef.current = userMessage; // Store current message before starting
-        console.log('[STT] Auto-send flag reset to false, stored current message:', userMessage);
+        console.log('[STT] Stored current message:', userMessage);
         recognitionRef.current.start();
         startAudioRecording(); // Also start audio recording
       } catch (e: unknown) {
@@ -717,8 +700,22 @@ export default function ChatScreen(props: propsInterface) {
       if (!recognitionRef.current) return;
       console.log('[STT] stopListening called');
       try {
-        recognitionRef.current.stop(); // This will trigger onend event which handles auto-send
-        stopAudioRecording(); // Also stop audio recording
+        // Stop speech recognition
+        recognitionRef.current.stop();
+        // Stop audio recording
+        stopAudioRecording();
+        
+        // Send the message after a short delay to allow final processing
+        setTimeout(() => {
+          const messageToSend = latestUserMessageRef.current.trim();
+          if (messageToSend) {
+            console.log('[STT] Sending message after stop:', messageToSend);
+            handleSendMessageClick(messageToSend);
+            latestUserMessageRef.current = '';
+          } else {
+            console.log('[STT] No message to send');
+          }
+        }, 300);
       } catch (err) {
         console.error('[STT] Error in stopListening:', err);
       }
