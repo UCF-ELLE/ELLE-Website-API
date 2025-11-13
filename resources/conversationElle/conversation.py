@@ -862,9 +862,6 @@ class PFGetStudentMessages(Resource):
             if not isTitoModule(class_id, module_id):
                 return create_response(False, message='Module isnt a tito module', status_code=403)
 
-            is_ta_flag = is_ta(user_id, class_id)
-            is_tito_class_flag = isTitoClassOwner(user_id, class_id)
-
             if not is_ta_flag and not is_tito_class_flag and not user_permission == 'su':
                 return create_response(False, message='user doesnt have access to this class and/or module does not belong to provided class', status_code=403)
         if student_id and not isUserInClass(student_id, class_id):
@@ -872,13 +869,10 @@ class PFGetStudentMessages(Resource):
 
         res = ''
         if user_permission == 'su':
-            print(2)
             res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
         else:
-            print(3)
             if is_ta_flag or is_tito_class_flag:  # either the professor or TA of a class authority
                 res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
-            print(4)
 
         if not res:
             return create_response(False, message='failed to retrieve modules. may be missing required params or filters were too strict', status_code=404)
