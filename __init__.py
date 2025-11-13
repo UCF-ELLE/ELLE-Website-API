@@ -163,7 +163,6 @@ from resources.conversationElle.spacy_service import(
 )
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from cleanup_inactive import cleanup_expired_groups
 # ===============================================
 # END of ConversAItionELLE  
 # ===============================================
@@ -434,22 +433,15 @@ api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateMo
 
 
 
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
 
-    # =================================================
-    # Extra stuff below, please comment out if not used
-    # =================================================
-
-    # prevents duplicate inits when in debug mode
+    # should prevent duplicate inits when in debug mode
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        # =================================================
+        # Extra stuff below, please comment out if not used
+        # =================================================
+
         # spaCy service
         threading.Thread(target=spacy_service, daemon=True).start()
-
-        # Monthly clean up to delete old audio files, and expire classes that have since expired
-        # Occurs the 1st of every month @ 2:00 AM
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(cleanup_expired_groups, 'cron', day_of_week='sun', hour=1, minute=0)
-        scheduler.start()
 

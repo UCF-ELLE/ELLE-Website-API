@@ -3,18 +3,17 @@ from db import mysql
 
 import os
 import shutil
-from datetime import datetime
 
-USER_VOICE_FOLDER = "user_audio_files/"
+USER_VOICE_FOLDER = "../user_audio_files/"
 
 db = DBHelper(mysql)
 
 '''
-    ATTACH TO A CRON JOB TO RUN ONCE A MONTH TO PURGE EXPIRED TITO_GROUP MODULES AND USER VOICE MESSAGES
+    PURGE EXPIRED TITO_GROUP MODULES AND USER VOICE MESSAGES
 '''
 
 def cleanup_expired_groups():
-    print("[START] APScheduler started for monthly cleanup")
+    print("[START] APScheduler started for monthly cleanup", flush=True)
     # get newly expired groups
     expired_groups = db.get("SELECT classID, professorID FROM `tito_class_status` WHERE titoStatus='active' AND titoExpirationDate <= CURDATE();")
     
@@ -44,6 +43,5 @@ def cleanup_expired_groups():
         if os.path.exists(class_path) and not os.listdir(class_path):
             print(f"[INFO] Deleting empty class folder: {class_path}")
             os.rmdir(class_path)
-
-def cleanup_old_combined_useraudio_files():
     return
+
