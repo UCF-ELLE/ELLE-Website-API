@@ -21,10 +21,10 @@ def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
     Returns:
         Dictionary in the form: {vocab_word: number of times used}
     '''
-    print("In count_words")
-    print("text: ", text)
-    print("vocab_list: ", vocab_list)
-    print("vocab_dict: ", vocab_dict)
+    # print("In count_words")
+    # print("text: ", text)
+    # print("vocab_list: ", vocab_list)
+    # print("vocab_dict: ", vocab_dict)
     # Initialize new dict
     if vocab_dict == None:
         new_vocab_dict = {word: 0 for word in vocab_list}
@@ -48,7 +48,7 @@ def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
         else:
             temp_vocab_list.append(word)
 
-    print("temp_vocab_list: ", temp_vocab_list)
+    # print("temp_vocab_list: ", temp_vocab_list)
     
     # Parse string to see if vocab word was used
     # Appends to counter regardless of punctuation and capitalization
@@ -61,11 +61,11 @@ def count_words(text: str, vocab_list: list, vocab_dict=None) -> dict:
             
             try:
                 actual_word = [w for w in new_vocab_dict if word.lower() == w.lower()][0]
-                print("actual_word: ", actual_word)
+                # print("actual_word: ", actual_word)
                 new_vocab_dict[word] += 1
             except:
                 actual_word = [w for w in new_vocab_dict if word[:len(word)-1].lower() in w.lower()][0]
-                print("actual_word: ", actual_word)
+                # print("actual_word: ", actual_word)
                 new_vocab_dict[actual_word] += 1
     
     return new_vocab_dict
@@ -81,8 +81,8 @@ def vocab_dict_to_list(vocab_dict: dict):
     Returns:
         vocab_list: List corresponding to the required vocabulary word list
     '''
-    print("In vocab_dict_to_list")
-    print("vocab_dict: ", vocab_dict)
+    # print("In vocab_dict_to_list")
+    # print("vocab_dict: ", vocab_dict)
     vocab_list = []
     for word, value in vocab_dict.items():
         if value > 0:

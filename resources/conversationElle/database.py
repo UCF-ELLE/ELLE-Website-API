@@ -381,49 +381,6 @@ def updateModuleTermCount(module_id: int):
 
     db.post(query, (term_ct, module_id))
 
-
-# NOTE: THIS IS deprecated by A TRIGGER 
-    # def updateTermProgress(user_id: int, module_id: int, term_id: int):
-    #     query = '''
-    #         UPDATE `tito_term_progress`
-    #         SET 
-    #         `hasMastered` = CASE
-    #             WHEN `timesUsed` > 3 AND (`timesMisspelled` / `timesUsed`) <= 0.25 THEN TRUE
-    #             ELSE `hasMastered`  
-    #         END
-    #         WHERE userID = %s AND moduleID = %s AND termID = %s;
-    #     '''
-
-    #     # NOTE: OLD, replace once triggers allowed
-    #     #     query = '''
-    #     #     UPDATE `tito_term_progress`
-    #     #     SET 
-    #     #     `hasMastered` = CASE
-    #     #         WHEN `timesUsed` > 3 AND (`timesMisspelled` / `timesUsed`) <= 0.25 THEN TRUE
-    #     #         WHEN (`timesMisspelled` / `timesUsed`) > 0.25 THEN FALSE
-    #     #         ELSE `hasMastered`  -- Keeps the current value if none of the conditions are met
-    #     #     END
-    #     #     WHERE userID = %s AND moduleID = %s AND termID = %s;
-    #     # '''
-    #     # print(f'Added u:{user_id} and mid:{module_id} to term {term_id}')
-
-
-    # res = db.post(query, (user_id, module_id, term_id))
-    # if res:
-    #     if res.get("rowcount") > 0:
-    #         updateModuleProgress(module_id, student_id)
-
-# NOTE: deprecated?
-# Adds +1 to `termsMastered`
-# def updateModuleProgress(module_id: int, user_id: int):
-#     query = '''
-#         UPDATE `tito_module_progress`
-#         SET `termsMastered` = `termsMastered` + 1
-#         WHERE moduleID = %s AND userID = %s;
-#     '''
-
-#     db.post(query, (module_id, user_id))
-
 # Adds +1 to misspell count for this term for the user
 def updateMisspellings(user_id: int, module_id: int, term_id: int):
     query = '''
@@ -435,8 +392,6 @@ def updateMisspellings(user_id: int, module_id: int, term_id: int):
 
     db.post(query, (user_id, module_id, term_id))
     
-
-
 
 # ================================================
 #
@@ -610,7 +565,7 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
     if not module_ids:
         return
 
-    print(f'modules to work on{module_ids}')
+    # print(f'modules to work on{module_ids}')
 
     # 3. Create module progress entries for each module
     module_progress_data = [(m, user_id) for m in module_ids]
@@ -618,11 +573,11 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
             "INSERT IGNORE INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_progress_data
         )
 
-    print(f'module_progress_data: {module_progress_data}')
+    # print(f'module_progress_data: {module_progress_data}')
 
     # 4. For each module, get its termIDs and add term progress
     for module_id in module_ids:
-        print(f'cur module: {module_id}')
+        # print(f'cur module: {module_id}')
 
         term_ids = flatten_list(db.get(
             '''
@@ -638,7 +593,7 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
             ''', (module_id, module_id)
         ))
         # Assign terms to user
-        print(f'cur terms: {term_ids}')
+        # print(f'cur terms: {term_ids}')
         if term_ids:
             term_progress_data = [(user_id, module_id, term_id) for term_id in term_ids]
             db.post(
@@ -1278,7 +1233,6 @@ def getModuleLanguageCode(module_id: int):
     '''
     res = db.get(query, (module_id,), fetchOne=True)
     if not res or not res[0]:
-        print(f"{res} {res[0]} this is for language code")
         return None
     return res[0]
 
@@ -1314,50 +1268,3 @@ def getAvgGrammarScoreModule(user_id: int, module_id: int):
     if not res:
         return None
     return res[0]
-
-
-
-# ================================================
-#
-# Create Triggers FOR BELOW
-#
-# ================================================
-
-# # TODO: Trigger
-# def getTermCountInModule(module_id: int):
-
-#     return
-
-# # TODO: CREATE TRIGGER TO AUTOMATE THIS ON TITO_MODULE CREATION
-# def iterateUpdateModule():
-#     modules = []
-#     for m in modules:
-#         updateTMPTotalTerms(m)
-#     return
-
-# # Call once in a while or when terms are inserted/deleted
-# # TODO: create a timed daemon to schedule this for all modules
-# def updateTMPTotalTerms(module_id: int):
-#     term_count_query = '''
-#         SELECT COUNT(DISTINCT t.termID)
-#         FROM module_question mq
-#         JOIN answer a ON mq.questionID = a.questionID
-#         JOIN term t ON a.termID = t.termID
-#         WHERE mq.moduleID = %s;
-#     '''
-#     term_count = db.get(term_count_query, (module_id,), fetchOne=True)
-
-#     error_flag = False
-#     if not term_count:
-#         return
-
-#     total_terms = term_count[0]
-
-#     update_query = '''
-#         UPDATE tito_module
-#         SET totalTerms = %s
-#         WHERE moduleID = %s;
-#     '''
-#     res = db.post(update_query, (total_terms, module_id))
-    
-#     print(f"[UPDATE] Module {module_id}: totalTerms set to {total_terms} ")

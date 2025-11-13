@@ -130,11 +130,11 @@ if __name__ == "__main__":
         result = suggest_grade(text, lang)
         
         if result['status'] == 'success':
-            print(f"✅ Grade: {result['suggested_grade']}/10 ({result['letter_grade']})")
-            print(f"   Errors: {result['error_count']}/{result['total_words']} words")
-            print(f"   Language: {result['detected_language']}")
+            print(f"Grade: {result['suggested_grade']}/10 ({result['letter_grade']})")
+            print(f"Errors: {result['error_count']}/{result['total_words']} words")
+            print(f"Language: {result['detected_language']}")
         else:
-            print(f"❌ {result['status'].title()}: {result.get('message', 'Error occurred')}")
+            print(f"{result['status'].title()}: {result.get('message', 'Error occurred')}")
     
     print(f"\n{'='*60}")
     print("Usage: result = suggest_grade('Your text here', 'spanish')")

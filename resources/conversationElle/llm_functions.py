@@ -62,7 +62,7 @@ def prewarm_llm_context(module_id, session_id):
             print(f"Pre-warming got status {response.status_code}")
             
     except Exception as e:
-        print(f"⚠️  Pre-warming failed: {e}")
+        print(f"Pre-warming failed: {e}")
 
 def create_module(prompt, term_count, nat_lang, target_lang):
     """

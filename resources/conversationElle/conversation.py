@@ -183,7 +183,6 @@ class UserMessages(Resource):
         if msg_graded and module_id != REAL_FREE_CHAT_MODULE:
             msg_score = msg_graded.get("suggested_grade")
             matches = msg_graded.get("errors")
-            # print(matches)
 
             res = ""
             if matches:
@@ -207,14 +206,7 @@ class UserMessages(Resource):
         # Sends a message to tito with safety check
         tito_response = ''
         try:
-            # try:
-            #     safety_check = detect_innapropriate_language(message)
-            #     if not safety_check.get('is_appropriate', True):
-            #         tito_response_data = {'response': "I can't respond to that type of message. Let's keep the conversation educational and appropriate"}
-            #     else:
-            #         tito_response_data = handle_message(message)
-            # except Exception as safety_error:
-            #     print(f"Safety check failed: {safety_error}")
+            
             tito_response = handle_message_with_context(message = message, module_id = module_id, session_id = session_id)
             # print(f"[DEBUG] session_id={session_id}, module_id={module_id}")
             
@@ -272,17 +264,14 @@ class UserAudio(Resource):
         class_id = data.get('classID')
         module_id = data.get("moduleID")
         
-        print(f"[AUDIO UPLOAD] Received request: user={user_id}, msg={message_id}, class={class_id}, module={module_id}, session={chatbot_sid}")
+        # print(f"[AUDIO UPLOAD] Received request: user={user_id}, msg={message_id}, class={class_id}, module={module_id}, session={chatbot_sid}")
 
         if not message_id or not chatbot_sid or not class_id or not module_id:
-            print(f"[AUDIO UPLOAD] Missing parameters")
             return create_response(False, message="Failed to upload. Missing required parameters.", status_code=400)
         if isDuplicateAudioUpload(user_id, message_id):
-            print(f"[AUDIO UPLOAD] Duplicate upload detected")
             return create_response(False, message="User already has uploaded an audio file for this message.", status_code=403)
         
         if not isVoiceMessageCapable(message_id, user_id):
-            print(f"[AUDIO UPLOAD] Message {message_id} is not voice-message-capable")
             return create_response(False, message='invalid request or uploading to non vm message', status_code=403)
         if not doesUserMessageExist(message_id):
             return create_response(False, message='invalid message id', status_code=403)
@@ -310,7 +299,6 @@ class UserAudio(Resource):
         except Exception as e:
             # If ffmpeg is not available or audio parsing fails, skip length validation
             print(f"[WARNING] Audio length validation skipped (ffmpeg may not be installed): {str(e)}")
-            # Reset file pointer after failed read attempt
             audio_file.seek(0)
 
         # Points of failure to accept files
@@ -339,8 +327,6 @@ class UserAudio(Resource):
         print(f"[AUDIO UPLOAD] DB storage result: {res}")
 
         # TODO: Create a way to test if file actually written, maybe search up the file and see if exists
-        # if not is_stored:
-        #     return create_response(False, message="Failed to store voice message.", status_code=500) 
 
         if not res:
             return create_response(False, message="Error occurred when inserting vm data into DB.")
@@ -354,11 +340,6 @@ class UserAudio(Resource):
             Expects ?classID={id_here1}&messageID={id_here2}&moduleID={id_here3}
 
             TODO: check if user is allowed to make the request
-
-            curl -X GET "http://127.0.0.1:5050/elleapi/twt/session/audio?classID=1&messageID=295&moduleID=1" \
-            -H "Authorization: Bearer {TOKEN}" \
-            --output output_audio.webm
-
         '''
         user_id = get_jwt_identity() 
         class_id = request.args.get('classID')
@@ -880,10 +861,8 @@ class PFGetStudentMessages(Resource):
         # Have to convert sql datetime back to str format
         newres = []
         idx = 0
-        print(res)
         for tup in res:
             newres.append(tup[:6] + (tup[6].strftime('%Y-%m-%d %H:%M:%S'),) + tup[7:])
-            print(newres[idx])
             idx += 1
 
         return create_response(True, message='returned messages', data=newres)
