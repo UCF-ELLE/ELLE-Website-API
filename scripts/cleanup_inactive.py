@@ -1,13 +1,41 @@
-from db_utils import DBHelper
-from db import mysql
-
 import os
+import sys
 import shutil
 
-USER_VOICE_FOLDER = "/home/elle/ELLE-2024-Website-API/user_audio_files/"
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, parent_dir)
 
+import config
 
-db = DBHelper(mysql)
+USER_VOICE_FOLDER = "/home/ebi/ELLE-Website-API/user_audio_files/"
+import mysql.connector
+
+def get_mysql_connection():
+    return mysql.connector.connect(
+        host=config.MYSQL_DATABASE_HOST,
+        user=config.MYSQL_DATABASE_USER,
+        password=config.MYSQL_DATABASE_PASSWORD,
+        database=config.MYSQL_DATABASE_DB
+    )
+
+class DBHelperStandalone:
+    def __init__(self):
+        self.conn = get_mysql_connection()
+        
+    def get(self, query, vals=None):
+        cursor = self.conn.cursor()
+        cursor.execute(query, vals or ())
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+    
+    def post(self, query, vals=None):
+        cursor = self.conn.cursor()
+        cursor.execute(query, vals or ())
+        self.conn.commit()
+        cursor.close()
+
+db = DBHelperStandalone()
 
 '''
     PURGE EXPIRED TITO_GROUP MODULES AND USER VOICE MESSAGES
