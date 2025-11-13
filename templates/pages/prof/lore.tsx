@@ -41,7 +41,10 @@ export default function LorePage() {
     const [loreForm, setLoreForm] = useState({
         title: '',
         tags: '',
-        body: '',
+        lore1: '',
+        lore2: '',
+        lore3: '',
+        lore4: '',
     });
     const [showPreview, setShowPreview] = useState(false);
 
@@ -123,52 +126,63 @@ export default function LorePage() {
 
     const handleCreateNew = () => {
         setEditingLore(null);
-        setLoreForm({ title: '', tags: '', body: '' });
+        setLoreForm({ title: '', tags: '', lore1: '', lore2: '', lore3: '', lore4: '' });
         setShowEditorModal(true);
     };
 
     const handleEdit = (lore: TitoLore) => {
         setEditingLore(lore);
+        // Split body by double newlines into 4 parts
+        const parts = lore.body.split('\n\n');
         setLoreForm({
-            title: '', // Not used, but kept for form state consistency
-            tags: '', // Not used, but kept for form state consistency
-            body: lore.body,
+            title: '',
+            tags: '',
+            lore1: parts[0] || '',
+            lore2: parts[1] || '',
+            lore3: parts[2] || '',
+            lore4: parts[3] || '',
         });
         setShowEditorModal(true);
     };
 
     const handleSaveLore = async () => {
-        if (!loreForm.body) {
-            setError('Body is required');
+        // Validate that at least one lore section has content
+        if (!loreForm.lore1 && !loreForm.lore2 && !loreForm.lore3 && !loreForm.lore4) {
+            setError('At least one lore section is required');
             return;
         }
 
         try {
             if (editingLore) {
-                // Update existing - need to update each of the 4 lore parts
-                // Split the body into parts by double newlines
-                const loreParts = loreForm.body.split('\n\n').filter(Boolean);
+                // Update existing - update each of the 4 lore parts
+                const loreParts = [loreForm.lore1, loreForm.lore2, loreForm.lore3, loreForm.lore4];
                 
-                // Update each part (up to 4)
-                for (let i = 0; i < Math.min(loreParts.length, 4); i++) {
-                    await apiClient.post('/twt/professor/updateTitoLore', {
-                        classID: editingLore.assignedTo?.classID || 0, // Required by backend but not used
-                        loreID: editingLore.loreID,
-                        sequenceNumber: i + 1,
-                        newLoreText: loreParts[i],
-                    });
+                // Update each part
+                for (let i = 0; i < 4; i++) {
+                    if (loreParts[i]) { // Only update if there's content
+                        await apiClient.post('/twt/professor/updateTitoLore', {
+                            classID: editingLore.assignedTo?.classID || 0, // Required by backend but not used
+                            loreID: editingLore.loreID,
+                            sequenceNumber: i + 1,
+                            newLoreText: loreParts[i],
+                        });
+                    }
                 }
                 setSuccess('Lore updated successfully!');
             } else {
-                // Create new - only send body parameter
+                // Create new - combine all 4 parts with double newlines
+                const body = [loreForm.lore1, loreForm.lore2, loreForm.lore3, loreForm.lore4]
+                    .filter(Boolean)
+                    .join('\n\n');
+                
                 const response = await apiClient.post<{ loreID: number }>('/twt/professor/createNewTitoLore', {
-                    body: loreForm.body,
+                    body: body,
                 });
                 setSuccess(`Lore created successfully! (ID: ${response.loreID})`);
             }
 
             setShowEditorModal(false);
-            setLoreForm({ title: '', tags: '', body: '' });
+            setLoreForm({ title: '', tags: '', lore1: '', lore2: '', lore3: '', lore4: '' });
             setEditingLore(null);
             fetchLore();
         } catch (err) {
@@ -387,37 +401,60 @@ export default function LorePage() {
                 </ModalHeader>
                 <ModalBody>
                     <div className="alert alert-info" role="alert">
-                        <strong>Note:</strong> Lore content should be structured with clear sections separated by double line breaks.
-                        Each lore consists of up to 4 text sections that Tito will use during conversations.
+                        <strong>Note:</strong> Each lore consists of 4 text sections that Tito will progressively reveal during conversations.
+                        Fill in each section below. At least one section is required.
                     </div>
                     <FormGroup>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                            <Label for="body" className="mb-0">
-                                Content * (Markdown supported)
-                            </Label>
-                            <Button
-                                size="sm"
-                                color="secondary"
-                                outline
-                                onClick={() => setShowPreview(!showPreview)}
-                            >
-                                {showPreview ? 'Edit' : 'Preview'}
-                            </Button>
-                        </div>
-                        {showPreview ? (
-                            <Card className="p-3" style={{ minHeight: '300px', maxHeight: '500px', overflow: 'auto' }}>
-                                <div dangerouslySetInnerHTML={{ __html: loreForm.body }} />
-                            </Card>
-                        ) : (
-                            <Input
-                                id="body"
-                                type="textarea"
-                                value={loreForm.body}
-                                onChange={(e) => setLoreForm({ ...loreForm, body: e.target.value })}
-                                placeholder="Enter lore content (markdown supported)"
-                                rows={15}
-                            />
-                        )}
+                        <Label for="lore1">
+                            Lore Section 1 *
+                        </Label>
+                        <Input
+                            id="lore1"
+                            type="textarea"
+                            value={loreForm.lore1}
+                            onChange={(e) => setLoreForm({ ...loreForm, lore1: e.target.value })}
+                            placeholder="Enter first lore section..."
+                            rows={4}
+                        />
+                    </FormGroup>
+                    <FormGroup>
+                        <Label for="lore2">
+                            Lore Section 2
+                        </Label>
+                        <Input
+                            id="lore2"
+                            type="textarea"
+                            value={loreForm.lore2}
+                            onChange={(e) => setLoreForm({ ...loreForm, lore2: e.target.value })}
+                            placeholder="Enter second lore section..."
+                            rows={4}
+                        />
+                    </FormGroup>
+                    <FormGroup>
+                        <Label for="lore3">
+                            Lore Section 3
+                        </Label>
+                        <Input
+                            id="lore3"
+                            type="textarea"
+                            value={loreForm.lore3}
+                            onChange={(e) => setLoreForm({ ...loreForm, lore3: e.target.value })}
+                            placeholder="Enter third lore section..."
+                            rows={4}
+                        />
+                    </FormGroup>
+                    <FormGroup>
+                        <Label for="lore4">
+                            Lore Section 4
+                        </Label>
+                        <Input
+                            id="lore4"
+                            type="textarea"
+                            value={loreForm.lore4}
+                            onChange={(e) => setLoreForm({ ...loreForm, lore4: e.target.value })}
+                            placeholder="Enter fourth lore section..."
+                            rows={4}
+                        />
                     </FormGroup>
                 </ModalBody>
                 <ModalFooter>

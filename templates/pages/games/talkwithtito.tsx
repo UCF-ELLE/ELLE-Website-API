@@ -79,6 +79,7 @@ export default function TalkWithTito() {
     name: string;
     language: string;
     isTitoEnabled?: boolean;
+    classID?: number; // Track which class this module belongs to
   }
 
   interface Song {
@@ -363,7 +364,7 @@ export default function TalkWithTito() {
                   
                 />
               </div>
-              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} isFreeTalk={selectedModule === -1} moduleId={selectedModule === -1 ? undefined : selectedModule} />}
+              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} isFreeTalk={selectedModule === -1} moduleId={selectedModule === -1 ? undefined : selectedModule} classId={modules?.find(m => m.moduleID === selectedModule)?.classID} />}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {!selectedModule ? (
                 <>

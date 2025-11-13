@@ -24,12 +24,14 @@ interface Module {
   name: string;
   language: string;
   isTitoEnabled?: boolean; // Indicates if this module is configured as a Tito module
+  classID?: number; // The class this module belongs to (for Tito modules)
 }
 
 // Fetches all user modules and indicates which ones are Tito-enabled
 // Returns all modules with their ID, name, language, and Tito status
 export const fetchModules = async (access_token: string): Promise<Module[] | null> => {
   let titoModuleIDs = new Set<number>();
+  let moduleToClassMap = new Map<number, number>(); // Map moduleID to classID
   
   // STEP 1: Try to get Tito-enabled module IDs (for marking purposes)
   try {
@@ -44,16 +46,18 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
     console.log('[fetchModules] Raw Tito modules response:', titoResponse.data);
     console.log('[fetchModules] Processed Tito data:', titoData);
     
-    // Extract all unique module IDs that are Tito-enabled
+    // Extract all unique module IDs that are Tito-enabled and store classID mapping
     for (const [classID, modulesList] of titoData) {
       console.log(`[fetchModules] Class ${classID} has modules:`, modulesList);
       for (const [moduleID, sequenceID] of modulesList) {
-        console.log(`[fetchModules] Adding Tito module: ${moduleID}`);
+        console.log(`[fetchModules] Adding Tito module: ${moduleID} from class ${classID}`);
         titoModuleIDs.add(moduleID);
+        moduleToClassMap.set(moduleID, classID); // Store the mapping
       }
     }
     
     console.log('[fetchModules] ✅ Tito-enabled module IDs:', Array.from(titoModuleIDs));
+    console.log('[fetchModules] ✅ Module to Class mapping:', Object.fromEntries(moduleToClassMap));
   } catch (titoError) {
     console.warn('[fetchModules] Could not fetch Tito module IDs (will show all modules without Tito status):', titoError);
   }
@@ -77,12 +81,14 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
       for (const moduleData of data) {
         const moduleID = moduleData.moduleID || moduleData.module_id;
         const isTitoEnabled = titoModuleIDs.has(moduleID);
+        const classID = moduleToClassMap.get(moduleID); // Get the classID for this module
         
         allModules.push({
           moduleID: moduleID,
           name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
           language: moduleData.language || 'es',
-          isTitoEnabled: isTitoEnabled
+          isTitoEnabled: isTitoEnabled,
+          classID: classID // Include classID in module data
         });
       }
     }
@@ -114,12 +120,14 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
         for (const moduleData of modulesData) {
           const moduleID = moduleData.moduleID || moduleData.module_id;
           const isTitoEnabled = titoModuleIDs.has(moduleID);
+          const classID = moduleToClassMap.get(moduleID); // Get the classID for this module
           
           allModules.push({
             moduleID: moduleID,
             name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
             language: moduleData.language || 'es',
-            isTitoEnabled: isTitoEnabled
+            isTitoEnabled: isTitoEnabled,
+            classID: classID // Include classID in module data
           });
         }
       }

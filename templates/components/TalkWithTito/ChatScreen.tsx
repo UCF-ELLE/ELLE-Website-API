@@ -306,16 +306,20 @@ export default function ChatScreen(props: propsInterface) {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.moduleID, user?.jwt, fetchProgress, fetchMasteredTermIDs]);
 
-    async function handleSendMessageClick() {
+    async function handleSendMessageClick(forcedMessage?: string | React.MouseEvent) {
+        // Check if forcedMessage is actually a string (not an event object)
+        const isString = typeof forcedMessage === 'string';
+        // Use forced message if provided and is a string (for voice-to-text), otherwise use state
+        const messageToUse = (isString ? forcedMessage : userMessage) as string;
 
-        if(userMessage === "" || user === undefined || props.chatbotId === undefined || !termsLoaded) {
-            console.log(`[ChatScreen] Send blocked - userMessage: '${userMessage}', user: ${!!user}, chatbotId: ${props.chatbotId}, termsLoaded: ${termsLoaded}`);
+        if(messageToUse === "" || user === undefined || props.chatbotId === undefined || !termsLoaded) {
+            console.log(`[ChatScreen] Send blocked - message: '${messageToUse}', user: ${!!user}, chatbotId: ${props.chatbotId}, termsLoaded: ${termsLoaded}`);
             return; //Does nothing if empty textarea or invalid credentials
         }
         
         //Resets Tito state & empties textArea
         setTitoMood("thinking");
-        const messageToSend = userMessage; // Store the message before clearing
+        const messageToSend = messageToUse; // Store the message before clearing
         setUserMessage("");
 
         //Temporarily appends userMessage (no metadata yet bcs no LLM response)
@@ -534,6 +538,8 @@ export default function ChatScreen(props: propsInterface) {
       const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
       const [wasVoiceMessage, setWasVoiceMessage] = useState(false);
       const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+      const shouldAutoSendRef = useRef(false); // Track if we should auto-send after voice input
+      const latestUserMessageRef = useRef<string>(''); // Track latest message for reliable auto-send
 
       // Type helper for TS
       type SpeechRecognitionConstructor = new () => SpeechRecognition;
@@ -619,10 +625,28 @@ export default function ChatScreen(props: propsInterface) {
         rec.lang = ttsLang;            // use the same language you're cycling (EN/ES/FR/PT)
 
         rec.onstart = () => setListening(true);
-        rec.onend = () => setListening(false);
+        rec.onend = () => {
+          console.log('[STT] Recognition ended, flag value:', shouldAutoSendRef.current);
+          setListening(false);
+          // Auto-send after recognition ends if we captured speech
+          setTimeout(() => {
+            console.log('[STT] onend auto-send check, flag value:', shouldAutoSendRef.current, 'message:', latestUserMessageRef.current);
+            if (shouldAutoSendRef.current && latestUserMessageRef.current.trim()) {
+              console.log('[STT] Auto-sending from onend with message:', latestUserMessageRef.current);
+              // Pass message directly to avoid state sync issues
+              const messageToSend = latestUserMessageRef.current;
+              handleSendMessageClick(messageToSend);
+              shouldAutoSendRef.current = false;
+              latestUserMessageRef.current = '';
+            } else {
+              console.log('[STT] NOT auto-sending - no message captured');
+            }
+          }, 100); // Short delay to ensure final result is processed
+        };
         rec.onerror = (e: Event) => {
           console.warn("STT error:", e);
           setListening(false);
+          shouldAutoSendRef.current = false; // Reset on error
         };
         rec.onresult = (ev: Event) => {
           const event = ev as SpeechRecognitionEvent;
@@ -641,8 +665,14 @@ export default function ChatScreen(props: propsInterface) {
           if (finalText) {
             // Apply digit-to-word conversion to final text
             const processedFinalText = convertDigitsToWords(finalText.trim());
-            setUserMessage(prev => (prev?.trim() ? `${prev} ${processedFinalText}` : processedFinalText));
+            console.log('[STT] Final text captured:', processedFinalText);
+            const newMessage = latestUserMessageRef.current?.trim() ? `${latestUserMessageRef.current} ${processedFinalText}` : processedFinalText;
+            setUserMessage(newMessage);
+            latestUserMessageRef.current = newMessage; // Store in ref for reliable access
             setInterimSTT("");
+            // Set flag to auto-send when speech recognition ends
+            shouldAutoSendRef.current = true;
+            console.log('[STT] Auto-send flag set to true, message stored:', newMessage);
           }
         };
 
@@ -655,27 +685,28 @@ export default function ChatScreen(props: propsInterface) {
 
     function startListening() {
       if (!sttSupported || !recognitionRef.current || listening) return;
+      console.log('[STT] startListening called');
       try {
+        shouldAutoSendRef.current = false; // Reset flag when starting new recording
+        latestUserMessageRef.current = userMessage; // Store current message before starting
+        console.log('[STT] Auto-send flag reset to false, stored current message:', userMessage);
         recognitionRef.current.start();
         startAudioRecording(); // Also start audio recording
       } catch (e: unknown) {
         // Some browsers throw if called twice quickly
-        console.warn(e);
+        console.warn('[STT] Error starting recognition:', e);
       }
     }
 
     function stopListening() {
       if (!recognitionRef.current) return;
+      console.log('[STT] stopListening called');
       try {
-        recognitionRef.current.stop();
+        recognitionRef.current.stop(); // This will trigger onend event which handles auto-send
         stopAudioRecording(); // Also stop audio recording
-        // Auto-send the message after stopping recording
-        setTimeout(() => {
-          if (userMessage.trim()) {
-            handleSendMessageClick();
-          }
-        }, 100); // Small delay to ensure audio recording has fully stopped
-      } catch {}
+      } catch (err) {
+        console.error('[STT] Error in stopListening:', err);
+      }
     }
     
     // Start recording audio for voice messages
@@ -946,10 +977,20 @@ export default function ChatScreen(props: propsInterface) {
               
               // Speak the welcome message automatically when chat loads for first time
               // Only if there are no previous messages (new conversation) and TTS is not muted
-              if (newMessages.length === 0 && ttsSupported && instructionMessage.value && !props.ttsMuted) {
+              console.log('[ChatScreen] TTS Check:', {
+                  messageCount: newMessages.length,
+                  ttsSupported,
+                  ttsMuted: props.ttsMuted,
+                  willSpeak: newMessages.length === 0 && ttsSupported && !props.ttsMuted
+              });
+              
+              if (newMessages.length === 0 && ttsSupported && !props.ttsMuted) {
+                  console.log('[ChatScreen] Speaking welcome message');
                   setTimeout(() => {
                       speak(instructionMessage.value);
                   }, 1000); // Wait 1 second to let everything load
+              } else {
+                  console.log('[ChatScreen] NOT speaking - messages exist or TTS is disabled');
               }
           }
           else {
@@ -959,7 +1000,8 @@ export default function ChatScreen(props: propsInterface) {
           }
         }
         loadMessages();
-    }, [props.chatbotId, props.moduleID, user, userLoading, speak, ttsSupported]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.chatbotId, props.moduleID, user, userLoading]);
 
     //Used to update averageScore
     useEffect(() => {
