@@ -847,15 +847,16 @@ class PFGetStudentMessages(Resource):
         filter_date_from = request.args.get('dateFrom')
         filter_date_to = request.args.get('dateTo')
 
-        is_ta_flag = False
-        is_tito_class_flag = False
+        is_ta_flag = is_ta(user_id, class_id) if class_id else False
+        is_tito_class_flag = isTitoClassOwner(user_id, class_id) if class_id else False
 
         if user_permission == 'st':
             return create_response(False, message='insufficient perms', status_code=403)
-        if not student_id and not class_id and not module_id:
-            return create_response(False, message='insufficient params provided', status_code=403)
+        
+        # Require classID as minimum parameter
         if not class_id:
-            return create_response(False, message='insufficient params provided', status_code=403)
+            return create_response(False, message='classID is required', status_code=400)
+        
         # Check for if user has proper access to resources, either su (access to all), a pf or ta
         if module_id:
             if not isTitoModule(class_id, module_id):
@@ -875,7 +876,7 @@ class PFGetStudentMessages(Resource):
             res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
         else:
             print(3)
-            if is_ta or is_tito_class: # either the professor or ta of a class authority
+            if is_ta_flag or is_tito_class_flag:  # either the professor or TA of a class authority
                 res = profGetStudentMessages(student_id, class_id, module_id, filter_date_from, filter_date_to)
             print(4)
 

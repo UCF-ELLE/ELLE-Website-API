@@ -25,7 +25,7 @@ export default function MessagesPage() {
     const [messages, setMessages] = useState<StudentMessage[]>([]);
     const [filteredMessages, setFilteredMessages] = useState<StudentMessage[]>([]);
     const [selectedMessage, setSelectedMessage] = useState<StudentMessage | null>(null);
-    const [loadingMessages, setLoadingMessages] = useState(true);
+    const [loadingMessages, setLoadingMessages] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Filters
@@ -44,71 +44,92 @@ export default function MessagesPage() {
     }, [user, loading, router]);
 
     useEffect(() => {
-        if (hasConsoleAccess(user?.permissionGroup)) {
-            fetchMessages();
-        }
-    }, [user]);
-
-    useEffect(() => {
         applyFilters();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters, messages]);
+    }, [messages]);
 
     const fetchMessages = async () => {
+        // Validate that at least classID is provided
+        if (!filters.classID) {
+            setError('Class ID is required to search for messages');
+            return;
+        }
+
         try {
             setLoadingMessages(true);
             setError(null);
             
-            // Use TitoAccess endpoint which returns classes with their Tito modules
-            // Returns: [(classID, [(moduleID, sequenceID)])]
+            // Use TitoAccess endpoint to get modules for the class
             const accessData = await apiClient.get<{ data: any[] }>('/twt/session/access');
             const classModulePairs = accessData.data || [];
             
-            if (classModulePairs.length === 0) {
+            // Filter to only the requested class
+            const requestedClassData = classModulePairs.find(
+                ([classID]: [number, any]) => classID === parseInt(filters.classID)
+            );
+            
+            if (!requestedClassData) {
                 setMessages([]);
+                setError(`No modules found for Class ID ${filters.classID}`);
                 setLoadingMessages(false);
                 return;
             }
             
-            // Fetch messages for each class-module pair
+            const [classID, modules] = requestedClassData;
             const allMessages: StudentMessage[] = [];
             
-            for (const [classID, modules] of classModulePairs) {
-                for (const [moduleID, sequenceID] of modules) {
-                    try {
-                        const messagesData = await apiClient.get<{ data: any[] }>(
-                            `/twt/professor/getStudentMessages?classID=${classID}&moduleID=${moduleID}`
-                        );
-                        
-                        // Get read messages from localStorage
-                        const readMessages = JSON.parse(localStorage.getItem('readMessages') || '[]');
-                        
-                        // Transform tuple data to messages
-                        // API returns: [userID, chatbotSID, keywordsUsed, grammarScore, source, message, creationTimestamp, isVoiceMessage]
-                        const messages = (messagesData.data || [])
-                            .filter((m: any) => m[4] === 'user')  // Only show user messages, not LLM messages
-                            .map((m: any, idx: number) => {
-                                // Create unique message identifier
-                                const messageKey = `${classID}-${moduleID}-${m[0]}-${m[6]}`;
-                                return {
-                                    messageID: idx,
-                                    messageKey: messageKey,
-                                    studentID: m[0],  // userID
-                                    studentName: `Student ${m[0]}`,  // We don't have name in response
-                                    classID: classID,
-                                    className: `Class ${classID}`,
-                                    message: m[5],  // message column
-                                    timestamp: m[6] || new Date().toISOString(),  // creationTimestamp
-                                    isRead: readMessages.includes(messageKey),
-                                };
-                            });
-                        
-                        allMessages.push(...messages);
-                    } catch (moduleErr) {
-                        console.warn(`Failed to fetch messages for class ${classID}, module ${moduleID}:`, moduleErr);
+            // Fetch messages for each module in the class
+            for (const [moduleID, sequenceID] of modules) {
+                try {
+                    const queryParams = new URLSearchParams();
+                    queryParams.append('classID', classID.toString());
+                    queryParams.append('moduleID', moduleID.toString());
+                    
+                    if (filters.studentID) {
+                        queryParams.append('studentID', filters.studentID);
                     }
+                    if (filters.startDate) {
+                        queryParams.append('dateFrom', filters.startDate);
+                    }
+                    if (filters.endDate) {
+                        queryParams.append('dateTo', filters.endDate);
+                    }
+                    
+                    const messagesData = await apiClient.get<{ data: any[] }>(
+                        `/twt/professor/getStudentMessages?${queryParams.toString()}`
+                    );
+                    
+                    // Get read messages from localStorage
+                    const readMessages = JSON.parse(localStorage.getItem('readMessages') || '[]');
+                    
+                    // Transform tuple data to messages
+                    // API returns: [userID, chatbotSID, keywordsUsed, grammarScore, source, message, creationTimestamp, isVoiceMessage]
+                    const messages = (messagesData.data || [])
+                        .filter((m: any) => m[4] === 'user')  // Only show user messages, not LLM messages
+                        .map((m: any, idx: number) => {
+                            // Create unique message identifier
+                            const messageKey = `${classID}-${moduleID}-${m[0]}-${m[6]}`;
+                            return {
+                                messageID: allMessages.length + idx,
+                                messageKey: messageKey,
+                                studentID: m[0],  // userID
+                                studentName: `Student ${m[0]}`,  // We don't have name in response
+                                classID: classID,
+                                className: `Class ${classID}`,
+                                message: m[5],  // message column
+                                timestamp: m[6] || new Date().toISOString(),  // creationTimestamp
+                                isRead: readMessages.includes(messageKey),
+                            };
+                        });
+                    
+                    allMessages.push(...messages);
+                } catch (moduleErr) {
+                    console.warn(`Failed to fetch messages for class ${classID}, module ${moduleID}:`, moduleErr);
                 }
             }
+            
+            // Sort messages by timestamp (newest first)
+            allMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             
             setMessages(allMessages);
         } catch (err) {
@@ -120,22 +141,6 @@ export default function MessagesPage() {
 
     const applyFilters = () => {
         let filtered = [...messages];
-
-        if (filters.classID) {
-            filtered = filtered.filter((msg) => msg.classID === parseInt(filters.classID));
-        }
-
-        if (filters.studentID) {
-            filtered = filtered.filter((msg) => msg.studentID === parseInt(filters.studentID));
-        }
-
-        if (filters.startDate) {
-            filtered = filtered.filter((msg) => new Date(msg.timestamp) >= new Date(filters.startDate));
-        }
-
-        if (filters.endDate) {
-            filtered = filtered.filter((msg) => new Date(msg.timestamp) <= new Date(filters.endDate));
-        }
 
         if (filters.unreadOnly) {
             filtered = filtered.filter((msg) => !msg.isRead);
@@ -198,9 +203,6 @@ export default function MessagesPage() {
                             </Badge>
                         )}
                     </div>
-                    <button className="btn btn-outline-primary" onClick={fetchMessages}>
-                        Refresh
-                    </button>
                 </div>
 
                 {error && (
@@ -210,15 +212,15 @@ export default function MessagesPage() {
                     </div>
                 )}
 
-                {/* Filters */}
+                {/* Search Filters */}
                 <Card className="mb-3">
                     <CardBody>
-                        <CardTitle tag="h6">Filters</CardTitle>
+                        <CardTitle tag="h6">Search Messages</CardTitle>
                         <Row>
                             <Col md={2}>
                                 <FormGroup>
                                     <Label for="classID" className="small">
-                                        Class ID
+                                        Class ID <span className="text-danger">*</span>
                                     </Label>
                                     <Input
                                         id="classID"
@@ -226,7 +228,8 @@ export default function MessagesPage() {
                                         bsSize="sm"
                                         value={filters.classID}
                                         onChange={(e) => setFilters({ ...filters, classID: e.target.value })}
-                                        placeholder="Any"
+                                        placeholder="Required"
+                                        required
                                     />
                                 </FormGroup>
                             </Col>
@@ -241,7 +244,7 @@ export default function MessagesPage() {
                                         bsSize="sm"
                                         value={filters.studentID}
                                         onChange={(e) => setFilters({ ...filters, studentID: e.target.value })}
-                                        placeholder="Any"
+                                        placeholder="Optional"
                                     />
                                 </FormGroup>
                             </Col>
@@ -286,8 +289,19 @@ export default function MessagesPage() {
                                 </FormGroup>
                             </Col>
                             <Col md={2}>
-                                <button className="btn btn-sm btn-secondary mt-4 w-100" onClick={clearFilters}>
-                                    Clear Filters
+                                <button 
+                                    className="btn btn-sm btn-primary mt-4 w-100" 
+                                    onClick={fetchMessages}
+                                    disabled={!filters.classID || loadingMessages}
+                                >
+                                    {loadingMessages ? 'Searching...' : 'Search'}
+                                </button>
+                            </Col>
+                        </Row>
+                        <Row className="mt-2">
+                            <Col>
+                                <button className="btn btn-sm btn-link" onClick={clearFilters}>
+                                    Clear All
                                 </button>
                             </Col>
                         </Row>
@@ -309,8 +323,12 @@ export default function MessagesPage() {
                                             <span className="visually-hidden">Loading...</span>
                                         </div>
                                     </div>
+                                ) : messages.length === 0 ? (
+                                    <p className="text-muted text-center py-4">
+                                        Enter a Class ID and click Search to view messages.
+                                    </p>
                                 ) : filteredMessages.length === 0 ? (
-                                    <p className="text-muted text-center py-4">No messages found.</p>
+                                    <p className="text-muted text-center py-4">No messages found matching your filters.</p>
                                 ) : (
                                     <div>
                                         {filteredMessages.map((message) => (
