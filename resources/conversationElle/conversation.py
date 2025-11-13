@@ -341,25 +341,32 @@ class UserAudio(Resource):
 
             TODO: check if user is allowed to make the request
         '''
-        user_id = get_jwt_identity() 
+        user_id = get_jwt_identity()
+        claims = get_jwt_claims()
+        user_permission = claims.get("permission")
+
         class_id = request.args.get('classID')
         message_id = request.args.get('messageID')
         module_id = request.args.get('moduleID')
+        student_id = request.args.get('studentID')
 
-        if not class_id or not message_id or not module_id:
+        if not class_id or not message_id or not module_id or not student_id:
             return create_response(False, message="Missing required query parameters.", status_code=400)
         if not doesUserMessageExist(message_id):
             return create_response(False, message='invalid message id', status_code=403)
-        if not isUserInClass(user_id, class_id):
-            return create_response(False, message='user doesnt belong to this class', status_code=403)
+        if not isUserInClass(student_id, class_id):
+            return create_response(False, message='student doesnt belong to this class', status_code=403)
         if not isModuleInClass(class_id, module_id):
             return create_response(False, message='invalid module, doesnt belong to this class', status_code=403)
+        if user_id != student_id:
+            if user_permission != 'su' and not isTitoClassOwner(user_id, class_id):
+                return create_response(False, message="user does not have permission to retrieve student's audio recording", status_code=403)
 
-        filename = getVoiceMessage(user_id, message_id)
+        filename = getVoiceMessage(student_id, message_id)
         if not filename:
             return create_response(False, message="File not found", status_code=404)
 
-        file_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id), str(user_id), str(filename))
+        file_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id), str(student_id), str(filename))
         if not os.path.exists(file_path):
             return create_response(False, message="File does not exist.", status_code=404)
 
