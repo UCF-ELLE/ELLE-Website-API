@@ -4,7 +4,8 @@ from db import mysql
 import os
 import shutil
 
-USER_VOICE_FOLDER = "../user_audio_files/"
+USER_VOICE_FOLDER = "/home/elle/ELLE-2024-Website-API/user_audio_files/"
+
 
 db = DBHelper(mysql)
 
@@ -45,3 +46,5 @@ def cleanup_expired_groups():
             os.rmdir(class_path)
     return
 
+if __name__ == "__main__":
+    cleanup_expired_groups()

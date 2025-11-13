@@ -1,9 +1,11 @@
 import os
-USER_VOICE_FOLDER = "../user_audio_files/"
+USER_VOICE_FOLDER = "/home/elle/ELLE-2024-Website-API/user_audio_files/"
 
 def cleanup_old_combined_useraudio_files():
+    print("hello")
     for class_id in os.listdir(USER_VOICE_FOLDER):
         class_path = os.path.join(USER_VOICE_FOLDER, class_id)
+        print(class_path)
         if not os.path.isdir(class_path):
             continue
 
@@ -25,3 +27,6 @@ def cleanup_old_combined_useraudio_files():
                 # else:
                     # print(f"File not found: {target_file}")
     return
+
+if __name__ == "__main__":
+    cleanup_old_combined_useraudio_files()
