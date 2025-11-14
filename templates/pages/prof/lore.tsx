@@ -172,7 +172,7 @@ export default function LorePage() {
                 for (let i = 0; i < 4; i++) {
                     if (loreParts[i]) { // Only update if there's content
                         await apiClient.post('/twt/professor/updateTitoLore', {
-                            classID: editingLore.assignedTo?.classID || 0, // Required by backend but not used
+                            classID: 0, // Required by backend but not used
                             loreID: editingLore.loreID,
                             sequenceNumber: i + 1,
                             newLoreText: loreParts[i],
