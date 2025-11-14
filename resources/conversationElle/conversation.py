@@ -162,8 +162,9 @@ class UserMessages(Resource):
         if module_id != REAL_FREE_CHAT_MODULE and not class_id:
             return create_response(False, message="Missing required parameters (class_id required for module chat).", status_code=404)
 
-        if len(message.split()) < 2:
-            return create_response(False, message="Sentence too short. try again", status_code=403)
+        # Maybe on a per-language basis, Japanese has no spaces between words
+        # if len(message.split()) < 2:
+            # return create_response(False, message="Sentence too short. try again", status_code=403)
 
         # Attempts to add message to DB, 0/None = error, success returns msg_id
         # Free chat doesn't store messages in DB

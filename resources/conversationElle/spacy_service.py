@@ -120,16 +120,16 @@ def load_language(lang_code: str):
     if lang_code != CURRENT_LANGUAGE:
         try:
             if SYSTEM_LOGGING_FLAG:
-                print(f"[INFO] Trying to load spaCy model '{SPACY_MODELS[lang_code]}' for language '{lang_code}'")
+                print(f"[INFO] Trying to load spaCy model '{SPACY_MODELS.get(lang_code, DEFAULT_LANGUAGE_CODE)}' for language '{lang_code}'")
             
-            NLP = spacy.load(SPACY_MODELS[lang_code])
+            NLP = spacy.load(SPACY_MODELS.get(lang_code, DEFAULT_LANGUAGE_CODE))
             CURRENT_LANGUAGE = lang_code
 
             if SYSTEM_LOGGING_FLAG:
                 print(f"[INFO] NLP in use {NLP}")
-                print(f"[INFO] Loaded spaCy model '{SPACY_MODELS[lang_code]}' for language '{lang_code}'")
+                print(f"[INFO] Loaded spaCy model '{SPACY_MODELS.get(lang_code, DEFAULT_LANGUAGE_CODE)}' for language '{lang_code}'")
         except Exception as e:
-            print(f"[WARN] Failed while loading model '{SPACY_MODELS[lang_code]}'.Falling back to '{DEFAULT_LANGUAGE_CODE}'. \n{e}")
+            print(f"[WARN] Failed while loading model '{SPACY_MODELS.get(lang_code, DEFAULT_LANGUAGE_CODE)}'.Falling back to '{DEFAULT_LANGUAGE_CODE}'. \n{e}")
             NLP = spacy.load(SPACY_MODELS[DEFAULT_LANGUAGE_CODE])
             CURRENT_LANGUAGE = DEFAULT_LANGUAGE_CODE
 
@@ -208,7 +208,7 @@ def clean_term_phrase(term_phrase: str):
     term_phrase = re.sub(r"(\w+)/\w+\b", r"\1", term_phrase)
 
     # Handle cases like "/word" -> ""
-    term_phrase = re.sub(r"(^|\s)/\w+\b", r"\1", term_phrase)
+    # term_phrase = re.sub(r"(^|\s)/\w+\b", r"\1", term_phrase)
 
     return term_phrase.strip()
 
