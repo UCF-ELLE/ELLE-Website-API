@@ -835,7 +835,7 @@ def profGetStudentMessages(student_id=None, class_id=None, module_id=None, date_
                 return None
 
             query = '''
-                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`, `moduleID`, `classID`, `classID`
+                SELECT `userID`, `chatbotSID`, `keywordsUsed`, `grammarScore`, `source`, `message`, `creationTimestamp`, `isVoiceMessage`, `moduleID`, `classID`
                 FROM `messages`
                 WHERE `classID` = %s AND `moduleID` = %s AND creationDate >= %s AND creationDate <= %s
                 ORDER BY `moduleID`, `userID`, `creationTimestamp`
@@ -1270,5 +1270,24 @@ def getAvgGrammarScoreModule(user_id: int, module_id: int):
 
     res = db.get(query, (user_id, module_id), fetchOne=True)
     if not res:
+        return None
+    return res[0]
+
+# Helper function to get the most recently created lore ID for a user
+def getLastCreatedLoreID(user_id: int):
+    """
+    Retrieves the most recently created lore ID for a given user.
+    This is used as a workaround since insertTitoLore doesn't return the lore_id.
+    """
+    query = '''
+        SELECT loreID 
+        FROM tito_lore 
+        WHERE ownerID = %s 
+        ORDER BY loreID DESC 
+        LIMIT 1;
+    '''
+    from .database import db
+    res = db.get(query, (user_id,), fetchOne=True)
+    if not res or not res[0]:
         return None
     return res[0]
