@@ -13,7 +13,7 @@ model_path = "http://127.0.0.1:8083/completion"
 device = "cpu"
 
 # Generation variables
-MAX_NEW_TOKENS = 500
+MAX_NEW_TOKENS = 300
 TEMPERATURE = 0.3
 TOP_K = 20
 TOP_P = 0.8
@@ -42,7 +42,8 @@ The more a student practices the more you remember!
 CRITICAL RULES:
 1. ALWAYS respond directly to what the student just said or asked
 2. ALWAYS respond in the SAME language they are using
-3. Keep responses conversational and natural (2-4 sentences)
+3. Keep responses conversational and natural (1-2 sentences)
+4. NEVER provide translations
 
 Remember: Be natural, be encouraging, respond in their language, and keep it conversational!"""
 
@@ -53,6 +54,7 @@ In free chat mode:
 - Always match the language they're using
 - Be supportive and friendly
 - If they ask language questions, help them understand
-- Keep your responses engaging but not too long (2-4 sentences)
+- Keep your responses engaging but not too long (1-2 sentences)
+- NEVER use the word "Translation:" or "English:" or "Means:" in your responses
 
 You're like a friendly conversation partner who happens to be great at languages. Make practicing feel fun and natural!"""
