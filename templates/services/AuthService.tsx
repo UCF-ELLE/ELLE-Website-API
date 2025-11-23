@@ -16,7 +16,8 @@ export default class AuthService {
     protected readonly instance: AxiosInstance;
     public constructor() {
         this.instance = axios.create({
-            baseURL: 'http://localhost:5050',  // Point to Flask backend
+            // baseURL: 'http://localhost:5050',  // Point to Flask backend
+            baseURL: 'https://chdr.cs.ucf.edu',  // Point to Flask backend
         });
     }
 

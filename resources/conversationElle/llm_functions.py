@@ -331,7 +331,7 @@ def generate_message_direct(full_prompt: str):
         "temperature": TEMPERATURE,
         "top_k": TOP_K,
         "top_p": TOP_P,
-        "stop": ["\nStudent:"],
+        "stop": ["\nStudent:", "\n\n"],
         "stream": False,
         "cache_prompt": True
     }
