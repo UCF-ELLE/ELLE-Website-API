@@ -4,8 +4,9 @@ Welcome to the setup guide for the ELLE Website and API. Follow these instructio
 
 ## Prerequisites
 
--   Python 3.10 or higher installed on your system.
+-   Python 3.11 or higher installed on your system.
 -   Node.js version 20 or above installed on your system.
+-   MySQL Community Server (8.0.43-0ubuntu0.24.04.2) [If running a local DB instance]
 
 ## Installation Steps
 
@@ -21,10 +22,10 @@ Welcome to the setup guide for the ELLE Website and API. Follow these instructio
 
 4. Create a file named `.env` in the main directory with the following properties:
 
-    ```
+    ```python
     MYSQL_DATABASE_USER='elle'
     MYSQL_DATABASE_PASSWORD='password'
-    MYSQL_DATABASE_DB='elle_database'
+    MYSQL_DATABASE_DB='elle_database'   # 'elle2020' is the DB used in CHDR
     MYSQL_DATABASE_HOST='localhost'
     SECRET_KEY='ian'
     ```
@@ -39,7 +40,7 @@ Welcome to the setup guide for the ELLE Website and API. Follow these instructio
 
 6. Setup MySQL Database:
 
-    - Using the `schema.sql`, set up a MySQL Database named `elle_database`. For the following steps, it is assumed you are running `mysqlserver` in a Linux (or WSL) environment. Using MySQL Workbench should work as well, however.
+    - Using the `schema-no-triggers.sql`, set up a MySQL Database named `elle_database`. For the following steps, it is assumed you are running `mysqlserver` in a Linux (or WSL) environment. Using MySQL Workbench should work as well, however.
         - Login to MySQL as either the root user or a user with administrative privilege.
         - Create a MySQL user with all privileges on localhost named `elle` with password `password`. Below is the command to create such a user:
             ```sql
@@ -53,7 +54,7 @@ Welcome to the setup guide for the ELLE Website and API. Follow these instructio
             ```
         - Exit MySQL and run the following command to import the table schema into the database, making sure you're in the same directory as the schema file:
             ```bash
-            mysql -u elle -p elle_database < schema.sql
+            mysql -u elle -p elle_database < schema-no-triggers.sql
             ```
 
 7. Once the database setup is complete, navigate back to the root directory.
