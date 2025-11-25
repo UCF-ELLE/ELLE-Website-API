@@ -6,21 +6,22 @@
   - **SEE MORE NOTES IN THE ELLE DOCUMENTATION REPO**
   - ***LIMIT USERS IN `classID=74` to be only `TWT_Professor` and only a few students due to explosive nature of the class***
   - `ucf2` is not goated here
-  - All of the documentation here are is written by the DB/Backend guy, so can't really inform too much on stuff about AI/LangTool/Frontend implementations
+  - All of the documentation here are is written by the DB/Backend guy, so can't really inform too much on stuff about AI/Frontend implementations
     - I can prob answer most questions relating to the above unless it is something created by someone that is not I
   - Llama.cpp restarts DAILY in the early morning (due to caches filling up and causing slow generation)
     - On restart, llama is at its slowest
+    - Someone please fix D;;
   - 
 
 ## TWT Notes:
   - `spacy_service.py` supports only 24 languages, so only the languages listed under `SPACY_MODELS` will be allowed when processing messages
-    - Furthermore, there doesn't seem to be that much of a benefit of using the larger models seen from limited testing
-  - ClassID = `74` is the dedicated class for `Talking with Tito` as it contains **ALL** the modules and is owned by `TWT_Professor`
+    - Furthermore, there doesn't seem to be that much of a benefit of using the larger models seen from limited testing, unless someone finds it otherwise
+  - ClassID = `74` is the dedicated testing class for `Talking with Tito` as it contains **ALL** the modules (will always auto add on new module creation) and is owned by `TWT_Professor`
     - *See the docs for the password* 
   - Our project auto-hijacks existing APIs so newer projects that don't disable TWT WILL have issues if some of the stuff is not set up properly or `TWT_ENABLED` flag is made to be `False` in `config.py`
 
 ## Known flaws:
-  -  Audio file cleanup (for normal audio messages, not combined ones)
+  -  
 
 ## Potential flaws:
   - Term miscount when adding/deleting terms 

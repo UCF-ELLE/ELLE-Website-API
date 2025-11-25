@@ -7,7 +7,8 @@ sys.path.insert(0, parent_dir)
 
 import config
 
-USER_VOICE_FOLDER = "/home/ebi/ELLE-Website-API/user_audio_files/"
+# FIX THIS
+USER_VOICE_FOLDER = "/home/elle/ELLE-Website-API/user_audio_files/"
 import mysql.connector
 
 def get_mysql_connection():
@@ -41,38 +42,37 @@ db = DBHelperStandalone()
     PURGE EXPIRED TITO_GROUP MODULES AND USER VOICE MESSAGES
 '''
 
-def cleanup_expired_groups():
-    print("[START] APScheduler started for monthly cleanup", flush=True)
-    # get newly expired groups
-    expired_groups = db.get("SELECT classID, professorID FROM `tito_class_status` WHERE titoStatus='active' AND titoExpirationDate <= CURDATE();")
+def delete_expired_voice_messages():
+    # Step 1: Find expired voice messages
+    query = '''
+        SELECT tvm.userID, tvm.messageID, tvm.filename, m.classID, m.moduleID
+        FROM tito_voice_message tvm
+        JOIN messages m ON tvm.messageID = m.messageID
+        WHERE tvm.audioExpireDate <= CURDATE() AND m.isVoiceMessage = 1;
+    '''
     
-    # Update groups' status and delete 'old' audio files
-    # TODO: THIS IS A SLOW APPROACH, CAN BATCH UPDATE IN MYSQL
-    #       Will have to split 
-    for (class_id, professor_id) in expired_groups:
-        print(f"[INFO] Archiving group {class_id} led by prof {professor_id}")
-        
-        # archive group passed expiration date
-        db.post("UPDATE `tito_class_status` SET titoStatus='inactive' WHERE groupID = %s AND professorID = %s;", (class_id, professor_id))
-        
-        # associated tito_modules marked as inactive by triggers
-        
-        # get moduleIDs for folder cleanup (see: conversation.py on how audio files are stored)
-        module_ids = db.get("SELECT moduleID FROM `tito_module` WHERE classID=%s AND status='inactive';", (class_id,))
-        # Delete each tito_module folder as its expected for ALL contents within to be expired
-        for (module_id,) in module_ids:
-            module_path = os.path.join(USER_VOICE_FOLDER, str(class_id), str(module_id))
-            
-            if os.path.exists(module_path):
-                print(f"[INFO] Deleting ALL contents from module folder: {module_path}")
-                shutil.rmtree(module_path)
-        
-        # If class_id folder is empty, delete it too
-        class_path = os.path.join(USER_VOICE_FOLDER, str(class_id))
-        if os.path.exists(class_path) and not os.listdir(class_path):
-            print(f"[INFO] Deleting empty class folder: {class_path}")
-            os.rmdir(class_path)
-    return
+    expired_messages = db.get(query)
 
+    # Step 2: Iterate over each expired message
+    for userID, messageID, filename, classID, moduleID in expired_messages:
+        # Construct file path
+        file_path = os.path.join(USER_VOICE_FOLDER, str(classID), str(moduleID), str(userID), str(filename))
+        
+        # Delete file if it exists
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+                print(f"Deleted file: {file_path}")
+                # Step 3: Update 'isVoiceMessage' to 0 for corresponding message in 'messages' table
+                update_query = '''
+                    UPDATE messages
+                    SET isVoiceMessage = 0
+                    WHERE messageID = %s;
+                '''
+                db.post(update_query, (messageID,))
+                print(f"Updated messageID {messageID} to set isVoiceMessage = 0")
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
+        
 if __name__ == "__main__":
-    cleanup_expired_groups()
+    delete_expired_voice_messages()
