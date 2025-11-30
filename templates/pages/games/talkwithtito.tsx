@@ -66,7 +66,7 @@ export default function TalkWithTito() {
   const [AIChoice, setAIChoice] = useState<boolean>(false)
   const [userChatFont, setUserChatFont] = useState<string>("");
   const [analyticsActive, setAnalyticsActive] = useState<boolean>(false);
-  const [ttsMuted, setTtsMuted] = useState<boolean>(false);
+  const [ttsMuted, setTtsMuted] = useState<boolean>(true); // Default to muted (disabled)
   const { user, loading: userLoading } = useUser();
   const [timeSpent, setTimeSpent] = useState<string>("Loading...");
   const [termScore, setTermScore] = useState<string>("Loading...");
