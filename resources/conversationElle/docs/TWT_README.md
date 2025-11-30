@@ -4,6 +4,7 @@
 
 ## Notes
   - **SEE MORE NOTES IN THE ELLE DOCUMENTATION REPO**
+  - **Some of the frontend documentation may be found [here](../../../templates/components/ProfessorConsole/README.md)**
   - ***LIMIT USERS IN `classID=74` to be only `TWT_Professor` and only a few students due to explosive nature of the class***
   - `ucf2` is not goated here
   - All of the documentation here are is written by the DB/Backend guy, so can't really inform too much on stuff about AI/Frontend implementations
@@ -11,7 +12,7 @@
   - Llama.cpp restarts DAILY in the early morning (due to caches filling up and causing slow generation)
     - On restart, llama is at its slowest
     - Someone please fix D;;
-  - 
+  
 
 ## TWT Notes:
   - `spacy_service.py` supports only 24 languages, so only the languages listed under `SPACY_MODELS` will be allowed when processing messages
@@ -33,7 +34,7 @@
   - for `group_status` make sure to update it to + 1 year from current date on insertion
   - Cleaner free chat sessions
   - in convgrader.py > suggest_grade() figure out how to better match errors to key terms
-  - Remove audio files whose creationdate is greater than a year
+  - Work on expiring classes/students to remove them after some time
 
 
 # Suggestions:

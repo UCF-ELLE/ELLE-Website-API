@@ -1,4 +1,7 @@
 # ConversAItionELLE Frontend Documentation
+
+# THIS IS DEPRECATED AND IS THE ORIGINAL CONVERSAITIONELLE's DOCUMENTATION 
+See [THIS](../../../templates/components/ProfessorConsole/README.md) for up to date frontend documentation from part 2 team
 ---
 ## Quick tour of app
 ConversAItionELLE's frontend is located in the [templates folder](../../../templates), where we store our [home page](../../../templates/pages/games/talkwithtito.tsx) and our [components](../../../templates/components/TalkWithTito). Currently, the only two accounts that have access to the TalkWithTito game are the master account (ucf2) and our demo account (pleasedEagle1) which can be seen by their userIDs in the home page on lines 98 and 113. To open the game to all users, remove the surrounding `if` statements from both of the `setIsloading` function calls. For more clarity, the updated code for lines 92 through 117 are typed below:
