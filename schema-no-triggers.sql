@@ -1,13 +1,13 @@
--- MySQL dump 10.13  Distrib 5.7.24, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.43, for Linux (x86_64)
 --
--- Host: localhost    Database: elle2020
+-- Host: localhost    Database: tmp
 -- ------------------------------------------------------
 -- Server version	8.0.43-0ubuntu0.24.04.2
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+/*!50503 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `adaptive_learning`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `adaptive_learning` (
   `userID` int NOT NULL,
   `termID` int NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE `adaptive_learning` (
 
 DROP TABLE IF EXISTS `animelle_save_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `animelle_save_data` (
   `saveID` int NOT NULL AUTO_INCREMENT,
   `userID` int NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE `animelle_save_data` (
 
 DROP TABLE IF EXISTS `answer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `answer` (
   `questionID` int NOT NULL,
   `termID` int NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE `answer` (
 
 DROP TABLE IF EXISTS `audio`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `audio` (
   `audioID` int NOT NULL AUTO_INCREMENT,
   `audioLocation` varchar(225) DEFAULT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE `audio` (
 
 DROP TABLE IF EXISTS `chatbot_sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `chatbot_sessions` (
   `chatbotSID` int NOT NULL AUTO_INCREMENT,
   `userID` int NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE `chatbot_sessions` (
   KEY `userID` (`userID`,`moduleID`,`chatbotSID`),
   CONSTRAINT `chatbot_sessions_ibfk_1` FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   CONSTRAINT `chatbot_sessions_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=246 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=202 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -113,7 +113,7 @@ CREATE TABLE `chatbot_sessions` (
 
 DROP TABLE IF EXISTS `chatbot_sessions_old`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `chatbot_sessions_old` (
   `chatbotId` int NOT NULL AUTO_INCREMENT,
   `userId` int NOT NULL,
@@ -136,7 +136,7 @@ CREATE TABLE `chatbot_sessions_old` (
 
 DROP TABLE IF EXISTS `deleted_module`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `deleted_module` (
   `moduleID` int NOT NULL AUTO_INCREMENT,
   `name` varchar(250) NOT NULL,
@@ -155,7 +155,7 @@ CREATE TABLE `deleted_module` (
 
 DROP TABLE IF EXISTS `deleted_question`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `deleted_question` (
   `questionID` int NOT NULL AUTO_INCREMENT,
   `audioID` int DEFAULT NULL,
@@ -176,7 +176,7 @@ CREATE TABLE `deleted_question` (
 
 DROP TABLE IF EXISTS `deleted_term`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `deleted_term` (
   `termID` int NOT NULL AUTO_INCREMENT,
   `imageID` int DEFAULT NULL,
@@ -200,7 +200,7 @@ CREATE TABLE `deleted_term` (
 
 DROP TABLE IF EXISTS `group`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `group` (
   `groupID` int NOT NULL AUTO_INCREMENT,
   `groupName` varchar(50) NOT NULL,
@@ -215,7 +215,7 @@ CREATE TABLE `group` (
 
 DROP TABLE IF EXISTS `group_module`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `group_module` (
   `moduleID` int NOT NULL,
   `groupID` int NOT NULL,
@@ -234,7 +234,7 @@ CREATE TABLE `group_module` (
 
 DROP TABLE IF EXISTS `group_user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `group_user` (
   `userID` int NOT NULL,
   `groupID` int NOT NULL,
@@ -247,46 +247,6 @@ CREATE TABLE `group_user` (
   CONSTRAINT `group_user_ibfk_2` FOREIGN KEY (`groupID`) REFERENCES `group` (`groupID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `titofy_class_onCreate` AFTER INSERT ON `group_user` FOR EACH ROW BEGIN
-  IF NEW.accessLevel = 'pf' THEN
-    INSERT IGNORE INTO `tito_class_status` (`classID`, `professorID`, `titoExpirationDate`) 
-    VALUES (NEW.groupID, NEW.userID, DATE_ADD(CURDATE(), INTERVAL 1 YEAR));
-  END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `titofy_class_onUpdate` AFTER UPDATE ON `group_user` FOR EACH ROW BEGIN
-  IF OLD.accessLevel != 'pf' AND NEW.accessLevel = 'pf' THEN
-    INSERT IGNORE INTO `tito_class_status` (`classID`, `professorID`, `titoExpirationDate`) 
-    VALUES (NEW.groupID, NEW.userID, DATE_ADD(CURDATE(), INTERVAL 1 YEAR));
-  END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `image`
@@ -294,7 +254,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `image`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `image` (
   `imageID` int NOT NULL AUTO_INCREMENT,
   `imageLocation` varchar(225) DEFAULT NULL,
@@ -308,7 +268,7 @@ CREATE TABLE `image` (
 
 DROP TABLE IF EXISTS `item`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `item` (
   `itemID` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -327,7 +287,7 @@ CREATE TABLE `item` (
 
 DROP TABLE IF EXISTS `logged_answer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `logged_answer` (
   `logID` int NOT NULL AUTO_INCREMENT,
   `questionID` int DEFAULT NULL,
@@ -349,7 +309,7 @@ CREATE TABLE `logged_answer` (
   CONSTRAINT `logged_answer_ibfk_1` FOREIGN KEY (`questionID`) REFERENCES `question` (`questionID`) ON DELETE SET NULL,
   CONSTRAINT `logged_answer_ibfk_3` FOREIGN KEY (`sessionID`) REFERENCES `session` (`sessionID`),
   CONSTRAINT `logged_answer_ibfk_4` FOREIGN KEY (`termID`) REFERENCES `term` (`termID`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=142647 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=142531 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -358,7 +318,7 @@ CREATE TABLE `logged_answer` (
 
 DROP TABLE IF EXISTS `logged_pasta`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `logged_pasta` (
   `logID` int NOT NULL AUTO_INCREMENT,
   `pastaID` int NOT NULL,
@@ -383,7 +343,7 @@ CREATE TABLE `logged_pasta` (
 
 DROP TABLE IF EXISTS `logged_user_item`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `logged_user_item` (
   `logItemID` int NOT NULL AUTO_INCREMENT,
   `userItemID` int NOT NULL,
@@ -402,7 +362,7 @@ CREATE TABLE `logged_user_item` (
 
 DROP TABLE IF EXISTS `mentor_preferences`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mentor_preferences` (
   `mentorPreferenceID` int NOT NULL AUTO_INCREMENT,
   `userID` int NOT NULL,
@@ -419,7 +379,7 @@ CREATE TABLE `mentor_preferences` (
 
 DROP TABLE IF EXISTS `mentor_question_frequency`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mentor_question_frequency` (
   `ID` int NOT NULL AUTO_INCREMENT,
   `numIncorrectCards` int DEFAULT NULL,
@@ -438,7 +398,7 @@ CREATE TABLE `mentor_question_frequency` (
 
 DROP TABLE IF EXISTS `mentor_responses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mentor_responses` (
   `mentorResponseID` int NOT NULL AUTO_INCREMENT,
   `questionID` int NOT NULL,
@@ -461,7 +421,7 @@ CREATE TABLE `mentor_responses` (
 
 DROP TABLE IF EXISTS `messages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `messages` (
   `messageID` int NOT NULL AUTO_INCREMENT,
   `userID` int NOT NULL,
@@ -486,48 +446,8 @@ CREATE TABLE `messages` (
   CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   CONSTRAINT `messages_ibfk_3` FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE,
   CONSTRAINT `messages_ibfk_4` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=317 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=291 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `onMessageInsert_setDate` BEFORE INSERT ON `messages` FOR EACH ROW BEGIN
-  IF NEW.creationDate IS NULL THEN
-    SET NEW.creationDate = CURDATE();
-  END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `onMessageUpdate_update_chatbotSessions` AFTER UPDATE ON `messages` FOR EACH ROW BEGIN 
-  IF NEW.keyWordsUsed > OLD.keyWordsUsed THEN 
-    UPDATE `chatbot_sessions` 
-    SET `moduleWordsUsed` = `moduleWordsUsed` + (NEW.keyWordsUsed - OLD.keyWordsUsed) 
-    WHERE userID = NEW.userID AND moduleID = NEW.moduleID AND chatbotSID = NEW.chatbotSID;
-  END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `messages_old`
@@ -535,7 +455,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `messages_old`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `messages_old` (
   `id` int NOT NULL AUTO_INCREMENT,
   `userId` int NOT NULL,
@@ -559,7 +479,7 @@ CREATE TABLE `messages_old` (
 
 DROP TABLE IF EXISTS `module`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `module` (
   `moduleID` int NOT NULL AUTO_INCREMENT,
   `name` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
@@ -572,24 +492,6 @@ CREATE TABLE `module` (
   CONSTRAINT `module_userID` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=241 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `onModuleCreation_addToSuperProf` AFTER INSERT ON `module` FOR EACH ROW BEGIN
-  INSERT IGNORE INTO `group_module` (`moduleID`, `groupID`)
-  VALUES (new.moduleID, 74);
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `module_question`
@@ -597,7 +499,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `module_question`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `module_question` (
   `moduleID` int NOT NULL,
   `questionID` int NOT NULL,
@@ -607,64 +509,6 @@ CREATE TABLE `module_question` (
   CONSTRAINT `module_question_ibfk_2` FOREIGN KEY (`questionID`) REFERENCES `question` (`questionID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `afterInsertOnModuleQuestion_update_totalTerms` AFTER INSERT ON `module_question` FOR EACH ROW BEGIN
-    DECLARE term_count INT DEFAULT 0;
-
-    
-    SELECT COUNT(DISTINCT t.termID)
-    INTO term_count
-    FROM `module_question` mq
-    JOIN answer a ON mq.questionID = a.questionID
-    JOIN term t ON a.termID = t.termID
-    WHERE mq.moduleID = NEW.moduleID;
-
-    
-    UPDATE `tito_module`
-    SET totalTerms = term_count
-    WHERE moduleID = NEW.moduleID;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `afterDeleteOnModuleQuestion_update_totalTerms` AFTER DELETE ON `module_question` FOR EACH ROW BEGIN
-    DECLARE term_count INT DEFAULT 0;
-
-    SELECT COUNT(DISTINCT t.termID)
-    INTO term_count
-    FROM module_question mq
-    JOIN answer a ON mq.questionID = a.questionID
-    JOIN term t ON a.termID = t.termID
-    WHERE mq.moduleID = OLD.moduleID;
-
-    UPDATE `tito_module`
-    SET totalTerms = term_count
-    WHERE moduleID = OLD.moduleID;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `multiple_choice_answers`
@@ -672,7 +516,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `multiple_choice_answers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `multiple_choice_answers` (
   `multipleChoiceID` int NOT NULL AUTO_INCREMENT,
   `questionID` int NOT NULL,
@@ -689,7 +533,7 @@ CREATE TABLE `multiple_choice_answers` (
 
 DROP TABLE IF EXISTS `pasta`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pasta` (
   `pastaID` int NOT NULL AUTO_INCREMENT,
   `moduleID` int NOT NULL,
@@ -709,7 +553,7 @@ CREATE TABLE `pasta` (
 
 DROP TABLE IF EXISTS `pasta_answer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pasta_answer` (
   `answerID` int NOT NULL AUTO_INCREMENT,
   `pastaID` int NOT NULL,
@@ -727,7 +571,7 @@ CREATE TABLE `pasta_answer` (
 
 DROP TABLE IF EXISTS `question`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `question` (
   `questionID` int NOT NULL AUTO_INCREMENT,
   `audioID` int DEFAULT NULL,
@@ -748,7 +592,7 @@ CREATE TABLE `question` (
 
 DROP TABLE IF EXISTS `question_frame`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `question_frame` (
   `qframeID` int NOT NULL AUTO_INCREMENT,
   `moduleID` int NOT NULL,
@@ -770,7 +614,7 @@ CREATE TABLE `question_frame` (
 
 DROP TABLE IF EXISTS `question_frame_option`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `question_frame_option` (
   `optionID` int NOT NULL AUTO_INCREMENT,
   `qframeID` int NOT NULL,
@@ -789,7 +633,7 @@ CREATE TABLE `question_frame_option` (
 
 DROP TABLE IF EXISTS `session`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `session` (
   `sessionID` int NOT NULL AUTO_INCREMENT,
   `userID` int NOT NULL,
@@ -808,7 +652,7 @@ CREATE TABLE `session` (
   CONSTRAINT `deleted_module_key` FOREIGN KEY (`deleted_moduleID`) REFERENCES `deleted_module` (`moduleID`),
   CONSTRAINT `session_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`),
   CONSTRAINT `session_ibfk_2` FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=18454 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=18453 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -817,7 +661,7 @@ CREATE TABLE `session` (
 
 DROP TABLE IF EXISTS `tag`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tag` (
   `termID` int NOT NULL AUTO_INCREMENT,
   `tagName` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL,
@@ -832,7 +676,7 @@ CREATE TABLE `tag` (
 
 DROP TABLE IF EXISTS `term`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `term` (
   `termID` int NOT NULL AUTO_INCREMENT,
   `imageID` int DEFAULT NULL,
@@ -856,7 +700,7 @@ CREATE TABLE `term` (
 
 DROP TABLE IF EXISTS `tito_class_status`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tito_class_status` (
   `classID` int NOT NULL,
   `professorID` int NOT NULL,
@@ -869,52 +713,6 @@ CREATE TABLE `tito_class_status` (
   CONSTRAINT `tito_class_status_ibfk_2` FOREIGN KEY (`professorID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `addFreeChatModule` AFTER INSERT ON `tito_class_status` FOR EACH ROW BEGIN
-  INSERT IGNORE INTO `tito_module` (moduleID, classID)
-  VALUES (228, new.classID);
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `onClassStatusUpdate_updateModulesStatus` AFTER UPDATE ON `tito_class_status` FOR EACH ROW BEGIN
-    
-    IF OLD.titoStatus = 'active' AND NEW.titoStatus = 'inactive' THEN
-        UPDATE `tito_module`
-        SET status = 'inactive'
-        WHERE classID = NEW.classID;
-    END IF;
-    
-    IF OLD.titoStatus = 'inactive' AND NEW.titoStatus = 'active' THEN
-        UPDATE `tito_module`
-        SET status = 'active'
-        WHERE classID = NEW.classID;
-    END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `tito_lore`
@@ -922,7 +720,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `tito_lore`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tito_lore` (
   `loreID` int NOT NULL AUTO_INCREMENT,
   `ownerID` int NOT NULL DEFAULT '2',
@@ -939,7 +737,7 @@ CREATE TABLE `tito_lore` (
 
 DROP TABLE IF EXISTS `tito_lore_text`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tito_lore_text` (
   `loreID` int NOT NULL,
   `sequenceNumber` int NOT NULL,
@@ -955,7 +753,7 @@ CREATE TABLE `tito_lore_text` (
 
 DROP TABLE IF EXISTS `tito_module`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tito_module` (
   `moduleID` int NOT NULL,
   `classID` int NOT NULL,
@@ -975,41 +773,6 @@ CREATE TABLE `tito_module` (
   CONSTRAINT `tito_module_ibfk_3` FOREIGN KEY (`loreAssigned`) REFERENCES `tito_lore` (`loreID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `beforeInsertOntitoModule_update_totalTerms` BEFORE INSERT ON `tito_module` FOR EACH ROW BEGIN
-  DECLARE term_count INT DEFAULT 0;
-  
-  SELECT COUNT(DISTINCT t.termID)
-  INTO term_count
-  FROM `module_question` mq
-  JOIN answer a ON mq.questionID = a.questionID
-  JOIN term t ON a.termID = t.termID
-  WHERE mq.moduleID = NEW.moduleID;
-
-  
-  SET NEW.totalTerms = term_count;
-
-
-  IF NEW.startDate IS NULL THEN
-    SET NEW.startDate = CURDATE();
-  END IF;
-  IF NEW.endDate IS NULL THEN
-    SET NEW.endDate = DATE_ADD(NEW.startDate, INTERVAL 1 YEAR); 
-  END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `tito_module_progress`
@@ -1017,7 +780,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `tito_module_progress`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tito_module_progress` (
   `moduleID` int NOT NULL,
   `userID` int NOT NULL,
@@ -1037,7 +800,7 @@ CREATE TABLE `tito_module_progress` (
 
 DROP TABLE IF EXISTS `tito_term_progress`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tito_term_progress` (
   `moduleID` int NOT NULL,
   `termID` int NOT NULL,
@@ -1053,48 +816,6 @@ CREATE TABLE `tito_term_progress` (
   CONSTRAINT `tito_term_progress_ibfk_3` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `beforeUpdateTermProgress_change_hasMastered` BEFORE UPDATE ON `tito_term_progress` FOR EACH ROW BEGIN
-    IF (NEW.timesUsed > 0) AND (OLD.hasMastered = 0) THEN
-      SET NEW.hasMastered = 1;
-    END IF;
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `afterUpdateTermProgress_change_termsMastered` AFTER UPDATE ON `tito_term_progress` FOR EACH ROW BEGIN
-    
-    IF NEW.hasMastered = 1 AND OLD.hasMastered = 0 THEN
-        UPDATE `tito_module_progress`
-        SET `termsMastered` = `termsMastered` + 1
-        WHERE `moduleID` = NEW.moduleID AND `userID` = NEW.userID;
-    END IF;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `tito_voice_message`
@@ -1102,7 +823,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `tito_voice_message`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tito_voice_message` (
   `userID` int NOT NULL,
   `voiceID` int NOT NULL AUTO_INCREMENT,
@@ -1118,7 +839,7 @@ CREATE TABLE `tito_voice_message` (
   CONSTRAINT `tito_voice_message_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
   CONSTRAINT `tito_voice_message_ibfk_2` FOREIGN KEY (`messageID`) REFERENCES `messages` (`messageID`) ON DELETE CASCADE,
   CONSTRAINT `tito_voice_message_ibfk_3` FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1127,7 +848,7 @@ CREATE TABLE `tito_voice_message` (
 
 DROP TABLE IF EXISTS `tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tokens` (
   `expired` varchar(400) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -1139,7 +860,7 @@ CREATE TABLE `tokens` (
 
 DROP TABLE IF EXISTS `user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user` (
   `userID` int NOT NULL AUTO_INCREMENT,
   `username` varchar(20) NOT NULL,
@@ -1151,7 +872,7 @@ CREATE TABLE `user` (
   `reason` varchar(255) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB AUTO_INCREMENT=579 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=577 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1160,7 +881,7 @@ CREATE TABLE `user` (
 
 DROP TABLE IF EXISTS `user_item`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_item` (
   `userItemID` int NOT NULL AUTO_INCREMENT,
   `userID` int NOT NULL,
@@ -1184,7 +905,7 @@ CREATE TABLE `user_item` (
 
 DROP TABLE IF EXISTS `user_preferences`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_preferences` (
   `userPreferenceID` int NOT NULL AUTO_INCREMENT,
   `userID` int NOT NULL,
@@ -1193,7 +914,7 @@ CREATE TABLE `user_preferences` (
   PRIMARY KEY (`userPreferenceID`),
   KEY `userID` (`userID`),
   CONSTRAINT `userID_preferences` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=580 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=578 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -1205,4 +926,4 @@ CREATE TABLE `user_preferences` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-12 12:08:37
+-- Dump completed on 2025-11-18 14:25:15

@@ -31,8 +31,10 @@ pos_map = {
 # ++++++ TWT ACCESS APIs ++++++
 # ======================================
 
+# See docs/api-notes.md for more description of each API
+
 # NOTE: data = request.form is for {Content-Type = application/x-www-form-urlencoded} not application/JSON
-# TODO: Free chat AND module-based chats to be worked on
+# TODO: Free chat AND module-based chats to be improved
 
 # Check if user can access TWT 
 # (Must be enrolled in an active tito class AND assigned an active Tito Module)
@@ -43,18 +45,6 @@ class TitoAccess(Resource):
             /elleapi/twt/session/access
                 - Returns: active, tito-enabled, class->[modules] where a user has access to 
                     A list of tuples [(classID, [(tito_module_id, sequence_id)])]
-                    EX  [
-                            (
-                                class_id=1,
-                                [
-                                    (module_id_1, sequence_id_x),
-                                    (module_id_2, sequence_id_y),
-                                    ...
-                                    (module_id_N, sequence_id_z),
-                                ]
-                            ),
-                        ]
-            TODO: Error Handling or let it be 
         '''
         try:
             class_ids = getTitoClasses(userID=get_jwt_identity(), permissionLevel='any', get_classes_type='active')
@@ -62,6 +52,7 @@ class TitoAccess(Resource):
             if not class_ids:
                 return create_response(success=True, message="Returned user modules", data=[])
             
+            # Map modules to each class, return as a list
             tito_modules = []
             for class_id in class_ids:
                 res = getTitoModules(class_id)
@@ -125,7 +116,7 @@ class ChatbotSessions(Resource):
 
         return create_response(True, message="Chatbot session created.", data=chatbot_sid)
 
-# NOTE: Ability to send messages should block until receiving back a response
+# NOTE: Ability to send messages should block until receiving back a response (may be unnecessary tho)
 # TODO: for GET calls, consider sending messages in batches then all at once (better for users with lots of msgs?)
 class UserMessages(Resource):
     @jwt_required
@@ -162,8 +153,9 @@ class UserMessages(Resource):
         if module_id != REAL_FREE_CHAT_MODULE and not class_id:
             return create_response(False, message="Missing required parameters (class_id required for module chat).", status_code=404)
 
-        if len(message.split()) < 2:
-            return create_response(False, message="Sentence too short. try again", status_code=403)
+        # Maybe on a per-language basis, Japanese has no spaces between words
+        # if len(message.split()) < 2:
+            # return create_response(False, message="Sentence too short. try again", status_code=403)
 
         # Attempts to add message to DB, 0/None = error, success returns msg_id
         # Free chat doesn't store messages in DB
@@ -378,7 +370,7 @@ class FetchAllUserAudio(Resource):
         '''
             twt/session/downloadAllUserAudio
             downloads all audio for this user for classID and moduleID
-            Returns either a concatenated .webm file (if ffmpeg available) or a ZIP file with all audio files
+            Returns either a concatenated .webm file (if ffmpeg available)
         '''
         user_id = get_jwt_identity() 
         class_id = request.args.get('classID')
@@ -549,25 +541,6 @@ class Classes(Resource):
 # ++++++ PROFESSOR + (TAs?) ACCESS ONLY APIs ++++++
 # ========================================
 
-# Helper function to get the most recently created lore ID for a user
-def getLastCreatedLoreID(user_id: int):
-    """
-    Retrieves the most recently created lore ID for a given user.
-    This is used as a workaround since insertTitoLore doesn't return the lore_id.
-    """
-    query = '''
-        SELECT loreID 
-        FROM tito_lore 
-        WHERE ownerID = %s 
-        ORDER BY loreID DESC 
-        LIMIT 1;
-    '''
-    from .database import db
-    res = db.get(query, (user_id,), fetchOne=True)
-    if not res or not res[0]:
-        return None
-    return res[0]
-
 # TODO: this might need try catch statements
 class AddTitoModule(Resource):
     @jwt_required
@@ -663,7 +636,6 @@ class UpdateTitoClass(Resource):
 
         return create_response(True, message="updated tito class status")
         
-
 class GetClassUsers(Resource):
     @jwt_required
     def get(self):
@@ -704,28 +676,12 @@ class UpdateLoreAssignment(Resource):
             return create_response(False, message="unable to assign lore. check that the module exists in the class and try again", status_code=400)
         return create_response(True, message="successfully updated assigned lore to class module")
     
-# class FetchClassModules(Resource):
-#     @jwt_required
-#     def get(self):
-#         user_id = get_jwt_identity()
-
-#         res = 
-
-#         if not res:
-#             create_response(False, message='failed to retrieve information', status_code=400)
-
-#         create_response()
-
-
-
 class CreateTitoLore(Resource):
     @jwt_required
     def post(self):
         '''
             creates tito lore tied to this user as the owner
-            accepts either:
             - 4 separate strings (lore_1, lore_2, lore_3, lore_4)
-            - a single body string that will be split into 4 parts by double newlines
         '''
         user_id = get_jwt_identity()
         claims = get_jwt_claims()
@@ -789,7 +745,6 @@ class UpdateTitoLore(Resource):
 
         data = request.form
         class_id = data.get('classID')
-        # module_id = data.get('moduleID')
         lore_id = data.get('loreID')
         sequence_num = data.get('sequenceNumber')
         new_lore_text = data.get('newLoreText')
@@ -826,8 +781,6 @@ class FetchAllOwnedTitoLore(Resource):
         if not res:
             return create_response(False, message='failed to retrieve info or user has no owned tito lore', status_code=500)  
         return create_response(True, message="returned owned tito lores", loreData=res)
-
-
 
 class PFGetStudentMessages(Resource):
     @jwt_required
@@ -893,7 +846,6 @@ class PFGetStudentMessages(Resource):
 
         return create_response(True, message='returned messages', data=newres)
 
-
 class GenerateModule(Resource):
     @jwt_required
     def get(self):
@@ -935,71 +887,3 @@ class GenerateModule(Resource):
             return create_response(message='returned sample terms', data=res)
         except Exception as err:
             return create_response(False, message="an error occured while generating module", error=err, status_code=500)
-
-
-# ========================================
-# ++++++ DB MIGRATION TEMPORARY ++++++
-# ========================================
-
-# Disable/Remove AFTER RUNNING ONCE
-# class Testing(Resource):
-#     def get(self):
-#         res = updateLiveDB()
-#         addNewGroupUserToTitoGroup(570, 74)
-
-#         return create_response(res=res)
-
-
-# ========================================
-# REDO APIS ++++++
-# ========================================
-
-# Deprecated for now, unused?
-# class ExportChatHistory(Resource):
-#     @jwt_required
-#     def post(self):
-#          data = request.form  
-#          userId = data.get('userId')
-#          chatbotSID = data.get('chatbotSID')
- 
-#          try:
-#              messages, statusCode = getMessages(userId, chatbotSID)
-#              print(statusCode)
-
-#              data = [
-#                  {
-#                      "source": msg.get('source', ''), 
-#                      "value": msg.get('value', ''), 
-#                      "timestamp": msg.get('timestamp', ''),
-#                      #"metadata": json.dumps(msg.get('metadata', {}))
-#                  }
-#                  for msg in messages
-#              ]
-
-#              data = convert_messages_to_csv(messages, data)
-
-#              # create an in-memory buffer for csv
-#              csv_buffer = io.StringIO()
-#              csv_writer = csv.writer(csv_buffer)
-
-#              header_row = list(data[len(data)-1].keys())
-             
-#              # write csv header
-#              csv_writer.writerow(header_row)
-             
-#              # write the data in
-#              for msg in data:
-#                 row = []
-#                 for key, value in msg.items():
-#                     row.append(value)
-#                 csv_writer.writerow(row)
- 
-#              response = Response(csv_buffer.getvalue(), mimetype="text/csv")
-#              response.headers["Content-Disposition"] = "attachment; filename=chat_history.csv"
- 
-#              return response
-#          except Exception as error:
-#              print(f"Error: {str(error)}")
-#              return {"error": "error"}, 500
-
-

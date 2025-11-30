@@ -8,6 +8,8 @@ When "CHDR server" or "Production" is mentioned, we're talking about the [CHDR s
 
 **To get started, check the [quick start guide](docs/quickstart.md)!**
 
+**For access relating to the CHDR server AND documentations of previous ELLE projects, [See this Repo](https://github.com/UCF-ELLE/ELLE-Documentation) (requires access from Dr. Johnson)**
+
 ## Current State
 
 **Production server:** The [ELLE website](https://chdr.cs.ucf.edu/elle/home) is hosted at https://chdr.cs.ucf.edu/elle and the [API](https://chdr.cs.ucf.edu/elleapi) is hosted at https://chdr.cs.ucf.edu/elleapi.
@@ -18,7 +20,7 @@ When "CHDR server" or "Production" is mentioned, we're talking about the [CHDR s
 
 ## Requirements
 
-**Python Version**: >= 3.10.12
+**Python Version**: >= 3.11
 **Node Version**: >= v20.11.0
 
 ## API

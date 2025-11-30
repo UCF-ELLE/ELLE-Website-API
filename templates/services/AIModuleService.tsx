@@ -62,7 +62,8 @@ export default class AIModuleService {
     
     public constructor() {
         this.instance = axios.create({
-            baseURL: 'http://localhost:5050',
+            // baseURL: 'http://localhost:5050',
+            baseURL: 'https://chdr.cs.ucf.edu',
         });
     }
 
