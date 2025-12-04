@@ -69,10 +69,13 @@ export default function ClassesPage() {
             const userGroupsData = await apiClient.get<any>('/searchusergroups');
             const userGroups = Array.isArray(userGroupsData) ? userGroupsData : [];
             
+            // Filter to only include classes where the user is a professor (accessLevel: "pf")
+            const professorGroups = userGroups.filter((g: any) => g.accessLevel === 'pf');
+            
             // WORKAROUND: Since there's no endpoint to get ALL classes, and superadmins
             // aren't automatically in all classes, we'll just show the classes they're in
             // plus a message about how to access other classes
-            const transformedClasses: TitoClass[] = userGroups.map((g: any) => {
+            const transformedClasses: TitoClass[] = professorGroups.map((g: any) => {
                 const titoStatus = titoClassesMap.get(g.groupID);
                 return {
                     classID: g.groupID,
