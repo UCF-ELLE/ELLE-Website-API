@@ -37,7 +37,9 @@ export default function ProfessorConsolePage() {
         try {
             // Fetch all classes the user has access to
             const classesData = await apiClient.get<any[]>('/searchusergroups');
-            totalClasses = Array.isArray(classesData) ? classesData.length : 0;
+            var userGroups = Array.isArray(classesData) ? classesData : [];
+            userGroups = userGroups.filter((g: any) => g.accessLevel === 'pf');
+            totalClasses = Array.isArray(userGroups) ? userGroups.length : 0;
         } catch (err) {
             console.error('Failed to fetch classes:', err);
         }
