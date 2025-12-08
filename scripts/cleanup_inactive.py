@@ -8,7 +8,7 @@ sys.path.insert(0, parent_dir)
 import config
 
 # FIX THIS
-USER_VOICE_FOLDER = "/home/elle/ELLE-Website-API/user_audio_files/"
+USER_VOICE_FOLDER = "/home/elle/ELLE-2024-Website-API/user_audio_files/"
 import mysql.connector
 
 def get_mysql_connection():

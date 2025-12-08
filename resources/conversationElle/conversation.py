@@ -594,7 +594,10 @@ class UpdateTitoModule(Resource):
         if not isTitoClassOwner(user_id, class_id):
             return create_response(False, message="Class is not currently a tito class.", status_code=403)
         if not isTitoModule(class_id, module_id):
-            return create_response(False, message="module is not a tito module.", status_code=403)
+            res = addNewTitoModule(module_id, class_id)
+            if not res:
+                create_response(False, message="failed to insert tito_module, already exists", status_code=403)
+            return create_response(True, message="updated respective tables.")
 
         if start_date is not None and end_date is not None:
             if status_update_change is not None:
