@@ -348,8 +348,10 @@ def spacy_service():
         finally:
             MESSAGE_QUEUE.task_done()
 
-print("STARTING SPACY SERVICE")
-threading.Thread(target=spacy_service, daemon=True).start()
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    if TWT_ENABLED:
+        print("STARTING SPACY SERVICE")
+        threading.Thread(target=spacy_service, daemon=True).start()
 
 
 

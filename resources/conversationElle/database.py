@@ -485,11 +485,10 @@ def titofy_module(module_id: int, class_id: int):
     res = db.post("INSERT IGNORE INTO tito_module (moduleID, classID) VALUES (%s, %s);", (module_id, class_id))
 
 
-# TODO: Check if tito_module method required?
-# TODO: create DB safety checks?
-# TODO: create methods for when a new user joins the group [URGENT]
+# Associates a new tito module to a tito_class
+# Automatically enrolls existing group_users 
 def addNewTitoModule(module_id, class_id):
-    res = db.get("SELECT EXISTS(SELECT * FROM tito_module WHERE moduleID = %s AND classID = %s);", (module_id, class_id), fetchOne=True)
+    res = db.get("SELECT EXISTS(SELECT moduleID FROM tito_module WHERE moduleID = %s AND classID = %s);", (module_id, class_id), fetchOne=True)
     if res:
         if res[0]:
             return 0
@@ -686,7 +685,29 @@ def createTitoClass(user_id: int, class_id: int):
     if not res.get("rowcount"):
         return False
 
-    
+    query = '''
+        SELECT moduleID
+        FROM group_module
+        WHERE groupID = %s;
+    '''
+    res = db.get(query, (class_id))
+
+    for module in res:
+        addNewTitoModule(module, class_id)
+
+    # query = '''
+    #     SELECT userID
+    #     FROM group_user
+    #     WHERE groupID = %s;
+    # '''
+
+    # res = db.get(query, (class_id))
+    # for user in res:
+    #     if user == user_id:
+    #         continue
+
+    #     addNewGroupUserToTitoGroup(user, class_id)
+
     return True
 
 def updateClassModuleTitoLoreAssignment(class_id: int, module_id: int, new_lore_id: int):

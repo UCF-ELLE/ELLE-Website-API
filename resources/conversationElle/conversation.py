@@ -583,7 +583,7 @@ class UpdateTitoModule(Resource):
         # OPTIONAL ARGS
         start_date = data.get('startDate')
         end_date = data.get('endDate')
-        status_update_change = data.get('isStatusUpdate') # true or false
+        status_update_change = data.get('isStatusUpdate', True) # true or false
         
         if not class_id or not module_id:
             return create_response(False, message="Missing parameters.", status_code=404)
@@ -629,7 +629,7 @@ class UpdateTitoClass(Resource):
             return create_response(False, message="invalid perms", status_code=403)
         if not isTitoClassOwner(user_id, class_id):
             if createTitoClass(user_id, class_id):
-                addNewGroupUserToTitoGroup(user_id, class_id)
+                # addNewGroupUserToTitoGroup(user_id, class_id)
                 return create_response(True, message="Successfully made class into a tito-enabled class")
             else:
                 return create_response(False, message="Failed to make class a Tito class. Valve please fix...", status_code=500)

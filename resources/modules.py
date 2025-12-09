@@ -8,7 +8,7 @@ from exceptions_util import *
 from db import mysql
 from db_utils import *
 from utils import *
-from resources.conversationElle.database import addNewTitoModule, assignNewTermToModuleUsers, titofy_module, addNewGroupUserToTitoGroup, updateModuleTermCount
+from resources.conversationElle.database import addNewTitoModule, assignNewTermToModuleUsers, addNewGroupUserToTitoGroup, updateModuleTermCount
 import os.path
 
 

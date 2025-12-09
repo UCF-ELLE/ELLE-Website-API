@@ -415,18 +415,6 @@ api.add_resource(PFGetStudentMessages, API_ENDPOINT_PREFIX + "twt/professor/getS
 api.add_resource(GetTermProgress, API_ENDPOINT_PREFIX + "twt/session/getTermProgress")
 api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateModule")
 
-
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
-# api.add_resource(UpdateTitoModule, API_ENDPOINT_PREFIX + "twt/professor/a")
-
-# Temporary
-# api.add_resource(Testing, API_ENDPOINT_PREFIX + "twt/testing")
-# api.add_resource(AIModuleGeneration, API_ENDPOINT_PREFIX + "ai/generate-module")  # Use /twt/professor/generateModule instead
-
-
 # ===============================================
 # End of ConversAItionELLE endpoints
 # ===============================================
@@ -436,12 +424,6 @@ api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateMo
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
 
-    # should prevent duplicate inits when in debug mode
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        # =================================================
-        # Extra stuff below, please comment out if not used
-        # =================================================
 
-        # spaCy service
-        threading.Thread(target=spacy_service, daemon=True).start()
+
 
