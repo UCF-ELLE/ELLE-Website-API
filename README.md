@@ -93,6 +93,7 @@ templates/
 ├── public/
 │    ├── games/    # Unity game WebGL files go here in the respective folder!
 │    │    ├── AnimELLE-Crossing/
+│    │    ├── BELLEtro-Game/
 │    │    ├── Card-Game/
 │    │    ├── Maze-Game/
 │    │    ├── Pasta-Game/
@@ -107,8 +108,9 @@ templates/
 ### Notes
 
 - Unity WebGL Games
-  - This website hosts VirtuELLE Mentor, The ELLE MAZEing Race, AnimELLE Crossing, and Pasta Kerfuff-ELLE using their Unity WebGL builds. For versioning sake, the games are not included in this repository.
+  - This website hosts VirtuELLE Mentor, bELLetro, The ELLE MAZEing Race, AnimELLE Crossing, and Pasta Kerfuff-ELLE using their Unity WebGL builds. For versioning sake, the games are not included in this repository.
     - [VirtuELLE Mentor repository](https://github.com/UCF-ELLE/Card-Game)
+    - [bELLEtro repository](https://github.com/UCF-ELLE/bELLEtro)
     - [AnimELLE Crossing repository](https://github.com/UCF-ELLE/AnimELLECrossing)
     - [Pasta Kerfuff-ELLE repository](https://github.com/UCF-ELLE/Pasta-Kerfuff-ELLE)
   - Before hosting the game files on the website, see [this README](templates/public/games/README.md)
