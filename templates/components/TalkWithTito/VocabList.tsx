@@ -30,7 +30,7 @@ function WordItem({ wordFront, wordBack, isMastered }: WordItemProps) {
     <div
       style={{
         textDecoration: isMastered ? "line-through" : "none",
-        fontWeight: isHovered ? "bold" : "normal",
+        fontWeight: isHovered ? "normal" : "normal",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
