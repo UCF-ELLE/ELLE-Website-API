@@ -14,7 +14,7 @@ For the most part, git switch = git checkout
 - All changes must go through a **Pull Request**
 - Every task should have **its own feature branch**
 - Pull Requests must be **reviewed before merging**
-- Always do `git push -u origin <branch-name>` early so your branch is visible to the team. 
+- Always `git push -u origin <branch-name>` early so your branch is visible to the whole team. 
 
 ---
 # Summary in Bullet Points
