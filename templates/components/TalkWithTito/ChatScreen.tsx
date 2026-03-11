@@ -1102,86 +1102,87 @@ export default function ChatScreen(props: propsInterface) {
 
             {/* Chat box div */}
             <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex z-20">
-                <div className="w-[15%] h-full aspect-square flex items-center justify-center">
-                    <Image 
-                    src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : titoMood === "neutral" ? neutralTito : neutralTito} 
-                    style={{width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%"}} 
-                    alt={`Tito is ${titoMood}`}
-                    className={titoMood === "thinking" ? 'tito-thinking' : ''}/>
-                    <TitoCloudBubble message={message} trigger={trigger} />
-                </div>
-                <div className="w-[85%] flex items-center justify-center ">
-                    <textarea 
-                        placeholder = {titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
-                        className="w-[85%] h-[70%] bg-white rounded p-1 resize-none overflow-y-auto"
+              <div className="w-[15%] h-full aspect-square flex items-center justify-center">
+                <Image 
+                  src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : neutralTito} 
+                  style={{ width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%" }} 
+                  alt={`Tito is ${titoMood}`}
+                  className={titoMood === "thinking" ? "tito-thinking" : ""}
+                />
+                <TitoCloudBubble message={message} trigger={trigger} />
+              </div>
 
-                        style={{pointerEvents: titoMood === "thinking" || listening ? "none" : "auto", opacity: titoMood === "thinking" || listening ? 0.75 : 1, fontWeight: titoMood === "thinking" ? "bold" : "normal"}}
-                        disabled={titoMood === "thinking" || listening}
-                        value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
-                        onChange={(e) => setUserMessage(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSendMessageClick();
-                            }
-                        }}
-                    />
-                    {/* controls column: Mic + Language */}
-                  <div className="ml-2 flex items-center justify-center w-12 h-8 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium">
-                    {/* Click-to-toggle microphone */}
-                    <button
+              <div className="w-[85%] flex items-center justify-center pr-3">
+                <textarea 
+                  placeholder={titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
+                  className="w-[85%] h-[70%] bg-white rounded p-1 resize-none overflow-y-auto"
+                  style={{
+                    pointerEvents: titoMood === "thinking" || listening ? "none" : "auto",
+                    opacity: titoMood === "thinking" || listening ? 0.75 : 1,
+                    fontWeight: titoMood === "thinking" ? "bold" : "normal"
+                  }}
+                  disabled={titoMood === "thinking" || listening}
+                  value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
+                  onChange={(e) => setUserMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessageClick();
+                    }
+                  }}
+                />
+
+                {/* controls row: Mic + Send */}
+                <div className="ml-2 flex items-center">
+                  {/* microphone */}
+                  <button
                     type="button"
                     onClick={(e) => {
                       e.preventDefault();
-                      console.log('[ChatScreen] Microphone button clicked, current state:', { 
-                        sttSupported, 
-                        listening,
-                        isRecording
-                      });
-                      
                       if (!sttSupported) {
                         alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
                         return;
                       }
-                      if (!listening) {
-                        console.log('[ChatScreen] Starting to listen...');
-                        startListening();
-                      } else {
-                        console.log('[ChatScreen] Stopping listening...');
-                        stopListening();
-                      }
+                      if (!listening) startListening();
+                      else stopListening();
                     }}
-                    disabled={false}
-                    className={`flex items-center justify-center w-16 h-16 rounded-full shadow-sm transition
-                                ${listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"}`}
-                    title={sttSupported ? (listening ? "Listening… click to stop" : "Click to start listening") : "Speech-to-text not supported in Firefox"}
-                    aria-pressed={listening}
-                    aria-label={listening ? "Stop listening" : "Start listening"}
+                    className={`flex items-center justify-center w-16 h-16 rounded-full shadow-sm transition ${
+                      listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"
+                    }`}
                   >
                     <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
                   </button>
-                  </div>
-                    {/* Language dropdown - only show in free chat mode */}
-                    {props.moduleID === -1 && (
-                      <select
-                          value={ttsLang}
-                          onChange={(e) => setTtsLang(e.target.value)}
-                          className="ml-2 flex items-center justify-center w-16 h-12 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium cursor-pointer"
-                          title="Select speech language for TTS and STT"
-                        >
-                          {SUPPORTED_LANGS.map((lang) => (
-                            <option key={lang.code} value={lang.code}>
-                              🌐 {lang.short}
-                            </option>
-                          ))}
-                        </select>
-                    )}
-                    <button onClick={handleSendMessageClick} className="ml-2">
-                        <Image src={sendMessageIcon} className="w-full h-full rounded-full" alt="Send message" />
-                    </button>
-                      
+
+                  {/* send */}
+                  <button
+                    onClick={handleSendMessageClick}
+                    className="ml-2 w-16 h-16 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition shadow-sm"
+
+                  >
+                    <Image
+                      src={sendMessageIcon}
+                      className="w-10 h-10 rounded-full"
+                      alt="Send message"
+                    />
+                  </button>
                 </div>
-            </div>
-        </div>
-    )
+
+                {/* Language dropdown */}
+                {props.moduleID === -1 && (
+                  <select
+                    value={ttsLang}
+                    onChange={(e) => setTtsLang(e.target.value)}
+                    className="ml-2 w-32 h-12 rounded-full bg-white/80 hover:bg-white transition text-sm font-medium cursor-pointer px-2"
+                  >
+                    {SUPPORTED_LANGS.map((lang) => (
+                      <option key={lang.code} value={lang.code}>
+                        🌐 {lang.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </div>  
+        </div>     
+  )          
 }
