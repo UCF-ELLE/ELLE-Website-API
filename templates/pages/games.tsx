@@ -62,7 +62,7 @@ export default function Games() {
                 return TalkWithTitoImage;
             case 'BELLEtro':
                 return BELLEtroImage;
-            case 'DesktopHub':
+            case 'VRGames':
                 return DesktopHubImage;
             default:
                 return CardGameImage;

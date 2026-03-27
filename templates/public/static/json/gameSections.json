@@ -84,6 +84,78 @@
         ]
     },
     {
+        "anchor": "AudibELLE",
+        "link": "/games/audibelle",
+        "external": false,
+        "title": "AudibELLE PC",
+        "description": "Fulfill customer spoken requests at a spooky convenience store! Contact Dr. Johnson to play!",
+        "altImage": "Audibelle Image",
+        "teams": [
+            {
+                "name": "Original VR Senior Design Team",
+                "members": ["Matthew Sand", "Tyler Phung", "Jesus Carballosa Arteaga", "Liam Galloway", "Nathaell Avril Leman"]
+            },
+            {
+                "name": "VR to PC Team",
+                "members": ["Donny Akers", "Austin Chenoweth", "Cristian Flores", "Christian Morton", "Yasmeen Moufakkir", "Daizabeth Nunez"]
+            }
+        ]
+    },
+    {
+        "anchor": "HELLEsKitchen",
+        "link": "/games/helleskitchen",
+        "external": false,
+        "title": "HELLE's Kitchen PC",
+        "description": "Follow recipes in a different language! Search the kitchen for ingredients, cook them up to create a delicious learning experience!",
+        "altImage": "HELLE's Kitchen Image",
+        "teams": [
+            {
+                "name": "Original VR Senior Design Team",
+                "members": ["Allexis Knight", "Arianna Walters", "Dylan Quigley", "Edgard Irineo", "Manatsa Chiomadzi"]
+            },
+            {
+                "name": "VR to PC Team",
+                "members": ["Donny Akers", "Austin Chenoweth", "Cristian Flores", "Christian Morton", "Yasmeen Moufakkir", "Daizabeth Nunez"]
+            }
+        ]
+    },
+    {
+        "anchor": "SpinNSpELLE",
+        "link": "/games/spinnspelle",
+        "external": false,
+        "title": "Spin N SpELLE PC",
+        "description": "Spell out the translation of terms using alphabet blocks. Play in endless mode or try your luck at quiz mode!",
+        "altImage": "Spin N SpELLE Image",
+        "teams": [
+            {
+                "name": "Original VR Senior Design Team",
+                "members": ["Kaarthik Alagappan", "Jonathan Jules", "Tiffany Lin", "Catalina Morales", "Samuel Tungol"]
+            },
+            {
+                "name": "VR to PC Team",
+                "members": ["Donny Akers", "Austin Chenoweth", "Cristian Flores", "Christian Morton", "Yasmeen Moufakkir", "Daizabeth Nunez"]
+            }
+        ]
+    },
+    {
+        "anchor": "HighriseHELLEp",
+        "link": "/games/highrisehellep",
+        "external": false,
+        "title": "Highrise HELLEp PC",
+        "description": "Play as a firefighter in this action packed game. Connect terms to their correct categories to put out fires and save the day!",
+        "altImage": "Highrise HELLEp Image",
+        "teams": [
+            {
+                "name": "Original VR Senior Design Team",
+                "members": ["Kaarthik Alagappan", "Jonathan Jules", "Tiffany Lin", "Catalina Morales", "Samuel Tungol"]
+            },
+            {
+                "name": "VR to PC Team",
+                "members": ["Donny Akers", "Austin Chenoweth", "Cristian Flores", "Christian Morton", "Yasmeen Moufakkir", "Daizabeth Nunez"]
+            }
+        ]
+    },
+    {
         "anchor": "Maze",
         "link": "/games/mazegame",
         "external": false,
@@ -112,100 +184,36 @@
         ]
     },
     {
-        "anchor": "DesktopHub",
-        "link": "/static/pdfs/game1.pdf",
-        "external": true,
-        "title": "Elle Desktop Hub",
-        "description": "Have access to all the VR ELLE games on your desktop!",
-        "altImage": "Desktop Hub Image",
-        "teams": [
-            {
-                "name": "Senior Design Team",
-                "members": ["Robert Marrero", "Trong Pham", "Daniel Moshovetis","Nicole Drewry"]
-            }
-        ]
-    },
-    {
-        "anchor": "XELLEnt2",
-        "link": "",
-        "external": true,
+        "anchor": "VRGames",
+        "link": "/gamecode",
+        "external": false,
         "title": "VR Games",
         "description": "Work together with your parter to solve the puzzles and escape",
         "altImage": "HELLE's Kitchen Image",
         "teams": [
             {
-                "name": "Senior Design Team",
-                "members": ["Robert Marrero", "Trong Pham", "Daniel Moshovetis","Nicole Drewry"]
-            }
-        ]
-    },
-    {
-        "anchor": "AudibELLE",
-        "link": "",
-        "external": true,
-        "title": "AudibELLE",
-        "description": "Fulfill customer spoken requests at a spooky convenience store! Contact Dr. Johnson to play!",
-        "altImage": "Audibelle Image",
-        "teams": [
+                "name": "Spin N SpELLE Team",
+                "members": ["Kaarthik Alagappan", "Jonathan Jules", "Tiffany Lin", "Catalina Morales", "Samuel Tungol"]
+            },
             {
-                "name": "Senior Design Team",
+                "name": "Highrise HELLEp Team",
+                "members": ["Kaarthik Alagappan", "Jonathan Jules", "Tiffany Lin", "Catalina Morales", "Samuel Tungol"]
+            },
+            {
+                "name": "HELLE's Kitchen Team",
+                "members": ["Allexis Knight", "Arianna Walters", "Dylan Quigley", "Edgard Irineo", "Manatsa Chiomadzi"]
+            },
+            {
+                "name": "AudibELLE Team",
                 "members": ["Matthew Sand", "Tyler Phung", "Jesus Carballosa Arteaga", "Liam Galloway", "Nathaell Avril Leman"]
-            }
-        ]
-    },
-    {
-        "anchor": "HELLEsKitchen",
-        "link": "https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning",
-        "external": true,
-        "title": "HELLE's Kitchen",
-        "description": "Follow recipes in a different language! Search the kitchen for ingredients, cook them up to create a delicious learning experience!",
-        "altImage": "HELLE's Kitchen Image",
-        "teams": [
+            },
             {
-                "name": "Senior Design Team",
+                "name": "MilleniElle Team",
                 "members": ["Allexis Knight", "Arianna Walters", "Dylan Quigley", "Edgard Irineo", "Manatsa Chiomadzi"]
-            }
-        ]
-    },
-    {
-        "anchor": "SpinNSpELLE",
-        "link": "https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning",
-        "external": true,
-        "title": "Spin N SpELLE",
-        "description": "Spell out the translation of terms using alphabet blocks. Play in endless mode or try your luck at quiz mode!",
-        "altImage": "Spin N SpELLE Image",
-        "teams": [
+            },
             {
-                "name": "Senior Design Team",
-                "members": ["Kaarthik Alagappan", "Jonathan Jules", "Tiffany Lin", "Catalina Morales", "Samuel Tungol"]
-            }
-        ]
-    },
-    {
-        "anchor": "HighriseHELLEp",
-        "link": "https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning",
-        "external": true,
-        "title": "Highrise HELLEp",
-        "description": "Play as a firefighter in this action packed game. Connect terms to their correct categories to put out fires and save the day!",
-        "altImage": "Highrise HELLEp Image",
-        "teams": [
-            {
-                "name": "Senior Design Team",
-                "members": ["Kaarthik Alagappan", "Jonathan Jules", "Tiffany Lin", "Catalina Morales", "Samuel Tungol"]
-            }
-        ]
-    },
-    {
-        "anchor": "Millenielle",
-        "link": "https://ucfgrl.itch.io/elle-the-endless-learner-ellements-of-learning",
-        "title": "MilleniElle",
-        "external": true,
-        "description": "Milleni-ELLE is a Spanish language game emphasizing context and immersion. The player arrives in an airport (tutorial scene) where they learn the basic mechanics of the game and board a virtual bus. The bus will take them to a house to pack for their next trip or to the grocery store to practice food-based vocabulary.",
-        "altImage": "MilleniElle Image",
-        "teams": [
-            {
-                "name": "Senior Design Team",
-                "members": ["Allexis Knight", "Arianna Walters", "Dylan Quigley", "Edgard Irineo", "Manatsa Chiomadzi"]
+                "name": "XcELLEnt XR Team",
+                "members": ["Robert Marrero", "Trong Pham", "Daniel Moshovetis","Nicole Drewry"]
             }
         ]
     }
