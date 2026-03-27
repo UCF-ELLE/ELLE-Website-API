@@ -156,6 +156,9 @@ from resources.conversationElle.conversation import(
     # Testing,
     # AIModuleGeneration,
 )
+
+from resources.audio_conversion import WAVAudioConversion
+
 import os
 import threading
 from resources.conversationElle.spacy_service import(
@@ -419,6 +422,8 @@ api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateMo
 # End of ConversAItionELLE endpoints
 # ===============================================
 
+# Audio to WAV Conversion -> WebGL AudibELLE 
+api.add_resource(WAVAudioConversion, API_ENDPOINT_PREFIX + "convert_to_wav/<path:path>")
 
 
 if __name__ == "__main__":
