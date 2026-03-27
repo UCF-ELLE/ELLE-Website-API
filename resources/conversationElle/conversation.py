@@ -195,27 +195,10 @@ class UserMessages(Resource):
         # Update module words used =>
         # Async grammar evaluation
 
-        # Sends a message to tito with safety check
-        tito_response = ''
-        try:
-            
-            tito_response = handle_message_with_context(message = message, module_id = module_id, session_id = session_id)
-            # print(f"[DEBUG] session_id={session_id}, module_id={module_id}")
-            
-            # tito_response = tito_response_data.get('response', "Sorry, I could not understand your message. Please try again!")
-            # print(tito_response)
-            
-            # TODO: Verify data
-            if module_id != REAL_FREE_CHAT_MODULE:
-                newTitoMessage(user_id, session_id, class_id, tito_response, module_id)
+        # Return early after saving user message
+        return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id)
 
-        except Exception as error:
-            tito_response = "Sorry, there is a bit of trouble. Please try again!"
-            tito_response_data = {"response": tito_response}
-        
-        return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id, titoResponse=tito_response)
-
-
+ 
     @jwt_required
     def get(self):
         '''
@@ -323,6 +306,54 @@ class UserAudio(Resource):
         if not res:
             return create_response(False, message="Error occurred when inserting vm data into DB.")
         return create_response(True, message="Audio message uploaded successfully.")
+
+class GenerateTitoResponse(Resource):
+    @jwt_required
+    def post(self):
+        '''
+        /elleapi/twt/session/generate
+            Generates an LLM response for a given message
+        '''
+        data = request.form
+        message = data.get('message')
+        module_id = int(data.get('moduleID'))
+        session_id = data.get('chatbotSID')
+        
+        if not message or not module_id or not session_id:
+            return create_response(False, message="Missing required parameters.", status_code=404)
+            
+        try:
+            tito_response = handle_message_with_context(message=message, module_id=module_id, session_id=session_id)
+            return create_response(True, message="LLM response generated.", titoResponse=tito_response)
+        except Exception as e:
+            print(f"[GENERATE ERROR] {e}")
+            tito_response = "Sorry, there is a bit of trouble. Please try again!"
+            return create_response(False, message="LLM generation failed.", status_code=500, titoResponse=tito_response)
+
+class TitoMessages(Resource):
+    @jwt_required
+    def post(self):
+        '''
+        /elleapi/twt/session/tito_messages
+            Saves Tito's response to the database
+        '''
+        user_id = get_jwt_identity()
+        data = request.form
+        session_id = data.get('chatbotSID')
+        class_id = data.get('classID')
+        module_id = int(data.get('moduleID'))
+        tito_response = data.get('titoResponse')
+        
+        if not session_id or not module_id or not tito_response or not class_id:
+            return create_response(False, message="Missing required parameters.", status_code=404)
+            
+        try:
+            newTitoMessage(user_id, session_id, class_id, tito_response, module_id)
+            return create_response(True, message="Tito message saved.")
+        except Exception as e:
+            print(f"[SAVE ERROR] {e}")
+            return create_response(False, message="Failed to save Tito message.", status_code=500)
+
 
     @jwt_required
     def get(self):
