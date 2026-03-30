@@ -48,16 +48,18 @@ export default function VocabList({ wordsFront, wordsBack, used, progress, termI
   //console.log("[VocabList] masteredTermIDs =", masteredTermIDs, "termIDs =", termIDs);
 
   if (!wordsFront || !wordsBack || !used || !termIDs) return null;
+  
+  // Cross off words that were used in the current chat or already mastered.
 
   const sortedWords = wordsFront
     .map((word, index) => {
-      const isMastered = mastered.has(termIDs[index]);
+      const isCrossedOff = Boolean(used[index]) || mastered.has(termIDs[index]);
       return {
         wordFront: wordsBack[index] || "",
         wordBack: word,
-        isMastered,
+        isMastered: isCrossedOff,
         index,
-      }
+      };
     })
     .sort((a, b) => Number(a.isMastered) - Number(b.isMastered));
 

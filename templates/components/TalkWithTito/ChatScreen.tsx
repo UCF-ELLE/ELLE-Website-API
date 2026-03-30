@@ -21,6 +21,19 @@ import thinkingTito from "@/public/static/images/ConversAItionELLE/respondingTit
 import VocabList from "./VocabList";
 import Messages from "./Messages"
 
+// Normalizes text so vocab matching ignores accent marks, capitalization, and punctuation.
+function normalizeText(str?: string) {
+  if (!str) return "";
+
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 interface SpeechRecognition extends EventTarget {
   start(): void;
   stop(): void;
@@ -441,15 +454,32 @@ export default function ChatScreen(props: propsInterface) {
             //Updates ChatMessages array, removing temporary user message
             console.log('[ChatScreen] Updating chat messages with user response and LLM message');
             setChatMessages((prevChatMessages) => [...prevChatMessages.slice(0, -1), userResponse, llmMessage]);
+            
+            // Match vocab words using normalized text so accentless student input still counts.
+            const normalizedMessage = normalizeText(messageToSend);
 
-            //Update usedTerms
-            const newTerms: Term[] = terms.map(term => ({
-                termID: term.termID,
-                questionFront: term.questionFront,
-                questionBack: term.questionBack,
-                used: term.used || sendMessageResponse.termsUsed.includes(term.questionFront)
-            }))
-            setTerms(newTerms);
+                const newTerms: Term[] = terms.map(term => {
+                  const normalizedTerm = normalizeText(term.questionFront);
+
+                  const usedByMessage =
+                    normalizedTerm.length > 0 &&
+                    normalizedMessage.split(" ").includes(normalizedTerm);
+
+                  const usedByBackend =
+                    sendMessageResponse?.termsUsed?.some((usedWord: string) => {
+                      const normalizedUsedWord = normalizeText(usedWord);
+                      return normalizedUsedWord.split(" ").includes(normalizedTerm);
+                    }) ?? false;
+
+                  return {
+                    termID: term.termID,
+                    questionFront: term.questionFront,
+                    questionBack: term.questionBack,
+                    used: term.used || usedByMessage || usedByBackend
+                  };
+                });
+
+setTerms(newTerms);
 
             {
               const usedCount  = newTerms.filter(t => t.used).length;
@@ -938,12 +968,22 @@ export default function ChatScreen(props: propsInterface) {
                     console.log("Received Music Background: " + newChatbot.userMusicChoice)
                     props.setUserMusicFilepath(newChatbot.userMusicChoice);
                   }
-                  const newTerms: Term[] = terms.map(term => ({
-                      termID: term.termID,
-                      questionFront: term.questionFront,
-                      questionBack: term.questionBack,
-                      used: newChatbot.termsUsed ? newChatbot.termsUsed.includes(term.questionFront) : false
-                  }))
+                  const newTerms: Term[] = terms.map(term => {
+                      const normalizedTerm = normalizeText(term.questionFront).trim();
+
+                      const used =
+                        newChatbot.termsUsed?.some((w: string) => {
+                          const normalizedUsedWord = ` ${normalizeText(w)} `;
+                          return normalizedTerm.length > 0 && normalizedUsedWord.includes(` ${normalizedTerm} `);
+                        }) ?? false;
+
+                      return {
+                        termID: term.termID,
+                        questionFront: term.questionFront,
+                        questionBack: term.questionBack,
+                        used
+                      };
+                  });
                   setTerms(newTerms);
             }
             else {
