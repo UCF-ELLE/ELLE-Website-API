@@ -13,10 +13,10 @@ import axios from 'axios';
 //   }
 // };
 
+// CHDR: session management, permission checks, analytics (validates against real CHDR DB)
 export const ELLE_URL = 'https://chdr.cs.ucf.edu/elleapi';
-//const ELLE_URL = 'http://159.65.232.73/elleapi';
-// Connect directly to Flask backend running on port 5050
-// export const ELLE_URL = 'http://localhost:5050/elleapi';
+// LOCAL: ONLY sendMessage -> local Flask -> local llama.cpp (for local testing)
+export const LOCAL_URL = 'http://localhost:5050/elleapi';
 
 
 interface Module {
@@ -495,8 +495,26 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     
     console.log(`[SendMessage] Sending with original session ID: ${chatbotId}, classID: ${finalClassId}`);
     
-    const response = await axios.post(
+    // Step 1: Save User Message to Production DB (CHDR)
+    console.log(`[SendMessage] Step 1: Saving user message to DB...`);
+    const userMessageResponse = await axios.post(
       `${ELLE_URL}/twt/session/messages`,
+      formData,
+      {
+        headers: { 
+          Authorization: `Bearer ${access_token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+    
+    const messageID = userMessageResponse.data.messageID || userMessageResponse.data.data?.messageID;
+    console.log(`[SendMessage] Step 1 Complete: messageID=${messageID}`);
+
+    // Step 2: Generate LLM Response (Local localhost)
+    console.log(`[SendMessage] Step 2: Generating LLM response...`);
+    const generateResponse = await axios.post(
+      `${ELLE_URL}/twt/session/generate`, // change to LOCAL_URL for local testing
       formData,
       {
         headers: { 
@@ -507,21 +525,32 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
       }
     );
     
-    // Debug: Log the full response structure
-    console.log("[DEBUG] Full backend response:");
-    console.log(response.data);
+    const titoResponse = generateResponse.data.titoResponse;
+    console.log(`[SendMessage] Step 2 Complete: titoResponse received`);
+
+    // Step 3: Save Tito's Response to Production DB (CHDR)
+    console.log(`[SendMessage] Step 3: Saving Tito's response to DB...`);
+    const titoFormData = new FormData();
+    titoFormData.append('chatbotSID', chatbotId.toString());
+    titoFormData.append('classID', finalClassId?.toString()??"");
+    titoFormData.append('moduleID', moduleId.toString());
+    titoFormData.append('titoResponse', titoResponse);
+
+    await axios.post(
+      `${ELLE_URL}/twt/session/tito_messages`,
+      titoFormData,
+      {
+        headers: { 
+          Authorization: `Bearer ${access_token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+    console.log(`[SendMessage] Step 3 Complete: All data synched`);
+
     
-    // Extract response data (backend wraps in response.data)
-    const responseData = response.data;
-    const data = responseData.data || responseData;
-    
-    console.log("[DEBUG] Extracted data:");
-    console.log(data);
-    
-    // Get titoResponse from the top-level response (not nested in data)
-    const titoResponse = responseData.titoResponse || data.titoResponse || data.llmResponse;
-    console.log("[DEBUG] Extracted titoResponse:");
-    console.log(titoResponse);
+
+    const data = generateResponse.data; // Use metadata if returned from generate
     
     if(data && data.metadata && typeof data.metadata === "string") {
       try {
@@ -539,7 +568,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
       llmResponse: titoResponse || "Great job!",
       termsUsed: data.termsUsed || [],
       titoConfused: data.titoConfused || false,
-      messageID: responseData.messageID || data.messageID, // Extract messageID from response
+      messageID: messageID, 
       metadata: data.metadata || {}
     };
     

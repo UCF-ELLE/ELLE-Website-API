@@ -152,6 +152,8 @@ from resources.conversationElle.conversation import(
     PFGetStudentMessages,
     GetTermProgress,
     GenerateModule,
+    GenerateTitoResponse,
+    TitoMessages,
 
     # Testing,
     # AIModuleGeneration,
@@ -397,6 +399,8 @@ api.add_resource(GetALValues, API_ENDPOINT_PREFIX + "adaptivelearning/gettermlis
 # ===============================================
 api.add_resource(TitoAccess, API_ENDPOINT_PREFIX + "twt/session/access")
 api.add_resource(ChatbotSessions, API_ENDPOINT_PREFIX + "twt/session/create")
+api.add_resource(GenerateTitoResponse, API_ENDPOINT_PREFIX + "twt/session/generate")
+api.add_resource(TitoMessages, API_ENDPOINT_PREFIX + "twt/session/tito_messages")
 api.add_resource(UserMessages, API_ENDPOINT_PREFIX + "twt/session/messages")
 api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
