@@ -52,11 +52,13 @@ from resources.user import (
     GenerateOTC,
     OTCLogin,
     User_Preferences,
+    UserStats,
     ForgotPassword,
     ChangePassword,
     ForgotUsername,
 )
 from resources.friendships import Friendship
+from resources.challenges import Challenges
 from resources.terms import Term, Tags, Tag_Term, Tags_In_Term, Specific_Term, TagCount
 from resources.sessions import (
     Session,
@@ -271,6 +273,7 @@ api.add_resource(UserLogin, API_ENDPOINT_PREFIX + "login")
 api.add_resource(UserLogout, API_ENDPOINT_PREFIX + "logout")
 api.add_resource(User, API_ENDPOINT_PREFIX + "user")
 api.add_resource(Friendship, API_ENDPOINT_PREFIX + "friendship")
+api.add_resource(Challenges, API_ENDPOINT_PREFIX + "challenges")
 api.add_resource(UsersHighscores, API_ENDPOINT_PREFIX + "highscores")
 api.add_resource(ResetPassword, API_ENDPOINT_PREFIX + "resetpassword")
 api.add_resource(CheckIfActive, API_ENDPOINT_PREFIX + "activejwt")
@@ -323,6 +326,7 @@ api.add_resource(GetGroupModules, API_ENDPOINT_PREFIX + "getgroupmodules")
 api.add_resource(GenerateOTC, API_ENDPOINT_PREFIX + "generateotc")
 api.add_resource(OTCLogin, API_ENDPOINT_PREFIX + "otclogin")
 api.add_resource(User_Preferences, API_ENDPOINT_PREFIX + "userpreferences")
+api.add_resource(UserStats, API_ENDPOINT_PREFIX + "user/stats")
 api.add_resource(LanguageStats, API_ENDPOINT_PREFIX + "languagestats")
 api.add_resource(AllModuleStats, API_ENDPOINT_PREFIX + "allmodulestats")
 api.add_resource(TagCount, API_ENDPOINT_PREFIX + "tagcount")
