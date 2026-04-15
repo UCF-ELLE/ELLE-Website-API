@@ -48,13 +48,17 @@ from resources.user import (
     UserLevels,
     GenerateUsername,
     GetUsernames,
+    #GetUsername,
     GenerateOTC,
     OTCLogin,
     User_Preferences,
+    UserStats,
     ForgotPassword,
     ChangePassword,
     ForgotUsername,
 )
+from resources.friendships import Friendship
+from resources.challenges import Challenges
 from resources.terms import Term, Tags, Tag_Term, Tags_In_Term, Specific_Term, TagCount
 from resources.sessions import (
     Session,
@@ -121,6 +125,7 @@ from resources.mentors import (
 from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALValues
 from resources.animelle import AnimELLESaveData
 from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALValues
+from resources.xp import UpdateXP, RetrieveXP
 
 
 
@@ -158,9 +163,6 @@ from resources.conversationElle.conversation import(
     # Testing,
     # AIModuleGeneration,
 )
-
-from resources.audio_conversion import WAVAudioConversion
-
 import os
 import threading
 from resources.conversationElle.spacy_service import(
@@ -272,6 +274,8 @@ api.add_resource(Users, API_ENDPOINT_PREFIX + "users")
 api.add_resource(UserLogin, API_ENDPOINT_PREFIX + "login")
 api.add_resource(UserLogout, API_ENDPOINT_PREFIX + "logout")
 api.add_resource(User, API_ENDPOINT_PREFIX + "user")
+api.add_resource(Friendship, API_ENDPOINT_PREFIX + "friendship")
+api.add_resource(Challenges, API_ENDPOINT_PREFIX + "challenges")
 api.add_resource(UsersHighscores, API_ENDPOINT_PREFIX + "highscores")
 api.add_resource(ResetPassword, API_ENDPOINT_PREFIX + "resetpassword")
 api.add_resource(CheckIfActive, API_ENDPOINT_PREFIX + "activejwt")
@@ -318,11 +322,13 @@ api.add_resource(GetSessionCSV, API_ENDPOINT_PREFIX + "getsessioncsv")
 api.add_resource(GenerateUsername, API_ENDPOINT_PREFIX + "generateusername")
 api.add_resource(GetLoggedAnswerCSV, API_ENDPOINT_PREFIX + "getloggedanswercsv")
 api.add_resource(GetUsernames, API_ENDPOINT_PREFIX + "getusernames")
+#api.add_resource(GetUsername, API_ENDPOINT_PREFIX + "getusername")
 api.add_resource(GenerateGroupCode, API_ENDPOINT_PREFIX + "generategroupcode")
 api.add_resource(GetGroupModules, API_ENDPOINT_PREFIX + "getgroupmodules")
 api.add_resource(GenerateOTC, API_ENDPOINT_PREFIX + "generateotc")
 api.add_resource(OTCLogin, API_ENDPOINT_PREFIX + "otclogin")
 api.add_resource(User_Preferences, API_ENDPOINT_PREFIX + "userpreferences")
+api.add_resource(UserStats, API_ENDPOINT_PREFIX + "user/stats")
 api.add_resource(LanguageStats, API_ENDPOINT_PREFIX + "languagestats")
 api.add_resource(AllModuleStats, API_ENDPOINT_PREFIX + "allmodulestats")
 api.add_resource(TagCount, API_ENDPOINT_PREFIX + "tagcount")
@@ -426,9 +432,8 @@ api.add_resource(GenerateModule, API_ENDPOINT_PREFIX + "twt/professor/generateMo
 # End of ConversAItionELLE endpoints
 # ===============================================
 
-# Audio to WAV Conversion -> WebGL AudibELLE 
-api.add_resource(WAVAudioConversion, API_ENDPOINT_PREFIX + "convert_to_wav/<path:path>")
-
+api.add_resource(UpdateXP, API_ENDPOINT_PREFIX + "updateXP")
+api.add_resource(RetrieveXP, API_ENDPOINT_PREFIX + "retrieveXP")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
