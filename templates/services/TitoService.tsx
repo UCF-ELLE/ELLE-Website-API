@@ -194,12 +194,25 @@ export const fetchModuleTerms = async (access_token: string, moduleID: number): 
   }
 };
 
+// CHANGED: supports backend-owned per-term usage counts
+interface TermUsageProgress {
+  termID: number;
+  timesUsed?: number;
+  usageCount?: number;
+  count?: number;
+}
+
 interface GetChatBotResponse {
   chatbotId: number;
   termsUsed: string[];
   userBackground?: string;
   userMusicChoice?: string;
   totalTimeChatted: number;
+
+  // CHANGED: optional backend term progress fields
+  usageByTerm?: TermUsageProgress[];
+  termUsageCounts?: TermUsageProgress[];
+  termProgress?: TermUsageProgress[];
 }
 
 // getChatBot (POST)
@@ -425,6 +438,11 @@ interface SendMessageResponse {
   termsUsed: string[];
   titoConfused?: boolean;
   messageID?: number;
+
+  // CHANGED: optional backend term progress fields for immediate UI sync
+  usageByTerm?: TermUsageProgress[];
+  termUsageCounts?: TermUsageProgress[];
+  termProgress?: TermUsageProgress[];
   metadata?: {
     score?: number;
     error?: string;
