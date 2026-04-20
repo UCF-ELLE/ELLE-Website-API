@@ -1118,111 +1118,141 @@ setTerms(newTerms);
       return () => clearTimeout(timer);
     }, []);
 
-    return(
-        <div className="w-full h-full"> {/*Outer container div*/}
 
-            <Image src={background} className="w-full absolute top-0 left-0" alt="Background"/>
+
+    return(
+      <div className="flex flex-col h-full w-full overflow-hidden relative"> 
+      {/*Outer container div*/}
+            <Image src={background} className="w-full absolute top-0 left-0 z-0" alt="Background" />
             <Image src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" draggable={false} alt="Decorative palm tree" />
             {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
 
-            {/*Vocabulary list div*/}
-            {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-              <VocabList 
-                wordsFront={terms.map(term => (term.questionFront))} 
-                wordsBack={terms.map(term => (term.questionBack))} 
-                used={terms.map(term => (term.used))} 
-                progress={progress}
-                termIDs={terms.map(t => t.termID)}
-                masteredTermIDs={masteredTermIDs}
-              />
-            )}
+           {/* Main content area */}
+           <div className="flex flex-1 min-h-0 relative z-20">
+            <div className="flex w-full flex-grow">
+            {/* Left + center area */}
+            <div className="flex flex-grow min-w-0 min-h-0 flex-col">
+              {/* Mobile vocab panel */}
+                {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
+                  <div className="lg:hidden w-full flex justify-center pt-2 px-2 shrink-0">
+                    <div className="w-full max-w-[260px]">
+                      <VocabList 
+                        wordsFront={terms.map(term => term.questionFront)} 
+                        wordsBack={terms.map(term => term.questionBack)} 
+                        used={terms.map(term => term.used)} 
+                        progress={progress}
+                        termIDs={terms.map(t => t.termID)}
+                        masteredTermIDs={masteredTermIDs}
+                      />
+                    </div>
+                  </div>
+                )}
 
-            {/*Sent/recieved messages div*/}
-            <Messages messages={chatMessages} chatFontSize={props.chatFontSize}/>
-
-            {/* Chat box div */}
-            <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex z-20">
-              <div className="w-[15%] h-full aspect-square flex items-center justify-center">
-                <Image 
-                  src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : neutralTito} 
-                  style={{ width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%" }} 
-                  alt={`Tito is ${titoMood}`}
-                  className={titoMood === "thinking" ? "tito-thinking" : ""}
-                />
-                <TitoCloudBubble message={message} trigger={trigger} />
+              {/* Messages area */}
+              <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 pb-6 md:px-4 md:pt-4 md:pb-4">
+                <Messages messages={chatMessages} chatFontSize={props.chatFontSize} />
               </div>
 
-              <div className="w-[85%] flex items-center justify-center pr-3">
-                <textarea 
-                  placeholder={titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
-                  className="w-[85%] h-[70%] bg-white rounded p-1 resize-none overflow-y-auto"
-                  style={{
-                    pointerEvents: titoMood === "thinking" || listening ? "none" : "auto",
-                    opacity: titoMood === "thinking" || listening ? 0.75 : 1,
-                    fontWeight: titoMood === "thinking" ? "bold" : "normal"
-                  }}
-                  disabled={titoMood === "thinking" || listening}
-                  value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
-                  onChange={(e) => setUserMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessageClick();
-                    }
-                  }}
-                />
-
-                {/* controls row: Mic + Send */}
-                <div className="ml-2 flex items-center">
-                  {/* microphone */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (!sttSupported) {
-                        alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
-                        return;
-                      }
-                      if (!listening) startListening();
-                      else stopListening();
-                    }}
-                    className={`flex items-center justify-center w-16 h-16 rounded-full shadow-sm transition ${
-                      listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"
-                    }`}
-                  >
-                    <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
-                  </button>
-
-                  {/* send */}
-                  <button
-                    onClick={handleSendMessageClick}
-                    className="ml-2 w-16 h-16 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition shadow-sm"
-
-                  >
-                    <Image
-                      src={sendMessageIcon}
-                      className="w-10 h-10 rounded-full"
-                      alt="Send message"
-                    />
-                  </button>
+              {/* Chat box */}
+              <div className="w-full h-[96px] md:h-[120px] bg-[#8C7357] flex shrink-0 relative z-20">
+                {/*Tito Image Div */}
+                <div className="w-[72px] md:w-[110px] shrink-0 flex items-center justify-center">
+                  <Image 
+                    src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : neutralTito} 
+                    style={{ width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%" }} 
+                    alt={`Tito is ${titoMood}`}
+                    className={titoMood === "thinking" ? "tito-thinking" : ""}
+                  />
+                  <TitoCloudBubble message={message} trigger={trigger} />
                 </div>
 
-                {/* Language dropdown */}
-                {props.moduleID === -1 && (
-                  <select
-                    value={ttsLang}
-                    onChange={(e) => setTtsLang(e.target.value)}
-                    className="ml-2 w-32 h-12 rounded-full bg-white/80 hover:bg-white transition text-sm font-medium cursor-pointer px-2"
-                  >
-                    {SUPPORTED_LANGS.map((lang) => (
-                      <option key={lang.code} value={lang.code}>
+                <div className="flex-1 flex items-center gap-2 pr-2 min-w-0">
+                  <textarea 
+                    placeholder={titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
+                    className="flex-1 min-w-0 h-[58%] md:h-[70%] bg-white rounded p-2 resize-none overflow-y-auto"
+                    style={{
+                      flex: "1 1 auto",
+                      pointerEvents: titoMood === "thinking" || listening ? "none" : "auto",
+                      opacity: titoMood === "thinking" || listening ? 0.75 : 1,
+                      fontWeight: titoMood === "thinking" ? "bold" : "normal"
+                    }}
+                    disabled={titoMood === "thinking" || listening}
+                    value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
+                    onChange={(e) => setUserMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessageClick();
+                      }
+                    }}
+                  />
+
+                  {/*Button Container */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!sttSupported) {
+                          alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
+                          return;
+                        }
+                        if (!listening) startListening();
+                        else stopListening();
+                      }}
+                      className={`flex items-center justify-center w-11 h-11 md:w-16 md:h-16 rounded-full shadow-sm transition ${
+                        listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"
+                      }`}
+                    >
+                      <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
+                    </button>
+
+                    <button
+                      onClick={handleSendMessageClick}
+                      className="w-11 h-11 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition shadow-sm"
+                    >
+                      <Image
+                        src={sendMessageIcon}
+                        className="w-7 h-7 md:w-10 md:h-10 rounded-full"
+                        alt="Send message"
+                      />
+                    </button>
+                    
+                    {props.moduleID === -1 && (
+                    <select
+                      value={ttsLang}
+                      onChange={(e) => setTtsLang(e.target.value)}
+                      className="w-[88px] md:w-32 h-10 md:h-12 rounded-full bg-white/80 hover:bg-white transition text-[11px] md:text-sm font-medium cursor-pointer px-2"
+                    >
+                      {SUPPORTED_LANGS.map((lang) => (
+                        <option key={lang.code} value={lang.code}> 
                         🌐 {lang.label}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  </div>
+                </div>
               </div>
-            </div>  
+            </div>
+            </div>
+
+            {/* Right vocab panel for desktops/tablets */}
+            {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
+              <div className="hidden lg:block w-[260px] xl:w-80 shrink-0">
+                <VocabList 
+                  wordsFront={terms.map(term => term.questionFront)} 
+                  wordsBack={terms.map(term => term.questionBack)} 
+                  used={terms.map(term => term.used)} 
+                  progress={progress}
+                  termIDs={terms.map(t => t.termID)}
+                  masteredTermIDs={masteredTermIDs}
+                />
+              </div>
+            )}
+          </div>
+
         </div>     
   )          
 }
