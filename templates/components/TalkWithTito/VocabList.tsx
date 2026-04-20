@@ -10,7 +10,10 @@ import arrow from "@/public/static/images/ConversAItionELLE/Arrow.png";
 interface PropsInterface {
   wordsFront: string[] | undefined;
   wordsBack: string[] | undefined;
-  used: boolean[] | undefined;
+
+  // CHANGED: use per-word usage counts instead of boolean used values
+  usageCounts: number[] | undefined;
+
   progress: number;
   termIDs: number[];
   masteredTermIDs?: number[];
@@ -20,43 +23,71 @@ interface WordItemProps {
   wordFront: string;
   wordBack: string;
   isMastered: boolean;
+
+  // CHANGED: pass each word's current progress so we can show x/3
+  usageCount: number;
 }
 
 /* WordItem Component */
-function WordItem({ wordFront, wordBack, isMastered }: WordItemProps) {
+function WordItem({ wordFront, wordBack, isMastered, usageCount }: WordItemProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
       style={{
-        textDecoration: isMastered ? "line-through" : "none",
+        // CHANGED: removed line-through from the whole row
         fontWeight: isHovered ? "bold" : "normal",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="break-all select-none text-center w-full transition-all duration-300"
+      className="select-none w-full transition-all duration-300 flex items-center justify-between px-2"
     >
-      {isHovered ? wordFront : wordBack}
+      {/* CHANGED: only cross out the vocab word when it reaches mastery */}
+      <span
+        className="break-all text-center flex-1"
+        style={{
+          textDecoration: isMastered ? "line-through" : "none",
+        }}
+      >
+        {isHovered ? wordFront : wordBack}
+      </span>
+
+      {/* CHANGED: keep the number normal, never crossed out */}
+      <span className="ml-2 font-semibold whitespace-nowrap">
+        {usageCount}/3
+      </span>
     </div>
   );
 }
 
 /* VocabList Component */
-export default function VocabList({ wordsFront, wordsBack, used, progress, termIDs, masteredTermIDs }: PropsInterface) {
+export default function VocabList({
+  wordsFront,
+  wordsBack,
+  usageCounts,
+  progress,
+  termIDs,
+  masteredTermIDs
+}: PropsInterface) {
   const [isExpanded, setIsExpanded] = useState(false);
   const mastered = new Set(masteredTermIDs ?? []);
   //console.log("[VocabList] masteredTermIDs =", masteredTermIDs, "termIDs =", termIDs);
 
-  if (!wordsFront || !wordsBack || !used || !termIDs) return null;
-  
-  // Cross off words that were used in the current chat or already mastered.
+  // CHANGED: check usageCounts instead of used
+  if (!wordsFront || !wordsBack || !usageCounts || !termIDs) return null;
 
+  // CHANGED:
+  // - pull usageCount for each vocab word
+  // - only cross off the vocab word when usageCount >= 3
+  
   const sortedWords = wordsFront
     .map((word, index) => {
-      const isCrossedOff = Boolean(used[index]) || mastered.has(termIDs[index]);
+      const usageCount = usageCounts[index] ?? 0;
+      const isCrossedOff = usageCount >= 3;
       return {
         wordFront: wordsBack[index] || "",
         wordBack: word,
+        usageCount,
         isMastered: isCrossedOff,
         index,
       };
@@ -155,8 +186,9 @@ export default function VocabList({ wordsFront, wordsBack, used, progress, termI
               {progress}%
             </span>
           </div>
-          <p className="mt-1 font-semibold text-white drop-shadow-md"
-                        style={{fontSize: "14px"}}
+          <p
+            className="mt-1 font-semibold text-white drop-shadow-md"
+            style={{ fontSize: "14px" }}
           >
             Module Progress
           </p>
@@ -169,11 +201,13 @@ export default function VocabList({ wordsFront, wordsBack, used, progress, termI
         ${isExpanded ? "max-h-[20em] opacity-100" : "max-h-0 opacity-0"}`}
       >
         <div className="overflow-auto w-full">
-          {sortedWords.map(({ wordFront, wordBack, isMastered, index }) => (
+          {/* CHANGED: pass usageCount into each WordItem */}
+          {sortedWords.map(({ wordFront, wordBack, usageCount, isMastered, index }) => (
             <WordItem
               key={index}
               wordFront={wordFront}
               wordBack={wordBack}
+              usageCount={usageCount}
               isMastered={isMastered}
             />
           ))}
