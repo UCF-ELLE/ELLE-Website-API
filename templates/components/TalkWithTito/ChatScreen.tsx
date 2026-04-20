@@ -10,6 +10,7 @@ import TitoCloudBubble from "@/components/TalkWithTito/TitoCloudBubble";
 import background from "@/public/static/images/ConversAItionELLE/Graident Background.png";
 import palmTree from "@/public/static/images/ConversAItionELLE/Palm Tree.png";
 import sendMessageIcon from "@/public/static/images/ConversAItionELLE/send.png";
+import micIcon from "@/public/static/images/ConversAItionELLE/mic.png";
 
 /* Titos :D */
 import happyTito from "@/public/static/images/ConversAItionELLE/happyTito.png"; //LLM responded titoConfused=false
@@ -1139,7 +1140,7 @@ export default function ChatScreen(props: propsInterface) {
                 )}
 
               {/* Messages area */}
-              <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 pb-6 md:px-4 md:pt-4 md:pb-4">
+              <div className="flex-1 min-h-0 overflow-y-auto px-3 pr-1 pt-3 pb-6 md:px-4 md:pr-2 md:pt-4 md:pb-4">
                 <Messages messages={chatMessages} chatFontSize={props.chatFontSize} />
               </div>
 
@@ -1194,7 +1195,11 @@ export default function ChatScreen(props: propsInterface) {
                         listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"
                       }`}
                     >
-                      <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
+                      <Image
+                        src={micIcon}
+                        alt="Tap to speak"
+                        className="w-5 h-5 md:w-6 md:h-6 opacity-80 hover:opacity-100"
+                      />
                     </button>
 
                     <button
@@ -1230,7 +1235,7 @@ export default function ChatScreen(props: propsInterface) {
 
             {/* Right vocab panel for desktops/tablets */}
             {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-              <div className="hidden lg:block w-[260px] xl:w-80 shrink-0">
+              <div className="hidden lg:block w-[260px] xl:w-80 shrink-0 border-l-4 border-[#6B4F3A]/30">
                 <VocabList 
                   wordsFront={terms.map(term => term.questionFront)} 
                   wordsBack={terms.map(term => term.questionBack)} 

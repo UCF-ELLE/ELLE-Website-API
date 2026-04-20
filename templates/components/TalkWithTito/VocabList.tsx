@@ -97,7 +97,7 @@ export default function VocabList({
   return (
     <div className="inter-font w-full h-full flex flex-col items-center relative">
       {/* Cloud + Progress Circle Wrapper */}
-      <div className="relative z-20 w-[160px] md:w-[220px] lg:w-[240px] h-[85px] md:h-[115px] lg:h-[125px] flex items-center justify-center overflow-visible">
+      <div className="relative z-20 mt-2 w-[160px] md:w-[220px] lg:w-[240px] h-[85px] md:h-[115px] lg:h-[125px] flex items-center justify-center overflow-visible">
       <Image src={cloud} className="absolute top-0 left-0 w-full h-full" alt="Vocabulary List" />
       <div className="absolute top-[55%] left-[44%] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap select-none flex flex-col items-center z-20">
         <div className="irish-grover text-sm md:text-xl lg:text-2xl">Vocabulary List</div>
