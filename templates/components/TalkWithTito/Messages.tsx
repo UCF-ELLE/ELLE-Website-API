@@ -56,7 +56,12 @@ function Message({ message,chatFontSize }: MessageProps) {
                 justifyContent: fromUser ? "end" : "start"
             }}>
             
-            <div className="m-2 flex flex-col items-end">
+            <div
+                className="m-2 flex flex-col"
+                style={{
+                    alignItems: fromUser ? "flex-end" : "flex-start"
+                }}
+            >
 
                 {/*Message text div*/}
                 <div
@@ -139,8 +144,8 @@ export default function Messages({ messages, chatFontSize}: PropsInterface) {
     
     
     return (
-        <div className="w-full h-[85%] absolute top-0 left-0 z-[11]">
-            <div className="absolute w-full h-fit max-h-full overflow-auto bottom-0 left-0" ref={messagesContainer}>
+        <div className="w-full h-full overflow-y-auto" ref={messagesContainer}>
+            <div className="w-full flex flex-col pb-4">
                 {messages.map((message, index) => (
                     <Message key={index} message={message} chatFontSize={chatFontSize}/>
                 ))}
