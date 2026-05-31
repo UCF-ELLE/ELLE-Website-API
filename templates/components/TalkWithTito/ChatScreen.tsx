@@ -551,7 +551,7 @@ export default function ChatScreen(props: propsInterface) {
 
       if (sendMessageResponse.llmResponse && ttsSupported && !props.ttsMuted) {
         setTimeout(() => {
-          speak(sendMessageResponse.llmResponse);
+          speak(sendMessageResponse.llmResponse, { lang: props.moduleLanguage ? getSTTLangCode(props.moduleLanguage) : ttsLang });
         }, 100);
       }
     } else {
@@ -596,7 +596,7 @@ export default function ChatScreen(props: propsInterface) {
     }
   }, [ttsLang]);
 
-  const getSTTLangCode = (moduleLang: string): string => {
+  const getSTTLangCode = useCallback((moduleLang: string): string => {
     const langMap: { [key: string]: string } = {
       es: "es-ES",
       fr: "fr-FR",
@@ -604,7 +604,7 @@ export default function ChatScreen(props: propsInterface) {
       en: "en-US"
     };
     return langMap[moduleLang.toLowerCase()] || "en-US";
-  };
+  }, []);
 
   const sttLang = props.moduleID === -1 ? ttsLang : (props.moduleLanguage ? getSTTLangCode(props.moduleLanguage) : ttsLang);
 
@@ -918,34 +918,52 @@ export default function ChatScreen(props: propsInterface) {
     loadTerms();
   }, [props.moduleID, user, userLoading]);
 
+  const preprocessForTTS = useCallback((text: string): string => {
+    if (!text) return text;
+    return text
+      .replace(/[¡!]/g, match => match === '¡' ? '' : match)
+      .replace(/[¿?]/g, match => match === '¿' ? '' : match)
+      .replace(/\s+/g, ' ')
+      .trim();
+  }, []);
+
   const speak = useCallback((text: string, opts?: { rate?: number; pitch?: number; lang?: string }) => {
     if (!ttsSupported || !text?.trim()) return;
+    const processedText = preprocessForTTS(text);
     const lang = opts?.lang ?? ttsLang;
 
-    const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(processedText);
     u.rate = opts?.rate ?? 0.9;
     u.pitch = opts?.pitch ?? 1.0;
     u.volume = 0.8;
     u.lang = lang;
 
-    const langVoices = voices.filter(v => v.lang?.toLowerCase().startsWith(lang.toLowerCase()));
-
+    const langCodePrefix = lang.toLowerCase();
     let selectedVoice = null;
 
-    if (lang.startsWith("en")) {
-      selectedVoice = voices.find(v => v.name === "Google US English") ||
-        langVoices.find(v => v.name.includes("Google")) ||
-        langVoices.find(v => v.name.includes("Zira")) ||
-        langVoices[0];
+    if (langCodePrefix.startsWith("en")) {
+      const englishVoices = voices.filter(v => (v.lang || "").toLowerCase().startsWith("en"));
+      selectedVoice = englishVoices.find(v => v.name.includes("Google")) ||
+        englishVoices.find(v => v.name.includes("Zira")) ||
+        englishVoices[0];
     } else {
-      selectedVoice = langVoices.find(v => v.name.includes("Google")) || langVoices[0];
+      const langFamily = langCodePrefix.split("-")[0];
+      const nativeVoices = voices.filter(v => {
+        const voiceLang = (v.lang || "").toLowerCase();
+        return voiceLang.startsWith(langFamily);
+      });
+      selectedVoice = nativeVoices.find(v => v.name.includes("Google")) ||
+        nativeVoices.find(v => v.name.includes("Natural")) ||
+        nativeVoices[0];
     }
 
     if (selectedVoice) u.voice = selectedVoice;
 
+    console.log(`[TTS] Speaking with lang=${lang}, voice=${selectedVoice?.name || "default"}`);
+
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
-  }, [ttsSupported, ttsLang, voices]);
+  }, [ttsSupported, ttsLang, voices, preprocessForTTS]);
 
   useEffect(() => {
     const isFreeChat = props.moduleID === -1;
@@ -1037,9 +1055,7 @@ export default function ChatScreen(props: propsInterface) {
 
         if (newMessages.length === 0 && ttsSupported && !props.ttsMuted) {
           console.log("[ChatScreen] Speaking welcome message");
-          setTimeout(() => {
-            speak(instructionMessage.value);
-          }, 1000);
+          setTimeout(() => { speak(instructionMessage.value, { lang: "en-US" }); }, 1000);
         } else {
           console.log("[ChatScreen] NOT speaking - messages exist or TTS is disabled");
         }
