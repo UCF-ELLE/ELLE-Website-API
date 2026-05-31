@@ -4,7 +4,7 @@ import { useUser } from "@/hooks/useAuth";
 import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage, uploadAudioFile, ELLE_URL } from "@/services/TitoService";
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
-import TitoCloudBubble from "@/components/TalkWithTito/TitoCloudBubble";
+// import TitoCloudBubble from "@/components/TalkWithTito/TitoCloudBubble";
 
 /* Assets */
 import background from "@/public/static/images/ConversAItionELLE/Graident Background.png";
@@ -86,8 +86,8 @@ export default function ChatScreen(props: propsInterface) {
   const [titoMood, setTitoMood] = useState("neutral");
   const [timeChatted, setTimeChatted] = useState<number | undefined>(undefined);
   const [progress, setProgress] = useState<number | undefined>(undefined);
-  const [message, setMessage] = useState("");
-  const [trigger, setTrigger] = useState(0);
+  // const [message, setMessage] = useState("");
+  // const [trigger, setTrigger] = useState(0);
   const [masteredSet, setMasteredSet] = useState<Set<number>>(new Set());
   const [masteredTermIDs, setMasteredTermIDs] = useState<number[]>([]);
   const [classID, setClassID] = useState<string | null>(null);
@@ -105,35 +105,38 @@ export default function ChatScreen(props: propsInterface) {
     prevProgressRef.current = -Infinity;
   }, [props.moduleID, loreID]);
 
-  useEffect(() => {
-    if (progress == null || isNaN(progress)) return;
-    if (!loreID) return;
+// Lore progress threshold popups disabled per sponsor feedback.
+/*
+useEffect(() => {
+  if (progress == null || isNaN(progress)) return;
+  if (!loreID) return;
 
-    let chosen: number | null = null;
+  let chosen: number | null = null;
 
-    for (const t of THRESHOLDS) {
-      const key = `tito_lore_shown_${props.moduleID}_${loreID}_${t}`;
-      const already = typeof window !== "undefined" && localStorage.getItem(key) === "1";
-      if (!already && prevProgressRef.current < t && progress >= t) {
-        if (chosen === null || t > chosen) chosen = t;
-      }
+  for (const t of THRESHOLDS) {
+    const key = `tito_lore_shown_${props.moduleID}_${loreID}_${t}`;
+    const already = typeof window !== "undefined" && localStorage.getItem(key) === "1";
+    if (!already && prevProgressRef.current < t && progress >= t) {
+      if (chosen === null || t > chosen) chosen = t;
     }
+  }
 
-    if (chosen !== null) {
-      const key = `tito_lore_shown_${props.moduleID}_${loreID}_${chosen}`;
-      try { localStorage.setItem(key, "1"); } catch { }
-      const text = loreByThreshold[chosen as Threshold];
-      if (text) {
-        setMessage(text);
-        setTrigger(Date.now());
-        console.log(`[Lore] Showing ${chosen}% lore`, { progress, chosen, text });
-      } else {
-        console.log(`[Lore] No lore text for ${chosen}%`);
-      }
+  if (chosen !== null) {
+    const key = `tito_lore_shown_${props.moduleID}_${loreID}_${chosen}`;
+    try { localStorage.setItem(key, "1"); } catch { }
+    const text = loreByThreshold[chosen as Threshold];
+    if (text) {
+      setMessage(text);
+      setTrigger(Date.now());
+      console.log(`[Lore] Showing ${chosen}% lore`, { progress, chosen, text });
+    } else {
+      console.log(`[Lore] No lore text for ${chosen}%`);
     }
+  }
 
-    prevProgressRef.current = progress;
-  }, [progress, props.moduleID, loreID, loreByThreshold, THRESHOLDS]);
+  prevProgressRef.current = progress;
+}, [progress, props.moduleID, loreID, loreByThreshold, THRESHOLDS]);
+*/
 
   // CHANGED: helper to support a few possible backend response shapes for per-term usage counts
   const applyBackendUsageCounts = useCallback((data: any) => {
@@ -343,7 +346,7 @@ export default function ChatScreen(props: propsInterface) {
 
     fetchProgress();
     fetchTermProgress();
-    fetchLoreFromDB();
+    // fetchLoreFromDB(); // Lore disabled per sponsor feedback
   }, [props.moduleID, user?.jwt, fetchProgress, fetchTermProgress]);
 
   async function handleSendMessageClick(forcedMessage?: string | React.MouseEvent) {
@@ -1113,6 +1116,8 @@ export default function ChatScreen(props: propsInterface) {
     }
   }, [titoMood, fullPlaceholder]);
 
+  // Lore startup messages disabled per sponsor feedback
+  /*
   useEffect(() => {
     setMessage("I… I think I’ve lost my memories.");
     setTrigger(Date.now());
@@ -1124,6 +1129,7 @@ export default function ChatScreen(props: propsInterface) {
 
     return () => clearTimeout(timer);
   }, []);
+  */
 
 
 
@@ -1170,7 +1176,8 @@ export default function ChatScreen(props: propsInterface) {
                     alt={`Tito is ${titoMood}`}
                     className={titoMood === "thinking" ? "tito-thinking" : ""}
                   />
-                  <TitoCloudBubble message={message} trigger={trigger} />
+                  {/* Lore bubble disabled per sponsor feedback */}
+                  {/* <TitoCloudBubble message={message} trigger={trigger} /> */}
                 </div>
 
                 <div className="flex-1 flex items-center gap-2 pr-2 min-w-0">
