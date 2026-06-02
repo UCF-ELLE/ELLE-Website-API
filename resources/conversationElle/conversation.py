@@ -195,8 +195,15 @@ class UserMessages(Resource):
         # Update module words used =>
         # Async grammar evaluation
 
-        # Return early after saving user message
-        return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id)
+        usage_by_term = getUsageByTerm(user_id, module_id) if module_id != REAL_FREE_CHAT_MODULE else []
+        terms_used = [entry["termID"] for entry in usage_by_term if entry["timesUsed"] > 0]
+
+        return create_response(
+            True, message="Message sent.", data=message,
+            resumeMessaging=True, messageID=new_msg_id,
+            termsUsed=terms_used,
+            usageByTerm=usage_by_term
+        )
 
  
     @jwt_required
@@ -494,10 +501,16 @@ class GetTermProgress(Resource):
             if rec["timesUsed"] > 0:
                 used_ids.append(term_id)
 
+        usage_by_term = [
+            {"termID": tid, "timesUsed": rec["timesUsed"]}
+            for tid, rec in progress_by_term.items()
+        ]
+
         return create_response(True, data={
             "masteredIDs": mastered_ids,
             "usedIDs": used_ids,
-            "progressByTerm": progress_by_term
+            "progressByTerm": progress_by_term,
+            "usageByTerm": usage_by_term
         })
 
 
@@ -922,4 +935,4 @@ class GenerateModule(Resource):
 
             return create_response(message='returned sample terms', data=res)
         except Exception as err:
-            return create_response(False, message="an error occured while generating module", error=err, status_code=500)
+            return create_response(False, message="an error occured while generating module", error=err, status_code=500)git status

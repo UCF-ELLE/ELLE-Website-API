@@ -1063,7 +1063,7 @@ CREATE TABLE `tito_term_progress` (
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `beforeUpdateTermProgress_change_hasMastered` BEFORE UPDATE ON `tito_term_progress` FOR EACH ROW BEGIN
-    IF (NEW.timesUsed > 0) AND (OLD.hasMastered = 0) THEN
+    IF (NEW.timesUsed >= 3) AND (OLD.hasMastered = 0) THEN
       SET NEW.hasMastered = 1;
     END IF;
 
