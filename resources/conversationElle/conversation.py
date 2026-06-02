@@ -935,4 +935,4 @@ class GenerateModule(Resource):
 
             return create_response(message='returned sample terms', data=res)
         except Exception as err:
-            return create_response(False, message="an error occured while generating module", error=err, status_code=500)git status
+            return create_response(False, message="an error occured while generating module", error=err, status_code=500)
