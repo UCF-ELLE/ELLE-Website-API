@@ -2,7 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel
 from .config import *
 from config import FREE_CHAT_MODULE, REAL_FREE_CHAT_MODULE
-from .database import getModuleTerms, getModuleLanguage
+from .database import getModuleTerms, getModuleLanguage, fetchSessionChatHistory
 # from .convo_grader import *
 import ast
 import re
@@ -278,16 +278,34 @@ def parse_llm_response(llm_response, term_count=5):
 #     return all(field in term for field in required_fields)
 
 
-def handle_message_with_context(message: str, module_id: int, session_id: int):
+def handle_message_with_context(message: str, module_id: int, session_id: int): 
     """
     Handle a chat message with module context.
-    Includes the full system prompt with each message since prompt caching
-    may not be reliable.
+    Includes the full system prompt and previous conversation history
+    with each message to provide context memory.
     """
     try:
         # Build the full prompt including system context
         base_prompt = build_enhanced_prompt(module_id)
-        full_prompt = f"{base_prompt}\n\nStudent: {message}\n\nTito:"
+        
+        # Fetch conversation history for this session from database
+        history_str = ""
+        if session_id:
+            try:
+                session_history = fetchSessionChatHistory(session_id)
+                # If the last message in history is the user's current message,
+                # we slice it off to avoid duplication.
+                if session_history and session_history[-1]["source"] == "user" and session_history[-1]["message"].strip() == message.strip():
+                    session_history = session_history[:-1]
+                
+                for msg in session_history:
+                    role = "Student" if msg["source"] == "user" else "Tito"
+                    history_str += f"{role}: {msg['message']}\n\n"
+            except Exception as history_error:
+                print(f"[WARNING] Failed to load session history: {history_error}")
+                
+        # Build the final history-aware prompt
+        full_prompt = f"{base_prompt}\n\n{history_str}Student: {message}\n\nTito:"
         response = generate_message_direct(full_prompt)
         return response.strip()
         

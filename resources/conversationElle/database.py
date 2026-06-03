@@ -1312,3 +1312,25 @@ def getLastCreatedLoreID(user_id: int):
     if not res or not res[0]:
         return None
     return res[0]
+
+def fetchSessionChatHistory(chatbotSID: int):
+    """
+    Retrieves all messages for a specific chatbot session ordered by message ID.
+    """
+    query = '''
+        SELECT m.messageID, m.source, m.message, m.creationTimestamp
+        FROM `messages` m
+        WHERE m.chatbotSID = %s
+        ORDER BY m.messageID ASC;
+    '''
+    result = db.get(query, (chatbotSID,))
+    messages = []
+    if result:
+        for row in result:
+            messages.append({
+                "messageID": row[0],
+                "source": row[1],
+                "message": row[2],
+                "creationTimestamp": row[3].isoformat() if row[3] else None
+            })
+    return messages
