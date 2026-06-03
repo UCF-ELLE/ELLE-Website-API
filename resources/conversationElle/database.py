@@ -291,15 +291,20 @@ def updateWordsUsed(term_count_dict: dict, user_id: int, module_id: int):
     term_ids = list(term_count_dict.keys())
     count = len(term_ids)
 
-    placeholders = ", ".join(["(%s, %s, %s, %s)"] * count)
+    # We insert (moduleID, termID, userID, timesUsed, hasMastered)
+    placeholders = ", ".join(["(%s, %s, %s, %s, %s)"] * count)
     values = []
     for tid in term_ids:
-        values.extend([module_id, tid, user_id, term_count_dict[tid]])
+        times_used = term_count_dict[tid]
+        has_mastered = 1 if times_used >= 3 else 0
+        values.extend([module_id, tid, user_id, times_used, has_mastered])
 
     query = f'''
-        INSERT INTO `tito_term_progress` (`moduleID`, `termID`, `userID`, `timesUsed`)
+        INSERT INTO `tito_term_progress` (`moduleID`, `termID`, `userID`, `timesUsed`, `hasMastered`)
         VALUES {placeholders}
-        ON DUPLICATE KEY UPDATE `timesUsed` = `timesUsed` + VALUES(`timesUsed`);
+        ON DUPLICATE KEY UPDATE 
+            `hasMastered` = IF(`timesUsed` + VALUES(`timesUsed`) >= 3, 1, 0),
+            `timesUsed` = `timesUsed` + VALUES(`timesUsed`);
     '''
 
     db.post(query, values)
