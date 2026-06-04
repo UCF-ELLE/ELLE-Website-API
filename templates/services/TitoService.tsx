@@ -396,7 +396,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
       for (const msg of messages) {
         const transformedMessage: ChatMessage = {
           value: msg.message || msg.value || '',
-          timestamp: msg.timestamp || new Date().toISOString(),
+          timestamp: msg.creationTimestamp || msg.timestamp || new Date().toISOString(),
           source: (msg.source === 'user' || msg.source === 'llm') ? msg.source : 'user',
           metadata: typeof msg.metadata === 'string' ? JSON.parse(msg.metadata) : (msg.metadata || {})
         };
