@@ -1210,7 +1210,7 @@ export default function ChatScreen(props: propsInterface) {
               <div className="absolute top-[8%] left-[10%] w-[80%] h-[80%] z-20 bg-white/95 backdrop-blur-md border border-[#8C7357]/20 shadow-2xl rounded-2xl p-6 flex flex-col justify-between inter-font">
                 <div>
                   <div className="text-center mb-6">
-                    <h2 className="text-[#604e34] irish-grover text-3xl mb-2">Tito's Conversations</h2>
+                    <h2 className="text-[#604e34] irish-grover text-3xl mb-2">Tito&apos;s Conversations</h2>
                     <p className="text-sm text-[#8C7357] font-medium">Resuming conversations helps Tito recover his lost memories.</p>
                   </div>
 
