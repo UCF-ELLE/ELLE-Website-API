@@ -89,87 +89,7 @@ export default function ChatScreen(props: propsInterface) {
     const [masteredSet, setMasteredSet] = useState<Set<number>>(new Set());
     const [masteredTermIDs, setMasteredTermIDs] = useState<number[]>([]);
     const [classID, setClassID] = useState<string | null>(null);
-    const [sessions, setSessions] = useState<any[]>([]);
-    const [sessionsLoading, setSessionsLoading] = useState<boolean>(true);
-    const [isCreatingSession, setIsCreatingSession] = useState<boolean>(false);
 
-    const loadSessionsList = useCallback(async () => {
-        if (!user || userLoading) return;
-        setSessionsLoading(true);
-        try {
-            console.log(`[ChatScreen] Fetching sessions list for module ${props.moduleID}`);
-            const sessionList = await fetchSessions(user.jwt, props.moduleID);
-            if (sessionList) {
-                setSessions(sessionList);
-            }
-        } catch (err) {
-            console.error("[ChatScreen] Error fetching sessions:", err);
-        } finally {
-            setSessionsLoading(false);
-        }
-    }, [user, userLoading, props.moduleID]);
-
-    useEffect(() => {
-        if (props.chatbotId === undefined) {
-            loadSessionsList();
-        }
-    }, [props.chatbotId, loadSessionsList]);
-
-    const handleStartNewConversation = async () => {
-        if (!user || userLoading || isCreatingSession) return;
-        setIsCreatingSession(true);
-        try {
-            console.log(`[ChatScreen] User clicked start new conversation for module ${props.moduleID}`);
-            const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
-            if (newChatbot) {
-                console.log(`[ChatScreen] Successfully created new chatbot session ${newChatbot.chatbotId}`);
-                props.setChatbotId(newChatbot.chatbotId);
-                setTimeChatted(newChatbot.totalTimeChatted * 3600);
-                if (newChatbot.userBackground) {
-                    props.setUserBackgroundFilepath(newChatbot.userBackground);
-                }
-                if (newChatbot.userMusicChoice) {
-                    props.setUserMusicFilepath(newChatbot.userMusicChoice);
-                }
-                const newTerms: Term[] = terms.map(term => ({
-                    termID: term.termID,
-                    questionFront: term.questionFront,
-                    questionBack: term.questionBack,
-                    used: newChatbot.termsUsed ? newChatbot.termsUsed.includes(term.questionFront) : false
-                }));
-                setTerms(newTerms);
-            } else {
-                console.error("[ChatScreen] Failed to create new chatbot session");
-                alert("Failed to start a new conversation. Please try again.");
-            }
-        } catch (err) {
-            console.error("[ChatScreen] Error creating chatbot session:", err);
-            alert("An error occurred while creating a new conversation.");
-        } finally {
-            setIsCreatingSession(false);
-        }
-    };
-
-    const handleDeleteSession = async (e: React.MouseEvent, chatbotSID: number) => {
-        e.stopPropagation();
-        if (!user) return;
-        const confirmDelete = window.confirm("Are you sure you want to delete this conversation? This will permanently delete all messages in this chat.");
-        if (!confirmDelete) return;
-        
-        try {
-            console.log(`[ChatScreen] Deleting session ${chatbotSID}`);
-            const success = await deleteSession(user.jwt, chatbotSID);
-            if (success) {
-                console.log(`[ChatScreen] Session ${chatbotSID} deleted successfully`);
-                loadSessionsList();
-            } else {
-                alert("Failed to delete the conversation.");
-            }
-        } catch (err) {
-            console.error("[ChatScreen] Error deleting session:", err);
-            alert("An error occurred while deleting the conversation.");
-        }
-    };
 
     // --- TTS state + helpers ---
     const [ttsSupported, setTtsSupported] = useState(false);
@@ -1205,183 +1125,103 @@ export default function ChatScreen(props: propsInterface) {
             <Image src={background} className="w-full absolute top-0 left-0" alt="Background"/>
             <Image src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" draggable={false} alt="Decorative palm tree" />
 
-            {props.chatbotId === undefined ? (
-              /* Session Selection Menu Overlay */
-              <div className="absolute top-[8%] left-[10%] w-[80%] h-[80%] z-20 bg-white/95 backdrop-blur-md border border-[#8C7357]/20 shadow-2xl rounded-2xl p-6 flex flex-col justify-between inter-font">
-                <div>
-                  <div className="text-center mb-6">
-                    <h2 className="text-[#604e34] irish-grover text-3xl mb-2">Tito&apos;s Conversations</h2>
-                    <p className="text-sm text-[#8C7357] font-medium">Resuming conversations helps Tito recover his lost memories.</p>
-                  </div>
+            {/*Vocabulary list div*/}
+            {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
+              <VocabList 
+                wordsFront={terms.map(term => (term.questionFront))} 
+                wordsBack={terms.map(term => (term.questionBack))} 
+                used={terms.map(term => (term.used))} 
+                progress={progress}
+                termIDs={terms.map(t => t.termID)}
+                masteredTermIDs={masteredTermIDs}
+              />
+            )}
 
-                  <button 
-                    onClick={handleStartNewConversation}
-                    disabled={isCreatingSession}
-                    className="w-full bg-[#8C7357] hover:bg-[#705a43] disabled:bg-[#8c7357]/60 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 mb-6 text-lg irish-grover"
-                  >
-                    {isCreatingSession ? (
-                      <>
-                        <span className="inline-block animate-spin mr-2">⏳</span>
-                        Creating Conversation...
-                      </>
-                    ) : (
-                      <>
-                        <span>💬</span>
-                        Start New Conversation
-                      </>
-                    )}
-                  </button>
+            {/*Sent/recieved messages div*/}
+            <Messages messages={chatMessages} chatFontSize={props.chatFontSize}/>
 
-                  <div className="border-t border-[#8C7357]/15 my-4"></div>
-
-                  <h3 className="text-[#604e34] font-bold text-base mb-3 flex items-center gap-2">
-                    <span>📖</span> Previous Chats
-                  </h3>
-                  
-                  <div className="overflow-y-auto max-h-[220px] pr-1 scrollbar-thin">
-                    {sessionsLoading ? (
-                      <div className="flex flex-col items-center justify-center py-8 text-[#8C7357]">
-                        <span className="animate-spin text-2xl mb-2">🔄</span>
-                        <p className="text-sm font-medium">Loading conversations...</p>
-                      </div>
-                    ) : sessions.length === 0 ? (
-                      <div className="text-center py-8 text-[#8C7357]/70 italic text-sm">
-                        No previous chats found. Click above to start one!
-                      </div>
-                    ) : (
-                      sessions.map((session) => (
-                        <div 
-                          key={session.chatbotSID}
-                          onClick={() => props.setChatbotId(session.chatbotSID)}
-                          className="flex justify-between items-center bg-[#E6D4C1]/20 hover:bg-[#8C7357]/15 border border-[#8C7357]/10 hover:border-[#8C7357]/30 rounded-xl p-3 mb-2 cursor-pointer transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-xl">🦜</span>
-                            <div className="flex flex-col">
-                              <span className="text-[#604e34] font-bold text-sm">Chat Session #{session.chatbotSID}</span>
-                              <span className="text-xs text-[#8C7357]/80 mt-0.5">{formatDate(session.creationTimestamp)}</span>
-                            </div>
-                          </div>
-                          
-                          <button
-                            onClick={(e) => handleDeleteSession(e, session.chatbotSID)}
-                            className="p-1.5 rounded-full hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors duration-200"
-                            title="Delete conversation"
-                          >
-                            <span className="text-sm font-semibold">🗑️</span>
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
+            {/* Chat box div */}
+            <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex z-20">
+                <div className="w-[15%] h-full aspect-square flex items-center justify-center">
+                    <Image 
+                    src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : titoMood === "neutral" ? neutralTito : neutralTito} 
+                    style={{width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%"}} 
+                    alt={`Tito is ${titoMood}`}
+                    className={titoMood === "thinking" ? 'tito-thinking' : ''}/>
+                    <TitoCloudBubble message={message} trigger={trigger} />
                 </div>
+                <div className="w-[85%] flex items-center justify-center ">
+                    <textarea 
+                        placeholder = {titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
+                        className="w-[85%] h-[70%] bg-white rounded p-1 resize-none overflow-y-auto"
 
-                <div className="text-center text-[11px] text-[#8C7357]/60 mt-4 border-t border-[#8C7357]/10 pt-3">
-                  Conversations are saved automatically.
-                </div>
-              </div>
-            ) : (
-              /* Active Chat Layout */
-              <>
-                {/*Vocabulary list div*/}
-                {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-                  <VocabList 
-                    wordsFront={terms.map(term => (term.questionFront))} 
-                    wordsBack={terms.map(term => (term.questionBack))} 
-                    used={terms.map(term => (term.used))} 
-                    progress={progress}
-                    termIDs={terms.map(t => t.termID)}
-                    masteredTermIDs={masteredTermIDs}
-                  />
-                )}
-
-                {/*Sent/recieved messages div*/}
-                <Messages messages={chatMessages} chatFontSize={props.chatFontSize}/>
-
-                {/* Chat box div */}
-                <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex z-20">
-                    <div className="w-[15%] h-full aspect-square flex items-center justify-center">
-                        <Image 
-                        src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : titoMood === "neutral" ? neutralTito : neutralTito} 
-                        style={{width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%"}} 
-                        alt={`Tito is ${titoMood}`}
-                        className={titoMood === "thinking" ? 'tito-thinking' : ''}/>
-                        <TitoCloudBubble message={message} trigger={trigger} />
-                    </div>
-                    <div className="w-[85%] flex items-center justify-center ">
-                        <textarea 
-                            placeholder = {titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
-                            className="w-[85%] h-[70%] bg-white rounded p-1 resize-none overflow-y-auto"
-
-                            style={{pointerEvents: titoMood === "thinking" || listening ? "none" : "auto", opacity: titoMood === "thinking" || listening ? 0.75 : 1, fontWeight: titoMood === "thinking" ? "bold" : "normal"}}
-                            disabled={titoMood === "thinking" || listening}
-                            value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
-                            onChange={(e) => setUserMessage(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
+                        style={{pointerEvents: titoMood === "thinking" || listening ? "none" : "auto", opacity: titoMood === "thinking" || listening ? 0.75 : 1, fontWeight: titoMood === "thinking" ? "bold" : "normal"}}
+                        disabled={titoMood === "thinking" || listening}
+                        value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
+                        onChange={(e) => setUserMessage(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();
                                     handleSendMessageClick();
-                                }
-                            }}
-                        />
-                        {/* controls column: Mic + Language */}
-                      <div className="ml-2 flex items-center justify-center w-12 h-8 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium">
-                        {/* Click-to-toggle microphone */}
-                        <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log('[ChatScreen] Microphone button clicked, current state:', { 
-                            sttSupported, 
-                            listening,
-                            isRecording
-                          });
-                          
-                          if (!sttSupported) {
-                            alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
-                            return;
-                          }
-                          if (!listening) {
-                            console.log('[ChatScreen] Starting to listen...');
-                            startListening();
-                          } else {
-                            console.log('[ChatScreen] Stopping listening...');
-                            stopListening();
-                          }
+                            }
                         }}
-                        disabled={false}
-                        className={`flex items-center justify-center w-16 h-16 rounded-full shadow-sm transition
-                                    ${listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"}`}
-                        title={sttSupported ? (listening ? "Listening… click to stop" : "Click to start listening") : "Speech-to-text not supported in Firefox"}
-                        aria-pressed={listening}
-                        aria-label={listening ? "Stop listening" : "Start listening"}
-                      >
-                        <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
-                      </button>
-                      </div>
-                        {/* Language dropdown - only show in free chat mode */}
-                        {props.moduleID === -1 && (
-                          <select
-                              value={ttsLang}
-                              onChange={(e) => setTtsLang(e.target.value)}
-                              className="ml-2 flex items-center justify-center w-16 h-12 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium cursor-pointer"
-                              title="Select speech language for TTS and STT"
-                            >
-                              {SUPPORTED_LANGS.map((lang) => (
-                                <option key={lang.code} value={lang.code}>
-                                  🌐 {lang.short}
-                                </option>
-                              ))}
-                            </select>
-                        )}
-                        <button onClick={handleSendMessageClick} className="ml-2">
-                            <Image src={sendMessageIcon} className="w-full h-full rounded-full" alt="Send message" />
-                        </button>
-                          
-                    </div>
+                    />
+                    {/* controls column: Mic + Language */}
+                  <div className="ml-2 flex items-center justify-center w-12 h-8 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium">
+                    {/* Click-to-toggle microphone */}
+                    <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('[ChatScreen] Microphone button clicked, current state:', { 
+                        sttSupported, 
+                        listening,
+                        isRecording
+                      });
+                      
+                      if (!sttSupported) {
+                        alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
+                        return;
+                      }
+                      if (!listening) {
+                        console.log('[ChatScreen] Starting to listen...');
+                        startListening();
+                      } else {
+                        console.log('[ChatScreen] Stopping listening...');
+                        stopListening();
+                      }
+                    }}
+                    disabled={false}
+                    className={`flex items-center justify-center w-16 h-16 rounded-full shadow-sm transition
+                                ${listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"}`}
+                    title={sttSupported ? (listening ? "Listening… click to stop" : "Click to start listening") : "Speech-to-text not supported in Firefox"}
+                    aria-pressed={listening}
+                    aria-label={listening ? "Stop listening" : "Start listening"}
+                  >
+                    <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
+                  </button>
+                  </div>
+                    {/* Language dropdown - only show in free chat mode */}
+                    {props.moduleID === -1 && (
+                      <select
+                          value={ttsLang}
+                          onChange={(e) => setTtsLang(e.target.value)}
+                          className="ml-2 flex items-center justify-center w-16 h-12 rounded-full bg-white/80 hover:bg-white transition text-xs font-medium cursor-pointer"
+                          title="Select speech language for TTS and STT"
+                        >
+                          {SUPPORTED_LANGS.map((lang) => (
+                            <option key={lang.code} value={lang.code}>
+                              🌐 {lang.short}
+                            </option>
+                          ))}
+                        </select>
+                    )}
+                    <button onClick={handleSendMessageClick} className="ml-2">
+                        <Image src={sendMessageIcon} className="w-full h-full rounded-full" alt="Send message" />
+                    </button>
+                      
                 </div>
-              </>
-            )}
+            </div>
         </div>
     );
 }
