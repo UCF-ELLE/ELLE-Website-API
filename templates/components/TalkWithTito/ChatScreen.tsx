@@ -1,38 +1,26 @@
 /* Imports */
-import { useState, useEffect, useRef, useCallback, useMemo} from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useUser } from "@/hooks/useAuth";
-import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage, uploadAudioFile, ELLE_URL} from "@/services/TitoService";
+import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage, uploadAudioFile, ELLE_URL } from "@/services/TitoService";
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
-import TitoCloudBubble from "@/components/TalkWithTito/TitoCloudBubble";
+// import TitoCloudBubble from "@/components/TalkWithTito/TitoCloudBubble";
 
 /* Assets */
 import background from "@/public/static/images/ConversAItionELLE/Graident Background.png";
 import palmTree from "@/public/static/images/ConversAItionELLE/Palm Tree.png";
 import sendMessageIcon from "@/public/static/images/ConversAItionELLE/send.png";
+import micIcon from "@/public/static/images/ConversAItionELLE/mic.png";
 
 /* Titos :D */
 import happyTito from "@/public/static/images/ConversAItionELLE/happyTito.png"; //LLM responded titoConfused=false
-import neutralTito from "@/public/static/images/ConversAItionELLE/cropped_tito.png" //Startup
+import neutralTito from "@/public/static/images/ConversAItionELLE/cropped_tito.png"; //Startup
 import confusedTito from "@/public/static/images/ConversAItionELLE/confusedTito.png"; //LLM responded titoConfused=true
 import thinkingTito from "@/public/static/images/ConversAItionELLE/respondingTito.png"; //LLM thinking
 
 /* Components */
 import VocabList from "./VocabList";
-import Messages from "./Messages"
-
-// Normalizes text so vocab matching ignores accent marks, capitalization, and punctuation.
-function normalizeText(str?: string) {
-  if (!str) return "";
-
-  return str
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+import Messages from "./Messages";
 
 interface SpeechRecognition extends EventTarget {
   start(): void;
@@ -54,24 +42,27 @@ interface SpeechRecognitionEvent extends Event {
 }
 
 interface propsInterface {
-    moduleID: number;
-    moduleLanguage?: string; // Language code of the module (e.g., 'es', 'fr', 'pt')
-    chatbotId?: number;
-    setChatbotId: React.Dispatch<React.SetStateAction<number | undefined>>
-    setUserBackgroundFilepath: React.Dispatch<React.SetStateAction<string>>;
-    setUserMusicFilepath: React.Dispatch<React.SetStateAction<string>>;
-    setTermScore: React.Dispatch<React.SetStateAction<string>>;
-    setAverageScore: React.Dispatch<React.SetStateAction<number>>;
-    setTimeSpent: React.Dispatch<React.SetStateAction<string>>;
-    chatFontSize: string;
-    ttsMuted: boolean;
+  moduleID: number;
+  moduleName?: string; // Name/topic of the module (e.g., 'La Comida')
+  moduleLanguage?: string; // Language code of the module (e.g., 'es', 'fr', 'pt')
+  chatbotId?: number;
+  setChatbotId: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setUserBackgroundFilepath: React.Dispatch<React.SetStateAction<string>>;
+  setUserMusicFilepath: React.Dispatch<React.SetStateAction<string>>;
+  setTermScore: React.Dispatch<React.SetStateAction<string>>;
+  setAverageScore: React.Dispatch<React.SetStateAction<number>>;
+  setTimeSpent: React.Dispatch<React.SetStateAction<string>>;
+  chatFontSize: string;
+  ttsMuted: boolean;
 }
 
 interface Term {
   termID: number;
   questionFront: string;
   questionBack: string;
-  used: boolean;
+
+  // CHANGED: track per-word progress instead of a boolean used flag
+  usageCount: number;
 }
 
 interface ChatMessage {
@@ -83,1146 +74,1204 @@ interface ChatMessage {
     error?: string;
     correction?: string;
     explanation?: string;
-  }
+  };
 }
 
 export default function ChatScreen(props: propsInterface) {
+  const { user, loading: userLoading } = useUser();
 
-    const { user, loading: userLoading } = useUser();
+  const [terms, setTerms] = useState<Term[]>([]);
+  const [termsLoaded, setTermsLoaded] = useState<boolean>(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [userMessage, setUserMessage] = useState<string>("");
+  const [titoMood, setTitoMood] = useState("neutral");
+  const [timeChatted, setTimeChatted] = useState<number | undefined>(undefined);
+  const [progress, setProgress] = useState<number | undefined>(undefined);
+  // const [message, setMessage] = useState("");
+  // const [trigger, setTrigger] = useState(0);
+  const [masteredSet, setMasteredSet] = useState<Set<number>>(new Set());
+  const [masteredTermIDs, setMasteredTermIDs] = useState<number[]>([]);
+  const [classID, setClassID] = useState<string | null>(null);
+  const [ttsSupported, setTtsSupported] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
-    const [terms, setTerms] = useState<Term[]>([]);
-    const [termsLoaded, setTermsLoaded] = useState<boolean>(false);
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-    const [userMessage, setUserMessage] = useState<string>("");
-    const [titoMood, setTitoMood] = useState("neutral");
-    const [timeChatted, setTimeChatted] = useState<number | undefined>(undefined);
-    const [progress, setProgress] = useState<number | undefined>(undefined);
-    const [message, setMessage] = useState("");
-    const [trigger, setTrigger] = useState(0);
-    const [masteredSet, setMasteredSet] = useState<Set<number>>(new Set());
-    const [masteredTermIDs, setMasteredTermIDs] = useState<number[]>([]);
-    const [classID, setClassID] = useState<string | null>(null);
-    // --- TTS state + helpers ---
-    const [ttsSupported, setTtsSupported] = useState(false);
-    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const THRESHOLDS = useMemo(() => [25, 50, 75, 100] as const, []);
+  const prevProgressRef = useRef<number>(-Infinity);
 
-    //Lore milestone logic with one time trigger (DB-driven)
-    const THRESHOLDS = useMemo(() => [25, 50, 75, 100] as const, []);
-    const prevProgressRef = useRef<number>(-Infinity);
+  type Threshold = 25 | 50 | 75 | 100;
+  const [loreByThreshold, setLoreByThreshold] = useState<Partial<Record<Threshold, string>>>({});
+  const [loreID, setLoreID] = useState<number | null>(null);
 
-    // Lore loaded from DB
-    type Threshold = 25 | 50 | 75 | 100;
-    const [loreByThreshold, setLoreByThreshold] = useState<Partial<Record<Threshold, string>>>({});
-    const [loreID, setLoreID] = useState<number | null>(null);
+  useEffect(() => {
+    prevProgressRef.current = -Infinity;
+  }, [props.moduleID, loreID]);
 
-    // Reset progression memory when module or lore set changes
-    useEffect(() => {
-      prevProgressRef.current = -Infinity;
-    }, [props.moduleID, loreID]);
+// Lore progress threshold popups disabled per sponsor feedback.
+/*
+useEffect(() => {
+  if (progress == null || isNaN(progress)) return;
+  if (!loreID) return;
 
-    // Detect crossings (use loreID in the key so different sets don't collide)
-    useEffect(() => {
-      if (progress == null || isNaN(progress)) return;
-      if (!loreID) return; // don't show until lore is loaded
+  let chosen: number | null = null;
 
-      let chosen: number | null = null;
-
-      for (const t of THRESHOLDS) {
-        const key = `tito_lore_shown_${props.moduleID}_${loreID}_${t}`;
-        const already = typeof window !== "undefined" && localStorage.getItem(key) === "1";
-        if (!already && prevProgressRef.current < t && progress >= t) {
-          if (chosen === null || t > chosen) chosen = t;
-        }
-      }
-
-      if (chosen !== null) {
-        const key = `tito_lore_shown_${props.moduleID}_${loreID}_${chosen}`;
-        try { localStorage.setItem(key, "1"); } catch {}
-        const text = loreByThreshold[chosen as Threshold];
-        if (text) {
-          setMessage(text);
-          setTrigger(Date.now());
-          console.log(`[Lore] Showing ${chosen}% lore`, { progress, chosen, text });
-        } else {
-          console.log(`[Lore] No lore text for ${chosen}%`);
-        }
-      }
-
-      prevProgressRef.current = progress;
-    }, [progress, props.moduleID, loreID, loreByThreshold, THRESHOLDS]);
-
-    const fetchMasteredTermIDs = useCallback(async () => {
-      if (!user?.jwt) return;
-      const url = `${ELLE_URL}/twt/session/getTermProgress?moduleID=${props.moduleID}`;
-
-      try {
-        const res = await fetch(url, {
-          headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" },
-        });
-
-        if (!res.ok) {
-          const bodyText = await res.text().catch(() => "<no text>");
-          console.error("[Mastery] fetch failed", { status: res.status, url, bodyText });
-          setMasteredSet(new Set());
-          setMasteredTermIDs([]);     // <- keep both in sync
-          return;
-        }
-
-        const payload = await res.json().catch(() => ({}));
-        const data = payload?.data ?? payload ?? {};
-        const ids: number[] = Array.isArray(data.masteredIDs) ? data.masteredIDs.map(Number) : [];
-
-        setMasteredSet(new Set(ids));
-        setMasteredTermIDs(ids);      // <- actually fill this state now
-        console.log("[Mastery] masteredIDs =", ids);
-      } catch (err) {
-        console.error("[Mastery] unexpected error calling", url, err);
-        setMasteredSet(new Set());
-        setMasteredTermIDs([]);
-      }
-    }, [user?.jwt, props.moduleID]);
-
-
-    // Fetch termsMastered/total and update progress (%)
-    const fetchProgress = useCallback(async () => {
-      if (!user?.jwt) return;
-
-      const res = await fetch(
-        `${ELLE_URL}/twt/session/getModuleProgress?moduleID=${props.moduleID}`,
-        { headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" } }
-      );
-      if (!res.ok) throw new Error(`Progress fetch failed ${res.status}`);
-
-      const body = await res.json();
-      const data = body?.data ?? body;
-
-      let termsMastered: number | undefined;
-      let totalTerms: number | undefined;
-
-      if (Array.isArray(data) && data.length >= 2) {
-        termsMastered = Number(data[0]);
-        totalTerms   = Number(data[1]);
-      } else {
-        termsMastered = Number(data?.termsMastered ?? data?.mastered ?? data?.used ?? data?.completed);
-        totalTerms    = Number(data?.totalTerms ?? data?.total ?? data?.count);
-      }
-
-      let pct =
-        Number.isFinite(termsMastered) && Number.isFinite(totalTerms) && totalTerms > 0
-          ? Math.round((100 * Number(termsMastered)) / Number(totalTerms))
-          : 0;
-
-      pct = Math.max(0, Math.min(100, pct));
-
-      setProgress(pct);
-      props.setTermScore(`${Number(termsMastered ?? 0)} / ${Number(totalTerms ?? 0)}`);
-      console.log("[fetchProgress]", { termsMastered, totalTerms, pct });
-    }, [user?.jwt, props.moduleID]);
-
-    // Cloud bubble and progress + lore fetch
-    useEffect(() => {
-      if (!user || !user.jwt) return;
-
-      const jwt = user.jwt;
-
-      async function getClassIdForModule(moduleID: number): Promise<string | null> {
-        // Ask backend which classes map to which modules for this user
-        const res = await fetch(`${ELLE_URL}/twt/session/access`, {
-          headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" },
-        });
-        if (!res.ok) return null;
-
-        // Backend returns something like: [[classID, [[moduleID, sequenceID], ...]], ...]
-        const data = await res.json();
-        const pairs = data?.data ?? data;
-        for (const [cID, modulesList] of pairs) {
-          for (const [mID] of modulesList) {
-            if (mID === props.moduleID) return String(cID);
-          }
-        }
-        return null;
-      }
-
-      async function fetchLoreFromDB() {
-        try {
-          const classIDForModule = await getClassIdForModule(props.moduleID);
-          if (!classIDForModule) {
-            console.warn(`[Lore] No classID found for module ${props.moduleID} - lore feature will not be available`);
-            setLoreByThreshold({});
-            setLoreID(null);
-            setClassID(null);
-            return;
-          }
-          
-          // Store classID for use in audio uploads
-          setClassID(classIDForModule);
-
-          const res = await fetch(
-            `${ELLE_URL}/twt/session/getTitoLore?classID=${classIDForModule}&moduleID=${props.moduleID}`,
-            { headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" } }
-          );
-          if (!res.ok) {
-            const body = await res.text();
-            throw new Error(`Lore fetch failed ${res.status}: ${body}`);
-          }
-
-          const payload = await res.json();
-
-          // Expect: payload.data is an array of 4 strings in sequence order (1..4)
-          const arr: string[] = Array.isArray(payload?.data)
-            ? payload.data
-            : Array.isArray(payload) ? payload : [];
-
-          console.log("[Lore] Normalized data array", { length: arr.length, arr });
-
-          const seqToThreshold: Threshold[] = [25, 50, 75, 100];
-          const map: Partial<Record<Threshold, string>> = {};
-
-          arr.forEach((txt, i) => {
-            const t = seqToThreshold[i];
-            if (t && typeof txt === "string") {
-              const clean = txt.trim();
-              console.log("[Lore] Mapping item", { index: i, threshold: t, raw: txt, clean });
-              if (clean) map[t] = clean;
-            }
-          });
-
-          // Log which thresholds we have (and which we don't)
-          const have = Object.keys(map).map(Number);
-          const missing = seqToThreshold.filter(t => !have.includes(t));
-          if (missing.length) {
-            console.warn("[Lore] Missing thresholds", { missing, have, map });
-          } else {
-            console.log("[Lore] All thresholds mapped OK", { have, map });
-          }
-
-          setLoreByThreshold(map);
-          const idNum = Number(payload?.loreID);
-          setLoreID(Number.isFinite(idNum) ? idNum : null);
-
-          console.log("[Lore] Loaded", {
-            loreID: Number.isFinite(idNum) ? idNum : null,
-            thresholds: Object.keys(map),
-            map,
-            raw: payload,
-          });
-        } catch (e) {
-          console.error("Lore fetch error:", e);
-          setLoreByThreshold({});
-          setLoreID(null);
-        }
-
-      }
-
-      fetchProgress();
-      fetchMasteredTermIDs();
-      fetchLoreFromDB();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.moduleID, user?.jwt, fetchProgress, fetchMasteredTermIDs]);
-
-    async function handleSendMessageClick(forcedMessage?: string | React.MouseEvent) {
-        // Check if forcedMessage is actually a string (not an event object)
-        const isString = typeof forcedMessage === 'string';
-        // Use forced message if provided and is a string (for voice-to-text), otherwise use state
-        const messageToUse = (isString ? forcedMessage : userMessage) as string;
-
-        if(messageToUse === "" || user === undefined || props.chatbotId === undefined || !termsLoaded) {
-            console.log(`[ChatScreen] Send blocked - message: '${messageToUse}', user: ${!!user}, chatbotId: ${props.chatbotId}, termsLoaded: ${termsLoaded}`);
-            return; //Does nothing if empty textarea or invalid credentials
-        }
-        
-        //Resets Tito state & empties textArea
-        setTitoMood("thinking");
-        const messageToSend = messageToUse; // Store the message before clearing
-        setUserMessage("");
-
-        //Temporarily appends userMessage (no metadata yet bcs no LLM response)
-        const tempUserChatMessage: ChatMessage = {
-          value: messageToSend,
-          timestamp: new Date().toISOString(),
-          source: "user",
-          metadata: undefined
-        }
-        setChatMessages((prevChatMessages) => [...prevChatMessages, tempUserChatMessage]);
-
-        //Calls API
-        const sendMessageResponse = await sendMessage(
-          user.jwt, 
-          user.userID, 
-          props.chatbotId, 
-          props.moduleID, 
-          messageToSend, 
-          terms.map(term => term.questionFront), 
-          terms.filter(term => term.used === true).map(term => term.questionFront),
-          undefined, // classId
-          wasVoiceMessage // isVoiceMessage flag
-        );
-
-        
-        // Upload audio file if this was a voice message
-        console.log('[ChatScreen] Checking audio upload conditions:', { 
-          sendMessageResponse: !!sendMessageResponse, 
-          wasVoiceMessage, 
-          audioBlob: !!audioBlob,
-          audioBlobSize: audioBlob ? audioBlob.size : 0,
-          messageID: sendMessageResponse?.messageID
-        });
-        
-        let messageId: number | undefined;
-        if (sendMessageResponse && wasVoiceMessage && audioBlob) {
-          messageId = sendMessageResponse.messageID;
-          console.log('[ChatScreen] Audio upload starting for message ID:', messageId);
-          // Only proceed with audio upload if we have a valid messageID
-          if (messageId && typeof messageId === 'number' && messageId > 0) {
-            // Use the stored classID, or fetch it if not available
-            let uploadClassID = classID;
-            if (!uploadClassID && props.moduleID !== -1) {
-              console.log('[ChatScreen] classID not available, fetching...');
-              const res = await fetch(`${ELLE_URL}/twt/session/access`, {
-                headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" },
-              });
-              if (res.ok) {
-                const data = await res.json();
-                const pairs = data?.data ?? data;
-                for (const [cID, modulesList] of pairs) {
-                  for (const [mID] of modulesList) {
-                    if (mID === props.moduleID) {
-                      uploadClassID = String(cID);
-                      break;
-                    }
-                  }
-                  if (uploadClassID) break;
-                }
-              }
-            }
-            
-            // Default to 1 if we still can't get classID (for free chat or fallback)
-            const finalClassID = uploadClassID ? parseInt(uploadClassID) : 1;
-            
-            try {
-              const uploadResult = await uploadAudioFile(
-                user.jwt,
-                messageId,
-                props.chatbotId,
-                finalClassID,
-                props.moduleID,
-                audioBlob
-              );
-              console.log('[ChatScreen] Audio upload result:', uploadResult);
-            } catch (error) {
-              console.error('[ChatScreen] Failed to upload audio:', error);
-            }
-          } else {
-            // MessageID is missing or invalid - can't upload audio
-            console.warn('[ChatScreen] Audio upload skipped - no valid messageID received from server');
-            console.warn('[ChatScreen] This typically happens when the message failed to save or Tito had an error responding');
-          }
-          // Reset voice message state
-          setWasVoiceMessage(false);
-          setAudioBlob(null);
-          console.log('[ChatScreen] Audio upload process completed, states reset');
-        } else {
-          console.log('[ChatScreen] Audio upload skipped - conditions not met');
-          // Still reset voice message state if conditions weren't met
-          if (wasVoiceMessage) {
-            setWasVoiceMessage(false);
-            setAudioBlob(null);
-          }
-        }
-
-        //Makes sure API call is succesful (it returns null if it isn't)
-        if(sendMessageResponse) {
-            //Sets tito mood accordingly
-            setTitoMood(sendMessageResponse.titoConfused ? "confused" : "happy");
-            const userResponse: ChatMessage = {
-                value: messageToSend,
-                timestamp: tempUserChatMessage.timestamp,
-                source: "user",
-                metadata: sendMessageResponse.metadata
-            }
-            
-            //Appends llm response to chatMessages
-            const llmMessage: ChatMessage = {
-                value: sendMessageResponse.llmResponse,
-                timestamp: new Date().toISOString(),
-                source: "llm",
-                metadata: undefined //LLM Messages don't have metadata
-            }
-            
-            console.log('[ChatScreen] Created LLM message:', llmMessage);
-
-            //Updates ChatMessages array, removing temporary user message
-            console.log('[ChatScreen] Updating chat messages with user response and LLM message');
-            setChatMessages((prevChatMessages) => [...prevChatMessages.slice(0, -1), userResponse, llmMessage]);
-            
-            // Match vocab words using normalized text so accentless student input still counts.
-            const normalizedMessage = normalizeText(messageToSend);
-
-                const newTerms: Term[] = terms.map(term => {
-                  const normalizedTerm = normalizeText(term.questionFront);
-
-                  const usedByMessage =
-                    normalizedTerm.length > 0 &&
-                    normalizedMessage.split(" ").includes(normalizedTerm);
-
-                  const usedByBackend =
-                    sendMessageResponse?.termsUsed?.some((usedWord: string) => {
-                      const normalizedUsedWord = normalizeText(usedWord);
-                      return normalizedUsedWord.split(" ").includes(normalizedTerm);
-                    }) ?? false;
-
-                  return {
-                    termID: term.termID,
-                    questionFront: term.questionFront,
-                    questionBack: term.questionBack,
-                    used: term.used || usedByMessage || usedByBackend
-                  };
-                });
-
-setTerms(newTerms);
-
-            {
-              const usedCount  = newTerms.filter(t => t.used).length;
-              const totalCount = newTerms.length || 0;
-              const pctLocal =
-                totalCount > 0 ? Math.max(0, Math.min(100, Math.round((100 * usedCount) / totalCount))) : 0;
-
-              // Only bump if it actually changes (avoids noise)
-              if (pctLocal !== progress) {
-                console.log("[progress] optimistic local", { usedCount, totalCount, pctLocal });
-                setProgress(pctLocal);
-              }
-            }
-
-            await fetchProgress();
-            await fetchMasteredTermIDs();
-
-            // Automatically speak Tito's response (only if not muted)
-            if (sendMessageResponse.llmResponse && ttsSupported && !props.ttsMuted) {
-                // Add a small delay to let the UI update before speaking
-                setTimeout(() => {
-                    speak(sendMessageResponse.llmResponse);
-                }, 100);
-            }
-        }
-        else {
-            console.log("Error sending message");
-            // Reset Tito mood on error
-            setTitoMood("neutral");
-            
-            // Add an error message to the chat
-            const errorMessage: ChatMessage = {
-                value: "Sorry, I couldn't send your message. Please try again or refresh the page if the problem persists.",
-                timestamp: new Date().toISOString(),
-                source: "llm",
-                metadata: undefined
-            }
-            
-            // Update chat messages, replacing the temporary user message with both user message and error
-            const finalUserMessage: ChatMessage = {
-                value: messageToSend,
-                timestamp: tempUserChatMessage.timestamp,
-                source: "user",
-                metadata: { error: "Message failed to send" }
-            }
-            
-            setChatMessages((prevChatMessages) => [...prevChatMessages.slice(0, -1), finalUserMessage, errorMessage]);
-        }
+  for (const t of THRESHOLDS) {
+    const key = `tito_lore_shown_${props.moduleID}_${loreID}_${t}`;
+    const already = typeof window !== "undefined" && localStorage.getItem(key) === "1";
+    if (!already && prevProgressRef.current < t && progress >= t) {
+      if (chosen === null || t > chosen) chosen = t;
     }
+  }
 
-    // --- TTS language selection ---
-    const SUPPORTED_LANGS = [
-      { code: "en-US", label: "English", short: "EN" },
-      { code: "es-ES", label: "Español", short: "ES" },
-      { code: "fr-FR", label: "Français", short: "FR" },
-      { code: "pt-BR", label: "Português", short: "PT" },
-    ];
+  if (chosen !== null) {
+    const key = `tito_lore_shown_${props.moduleID}_${loreID}_${chosen}`;
+    try { localStorage.setItem(key, "1"); } catch { }
+    const text = loreByThreshold[chosen as Threshold];
+    if (text) {
+      setMessage(text);
+      setTrigger(Date.now());
+      console.log(`[Lore] Showing ${chosen}% lore`, { progress, chosen, text });
+    } else {
+      console.log(`[Lore] No lore text for ${chosen}%`);
+    }
+  }
 
-    const [ttsLang, setTtsLang] = useState<string>(() => {
-      if (typeof window !== "undefined") {
-        return localStorage.getItem("ttsLang") ?? "en-US";
+  prevProgressRef.current = progress;
+}, [progress, props.moduleID, loreID, loreByThreshold, THRESHOLDS]);
+*/
+
+  // CHANGED: helper to support a few possible backend response shapes for per-term usage counts
+  const applyBackendUsageCounts = useCallback((data: any) => {
+    const usageArray =
+      Array.isArray(data?.usageByTerm) ? data.usageByTerm :
+      Array.isArray(data?.termUsageCounts) ? data.termUsageCounts :
+      Array.isArray(data?.termProgress) ? data.termProgress :
+      Array.isArray(data?.progress) ? data.progress :
+      [];
+
+    if (!Array.isArray(usageArray) || usageArray.length === 0) return false;
+
+    const usageMap = new Map<number, number>();
+
+    usageArray.forEach((item: any) => {
+      const termID = Number(item?.termID ?? item?.termId ?? item?.id);
+      const timesUsed = Number(
+        item?.timesUsed ??
+        item?.usageCount ??
+        item?.count ??
+        item?.times_used ??
+        0
+      );
+
+      if (Number.isFinite(termID)) {
+        usageMap.set(termID, Math.max(0, Math.min(3, timesUsed)));
       }
-      return "en-US";
     });
 
-    useEffect(() => {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("ttsLang", ttsLang);
-      }
-    }, [ttsLang]);
+    if (usageMap.size === 0) return false;
 
-    function cycleLang() {
-      const i = SUPPORTED_LANGS.findIndex(l => l.code === ttsLang);
-      const next = SUPPORTED_LANGS[(i + 1) % SUPPORTED_LANGS.length];
-      setTtsLang(next.code);
-    }
+    setTerms((prevTerms) =>
+      prevTerms.map((term) => ({
+        ...term,
+        usageCount: usageMap.has(term.termID)
+          ? usageMap.get(term.termID) ?? 0
+          : term.usageCount ?? 0,
+      }))
+    );
 
-    // Map module language codes to speech recognition language codes
-    const getSTTLangCode = (moduleLang: string): string => {
-      const langMap: { [key: string]: string } = {
-        'es': 'es-ES',
-        'fr': 'fr-FR',
-        'pt': 'pt-BR',
-        'en': 'en-US'
-      };
-      return langMap[moduleLang.toLowerCase()] || 'en-US';
-    };
+    return true;
+  }, []);
 
-    // For non-free chat modules, use target language for STT; for free chat, use TTS language
-    const sttLang = props.moduleID === -1 ? ttsLang : (props.moduleLanguage ? getSTTLangCode(props.moduleLanguage) : ttsLang);
+  // CHANGED: this now fetches mastered IDs AND backend usage counts if the backend returns them
+  const fetchTermProgress = useCallback(async () => {
+    if (!user?.jwt || props.moduleID === -1) return;
 
+    const url = `${ELLE_URL}/twt/session/getTermProgress?moduleID=${props.moduleID}`;
 
-      // --- Speech-to-Text (STT) ---
-      const [sttSupported, setSttSupported] = useState(false);
-      const [listening, setListening] = useState(false);
-      const [interimSTT, setInterimSTT] = useState("");
-      const recognitionRef = useRef<SpeechRecognition | null>(null);
-      
-      // --- Audio Recording for Voice Messages ---
-      const [isRecording, setIsRecording] = useState(false);
-      const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-      const [wasVoiceMessage, setWasVoiceMessage] = useState(false);
-      const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-      const shouldAutoSendRef = useRef(false); // Track if we should auto-send after voice input
-      const latestUserMessageRef = useRef<string>(''); // Track latest message for reliable auto-send
-
-      // Type helper for TS
-      type SpeechRecognitionConstructor = new () => SpeechRecognition;
-
-      // Convert digits to words function
-      const convertDigitsToWords = useCallback((text: string): string => {
-        if (!text || typeof text !== 'string') return text;
-        
-        // Multi-language number mappings
-        const numberMappings: { [key: string]: { [key: string]: string } } = {
-          'en-US': {
-            '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four',
-            '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine',
-            '10': 'ten', '11': 'eleven', '12': 'twelve', '13': 'thirteen',
-            '14': 'fourteen', '15': 'fifteen', '16': 'sixteen', '17': 'seventeen',
-            '18': 'eighteen', '19': 'nineteen', '20': 'twenty'
-          },
-          'es-ES': {
-            '0': 'cero', '1': 'uno', '2': 'dos', '3': 'tres', '4': 'cuatro',
-            '5': 'cinco', '6': 'seis', '7': 'siete', '8': 'ocho', '9': 'nueve',
-            '10': 'diez', '11': 'once', '12': 'doce', '13': 'trece',
-            '14': 'catorce', '15': 'quince', '16': 'dieciséis', '17': 'diecisiete',
-            '18': 'dieciocho', '19': 'diecinueve', '20': 'veinte'
-          },
-          'fr-FR': {
-            '0': 'zéro', '1': 'un', '2': 'deux', '3': 'trois', '4': 'quatre',
-            '5': 'cinq', '6': 'six', '7': 'sept', '8': 'huit', '9': 'neuf',
-            '10': 'dix', '11': 'onze', '12': 'douze', '13': 'treize',
-            '14': 'quatorze', '15': 'quinze', '16': 'seize', '17': 'dix-sept',
-            '18': 'dix-huit', '19': 'dix-neuf', '20': 'vingt'
-          },
-          'pt-BR': {
-            '0': 'zero', '1': 'um', '2': 'dois', '3': 'três', '4': 'quatro',
-            '5': 'cinco', '6': 'seis', '7': 'sete', '8': 'oito', '9': 'nove',
-            '10': 'dez', '11': 'onze', '12': 'doze', '13': 'treze',
-            '14': 'quatorze', '15': 'quinze', '16': 'dezesseis', '17': 'dezessete',
-            '18': 'dezoito', '19': 'dezenove', '20': 'vinte'
-          }
-        };
-
-        const currentLangMap = numberMappings[sttLang] || numberMappings['en-US'];
-        let result = text;
-        
-        try {
-          // First handle multi-digit numbers (20, 19, 18, ..., 10)
-          // Sort by descending number value to handle longer numbers first
-          const sortedNumbers = Object.keys(currentLangMap)
-            .map(num => parseInt(num))
-            .filter(num => num >= 10)
-            .sort((a, b) => b - a);
-            
-          sortedNumbers.forEach(num => {
-            const regex = new RegExp(`\\b${num}\\b`, 'gi');
-            result = result.replace(regex, currentLangMap[num.toString()]);
-          });
-          
-          // Then handle single digits (9, 8, 7, ..., 0)
-          const singleDigits = Object.keys(currentLangMap)
-            .map(num => parseInt(num))
-            .filter(num => num < 10)
-            .sort((a, b) => b - a);
-            
-          singleDigits.forEach(num => {
-            const regex = new RegExp(`\\b${num}\\b`, 'gi');
-            result = result.replace(regex, currentLangMap[num.toString()]);
-          });
-        } catch (error) {
-          console.warn('Error in number conversion:', error);
-          return text; // Return original text if conversion fails
-        }
-        
-        return result;
-      }, [sttLang]);
-
-      useEffect(() => {
-        const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (!SR) return;               // not supported
-        setSttSupported(true);
-        const rec: SpeechRecognition = new (SR as SpeechRecognitionConstructor)();
-        rec.continuous = true;         // keep listening continuously until manually stopped
-        rec.interimResults = true;     // show partial words as you speak
-        rec.maxAlternatives = 1;
-        rec.lang = sttLang;            // use target language for non-free chat, TTS language for free chat
-
-        rec.onstart = () => setListening(true);
-        rec.onend = () => {
-          console.log('[STT] Recognition ended');
-          setListening(false);
-        };
-        rec.onerror = (e: Event) => {
-          console.warn("STT error:", e);
-          setListening(false);
-          shouldAutoSendRef.current = false; // Reset on error
-        };
-        rec.onresult = (ev: Event) => {
-          const event = ev as SpeechRecognitionEvent;
-          let interim = "";
-          let finalText = "";
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const chunk = event.results[i][0].transcript;
-            if (event.results[i].isFinal) finalText += chunk;
-            else interim += chunk;
-          }
-          // Apply digit-to-word conversion to interim results
-          const processedInterim = convertDigitsToWords(interim);
-          setInterimSTT(processedInterim);
-
-          // commit final text at phrase end, then clear interim preview
-          if (finalText) {
-            // Apply digit-to-word conversion to final text
-            const processedFinalText = convertDigitsToWords(finalText.trim());
-            console.log('[STT] Final text captured:', processedFinalText);
-            const newMessage = latestUserMessageRef.current?.trim() ? `${latestUserMessageRef.current} ${processedFinalText}` : processedFinalText;
-            setUserMessage(newMessage);
-            latestUserMessageRef.current = newMessage; // Store in ref for reliable access
-            setInterimSTT("");
-            console.log('[STT] Message stored:', newMessage);
-          }
-        };
-
-        recognitionRef.current = rec;
-        return () => {
-          try { rec.abort(); } catch {}
-          recognitionRef.current = null;
-        };
-      }, [sttLang, convertDigitsToWords]); // re-init when STT language changes
-
-    function startListening() {
-      if (!sttSupported || !recognitionRef.current || listening) return;
-      console.log('[STT] startListening called');
-      try {
-        latestUserMessageRef.current = userMessage; // Store current message before starting
-        console.log('[STT] Stored current message:', userMessage);
-        recognitionRef.current.start();
-        startAudioRecording(); // Also start audio recording
-      } catch (e: unknown) {
-        // Some browsers throw if called twice quickly
-        console.warn('[STT] Error starting recognition:', e);
-      }
-    }
-
-    function stopListening() {
-      if (!recognitionRef.current) return;
-      console.log('[STT] stopListening called');
-      try {
-        // Stop speech recognition
-        recognitionRef.current.stop();
-        // Stop audio recording
-        stopAudioRecording();
-        
-        // Send the message after a short delay to allow final processing
-        setTimeout(() => {
-          const messageToSend = latestUserMessageRef.current.trim();
-          if (messageToSend) {
-            console.log('[STT] Sending message after stop:', messageToSend);
-            handleSendMessageClick(messageToSend);
-            latestUserMessageRef.current = '';
-          } else {
-            console.log('[STT] No message to send');
-          }
-        }, 300);
-      } catch (err) {
-        console.error('[STT] Error in stopListening:', err);
-      }
-    }
-    
-    // Start recording audio for voice messages
-    async function startAudioRecording() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-        const chunks: BlobPart[] = [];
-        
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) {
-            chunks.push(event.data);
-          }
-        };
-        
-        mediaRecorder.onstop = () => {
-          const blob = new Blob(chunks, { type: 'audio/webm' });
-          console.log('[ChatScreen] Audio recording stopped, blob created:', {
-            size: blob.size,
-            type: blob.type,
-            chunksCount: chunks.length
-          });
-          setAudioBlob(blob);
-          setWasVoiceMessage(true);
-          console.log('[ChatScreen] Audio states set: wasVoiceMessage=true, audioBlob size=', blob.size);
-          // Stop all tracks to free up the microphone
-          stream.getTracks().forEach(track => track.stop());
-        };
-        
-        mediaRecorder.start();
-        mediaRecorderRef.current = mediaRecorder;
-        setIsRecording(true);
-        console.log('[ChatScreen] Started audio recording');
-      } catch (error) {
-        console.error('[ChatScreen] Error starting audio recording:', error);
-      }
-    }
-    
-    // Stop recording audio
-    function stopAudioRecording() {
-      console.log('[ChatScreen] stopAudioRecording called, current state:', {
-        hasMediaRecorder: !!mediaRecorderRef.current,
-        isRecording: isRecording,
-        recorderState: mediaRecorderRef.current?.state
+    try {
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" },
       });
-      
-      if (mediaRecorderRef.current && isRecording) {
-        console.log('[ChatScreen] Stopping MediaRecorder...');
-        mediaRecorderRef.current.stop();
-        setIsRecording(false);
-        console.log('[ChatScreen] MediaRecorder stopped, isRecording set to false');
-      } else {
-        console.log('[ChatScreen] stopAudioRecording: conditions not met for stopping');
+
+      if (!res.ok) {
+        const bodyText = await res.text().catch(() => "<no text>");
+        console.error("[TermProgress] fetch failed", { status: res.status, url, bodyText });
+        setMasteredSet(new Set());
+        setMasteredTermIDs([]);
+        return;
       }
+
+      const payload = await res.json().catch(() => ({}));
+      const data = payload?.data ?? payload ?? {};
+
+      const ids: number[] = Array.isArray(data?.masteredIDs)
+        ? data.masteredIDs.map(Number)
+        : Array.isArray(data?.masteredTermIDs)
+          ? data.masteredTermIDs.map(Number)
+          : [];
+
+      setMasteredSet(new Set(ids));
+      setMasteredTermIDs(ids);
+
+      applyBackendUsageCounts(data);
+
+      console.log("[TermProgress] masteredIDs =", ids);
+    } catch (err) {
+      console.error("[TermProgress] unexpected error calling", url, err);
+      setMasteredSet(new Set());
+      setMasteredTermIDs([]);
+    }
+  }, [user?.jwt, props.moduleID, applyBackendUsageCounts]);
+
+  const fetchProgress = useCallback(async () => {
+    if (!user?.jwt) return;
+
+    const res = await fetch(
+      `${ELLE_URL}/twt/session/getModuleProgress?moduleID=${props.moduleID}`,
+      { headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" } }
+    );
+    if (!res.ok) throw new Error(`Progress fetch failed ${res.status}`);
+
+    const body = await res.json();
+    const data = body?.data ?? body;
+
+    let termsMastered: number | undefined;
+    let totalTerms: number | undefined;
+
+    if (Array.isArray(data) && data.length >= 2) {
+      termsMastered = Number(data[0]);
+      totalTerms = Number(data[1]);
+    } else {
+      termsMastered = Number(data?.termsMastered ?? data?.mastered ?? data?.used ?? data?.completed);
+      totalTerms = Number(data?.totalTerms ?? data?.total ?? data?.count);
     }
 
-    //Sends new timeChatted to backend
-    const saveTime = useCallback(async () => {
+    let pct =
+      Number.isFinite(termsMastered) && Number.isFinite(totalTerms) && totalTerms > 0
+        ? Math.round((100 * Number(termsMastered)) / Number(totalTerms))
+        : 0;
 
-      if(user === undefined || props.chatbotId === undefined || timeChatted === undefined) return; //Returns early if any data is missing
+    pct = Math.max(0, Math.min(100, pct));
 
-      //console.log("Attempting to update timeSpent");
+    setProgress(pct);
+    props.setTermScore(`${Number(termsMastered ?? 0)} / ${Number(totalTerms ?? 0)}`);
+    console.log("[fetchProgress]", { termsMastered, totalTerms, pct });
+  }, [user?.jwt, props.moduleID, props]);
 
-      const result = await incrementTime(user.jwt, user.userID, props.chatbotId, 0, timeChatted / 3600);
+  useEffect(() => {
+    if (!user || !user.jwt) return;
 
-      if(result === 200) {
-        //console.log("Success updating timeSpent");
+    const jwt = user.jwt;
+
+    async function getClassIdForModule(moduleID: number): Promise<string | null> {
+      const res = await fetch(`${ELLE_URL}/twt/session/access`, {
+        headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" },
+      });
+      if (!res.ok) return null;
+
+      const data = await res.json();
+      const pairs = data?.data ?? data;
+      for (const [cID, modulesList] of pairs) {
+        for (const [mID] of modulesList) {
+          if (mID === props.moduleID) return String(cID);
+        }
       }
-      else {
-        console.log("Failed updating timeSpent")
-      }
+      return null;
+    }
 
-    }, [user, props.chatbotId, timeChatted]);
-
-    useEffect(() => {
-      if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-      setTtsSupported(true);
-      const synth = window.speechSynthesis;
-
-      const loadVoices = () => setVoices(synth.getVoices());
-      loadVoices();
-      synth.addEventListener("voiceschanged", loadVoices);
-      return () => synth.removeEventListener("voiceschanged", loadVoices);
-    }, []);
-
-    //Triggers saveTime when selecting new module OR every minute
-    //Placed before other useEffect blocks to prevent dependencies from clashing
-    useEffect(() => {
-      saveTime(); //Calls on useEffect triggering
-      const interval = setInterval(() => {
-        saveTime(); //Calls each minute thereafter
-      }, 60000);
-      return () => {
-        clearInterval(interval);
-      };
-    }, [props.moduleID, saveTime]);
-
-    //Attempts to Trigger saveTime when user leaves page
-    //May be unreliable due to page unloads not always supporting async operations
-    useEffect(() => {
-      const handleBeforeUnload = async (event: BeforeUnloadEvent) => {
-        saveTime();
-      };
-      window.addEventListener("beforeunload", handleBeforeUnload);
-      return () => {
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-      }
-    }, [saveTime]);
-
-    //Increments timeChatted each second
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setTimeChatted((prev) => (prev !== undefined ? prev+1 : prev));
-      }, 1000);
-      return () => clearInterval(interval);
-    }, []);
-
-    //Sets timeSpent for outer analytics page (converts from seconds to hr,min,sec)
-    useEffect(() => {
-      if(timeChatted === undefined) return;
-      props.setTimeSpent(
-        `${Math.floor(timeChatted / 3600)}h ` +
-        `${Math.floor((timeChatted % 3600) / 60)}m ` +
-        `${Math.floor(timeChatted % 60)}s`
-      );
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [timeChatted]);
-    
-    //Test prints timeChatted
-    // useEffect(() => {
-    //   console.log("timeChatted: " + timeChatted);
-    // }, [timeChatted]);
-
-    // Used to initialize terms
-    useEffect(() => {
-        setTermsLoaded(false);
-        
-        if(props.moduleID === -1) {
-          setTermsLoaded(true);
-          setTerms([]);
+    async function fetchLoreFromDB() {
+      try {
+        const classIDForModule = await getClassIdForModule(props.moduleID);
+        if (!classIDForModule) {
+          console.warn(`[Lore] No classID found for module ${props.moduleID} - lore feature will not be available`);
+          setLoreByThreshold({});
+          setLoreID(null);
+          setClassID(null);
           return;
         }
-        if(userLoading || !user) return;
-        const loadTerms = async () => {
-            const newTerms = await fetchModuleTerms(user.jwt, props.moduleID);
-            if(newTerms) {
-                setTermsLoaded(true);
-                setTerms(newTerms.map(term => ({
-                    termID: term.termID,
-                    questionFront: term.questionFront,
-                    questionBack: term.questionBack,
-                    used: false
-                })));
-            }
-            else {
-                console.log("Error getting terms");
-            }
+
+        setClassID(classIDForModule);
+
+        const res = await fetch(
+          `${ELLE_URL}/twt/session/getTitoLore?classID=${classIDForModule}&moduleID=${props.moduleID}`,
+          { headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" } }
+        );
+        if (!res.ok) {
+          const body = await res.text();
+          throw new Error(`Lore fetch failed ${res.status}: ${body}`);
         }
-        loadTerms();
-    }, [props.moduleID, user, userLoading]);
 
-    // Speak function for TTS
-    const speak = useCallback((text: string, opts?: { rate?: number; pitch?: number; lang?: string }) => {
-      if (!ttsSupported || !text?.trim()) return;
-      const lang = opts?.lang ?? ttsLang;
+        const payload = await res.json();
 
-      const u = new SpeechSynthesisUtterance(text);
-      // Enhanced settings for more natural speech
-      u.rate = opts?.rate ?? 0.9;     // Slightly slower for clarity
-      u.pitch = opts?.pitch ?? 1.0;   // Natural pitch
-      u.volume = 0.8;                 // Slightly softer volume
-      u.lang = lang;
+        const arr: string[] = Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload) ? payload : [];
 
-      // Use Google US English as default, with fallbacks for other languages
-      const langVoices = voices.filter(v => v.lang?.toLowerCase().startsWith(lang.toLowerCase()));
-      
-      let selectedVoice = null;
-      
-      // For English, prioritize Google US English
-      if (lang.startsWith('en')) {
-        selectedVoice = voices.find(v => v.name === 'Google US English') ||
-                       langVoices.find(v => v.name.includes('Google')) ||
-                       langVoices.find(v => v.name.includes('Zira')) ||
-                       langVoices[0];
-      } else {
-        // For other languages, prefer Google voices
-        selectedVoice = langVoices.find(v => v.name.includes('Google')) || langVoices[0];
+        console.log("[Lore] Normalized data array", { length: arr.length, arr });
+
+        const seqToThreshold: Threshold[] = [25, 50, 75, 100];
+        const map: Partial<Record<Threshold, string>> = {};
+
+        arr.forEach((txt, i) => {
+          const t = seqToThreshold[i];
+          if (t && typeof txt === "string") {
+            const clean = txt.trim();
+            console.log("[Lore] Mapping item", { index: i, threshold: t, raw: txt, clean });
+            if (clean) map[t] = clean;
+          }
+        });
+
+        const have = Object.keys(map).map(Number);
+        const missing = seqToThreshold.filter(t => !have.includes(t));
+        if (missing.length) {
+          console.warn("[Lore] Missing thresholds", { missing, have, map });
+        } else {
+          console.log("[Lore] All thresholds mapped OK", { have, map });
+        }
+
+        setLoreByThreshold(map);
+        const idNum = Number(payload?.loreID);
+        setLoreID(Number.isFinite(idNum) ? idNum : null);
+
+        console.log("[Lore] Loaded", {
+          loreID: Number.isFinite(idNum) ? idNum : null,
+          thresholds: Object.keys(map),
+          map,
+          raw: payload,
+        });
+      } catch (e) {
+        console.error("Lore fetch error:", e);
+        setLoreByThreshold({});
+        setLoreID(null);
       }
-      
-      if (selectedVoice) u.voice = selectedVoice;
+    }
 
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    }, [ttsSupported, ttsLang, voices]);
+    fetchProgress();
+    fetchTermProgress();
+    // fetchLoreFromDB(); // Lore disabled per sponsor feedback
+  }, [props.moduleID, user?.jwt, fetchProgress, fetchTermProgress]);
 
-    //Used to initialize chatbot
-    useEffect(() => {
-        // For free chat (moduleID === -1), we don't need terms to initialize chatbot
-        const isFreeChat = props.moduleID === -1;
-        if(userLoading || !user || !termsLoaded || (!isFreeChat && terms.length === 0)) return; // Returns if not ready to execute
-        
-        console.log(`[ChatScreen] Initializing chatbot for module ${props.moduleID}`, { termsLength: terms.length, isFreeChat });
-        
-        const loadChatbot = async () => {
-            console.log(`[ChatScreen] Calling getChatbot for module ${props.moduleID}`);
-            const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
-            if(newChatbot) {
-              console.log(`[ChatScreen] Successfully got chatbot session ${newChatbot.chatbotId} for module ${props.moduleID}`);
-              props.setChatbotId(newChatbot.chatbotId);
-                  setTimeChatted(newChatbot.totalTimeChatted * 3600);
-                  if(newChatbot.userBackground) {
-                      console.log("Received LLM Background: " + newChatbot.userBackground)
-                      props.setUserBackgroundFilepath(newChatbot.userBackground);
-                  }
-                  // Add User Music from chatbot
-                  if(newChatbot.userMusicChoice) {
-                    console.log("Received Music Background: " + newChatbot.userMusicChoice)
-                    props.setUserMusicFilepath(newChatbot.userMusicChoice);
-                  }
-                  const newTerms: Term[] = terms.map(term => {
-                      const normalizedTerm = normalizeText(term.questionFront).trim();
+  async function handleSendMessageClick(forcedMessage?: string | React.MouseEvent) {
+    const isString = typeof forcedMessage === "string";
+    const messageToUse = (isString ? forcedMessage : userMessage) as string;
 
-                      const used =
-                        newChatbot.termsUsed?.some((w: string) => {
-                          const normalizedUsedWord = ` ${normalizeText(w)} `;
-                          return normalizedTerm.length > 0 && normalizedUsedWord.includes(` ${normalizedTerm} `);
-                        }) ?? false;
+    if (messageToUse === "" || user === undefined || props.chatbotId === undefined || !termsLoaded) {
+      console.log(`[ChatScreen] Send blocked - message: '${messageToUse}', user: ${!!user}, chatbotId: ${props.chatbotId}, termsLoaded: ${termsLoaded}`);
+      return;
+    }
 
-                      return {
-                        termID: term.termID,
-                        questionFront: term.questionFront,
-                        questionBack: term.questionBack,
-                        used
-                      };
-                  });
-                  setTerms(newTerms);
-            }
-            else {
-                console.error(`[ChatScreen] Failed to get chatbot for module ${props.moduleID}`);
-                // Don't set chatbotId if session creation failed
-                props.setChatbotId(undefined);
-            }
-        }
-        loadChatbot();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.moduleID, user?.jwt, termsLoaded])
-    
-    // Used to initialize chat messages - reset when module changes
-    useEffect(() => {
-        // Clear chat messages immediately when module changes
-        setChatMessages([]);
-        
-        //Instruction message
-        const instructionMessage: ChatMessage = props.moduleID !== -1 ? {
-            value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. View the vocab list on the right for a list of terms which we can chat about. Try to use them each in a sentence atleast once, then they will be crossed off to indicate you've used them correctly.`,
-            timestamp: "",
-            source: "llm",
-            metadata: undefined
-        }
-        :
-        {
-          value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. Welcome to free chat, here you can ask questions or talk about whatever you like.`,
-            timestamp: "",
-            source: "llm",
-            metadata: undefined
-        }
+    setTitoMood("thinking");
+    const messageToSend = messageToUse;
+    setUserMessage("");
 
-        if(userLoading || !user || !props.chatbotId) return;
-        
-        console.log(`[ChatScreen] Loading messages for moduleID: ${props.moduleID}, chatbotId: ${props.chatbotId}`);
-        
-        const loadMessages = async () => {
-          if(!props.chatbotId) return;
-          const newMessages = await getMessages(user.jwt, user.userID, props.chatbotId, props.moduleID);
-          if(newMessages) {
-              console.log(`[ChatScreen] Loaded ${newMessages.length} messages for module ${props.moduleID}`);
-              setChatMessages([instructionMessage, ...newMessages]);
-              
-              // Speak the welcome message automatically when chat loads for first time
-              // Only if there are no previous messages (new conversation) and TTS is not muted
-              console.log('[ChatScreen] TTS Check:', {
-                  messageCount: newMessages.length,
-                  ttsSupported,
-                  ttsMuted: props.ttsMuted,
-                  willSpeak: newMessages.length === 0 && ttsSupported && !props.ttsMuted
-              });
-              
-              if (newMessages.length === 0 && ttsSupported && !props.ttsMuted) {
-                  console.log('[ChatScreen] Speaking welcome message');
-                  setTimeout(() => {
-                      speak(instructionMessage.value);
-                  }, 1000); // Wait 1 second to let everything load
-              } else {
-                  console.log('[ChatScreen] NOT speaking - messages exist or TTS is disabled');
+    const tempUserChatMessage: ChatMessage = {
+      value: messageToSend,
+      timestamp: new Date().toISOString(),
+      source: "user",
+      metadata: undefined
+    };
+    setChatMessages((prevChatMessages) => [...prevChatMessages, tempUserChatMessage]);
+
+    const sendMessageResponse = await sendMessage(
+      user.jwt,
+      user.userID,
+      props.chatbotId,
+      props.moduleID,
+      messageToSend,
+      terms.map(term => term.questionFront),
+
+      // CHANGED: only send words that are fully completed under the 3-use rule
+      terms.filter(term => term.usageCount >= 3).map(term => term.questionFront),
+
+      undefined,
+      wasVoiceMessage
+    );
+
+    console.log("[ChatScreen] Checking audio upload conditions:", {
+      sendMessageResponse: !!sendMessageResponse,
+      wasVoiceMessage,
+      audioBlob: !!audioBlob,
+      audioBlobSize: audioBlob ? audioBlob.size : 0,
+      messageID: sendMessageResponse?.messageID
+    });
+
+    let messageId: number | undefined;
+    if (sendMessageResponse && wasVoiceMessage && audioBlob) {
+      messageId = sendMessageResponse.messageID;
+      console.log("[ChatScreen] Audio upload starting for message ID:", messageId);
+      if (messageId && typeof messageId === "number" && messageId > 0) {
+        let uploadClassID = classID;
+        if (!uploadClassID && props.moduleID !== -1) {
+          console.log("[ChatScreen] classID not available, fetching...");
+          const res = await fetch(`${ELLE_URL}/twt/session/access`, {
+            headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const pairs = data?.data ?? data;
+            for (const [cID, modulesList] of pairs) {
+              for (const [mID] of modulesList) {
+                if (mID === props.moduleID) {
+                  uploadClassID = String(cID);
+                  break;
+                }
               }
-          }
-          else {
-              console.log(`[ChatScreen] Error getting messages for module ${props.moduleID}`);
-              // Set just the instruction message if no messages could be loaded
-              setChatMessages([instructionMessage]);
+              if (uploadClassID) break;
+            }
           }
         }
-        loadMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.chatbotId, props.moduleID, user, userLoading]);
 
-    //Used to update averageScore
-    useEffect(() => {
-        const messagesWithScore = chatMessages.filter(message => message.metadata?.score !== undefined);
-        const averageScore = 
-            messagesWithScore.length > 0 ? 
-            messagesWithScore.reduce((sum, msg) => sum + (msg.metadata?.score || 0), 0) / messagesWithScore.length 
-            : 0;
-        props.setAverageScore(averageScore);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [chatMessages])
+        const finalClassID = uploadClassID ? parseInt(uploadClassID) : 1;
 
-    // Placeholder animation
-    const [placeholder, setPlaceholder] = useState<string>("Tito is typing...");
-    let fullPlaceholder = "Tito is typing..."
+        try {
+          const uploadResult = await uploadAudioFile(
+            user.jwt,
+            messageId,
+            props.chatbotId,
+            finalClassID,
+            props.moduleID,
+            audioBlob
+          );
+          console.log("[ChatScreen] Audio upload result:", uploadResult);
+        } catch (error) {
+          console.error("[ChatScreen] Failed to upload audio:", error);
+        }
+      } else {
+        console.warn("[ChatScreen] Audio upload skipped - no valid messageID received from server");
+        console.warn("[ChatScreen] This typically happens when the message failed to save or Tito had an error responding");
+      }
 
-    useEffect (()=>{
-      const startThinking = () =>{
-        const repeatInterval = setInterval(()=>{
-          setPlaceholder("");
-          let i = 0;
-          const interval = setInterval(()=>{
-            setPlaceholder(()=>fullPlaceholder.substring(0,i));
-            i++
-            if (i >= fullPlaceholder.length) {
-              clearInterval(interval);
-            }
-          }, 150)
-          return () => clearInterval(interval);
-        }, fullPlaceholder.length * 100 + 2000)
-        const handleVisibilityChange = () => {
-          if (document.hidden) {
-            clearInterval(repeatInterval); // Stop the interval when the tab is not visible
-          } else {
-            clearInterval(repeatInterval); // Clear and restart the interval when tab is visible again
-            // You can also resume from the current state instead of resetting here if needed
-            startThinking()
+      setWasVoiceMessage(false);
+      setAudioBlob(null);
+      console.log("[ChatScreen] Audio upload process completed, states reset");
+    } else {
+      console.log("[ChatScreen] Audio upload skipped - conditions not met");
+      if (wasVoiceMessage) {
+        setWasVoiceMessage(false);
+        setAudioBlob(null);
+      }
+    }
+
+    if (sendMessageResponse) {
+      setTitoMood(sendMessageResponse.titoConfused ? "confused" : "happy");
+      const userResponse: ChatMessage = {
+        value: messageToSend,
+        timestamp: tempUserChatMessage.timestamp,
+        source: "user",
+        metadata: sendMessageResponse.metadata
+      };
+
+      const llmMessage: ChatMessage = {
+        value: sendMessageResponse.llmResponse,
+        timestamp: new Date().toISOString(),
+        source: "llm",
+        metadata: undefined
+      };
+
+      console.log("[ChatScreen] Created LLM message:", llmMessage);
+      console.log("[ChatScreen] Updating chat messages with user response and LLM message");
+      setChatMessages((prevChatMessages) => [...prevChatMessages.slice(0, -1), userResponse, llmMessage]);
+
+      // CHANGED: keep a fast optimistic update for UI responsiveness
+      const normalize = (s: string) =>
+        s.toLowerCase().replace(/[^\w\sáéíóúüñàèìòùâêîôûçäëïöüß]/g, "").trim();
+
+      const messageWords = messageToSend
+        .trim()
+        .split(/\s+/)
+        .map(normalize);
+
+      const usageArray =
+        Array.isArray(sendMessageResponse?.usageByTerm) ? sendMessageResponse.usageByTerm :
+        Array.isArray(sendMessageResponse?.termUsageCounts) ? sendMessageResponse.termUsageCounts :
+        Array.isArray(sendMessageResponse?.termProgress) ? sendMessageResponse.termProgress :
+        [];
+
+      const responseUsageMap = new Map<number, number>();
+      usageArray.forEach((item: any) => {
+        const termID = Number(item?.termID ?? item?.termId ?? item?.id);
+        const timesUsed = Number(
+          item?.timesUsed ??
+          item?.usageCount ??
+          item?.count ??
+          0
+        );
+
+        if (Number.isFinite(termID)) {
+          responseUsageMap.set(termID, Math.max(0, Math.min(3, timesUsed)));
+        }
+      });
+
+      const newTerms: Term[] = terms.map((term) => {
+        const front = term.questionFront ?? "";
+        const back = term.questionBack ?? "";
+
+        // CHANGED: if backend already returned exact usage counts, trust that first
+        if (responseUsageMap.has(term.termID)) {
+          return {
+            termID: term.termID,
+            questionFront: front,
+            questionBack: back,
+            usageCount: responseUsageMap.get(term.termID) ?? 0,
+          };
+        }
+
+        const usedByMessage =
+          front.length > 0 &&
+          messageWords.includes(normalize(front));
+
+        const usedByBackend =
+          sendMessageResponse?.termsUsed?.some(
+            (usedWord: string) => normalize(usedWord) === normalize(front)
+          ) ?? false;
+
+        const matched = usedByMessage || usedByBackend;
+
+        return {
+          termID: term.termID,
+          questionFront: front,
+          questionBack: back,
+          usageCount: matched ? Math.min((term.usageCount ?? 0) + 1, 3) : (term.usageCount ?? 0),
+        };
+      });
+
+      setTerms(newTerms);
+
+      // CHANGED: progress only increases when a vocab word reaches 3/3
+      {
+        const completedCount = newTerms.filter(t => t.usageCount >= 3).length;
+        const totalCount = newTerms.length || 0;
+        const pctLocal =
+          totalCount > 0 ? Math.max(0, Math.min(100, Math.round((100 * completedCount) / totalCount))) : 0;
+
+        if (pctLocal !== progress) {
+          console.log("[progress] optimistic local", { completedCount, totalCount, pctLocal });
+          setProgress(pctLocal);
+        }
+      }
+
+      // CHANGED: refetch backend state right after sending so refresh/logout/device state matches
+      await fetchProgress();
+      await fetchTermProgress();
+
+      if (sendMessageResponse.llmResponse && ttsSupported && !props.ttsMuted) {
+        setTimeout(() => {
+          speak(sendMessageResponse.llmResponse, { lang: props.moduleLanguage ? getSTTLangCode(props.moduleLanguage) : ttsLang });
+        }, 100);
+      }
+    } else {
+      console.log("Error sending message");
+      setTitoMood("neutral");
+
+      const errorMessage: ChatMessage = {
+        value: "Sorry, I couldn't send your message. Please try again or refresh the page if the problem persists.",
+        timestamp: new Date().toISOString(),
+        source: "llm",
+        metadata: undefined
+      };
+
+      const finalUserMessage: ChatMessage = {
+        value: messageToSend,
+        timestamp: tempUserChatMessage.timestamp,
+        source: "user",
+        metadata: { error: "Message failed to send" }
+      };
+
+      setChatMessages((prevChatMessages) => [...prevChatMessages.slice(0, -1), finalUserMessage, errorMessage]);
+    }
+  }
+
+  const SUPPORTED_LANGS = [
+    { code: "en-US", label: "English", short: "EN" },
+    { code: "es-ES", label: "Español", short: "ES" },
+    { code: "fr-FR", label: "Français", short: "FR" },
+    { code: "pt-BR", label: "Português", short: "PT" },
+  ];
+
+  const [ttsLang, setTtsLang] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("ttsLang") ?? "en-US";
+    }
+    return "en-US";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ttsLang", ttsLang);
+    }
+  }, [ttsLang]);
+
+  const getSTTLangCode = useCallback((moduleLang: string): string => {
+    const langMap: { [key: string]: string } = {
+      es: "es-ES",
+      fr: "fr-FR",
+      pt: "pt-BR",
+      en: "en-US"
+    };
+    return langMap[moduleLang.toLowerCase()] || "en-US";
+  }, []);
+
+  const sttLang = props.moduleID === -1 ? ttsLang : (props.moduleLanguage ? getSTTLangCode(props.moduleLanguage) : ttsLang);
+
+  const [sttSupported, setSttSupported] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [interimSTT, setInterimSTT] = useState("");
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [wasVoiceMessage, setWasVoiceMessage] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const shouldAutoSendRef = useRef(false);
+  const latestUserMessageRef = useRef<string>("");
+
+  type SpeechRecognitionConstructor = new () => SpeechRecognition;
+
+  const convertDigitsToWords = useCallback((text: string): string => {
+    if (!text || typeof text !== "string") return text;
+
+    const numberMappings: { [key: string]: { [key: string]: string } } = {
+      "en-US": {
+        "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
+        "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine",
+        "10": "ten", "11": "eleven", "12": "twelve", "13": "thirteen",
+        "14": "fourteen", "15": "fifteen", "16": "sixteen", "17": "seventeen",
+        "18": "eighteen", "19": "nineteen", "20": "twenty"
+      },
+      "es-ES": {
+        "0": "cero", "1": "uno", "2": "dos", "3": "tres", "4": "cuatro",
+        "5": "cinco", "6": "seis", "7": "siete", "8": "ocho", "9": "nueve",
+        "10": "diez", "11": "once", "12": "doce", "13": "trece",
+        "14": "catorce", "15": "quince", "16": "dieciséis", "17": "diecisiete",
+        "18": "dieciocho", "19": "diecinueve", "20": "veinte"
+      },
+      "fr-FR": {
+        "0": "zéro", "1": "un", "2": "deux", "3": "trois", "4": "quatre",
+        "5": "cinq", "6": "six", "7": "sept", "8": "huit", "9": "neuf",
+        "10": "dix", "11": "onze", "12": "douze", "13": "treize",
+        "14": "quatorze", "15": "quinze", "16": "seize", "17": "dix-sept",
+        "18": "dix-huit", "19": "dix-neuf", "20": "vingt"
+      },
+      "pt-BR": {
+        "0": "zero", "1": "um", "2": "dois", "3": "três", "4": "quatro",
+        "5": "cinco", "6": "seis", "7": "sete", "8": "oito", "9": "nove",
+        "10": "dez", "11": "onze", "12": "doze", "13": "treze",
+        "14": "quatorze", "15": "quinze", "16": "dezesseis", "17": "dezessete",
+        "18": "dezoito", "19": "dezenove", "20": "vinte"
+      }
+    };
+
+    const currentLangMap = numberMappings[sttLang] || numberMappings["en-US"];
+    let result = text;
+
+    try {
+      const sortedNumbers = Object.keys(currentLangMap)
+        .map(num => parseInt(num))
+        .filter(num => num >= 10)
+        .sort((a, b) => b - a);
+
+      sortedNumbers.forEach(num => {
+        const regex = new RegExp(`\\b${num}\\b`, "gi");
+        result = result.replace(regex, currentLangMap[num.toString()]);
+      });
+
+      const singleDigits = Object.keys(currentLangMap)
+        .map(num => parseInt(num))
+        .filter(num => num < 10)
+        .sort((a, b) => b - a);
+
+      singleDigits.forEach(num => {
+        const regex = new RegExp(`\\b${num}\\b`, "gi");
+        result = result.replace(regex, currentLangMap[num.toString()]);
+      });
+    } catch (error) {
+      console.warn("Error in number conversion:", error);
+      return text;
+    }
+
+    return result;
+  }, [sttLang]);
+
+  useEffect(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    setSttSupported(true);
+    const rec: SpeechRecognition = new (SR as SpeechRecognitionConstructor)();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    rec.lang = sttLang;
+
+    rec.onstart = () => setListening(true);
+    rec.onend = () => {
+      console.log("[STT] Recognition ended");
+      setListening(false);
+    };
+    rec.onerror = (e: Event) => {
+      console.warn("STT error:", e);
+      setListening(false);
+      shouldAutoSendRef.current = false;
+    };
+    rec.onresult = (ev: Event) => {
+      const event = ev as SpeechRecognitionEvent;
+      let interim = "";
+      let finalText = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const chunk = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += chunk;
+        else interim += chunk;
+      }
+
+      const processedInterim = convertDigitsToWords(interim);
+      setInterimSTT(processedInterim);
+
+      if (finalText) {
+        const processedFinalText = convertDigitsToWords(finalText.trim());
+        console.log("[STT] Final text captured:", processedFinalText);
+        const newMessage = latestUserMessageRef.current?.trim() ? `${latestUserMessageRef.current} ${processedFinalText}` : processedFinalText;
+        setUserMessage(newMessage);
+        latestUserMessageRef.current = newMessage;
+        setInterimSTT("");
+        console.log("[STT] Message stored:", newMessage);
+      }
+    };
+
+    recognitionRef.current = rec;
+    return () => {
+      try { rec.abort(); } catch { }
+      recognitionRef.current = null;
+    };
+  }, [sttLang, convertDigitsToWords]);
+
+  function startListening() {
+    if (!sttSupported || !recognitionRef.current || listening) return;
+    console.log("[STT] startListening called");
+    try {
+      latestUserMessageRef.current = userMessage;
+      console.log("[STT] Stored current message:", userMessage);
+      recognitionRef.current.start();
+      startAudioRecording();
+    } catch (e: unknown) {
+      console.warn("[STT] Error starting recognition:", e);
+    }
+  }
+
+  function stopListening() {
+    if (!recognitionRef.current) return;
+    console.log("[STT] stopListening called");
+    try {
+      recognitionRef.current.stop();
+      stopAudioRecording();
+
+      setTimeout(() => {
+        const messageToSend = latestUserMessageRef.current.trim();
+        if (messageToSend) {
+          console.log("[STT] Sending message after stop:", messageToSend);
+          handleSendMessageClick(messageToSend);
+          latestUserMessageRef.current = "";
+        } else {
+          console.log("[STT] No message to send");
+        }
+      }, 300);
+    } catch (err) {
+      console.error("[STT] Error in stopListening:", err);
+    }
+  }
+
+  async function startAudioRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const chunks: BlobPart[] = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        console.log("[ChatScreen] Audio recording stopped, blob created:", {
+          size: blob.size,
+          type: blob.type,
+          chunksCount: chunks.length
+        });
+        setAudioBlob(blob);
+        setWasVoiceMessage(true);
+        console.log("[ChatScreen] Audio states set: wasVoiceMessage=true, audioBlob size=", blob.size);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+      console.log("[ChatScreen] Started audio recording");
+    } catch (error) {
+      console.error("[ChatScreen] Error starting audio recording:", error);
+    }
+  }
+
+  function stopAudioRecording() {
+    console.log("[ChatScreen] stopAudioRecording called, current state:", {
+      hasMediaRecorder: !!mediaRecorderRef.current,
+      isRecording: isRecording,
+      recorderState: mediaRecorderRef.current?.state
+    });
+
+    if (mediaRecorderRef.current && isRecording) {
+      console.log("[ChatScreen] Stopping MediaRecorder...");
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      console.log("[ChatScreen] MediaRecorder stopped, isRecording set to false");
+    } else {
+      console.log("[ChatScreen] stopAudioRecording: conditions not met for stopping");
+    }
+  }
+
+  const saveTime = useCallback(async () => {
+    if (user === undefined || props.chatbotId === undefined || timeChatted === undefined) return;
+
+    const result = await incrementTime(user.jwt, user.userID, props.chatbotId, 0, timeChatted / 3600);
+
+    if (result !== 200) {
+      console.log("Failed updating timeSpent");
+    }
+  }, [user, props.chatbotId, timeChatted]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    setTtsSupported(true);
+    const synth = window.speechSynthesis;
+
+    const loadVoices = () => setVoices(synth.getVoices());
+    loadVoices();
+    synth.addEventListener("voiceschanged", loadVoices);
+    return () => synth.removeEventListener("voiceschanged", loadVoices);
+  }, []);
+
+  useEffect(() => {
+    saveTime();
+    const interval = setInterval(() => {
+      saveTime();
+    }, 60000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [props.moduleID, saveTime]);
+
+  useEffect(() => {
+    const handleBeforeUnload = async (_event: BeforeUnloadEvent) => {
+      saveTime();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [saveTime]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeChatted((prev) => (prev !== undefined ? prev + 1 : prev));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (timeChatted === undefined) return;
+    props.setTimeSpent(
+      `${Math.floor(timeChatted / 3600)}h ` +
+      `${Math.floor((timeChatted % 3600) / 60)}m ` +
+      `${Math.floor(timeChatted % 60)}s`
+    );
+  }, [timeChatted, props]);
+
+  // CHANGED: dedupe duplicate vocab words and start each unique word at 0/3
+  useEffect(() => {
+    setTermsLoaded(false);
+
+    if (props.moduleID === -1) {
+      setTermsLoaded(true);
+      setTerms([]);
+      return;
+    }
+
+    if (userLoading || !user) return;
+
+    const loadTerms = async () => {
+      const fetchedTerms = await fetchModuleTerms(user.jwt, props.moduleID);
+
+      if (fetchedTerms) {
+        const uniqueTermsMap = new Map<string, Term>();
+
+        fetchedTerms.forEach(term => {
+          if (!uniqueTermsMap.has(term.questionFront)) {
+            uniqueTermsMap.set(term.questionFront, {
+              termID: term.termID,
+              questionFront: term.questionFront,
+              questionBack: term.questionBack,
+              usageCount: 0
+            });
           }
-          // Add event listener for page visibility
-          document.addEventListener("visibilitychange", handleVisibilityChange);
-        };
-        return () => {
+        });
+
+        setTermsLoaded(true);
+        setTerms(Array.from(uniqueTermsMap.values()));
+      }
+    };
+
+    loadTerms();
+  }, [props.moduleID, user, userLoading]);
+
+  const preprocessForTTS = useCallback((text: string): string => {
+    if (!text) return text;
+    return text
+      .replace(/[¡!]/g, match => match === '¡' ? '' : match)
+      .replace(/[¿?]/g, match => match === '¿' ? '' : match)
+      .replace(/\s+/g, ' ')
+      .trim();
+  }, []);
+
+  const speak = useCallback((text: string, opts?: { rate?: number; pitch?: number; lang?: string }) => {
+    if (!ttsSupported || !text?.trim()) return;
+    const processedText = preprocessForTTS(text);
+    const lang = opts?.lang ?? ttsLang;
+
+    const u = new SpeechSynthesisUtterance(processedText);
+    u.rate = opts?.rate ?? 0.9;
+    u.pitch = opts?.pitch ?? 1.0;
+    u.volume = 0.8;
+    u.lang = lang;
+
+    const langCodePrefix = lang.toLowerCase();
+    let selectedVoice = null;
+
+    if (langCodePrefix.startsWith("en")) {
+      const englishVoices = voices.filter(v => (v.lang || "").toLowerCase().startsWith("en"));
+      selectedVoice = englishVoices.find(v => v.name.includes("Google")) ||
+        englishVoices.find(v => v.name.includes("Zira")) ||
+        englishVoices[0];
+    } else {
+      const langFamily = langCodePrefix.split("-")[0];
+      const nativeVoices = voices.filter(v => {
+        const voiceLang = (v.lang || "").toLowerCase();
+        return voiceLang.startsWith(langFamily);
+      });
+      selectedVoice = nativeVoices.find(v => v.name.includes("Google")) ||
+        nativeVoices.find(v => v.name.includes("Natural")) ||
+        nativeVoices[0];
+    }
+
+    if (selectedVoice) u.voice = selectedVoice;
+
+    console.log(`[TTS] Speaking with lang=${lang}, voice=${selectedVoice?.name || "default"}`);
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  }, [ttsSupported, ttsLang, voices, preprocessForTTS]);
+
+  useEffect(() => {
+    const isFreeChat = props.moduleID === -1;
+    if (userLoading || !user || !termsLoaded || (!isFreeChat && terms.length === 0)) return;
+
+    console.log(`[ChatScreen] Initializing chatbot for module ${props.moduleID}`, { termsLength: terms.length, isFreeChat });
+
+    const loadChatbot = async () => {
+      console.log(`[ChatScreen] Calling getChatbot for module ${props.moduleID}`);
+      const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
+      if (newChatbot) {
+        console.log(`[ChatScreen] Successfully got chatbot session ${newChatbot.chatbotId} for module ${props.moduleID}`);
+        props.setChatbotId(newChatbot.chatbotId);
+        setTimeChatted(newChatbot.totalTimeChatted * 3600);
+
+        if (newChatbot.userBackground) {
+          console.log("Received LLM Background: " + newChatbot.userBackground);
+          props.setUserBackgroundFilepath(newChatbot.userBackground);
+        }
+
+        if (newChatbot.userMusicChoice) {
+          console.log("Received Music Background: " + newChatbot.userMusicChoice);
+          props.setUserMusicFilepath(newChatbot.userMusicChoice);
+        }
+
+        // CHANGED: removed localStorage restore because backend should now be source of truth
+        // Fallback still supports old backend that only returns termsUsed
+        const usageApplied = applyBackendUsageCounts(newChatbot);
+
+        if (!usageApplied) {
+          const newTerms: Term[] = terms.map(term => {
+            const backendCount =
+              newChatbot.termsUsed?.filter((w: string) => w === term.questionFront).length ?? 0;
+
+            return {
+              termID: term.termID,
+              questionFront: term.questionFront,
+              questionBack: term.questionBack,
+              usageCount: Math.min(Math.max(backendCount, 0), 3),
+            };
+          });
+
+          setTerms(newTerms);
+        }
+
+        // CHANGED: fetch dedicated term progress endpoint so exact backend counts overwrite fallback data
+        await fetchTermProgress();
+      } else {
+        console.error(`[ChatScreen] Failed to get chatbot for module ${props.moduleID}`);
+        props.setChatbotId(undefined);
+      }
+    };
+    loadChatbot();
+  }, [props.moduleID, user?.jwt, termsLoaded]); // CHANGED: kept dependencies simple to avoid render loops
+
+  useEffect(() => {
+    setChatMessages([]);
+
+    const instructionMessage: ChatMessage = props.moduleID !== -1 ? {
+      value: `Hi ${user?.username}, let's talk about ${props.moduleName || 'this topic'}! I'm Tito. Try to use each word from the vocabulary list at least 3 times. I'll help you practice.`,
+      timestamp: "",
+      source: "llm",
+      metadata: undefined
+    } : {
+      value: `Hi ${user?.username}, my name is Tito. Welcome to free chat, here you can ask questions or talk about whatever you like.`,
+      timestamp: "",
+      source: "llm",
+      metadata: undefined
+    };
+
+    if (userLoading || !user || !props.chatbotId) return;
+
+    console.log(`[ChatScreen] Loading messages for moduleID: ${props.moduleID}, chatbotId: ${props.chatbotId}`);
+
+    const loadMessages = async () => {
+      if (!props.chatbotId) return;
+      const newMessages = await getMessages(user.jwt, user.userID, props.chatbotId, props.moduleID);
+      if (newMessages) {
+        console.log(`[ChatScreen] Loaded ${newMessages.length} messages for module ${props.moduleID}`);
+        setChatMessages([instructionMessage, ...newMessages]);
+
+        console.log("[ChatScreen] TTS Check:", {
+          messageCount: newMessages.length,
+          ttsSupported,
+          ttsMuted: props.ttsMuted,
+          willSpeak: newMessages.length === 0 && ttsSupported && !props.ttsMuted
+        });
+
+        if (newMessages.length === 0 && ttsSupported && !props.ttsMuted) {
+          console.log("[ChatScreen] Speaking welcome message");
+          setTimeout(() => { speak(instructionMessage.value, { lang: "en-US" }); }, 1000);
+        } else {
+          console.log("[ChatScreen] NOT speaking - messages exist or TTS is disabled");
+        }
+      } else {
+        console.log(`[ChatScreen] Error getting messages for module ${props.moduleID}`);
+        setChatMessages([instructionMessage]);
+      }
+    };
+    loadMessages();
+  }, [props.chatbotId, props.moduleID, user, userLoading]);
+
+  useEffect(() => {
+    const messagesWithScore = chatMessages.filter(message => message.metadata?.score !== undefined);
+    const averageScore =
+      messagesWithScore.length > 0
+        ? messagesWithScore.reduce((sum, msg) => sum + (msg.metadata?.score || 0), 0) / messagesWithScore.length
+        : 0;
+    props.setAverageScore(averageScore);
+  }, [chatMessages, props]);
+
+  const [placeholder, setPlaceholder] = useState<string>("Tito is typing...");
+  const fullPlaceholder = "Tito is typing...";
+
+  useEffect(() => {
+    const startThinking = () => {
+      const repeatInterval = setInterval(() => {
+        setPlaceholder("");
+        let i = 0;
+        const interval = setInterval(() => {
+          setPlaceholder(() => fullPlaceholder.substring(0, i));
+          i++;
+          if (i >= fullPlaceholder.length) {
+            clearInterval(interval);
+          }
+        }, 150);
+        return () => clearInterval(interval);
+      }, fullPlaceholder.length * 100 + 2000);
+
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
           clearInterval(repeatInterval);
-          document.removeEventListener("visibilitychange", handleVisibilityChange);
-        };
-      }
-      if(titoMood === "thinking"){
-        startThinking()
-      }
-    }, [titoMood, fullPlaceholder]);
+        } else {
+          clearInterval(repeatInterval);
+          startThinking();
+        }
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+      };
+      return () => {
+        clearInterval(repeatInterval);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      };
+    };
+    if (titoMood === "thinking") {
+      startThinking();
+    }
+  }, [titoMood, fullPlaceholder]);
 
-    // Lore intro bubble on first load
-    useEffect(() => {
-      setMessage("I… I think I’ve lost my memories.");
+  // Lore startup messages disabled per sponsor feedback
+  /*
+  useEffect(() => {
+    setMessage("I… I think I’ve lost my memories.");
+    setTrigger(Date.now());
+
+    const timer = setTimeout(() => {
+      setMessage("Can you talk with me in different languages to help me remember them?");
       setTrigger(Date.now());
-      
-      const timer = setTimeout(() => {
-        setMessage("Can you talk with me in different languages to help me remember them?");
-        setTrigger(Date.now());
-      }, 8000);
+    }, 8000);
 
-      return () => clearTimeout(timer);
-    }, []);
+    return () => clearTimeout(timer);
+  }, []);
+  */
+
+
 
     return(
-        <div className="w-full h-full"> {/*Outer container div*/}
-
-            <Image src={background} className="w-full absolute top-0 left-0" alt="Background"/>
+      <div className="flex flex-col h-full w-full overflow-hidden relative"> 
+      {/*Outer container div*/}
+            <Image src={background} className="w-full absolute top-0 left-0 z-0" alt="Background" />
             <Image src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" draggable={false} alt="Decorative palm tree" />
             {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
 
-            {/*Vocabulary list div*/}
-            {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-              <VocabList 
-                wordsFront={terms.map(term => (term.questionFront))} 
-                wordsBack={terms.map(term => (term.questionBack))} 
-                used={terms.map(term => (term.used))} 
-                progress={progress}
-                termIDs={terms.map(t => t.termID)}
-                masteredTermIDs={masteredTermIDs}
-              />
-            )}
+           {/* Main content area */}
+           <div className="flex flex-1 min-h-0 relative z-20">
+            <div className="flex w-full flex-grow">
+            {/* Left + center area */}
+            <div className="flex flex-grow min-w-0 min-h-0 flex-col">
+              {/* Mobile vocab panel */}
+                {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
+                  <div className="lg:hidden w-full flex justify-center pt-2 px-2 shrink-0">
+                    <div className="w-full max-w-[260px]">
+                      <VocabList 
+                        wordsFront={terms.map(term => term.questionFront)} 
+                        wordsBack={terms.map(term => term.questionBack)} 
+                        usageCounts={terms.map(term => term.usageCount)} 
+                        progress={progress}
+                        termIDs={terms.map(t => t.termID)}
+                        masteredTermIDs={masteredTermIDs}
+                      />
+                    </div>
+                  </div>
+                )}
 
-            {/*Sent/recieved messages div*/}
-            <Messages messages={chatMessages} chatFontSize={props.chatFontSize}/>
-
-            {/* Chat box div */}
-            <div className="w-full h-[15%] absolute bottom-0 left-0 bg-[#8C7357] flex z-20">
-              <div className="w-[15%] h-full aspect-square flex items-center justify-center">
-                <Image 
-                  src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : neutralTito} 
-                  style={{ width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%" }} 
-                  alt={`Tito is ${titoMood}`}
-                  className={titoMood === "thinking" ? "tito-thinking" : ""}
-                />
-                <TitoCloudBubble message={message} trigger={trigger} />
+              {/* Messages area */}
+              <div className="flex-1 min-h-0 overflow-y-auto px-3 pr-1 pt-3 pb-6 md:px-4 md:pr-2 md:pt-4 md:pb-4">
+                <Messages messages={chatMessages} chatFontSize={props.chatFontSize} />
               </div>
 
-              <div className="w-[85%] flex items-center justify-center pr-3">
-                <textarea 
-                  placeholder={titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
-                  className="w-[85%] h-[70%] bg-white rounded p-1 resize-none overflow-y-auto"
-                  style={{
-                    pointerEvents: titoMood === "thinking" || listening ? "none" : "auto",
-                    opacity: titoMood === "thinking" || listening ? 0.75 : 1,
-                    fontWeight: titoMood === "thinking" ? "bold" : "normal"
-                  }}
-                  disabled={titoMood === "thinking" || listening}
-                  value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
-                  onChange={(e) => setUserMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessageClick();
-                    }
-                  }}
-                />
-
-                {/* controls row: Mic + Send */}
-                <div className="ml-2 flex items-center">
-                  {/* microphone */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (!sttSupported) {
-                        alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
-                        return;
-                      }
-                      if (!listening) startListening();
-                      else stopListening();
-                    }}
-                    className={`flex items-center justify-center w-16 h-16 rounded-full shadow-sm transition ${
-                      listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"
-                    }`}
-                  >
-                    <span className="text-2xl">{listening ? "🎙️" : "🎤"}</span>
-                  </button>
-
-                  {/* send */}
-                  <button
-                    onClick={handleSendMessageClick}
-                    className="ml-2 w-16 h-16 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition shadow-sm"
-
-                  >
-                    <Image
-                      src={sendMessageIcon}
-                      className="w-10 h-10 rounded-full"
-                      alt="Send message"
-                    />
-                  </button>
+              {/* Chat box */}
+              <div className="w-full h-[96px] md:h-[120px] bg-[#8C7357] flex shrink-0 relative z-20">
+                {/*Tito Image Div */}
+                <div className="w-[72px] md:w-[110px] shrink-0 flex items-center justify-center">
+                  <Image 
+                    src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : neutralTito} 
+                    style={{ width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%" }} 
+                    alt={`Tito is ${titoMood}`}
+                    className={titoMood === "thinking" ? "tito-thinking" : ""}
+                  />
+                  {/* Lore bubble disabled per sponsor feedback */}
+                  {/* <TitoCloudBubble message={message} trigger={trigger} /> */}
                 </div>
 
-                {/* Language dropdown */}
-                {props.moduleID === -1 && (
-                  <select
-                    value={ttsLang}
-                    onChange={(e) => setTtsLang(e.target.value)}
-                    className="ml-2 w-32 h-12 rounded-full bg-white/80 hover:bg-white transition text-sm font-medium cursor-pointer px-2"
-                  >
-                    {SUPPORTED_LANGS.map((lang) => (
-                      <option key={lang.code} value={lang.code}>
+                <div className="flex-1 flex items-center gap-2 pr-2 min-w-0">
+                  <textarea 
+                    placeholder={titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
+                    className="flex-1 min-w-0 h-[58%] md:h-[70%] bg-white rounded p-2 resize-none overflow-y-auto"
+                    style={{
+                      flex: "1 1 auto",
+                      pointerEvents: titoMood === "thinking" || listening ? "none" : "auto",
+                      opacity: titoMood === "thinking" || listening ? 0.75 : 1,
+                      fontWeight: titoMood === "thinking" ? "bold" : "normal"
+                    }}
+                    disabled={titoMood === "thinking" || listening}
+                    value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
+                    onChange={(e) => setUserMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessageClick();
+                      }
+                    }}
+                  />
+
+                  {/*Button Container */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!sttSupported) {
+                          alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
+                          return;
+                        }
+                        if (!listening) startListening();
+                        else stopListening();
+                      }}
+                      className={`flex items-center justify-center w-11 h-11 md:w-16 md:h-16 rounded-full shadow-sm transition ${
+                        listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"
+                      }`}
+                    >
+                      <Image
+                        src={micIcon}
+                        alt="Tap to speak"
+                        className="w-5 h-5 md:w-6 md:h-6 opacity-80 hover:opacity-100"
+                      />
+                    </button>
+
+                    <button
+                      onClick={handleSendMessageClick}
+                      className="w-11 h-11 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition shadow-sm"
+                    >
+                      <Image
+                        src={sendMessageIcon}
+                        className="w-7 h-7 md:w-10 md:h-10 rounded-full"
+                        alt="Send message"
+                      />
+                    </button>
+                    
+                    {props.moduleID === -1 && (
+                    <select
+                      value={ttsLang}
+                      onChange={(e) => setTtsLang(e.target.value)}
+                      className="w-[88px] md:w-32 h-10 md:h-12 rounded-full bg-white/80 hover:bg-white transition text-[11px] md:text-sm font-medium cursor-pointer px-2"
+                    >
+                      {SUPPORTED_LANGS.map((lang) => (
+                        <option key={lang.code} value={lang.code}> 
                         🌐 {lang.label}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  </div>
+                </div>
               </div>
-            </div>  
+            </div>
+            </div>
+
+            {/* Right vocab panel for desktops/tablets */}
+            {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
+              <div className="hidden lg:block w-[260px] xl:w-80 shrink-0 border-l-4 border-[#6B4F3A]/30">
+                <VocabList 
+                  wordsFront={terms.map(term => term.questionFront)} 
+                  wordsBack={terms.map(term => term.questionBack)} 
+                  usageCounts={terms.map(term => term.usageCount)} 
+                  progress={progress}
+                  termIDs={terms.map(t => t.termID)}
+                  masteredTermIDs={masteredTermIDs}
+                />
+              </div>
+            )}
+          </div>
+
         </div>     
   )          
+
 }

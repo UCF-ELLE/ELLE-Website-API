@@ -195,8 +195,15 @@ class UserMessages(Resource):
         # Update module words used =>
         # Async grammar evaluation
 
-        # Return early after saving user message
-        return create_response(True, message="Message sent.", data=message, resumeMessaging=True, messageID=new_msg_id)
+        usage_by_term = getUsageByTerm(user_id, module_id) if module_id != REAL_FREE_CHAT_MODULE else []
+        terms_used = [entry["termID"] for entry in usage_by_term if entry["timesUsed"] > 0]
+
+        return create_response(
+            True, message="Message sent.", data=message,
+            resumeMessaging=True, messageID=new_msg_id,
+            termsUsed=terms_used,
+            usageByTerm=usage_by_term
+        )
 
  
     @jwt_required
@@ -230,6 +237,7 @@ class GenerateTitoResponse(Resource):
         /elleapi/twt/session/generate
             Generates an LLM response for a given message
         '''
+        user_id = get_jwt_identity()
         data = request.form
         message = data.get('message')
         module_id = int(data.get('moduleID'))
@@ -239,7 +247,7 @@ class GenerateTitoResponse(Resource):
             return create_response(False, message="Missing required parameters.", status_code=404)
             
         try:
-            tito_response = handle_message_with_context(message=message, module_id=module_id, session_id=session_id)
+            tito_response = handle_message_with_context(message = message, module_id = module_id, session_id = session_id, user_id = user_id)
             return create_response(True, message="LLM response generated.", titoResponse=tito_response)
         except Exception as e:
             print(f"[GENERATE ERROR] {e}")
@@ -494,10 +502,16 @@ class GetTermProgress(Resource):
             if rec["timesUsed"] > 0:
                 used_ids.append(term_id)
 
+        usage_by_term = [
+            {"termID": tid, "timesUsed": rec["timesUsed"]}
+            for tid, rec in progress_by_term.items()
+        ]
+
         return create_response(True, data={
             "masteredIDs": mastered_ids,
             "usedIDs": used_ids,
-            "progressByTerm": progress_by_term
+            "progressByTerm": progress_by_term,
+            "usageByTerm": usage_by_term
         })
 
 

@@ -271,233 +271,243 @@ export default function TalkWithTito() {
       
     }
   
-  return (
-    <div className="talkwithtito-body">
-     {currentSong && (
-        <ReactHowler
-          key={currentSong.path}
-          src={currentSong.path}
-          playing={isPlaying}
-          loop={false}
-          volume={volume}
-          onEnd={handleNextSong}
-          ref={howlerRef}
-        />
-      )}
-      <div className="relative w-full mt-0 mb-8 flex justify-center py-2">
-        {/*Blue button (isLoading toggle for testing)*/}
-        {/* <button onClick={handleTransition} className="absolute top-10 right-0 w-10 h-10 bg-blue-700" /> */}
-        <div className="relative w-[60%] h-fit border-2 border-black">
-          {settingsOpen && (
-            <Settings
-              apply={() => setSettingsOpen(false)}
-              onSetPlaylist={handlePlaylist}
-              onSetFont={handleFontSize}
-              onSetAIChoice={setAIChoice}
-              onSetTtsMuted={setTtsMuted}
-              parentPlaylist = {playlist} 
-              parentFont = {userChatFont}
-              titoMusicChoice={AIChoice}
-              ttsMuted={ttsMuted}
-            />
-          )}
-          {!playClicked ? (
-            <>
-              <Image
-                src={leaf_background}
-                alt="TalkWithTito placeholder"
-                className="game-background"
+    return (
+      <div className="talkwithtito-body flex flex-col items-center w-full min-h-screen">
+       {currentSong && (
+          <ReactHowler
+            key={currentSong.path}
+            src={currentSong.path}
+            playing={isPlaying}
+            loop={false}
+            volume={volume}
+            onEnd={handleNextSong}
+            ref={howlerRef}
+          />
+        )}
+        <div className="relative w-full flex justify-center py-2 px-4">
+          <div className="relative w-full max-w-[1200px] h-[calc(100dvh-150px)] md:h-[80dvh] border-2 border-black overflow-hidden flex flex-col md:flex-row bg-white">
+            {settingsOpen && (
+              <Settings
+                apply={() => setSettingsOpen(false)}
+                onSetPlaylist={handlePlaylist}
+                onSetFont={handleFontSize}
+                onSetAIChoice={setAIChoice}
+                onSetTtsMuted={setTtsMuted}
+                parentPlaylist = {playlist} 
+                parentFont = {userChatFont}
+                titoMusicChoice={AIChoice}
+                ttsMuted={ttsMuted}
               />
-              {isLoading ? (
+            )}
+            {!playClicked ? (
+              <div className="relative w-full h-full flex items-center justify-center">
                 <Image
-                  src={tito_speak}
+                  src={leaf_background}
                   alt="TalkWithTito placeholder"
-                  className={`tito-overlay transition-opacity duration-700 ${isFading ? "opacity-0" : "opacity-100"}`}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  className="z-0"
                 />
-              ) : (
-                <Image
-                  src={happyTito}
-                  alt="Tito is ready"
-                  className="pop-animation absolute w-[35%] top-[22%] left-[32%] -translate-x-1/2 -translate-y-1/2"
-                />
-              )}
-              <div
-                className={`absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-2xl 
-                md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 irish-grover rounded-sm 
-                shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
-                ${isFading ? "opacity-0" : "opacity-100"}`}
-              >
-                {isLoading ? statement : "Talk with Tito"}
-              </div>
-              <div
-                className={`absolute top-[80%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
-                font-bold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover 
-                shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
-                ${!isLoading ? "hover:bg-[#816031] hover:cursor-pointer" : ""}
-                ${isFading ? "opacity-0" : "opacity-100"}`}
-                onClick={handlePlayClick}
-              >
-                {isLoading ? "Loading..." : "Play!"}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="music-settings">
-                <button onClick={togglePlayPause}>
-                  {isPlaying ? <Image src={pause_button} alt="pause"/>: <Image src={play_button} alt="play"/>}
-                </button>
-                <button onClick={handleNextSong}>
-                  <Image src={next_button} alt="next button"/>
-                </button>
-                <label htmlFor="volume" style={{ paddingLeft: "1px" }} className="cursor-pointer" onClick={handleMute}>
-                  {volume == 0.0 ? <Image src={mute_button} alt="mute music"/> : <Image src={volume_button} alt="volume control"/>}
-                  </label>
-                <input
-                  className="volume-slider"
-                  id="volume"
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.05"
-                  value={volume}
-                  onChange={handleVolume}
-                  
-                />
-              </div>
-              {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} isFreeTalk={selectedModule === -1} moduleId={selectedModule === -1 ? undefined : selectedModule} classId={modules?.find(m => m.moduleID === selectedModule)?.classID} />}
-              <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
-              {!selectedModule ? (
-                <>
-                  <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
-                    font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover
-                    shadow-[0px_4px_4px_rgba(0,0,0,0.3)]">
-                    Welcome, {user?.username ? user.username : "<username>"}
-                  </div>
-                  <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2" />
-                  <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
-                    font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover">
-                    Pick a module to get started!
-                  </div>
-                </>
-              ) : (
-                <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-              <ChatScreen 
-                moduleID={selectedModule} 
-                moduleLanguage={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.language}
-                setUserBackgroundFilepath={setUserBackgroundFilepath} setUserMusicFilepath={setUserMusicFilepath} 
-                setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} 
-                setChatbotId={setChatbotId} chatFontSize={chatFont} setTimeSpent={setTimeSpent} ttsMuted={ttsMuted}/>
-                </div>
-              )}
-              <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
-                <Image src={chatBackground} alt="Chat Background" className="game-background" />
-                <div className="text-white w-full h-full absolute top-0 left-0 flex flex-col justify-between">
-                  {/* Username div (top) */}
-                  <div className="h-[92.5%]">
-                    <UserBackground username={user?.username} backgroundFilepath={userBackgroundFilepath} />
-                    <div className="w-full h-[71.75%] flex flex-col items-center">
-                      {/* Modules div (middle) */}
-                      <ModuleButton key={-1} moduleName={"Free Chat"} onClick={() => handleModuleClick(-1)} isSelected={selectedModule === -1} />
-                      <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
-                      <div className="w-full flex overflow-y-auto flex-col items-center">
-                        {modules?.map((module: Module, index) => (
-                          <ModuleButton
-                            key={index}
-                            moduleName={module.name || "Null"}
-                            onClick={() => handleModuleClick(module.moduleID || -1)}
-                            isSelected={module.moduleID === selectedModule}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="w-full h-[7.5%] flex justify-between items-center irish-grover md:text-xl border-t-2 border-white">
-                    {/* Exit div (bottom) */}
-                    <button className="md:text-xl ml-2 flex items-center py-3" onClick={handleExitClick}>
-                      <Image src={logoutIcon} alt="Exit" className="mr-2" />
-                      <div className="hidden md:block">Exit Chat</div>
-                    </button>
-                    {selectedModule && <button onClick={() => setAnalyticsActive(!analyticsActive)}>Analytics📊</button>}
+                {isLoading ? (
+                  <div className="relative w-[60%] h-[60%] md:w-[40%] md:h-[40%]">
                     <Image
-                      src={settingsIcon}
-                      alt="Settings"
-                      className="mr-2 h-8 w-8 md:h-10 md:w-10 hover:cursor-pointer"
-                      onClick={openSettings}
+                      src={tito_speak}
+                      alt="TalkWithTito placeholder"
+                      fill
+                      style={{ objectFit: 'contain' }}
+                      className={`transition-opacity duration-700 ${isFading ? "opacity-0" : "opacity-100"}`}
                     />
                   </div>
+                ) : (
+                  <div className="relative w-[50%] h-[50%] md:w-[35%] md:h-[35%]">
+                    <Image
+                      src={happyTito}
+                      alt="Tito is ready"
+                      fill
+                      style={{ objectFit: 'contain' }}
+                      className="pop-animation"
+                    />
+                  </div>
+                )}
+                <div
+                  className={`absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-xl 
+                  md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 irish-grover rounded-sm 
+                  shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
+                  ${isFading ? "opacity-0" : "opacity-100"}`}
+                >
+                  {isLoading ? statement : "Talk with Tito"}
+                </div>
+                <div
+                  className={`absolute top-[80%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-xl md:text-4xl 
+                  font-bold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover 
+                  shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
+                  ${!isLoading ? "hover:bg-[#816031] hover:cursor-pointer" : ""}
+                  ${isFading ? "opacity-0" : "opacity-100"}`}
+                  onClick={handlePlayClick}
+                >
+                  {isLoading ? "Loading..." : "Play!"}
                 </div>
               </div>
-            </>
-          )}
+            ) : (
+              <div className="flex flex-col md:flex-row w-full h-full relative">
+                <div className="music-settings z-50 scale-75 md:scale-100 origin-top-left">
+                  <button onClick={togglePlayPause}>
+                    {isPlaying ? <Image src={pause_button} alt="pause"/>: <Image src={play_button} alt="play"/>}
+                  </button>
+                  <button onClick={handleNextSong}>
+                    <Image src={next_button} alt="next button"/>
+                  </button>
+                  <label htmlFor="volume" style={{ paddingLeft: "1px" }} className="cursor-pointer" onClick={handleMute}>
+                    {volume == 0.0 ? <Image src={mute_button} alt="mute music"/> : <Image src={volume_button} alt="volume control"/>}
+                    </label>
+                  <input
+                    className="volume-slider"
+                    id="volume"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={volume}
+                    onChange={handleVolume}
+                  />
+                </div>
+                {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} isFreeTalk={selectedModule === -1} moduleId={selectedModule === -1 ? undefined : selectedModule} classId={modules?.find(m => m.moduleID === selectedModule)?.classID} />}
+                
+                <div className="flex-1 order-2 md:order-2 min-h-0 relative bg-white flex flex-col overflow-hidden">
+                  <Image src={leaf_background} alt="TalkWithTito placeholder" fill style={{ objectFit: 'cover' }} className="z-0 opacity-20 md:hidden" />
+                  {!selectedModule ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                      <div className="text-white text-sm md:text-3xl font-semibold bg-[#997c54] py-2 px-6 rounded shadow">
+                        Welcome, {user?.username ? user.username : "<username>"}
+                      </div>
+                      <div className="relative w-32 h-32 md:w-40 md:h-40 my-6">
+                        <Image src={happyTito} alt="Tito is ready" fill style={{ objectFit: 'contain' }} />
+                      </div>
+                      <div className="text-white text-sm md:text-2xl font-semibold bg-[#997c54] py-2 px-6 rounded shadow">
+                        Pick a module to get started!
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-grow flex-shrink min-w-0 w-full h-full relative">
+                      <ChatScreen 
+                        moduleID={selectedModule}
+                        moduleName={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.name} 
+                        moduleLanguage={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.language}
+                        setUserBackgroundFilepath={setUserBackgroundFilepath} 
+                        setUserMusicFilepath={setUserMusicFilepath} 
+                        setTermScore={setTermScore} 
+                        setAverageScore={setAverageScore} 
+                        chatbotId={chatbotId} 
+                        setChatbotId={setChatbotId} 
+                        chatFontSize={chatFont} 
+                        setTimeSpent={setTimeSpent} 
+                        ttsMuted={ttsMuted}
+                      />
+                    </div>
+                  )}
+                </div>
+  
+                <div className="w-full md:w-[30%] order-1 md:order-1 h-[260px] md:h-full shrink-0 border-b-2 md:border-b-0 md:border-r-2 border-black relative">
+                  <Image src={chatBackground} alt="Chat Background" fill style={{ objectFit: 'cover' }} className="z-0" />
+                  <div className="text-white w-full h-full relative z-10 flex flex-col justify-between">
+                    <div className="flex-1 overflow-hidden flex flex-col">
+                      <UserBackground username={user?.username} backgroundFilepath={userBackgroundFilepath} />
+                      <div className="w-full flex-1 flex flex-col items-center overflow-y-auto">
+                        <ModuleButton key={-1} moduleName={"Free Chat"} onClick={() => handleModuleClick(-1)} isSelected={selectedModule === -1} />
+                        <div className="w-full py-2 flex justify-center irish-grover text-sm md:text-xl">Assigned modules:</div>
+                        <div className="w-full flex flex-col items-center">
+                          {modules?.map((module: Module, index) => (
+                            <ModuleButton
+                              key={index}
+                              moduleName={module.name || "Null"}
+                              onClick={() => handleModuleClick(module.moduleID || -1)}
+                              isSelected={module.moduleID === selectedModule}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-full h-12 md:h-[7.5%] flex justify-between items-center irish-grover text-xs md:text-xl border-t-2 border-white bg-black/20">
+                      <button className="ml-2 flex items-center py-3" onClick={handleExitClick}>
+                        <Image src={logoutIcon} alt="Exit" width={20} height={20} className="mr-2" />
+                        <div className="hidden md:block">Exit Chat</div>
+                      </button>
+                      {selectedModule && <button onClick={() => setAnalyticsActive(!analyticsActive)}>Stats📊</button>}
+                      <Image
+                        src={settingsIcon}
+                        alt="Settings"
+                        className="mr-2 h-6 w-6 md:h-10 md:w-10 hover:cursor-pointer"
+                        onClick={openSettings}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
   
-      </div>
-      {/* Information Boxes */}
-      <div className="info-container">
-        <div className="info-box inter-font">
-          <h1 className="inter-font">Description</h1>
-          <h3>
-            Tito is an AI parrot created to assist learners in developing stronger conversational skills in
-            their target language.
-          </h3>
-          <p>
-            Disclaimer: This chatbot is intended for educational and informational purposes only. While it aims
-            to provide accurate and helpful responses, it may not always produce fully accurate or comprehensive
-            information.
-          </p>
-        </div>
-        <div className="info-box inter-font">
-          <h1 className="inter-font mb-4 text-2xl font-bold">Credits</h1>
-
-          <div className="grid grid-cols-2 gap-8 text-lg">
-            {/* Part 1 */}
-            <div>
-              <h2 className="font-semibold mb-2">Part 1</h2>
-                <h3>John Fletcher Cabreara</h3>
-                <h3>Layne Mazur</h3>
-                <h3>Julianne Tomlinson</h3>
-                <h3>Tina Tran</h3>
-                <h3>Kylee Weener</h3>
-                <h3>Logan Witte</h3>
-            </div>
-
-            {/* Part 2 */}
-            <div>
-              <h2 className="font-semibold mb-2">Part 2</h2>
-              <h3>Joshua Jarquin</h3>
-              <h3>Fedor Kudinov</h3>
-              <h3>Rodrigo Peixoto</h3>
-              <h3>Wesley Underwood</h3>
+        <div className="info-container w-full max-w-6xl mt-8">
+          <div className="info-box inter-font">
+            <h1 className="inter-font">Description</h1>
+            <h3>
+              Tito is an AI parrot created to assist learners in developing stronger conversational skills in
+              their target language.
+            </h3>
+            <p>
+              Disclaimer: This chatbot is intended for educational and informational purposes only. While it aims
+              to provide accurate and helpful responses, it may not always produce fully accurate or comprehensive
+              information.
+            </p>
+          </div>
+          <div className="info-box inter-font">
+            <h1 className="inter-font mb-4 text-2xl font-bold">Credits</h1>
+            <div className="grid grid-cols-2 gap-8 text-lg">
+              <div>
+                <h2 className="font-semibold mb-2">Part 1</h2>
+                  <h3>John Fletcher Cabreara</h3>
+                  <h3>Layne Mazur</h3>
+                  <h3>Julianne Tomlinson</h3>
+                  <h3>Tina Tran</h3>
+                  <h3>Kylee Weener</h3>
+                  <h3>Logan Witte</h3>
+              </div>
+              <div>
+                <h2 className="font-semibold mb-2">Part 2</h2>
+                <h3>Joshua Jarquin</h3>
+                <h3>Fedor Kudinov</h3>
+                <h3>Rodrigo Peixoto</h3>
+                <h3>Wesley Underwood</h3>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="info-container">
-        <div className="info-box2 inter-font">
-          <h1 className="inter-font">Image Credits</h1>
-          <p>Tito Character Images - Asher Moffitt</p>
-          <p><a href="https://pixabay.com/vectors/leaves-foliage-tree-nature-autumn-6824098/">Leaf Image - Josef Mikulcik (Pixabay)</a></p>
-          <p><a href="https://pixabay.com/vectors/coconut-palm-tree-coconut-tree-tree-7751862/">Palm Trees - Rama Widya (Pixabay)</a></p>
-          <p><a href="https://pixabay.com/vectors/palm-leaves-palm-frond-palm-tree-32531/">Palm Leaves - Clker-Free-Vector-Images (Pixabay)</a></p>
-          <div className="text-center">
-            <button className="text-2xl p-2" onClick={toggleDropdown}>Music Credits (Pixabay) {triangle}</button>
-          </div>
-          {open && (
-            <div>
-              <p>Ambient Jungle - <a href="https://pixabay.com/music/beats-ambient-jungle-quotambient-junglequot-by-storm-223660/">Ambient Jungle by Storm_Library</a></p>
-              <p>Jungle Party - <a href="https://pixabay.com/music/afrobeat-jungle-party-156395/">Jungle Party by NoodlezStudios</a></p>
-              <p>Happy Rock - <a href="https://pixabay.com/music/rock-happy-rock-308526/">Happy Rock by DmitryTaras</a></p>
-              <p>Energetic Rock - <a href="https://pixabay.com/music/rock-energetic-sports-rock-music-311923/">Jungle Party by NoodlezStudios</a></p>
-              <p>Pop - <a href="https://pixabay.com/music/upbeat-summer-pop-party-312159/">Summer Pop Party by EvgeniaCh</a></p>
-              <p>Techno - <a href="https://pixabay.com/music/house-tech-house-model-student-16442/">Tech House-Model Student by AntipodeanWriter</a></p>
-              <p>Hip Hop - <a href="https://pixabay.com/music/beats-sad-soul-chasing-a-feeling-185750/">Sad Soul (Chasing a Feeling) by AlexGrohl</a></p>
-              <p>R&B - <a href="https://pixabay.com/music/beats-smoke-143172/">Smoke by SoulProdMusic</a></p>
-              <p>Smooth Jazz - <a href="https://pixabay.com/music/smooth-jazz-guitar-jazz-2-311537/">Guitar jazz 2 by Surprising_Media</a></p>
-              <p>Lofi - <a href="https://pixabay.com/music/beautiful-plays-lofi-vibes-113884/">Lofi Vibes by chill_background</a></p>
+        <div className="info-container w-full max-w-6xl">
+          <div className="info-box2 inter-font">
+            <h1 className="inter-font">Image Credits</h1>
+            <p>Tito Character Images - Asher Moffitt</p>
+            <p><a href="https://pixabay.com/vectors/leaves-foliage-tree-nature-autumn-6824098/">Leaf Image - Josef Mikulcik (Pixabay)</a></p>
+            <p><a href="https://pixabay.com/vectors/coconut-palm-tree-coconut-tree-tree-7751862/">Palm Trees - Rama Widya (Pixabay)</a></p>
+            <p><a href="https://pixabay.com/vectors/palm-leaves-palm-frond-palm-tree-32531/">Palm Leaves - Clker-Free-Vector-Images (Pixabay)</a></p>
+            <div className="text-center">
+              <button className="text-2xl p-2" onClick={toggleDropdown}>Music Credits (Pixabay) {triangle}</button>
             </div>
-          )}
+            {open && (
+              <div>
+                <p>Ambient Jungle - <a href="https://pixabay.com/music/beats-ambient-jungle-quotambient-junglequot-by-storm-223660/">Ambient Jungle by Storm_Library</a></p>
+                <p>Jungle Party - <a href="https://pixabay.com/music/afrobeat-jungle-party-156395/">Jungle Party by NoodlezStudios</a></p>
+                <p>Happy Rock - <a href="https://pixabay.com/music/rock-happy-rock-308526/">Happy Rock by DmitryTaras</a></p>
+                <p>Energetic Rock - <a href="https://pixabay.com/music/rock-energetic-sports-rock-music-311923/">Jungle Party by NoodlezStudios</a></p>
+                <p>Pop - <a href="https://pixabay.com/music/upbeat-summer-pop-party-312159/">Summer Pop Party by EvgeniaCh</a></p>
+                <p>Techno - <a href="https://pixabay.com/music/house-tech-house-model-student-16442/">Tech House-Model Student by AntipodeanWriter</a></p>
+                <p>Hip Hop - <a href="https://pixabay.com/music/beats-sad-soul-chasing-a-feeling-185750/">Sad Soul (Chasing a Feeling) by AlexGrohl</a></p>
+                <p>R&B - <a href="https://pixabay.com/music/beats-smoke-143172/">Smoke by SoulProdMusic</a></p>
+                <p>Smooth Jazz - <a href="https://pixabay.com/music/smooth-jazz-guitar-jazz-2-311537/">Guitar jazz 2 by Surprising_Media</a></p>
+                <p>Lofi - <a href="https://pixabay.com/music/beautiful-plays-lofi-vibes-113884/">Lofi Vibes by chill_background</a></p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );  
+    );  
 }
