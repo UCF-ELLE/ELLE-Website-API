@@ -1,7 +1,7 @@
 "use client"
 
 //React imports
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useUser } from "@/hooks/useAuth";
 import ReactHowler from 'react-howler';
 import UserBackground from "@/components/TalkWithTito/UserBackground";
@@ -32,7 +32,7 @@ import ModuleButton from "@/components/TalkWithTito/ModuleButton";
 import Settings from "@/components/TalkWithTito/Settings";
 
 //Import frontend API calls
-import { fetchModules } from "@/services/TitoService";
+import { fetchModules, fetchSessions, deleteSession, getChatbot, fetchModuleTerms } from "@/services/TitoService";
 
 import Image from "next/image";
 import ChatScreen from "@/components/TalkWithTito/ChatScreen";
@@ -73,6 +73,26 @@ export default function TalkWithTito() {
   const [averageScore, setAverageScore] = useState<number>(0.00);
   const [chatbotId, setChatbotId] = useState<number>();
   const [open, setOpen] = useState(false);
+
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState<boolean>(false);
+  const [isCreatingSession, setIsCreatingSession] = useState<boolean>(false);
+  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownOpen]);
 
   interface Module {
     moduleID: number;
@@ -138,15 +158,169 @@ export default function TalkWithTito() {
 
   const handleModuleClick = (moduleId: number) => {
     if(selectedModule === moduleId) {
-      setSelectedModule(-1);
-      setAnalyticsActive(false);
-      setChatbotId(undefined); // Reset chatbot session when deselecting module
+      setDropdownOpen(!dropdownOpen);
     }
     else {
       console.log(`[TalkWithTito] Switching to module ${moduleId}, resetting chatbot session`);
       setSelectedModule(moduleId);
       setChatbotId(undefined); // Reset chatbot session when switching modules
+      setDropdownOpen(true);
     }
+  };
+
+  const loadSessionsList = useCallback(async (moduleId: number) => {
+    if (!user || userLoading) return;
+    setSessionsLoading(true);
+    try {
+      console.log(`[TalkWithTito] Fetching sessions list for module ${moduleId}`);
+      const sessionList = await fetchSessions(user.jwt, moduleId);
+      if (sessionList) {
+        setSessions(sessionList);
+      }
+    } catch (err) {
+      console.error("[TalkWithTito] Error fetching sessions:", err);
+    } finally {
+      setSessionsLoading(false);
+    }
+  }, [user, userLoading]);
+
+  useEffect(() => {
+    if (selectedModule !== undefined && selectedModule !== null) {
+      setSessions([]);
+      setChatbotId(undefined);
+      loadSessionsList(selectedModule);
+    }
+  }, [selectedModule, loadSessionsList]);
+
+  const handleStartNewConversation = async (moduleId: number) => {
+    if (!user || userLoading || isCreatingSession) return;
+    setIsCreatingSession(true);
+    try {
+      console.log(`[TalkWithTito] Creating new conversation for module ${moduleId}`);
+      let termsList: any[] = [];
+      if (moduleId !== -1) {
+        const fetchedTerms = await fetchModuleTerms(user.jwt, moduleId);
+        if (fetchedTerms) {
+          termsList = fetchedTerms.map(term => ({
+            termID: term.termID,
+            questionFront: term.questionFront,
+            questionBack: term.questionBack,
+            used: false
+          }));
+        }
+      }
+      
+      const newChatbot = await getChatbot(user.jwt, user.userID, moduleId, termsList);
+      if (newChatbot) {
+        console.log(`[TalkWithTito] New chatbot created: ${newChatbot.chatbotId}`);
+        setChatbotId(newChatbot.chatbotId);
+        loadSessionsList(moduleId);
+        setDropdownOpen(false); // Close dropdown on new session success
+      } else {
+        alert("Failed to start a new conversation. Please try again.");
+      }
+    } catch (err) {
+      console.error("[TalkWithTito] Error starting new conversation:", err);
+      alert("An error occurred while creating a new conversation.");
+    } finally {
+      setIsCreatingSession(false);
+    }
+  };
+
+  const handleDeleteSession = async (e: React.MouseEvent, chatbotSID: number) => {
+    e.stopPropagation();
+    if (!user) return;
+    const confirmDelete = window.confirm("Are you sure you want to delete this conversation? This will permanently delete all messages in this chat.");
+    if (!confirmDelete) return;
+    
+    try {
+      console.log(`[TalkWithTito] Deleting session ${chatbotSID}`);
+      const success = await deleteSession(user.jwt, chatbotSID);
+      if (success) {
+        console.log(`[TalkWithTito] Session ${chatbotSID} deleted successfully`);
+        if (chatbotId === chatbotSID) {
+          setChatbotId(undefined);
+        }
+        loadSessionsList(selectedModule);
+      } else {
+        alert("Failed to delete the conversation.");
+      }
+    } catch (err) {
+      console.error("[TalkWithTito] Error deleting session:", err);
+      alert("An error occurred while deleting the conversation.");
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "Unknown Date";
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString(undefined, {
+        month: 'numeric',
+        day: 'numeric',
+        year: '2-digit',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const renderSessionsDropdown = (moduleId: number) => {
+    return (
+      <div 
+        ref={dropdownRef}
+        className="absolute top-[102%] left-[5%] w-[90%] bg-stone-900/95 backdrop-blur-md border border-white/20 shadow-2xl rounded-xl p-3 z-50 flex flex-col items-center transition-all duration-200 ease-out animate-fadeIn"
+      >
+        <button
+          onClick={() => handleStartNewConversation(moduleId)}
+          disabled={isCreatingSession}
+          className="w-full bg-[#997c54] hover:bg-[#816031] disabled:bg-stone-800 disabled:text-white/40 border border-white/10 text-white rounded-lg py-1.5 mb-2 text-xs font-semibold text-center hover:cursor-pointer transition-all flex items-center justify-center gap-1.5 irish-grover shadow-md"
+        >
+          {isCreatingSession ? "Creating..." : "➕ New Chat"}
+        </button>
+
+        <div className="w-full flex flex-col items-center max-h-[160px] overflow-y-auto scrollbar-thin gap-1">
+          {sessionsLoading ? (
+            <div className="text-[10px] text-white/50 py-2 flex items-center gap-1.5">
+              <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              <span>Loading chats...</span>
+            </div>
+          ) : sessions.length === 0 ? (
+            <div className="text-[10px] text-white/40 italic py-2">No previous chats.</div>
+          ) : (
+            sessions.map((session) => (
+              <div
+                key={session.chatbotSID}
+                onClick={() => {
+                  setChatbotId(session.chatbotSID);
+                  setDropdownOpen(false);
+                }}
+                className={`flex justify-between items-center w-full p-2 pl-3 rounded-lg text-[11px] transition-all cursor-pointer border
+                            ${chatbotId === session.chatbotSID 
+                              ? "bg-white/20 border-white/30 font-bold" 
+                              : "bg-white/5 border-transparent hover:bg-white/15"}`}
+              >
+                <div className="flex flex-col text-left">
+                  <span className="text-white font-semibold">Chat #{session.chatbotSID}</span>
+                  <span className="text-white/50 text-[8px] mt-0.5">{formatDate(session.creationTimestamp)}</span>
+                </div>
+                
+                <button
+                  onClick={(e) => handleDeleteSession(e, session.chatbotSID)}
+                  className="p-1 rounded text-white/40 hover:text-red-400 hover:bg-white/10 transition-colors"
+                  title="Delete chat"
+                >
+                  <span className="text-[10px]">🗑️</span>
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
   };
 
   // Cycle through Tito Statements
@@ -366,27 +540,27 @@ export default function TalkWithTito() {
               </div>
               {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} isFreeTalk={selectedModule === -1} moduleId={selectedModule === -1 ? undefined : selectedModule} classId={modules?.find(m => m.moduleID === selectedModule)?.classID} />}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
-              {!selectedModule ? (
+              {chatbotId === undefined ? (
                 <>
                   <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
                     font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover
                     shadow-[0px_4px_4px_rgba(0,0,0,0.3)]">
                     Welcome, {user?.username ? user.username : "<username>"}
                   </div>
-                  <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2" />
+                  <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2 animate-bounce" style={{ animationDuration: '3s' }} />
                   <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
                     font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover">
-                    Pick a module to get started!
+                    {selectedModule === -1 ? "Pick a Free Chat conversation to begin!" : "Pick a conversation to begin!"}
                   </div>
                 </>
               ) : (
                 <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
-              <ChatScreen 
-                moduleID={selectedModule} 
-                moduleLanguage={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.language}
-                setUserBackgroundFilepath={setUserBackgroundFilepath} setUserMusicFilepath={setUserMusicFilepath} 
-                setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} 
-                setChatbotId={setChatbotId} chatFontSize={chatFont} setTimeSpent={setTimeSpent} ttsMuted={ttsMuted}/>
+                  <ChatScreen 
+                    moduleID={selectedModule} 
+                    moduleLanguage={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.language}
+                    setUserBackgroundFilepath={setUserBackgroundFilepath} setUserMusicFilepath={setUserMusicFilepath} 
+                    setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} 
+                    setChatbotId={setChatbotId} chatFontSize={chatFont} setTimeSpent={setTimeSpent} ttsMuted={ttsMuted}/>
                 </div>
               )}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
@@ -397,16 +571,21 @@ export default function TalkWithTito() {
                     <UserBackground username={user?.username} backgroundFilepath={userBackgroundFilepath} />
                     <div className="w-full h-[71.75%] flex flex-col items-center">
                       {/* Modules div (middle) */}
-                      <ModuleButton key={-1} moduleName={"Free Chat"} onClick={() => handleModuleClick(-1)} isSelected={selectedModule === -1} />
+                      <div className="w-full relative flex flex-col items-center">
+                        <ModuleButton key={-1} moduleName={"Free Chat"} onClick={() => handleModuleClick(-1)} isSelected={selectedModule === -1} />
+                        {selectedModule === -1 && dropdownOpen && renderSessionsDropdown(-1)}
+                      </div>
                       <div className="w-full py-[0.2em] flex justify-center irish-grover md:text-xl">Assigned modules:</div>
                       <div className="w-full flex overflow-y-auto flex-col items-center">
                         {modules?.map((module: Module, index) => (
-                          <ModuleButton
-                            key={index}
-                            moduleName={module.name || "Null"}
-                            onClick={() => handleModuleClick(module.moduleID || -1)}
-                            isSelected={module.moduleID === selectedModule}
-                          />
+                          <div key={index} className="w-full relative flex flex-col items-center">
+                            <ModuleButton
+                              moduleName={module.name || "Null"}
+                              onClick={() => handleModuleClick(module.moduleID || -1)}
+                              isSelected={module.moduleID === selectedModule}
+                            />
+                            {selectedModule === module.moduleID && dropdownOpen && renderSessionsDropdown(module.moduleID)}
+                          </div>
                         ))}
                       </div>
                     </div>
