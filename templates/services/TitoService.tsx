@@ -150,6 +150,34 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
   }
 };
 
+// Fetches all sessions for a user and module
+export const fetchSessions = async (access_token: string, moduleID: number): Promise<any[] | null> => {
+  try {
+    const response = await axios.get(`${ELLE_URL}/twt/session/list`, {
+      params: { moduleID },
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    return response.data.data || [];
+  } catch (error) {
+    handleError(error);
+    return null;
+  }
+};
+
+// Deletes a session and cascade-deletes all its messages
+export const deleteSession = async (access_token: string, chatbotSID: number): Promise<boolean> => {
+  try {
+    const response = await axios.delete(`${ELLE_URL}/twt/session/delete`, {
+      params: { chatbotSID },
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    return response.data.success || false;
+  } catch (error) {
+    handleError(error);
+    return false;
+  }
+};
+
 // Helper interface for deconstructing API response
 interface APITerm {
   answers: {
@@ -379,7 +407,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
     const response = await axios.get(
       `${ELLE_URL}/twt/session/messages`,
       {
-        params: { moduleID: moduleId , classID: finalClassId },
+        params: { moduleID: moduleId , classID: finalClassId, chatbotSID: chatbotId },
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
