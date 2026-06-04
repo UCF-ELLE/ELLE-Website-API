@@ -390,6 +390,7 @@ def generate_chat_message(messages: list):
         response = requests.post(chat_model_path, json=request, timeout=60)
         response.raise_for_status()
         response_data = response.json()
+        print(f"[DEBUG generate_chat_message] response_data={response_data}")
 
         if "choices" in response_data and len(response_data["choices"]) > 0:
             return response_data["choices"][0]["message"]["content"]
