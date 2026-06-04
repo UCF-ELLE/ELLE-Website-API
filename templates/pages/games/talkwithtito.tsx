@@ -83,6 +83,10 @@ export default function TalkWithTito() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        const target = event.target as HTMLElement;
+        if (target.closest('.module-button-container')) {
+          return;
+        }
         setDropdownOpen(false);
       }
     };
@@ -541,18 +545,17 @@ export default function TalkWithTito() {
               {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} isFreeTalk={selectedModule === -1} moduleId={selectedModule === -1 ? undefined : selectedModule} classId={modules?.find(m => m.moduleID === selectedModule)?.classID} />}
               <Image src={leaf_background} alt="TalkWithTito placeholder" className="game-background" />
               {chatbotId === undefined ? (
-                <>
-                  <div className="absolute top-[11.5%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
-                    font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover
-                    shadow-[0px_4px_4px_rgba(0,0,0,0.3)]">
+                <div className="absolute top-0 right-0 w-[70%] h-full flex flex-col justify-center items-center gap-6 p-6 select-none z-10">
+                  <div className="text-white md:text-3xl font-semibold bg-[#997c54] py-2 px-6 rounded-sm irish-grover shadow-[0px_4px_4px_rgba(0,0,0,0.3)] text-center max-w-[90%]">
                     Welcome, {user?.username ? user.username : "<username>"}
                   </div>
-                  <Image src={happyTito} alt="Tito is ready" className="absolute w-[35%] top-[40%] left-[62.5%] -translate-x-1/2 -translate-y-1/2 animate-bounce" style={{ animationDuration: '3s' }} />
-                  <div className="absolute top-[70%] left-[62.5%] w-fit -translate-x-1/2 -translate-y-1/2 text-white md:text-4xl 
-                    font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover">
+                  <div className="w-[150px] md:w-[180px] h-auto relative my-2 animate-milderBounce">
+                    <Image src={happyTito} alt="Tito is ready" className="w-full h-auto" />
+                  </div>
+                  <div className="text-white md:text-2xl font-semibold bg-[#997c54] py-2 px-6 rounded-sm shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover text-center max-w-[90%]">
                     {selectedModule === -1 ? "Pick a Free Chat conversation to begin!" : "Pick a conversation to begin!"}
                   </div>
-                </>
+                </div>
               ) : (
                 <div className="absolute top-0 right-0 w-[70%] h-full bg-white">
                   <ChatScreen 
