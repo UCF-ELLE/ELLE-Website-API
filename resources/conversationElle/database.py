@@ -65,14 +65,15 @@ def createChatbotSession(userID: int, moduleID: int):
 # TODO: Check logic, test with existing but expired, current and existing nonE, and future nonExist
 def isValidChatbotSession(userID: int, moduleID: int, chatbotSID: int):
     query = '''
-        SELECT `isActiveSession`
-        FROM `chatbot_sessions`
-        WHERE `userID` = %s AND `moduleID` = %s AND `chatbotSID` = %s;
+        SELECT EXISTS(
+            SELECT 1
+            FROM `chatbot_sessions`
+            WHERE `userID` = %s AND `moduleID` = %s AND `chatbotSID` = %s
+        );
     '''
 
     result = db.get(query, (userID, moduleID, chatbotSID), fetchOne=True)
 
-    # TODO: Maybe error here?
     if not result or not result[0]:
         return False
     return True
@@ -1334,3 +1335,33 @@ def fetchSessionChatHistory(chatbotSID: int):
                 "creationTimestamp": row[3].isoformat() if row[3] else None
             })
     return messages
+
+def fetchModuleSessions(userID: int, moduleID: int):
+    """
+    Retrieves all conversation sessions for a specific user and module.
+    """
+    query = '''
+        SELECT chatbotSID, creationTimestamp, isActiveSession
+        FROM `chatbot_sessions`
+        WHERE userID = %s AND moduleID = %s
+        ORDER BY chatbotSID DESC;
+    '''
+    result = db.get(query, (userID, moduleID))
+    sessions = []
+    if result:
+        for row in result:
+            sessions.append({
+                "chatbotSID": row[0],
+                "creationTimestamp": row[1].isoformat() if row[1] else None,
+                "isActiveSession": bool(row[2])
+            })
+    return sessions
+
+def deleteChatbotSession(userID: int, chatbotSID: int):
+    """
+    Deletes a session. MySQL foreign key constraints (ON DELETE CASCADE)
+    will automatically delete all associated messages.
+    """
+    query = "DELETE FROM `chatbot_sessions` WHERE userID = %s AND chatbotSID = %s;"
+    res = db.post(query, (userID, chatbotSID))
+    return res.get("rowcount", 0) > 0
