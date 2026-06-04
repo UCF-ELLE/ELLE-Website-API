@@ -237,6 +237,7 @@ class GenerateTitoResponse(Resource):
         /elleapi/twt/session/generate
             Generates an LLM response for a given message
         '''
+        user_id = get_jwt_identity()
         data = request.form
         message = data.get('message')
         module_id = int(data.get('moduleID'))
@@ -246,7 +247,7 @@ class GenerateTitoResponse(Resource):
             return create_response(False, message="Missing required parameters.", status_code=404)
             
         try:
-            tito_response = handle_message_with_context(message=message, module_id=module_id, session_id=session_id)
+            tito_response = handle_message_with_context(message = message, module_id = module_id, session_id = session_id, user_id = user_id)
             return create_response(True, message="LLM response generated.", titoResponse=tito_response)
         except Exception as e:
             print(f"[GENERATE ERROR] {e}")
