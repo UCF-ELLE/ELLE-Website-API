@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 from .config import *
+from .config import chat_model_path, model_path
 from config import FREE_CHAT_MODULE, REAL_FREE_CHAT_MODULE
 from .database import getModuleTerms, getModuleLanguage, fetchSessionChatHistory
 # from .convo_grader import *
@@ -55,16 +56,36 @@ def prewarm_llm_context(module_id, session_id):
             "stream": False
         }
         
+        # Write debug request to log file
+        log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug_generate.log")
+        with open(log_path, "a") as f:
+            f.write(f"\n--- PREWARM REQUEST at {datetime.now()} ---\n")
+            f.write(json.dumps(request, indent=2))
+            f.write("\n")
+
         response = requests.post(chat_model_path, json=request, timeout=30)
         
+        with open(log_path, "a") as f:
+            f.write(f"--- PREWARM RESPONSE STATUS: {response.status_code} ---\n")
+            if response.status_code == 200:
+                f.write(json.dumps(response.json(), indent=2))
+                f.write("\n")
+            f.write("---------------------\n")
+
         if response.status_code == 200:
-            print(f"Pre-warmed LLM cache for module {module_id}")
-            print(f"[DEBUG] Cached prompt will be reused for subsequent messages")
+            print(f"Pre-warmed LLM cache for module {module_id}", flush=True)
+            print(f"[DEBUG] Cached prompt will be reused for subsequent messages", flush=True)
         else:
-            print(f"Pre-warming got status {response.status_code}")
+            print(f"Pre-warming got status {response.status_code}", flush=True)
             
     except Exception as e:
-        print(f"Pre-warming failed: {e}")
+        print(f"Pre-warming failed: {e}", flush=True)
+        try:
+            log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug_generate.log")
+            with open(log_path, "a") as f:
+                f.write(f"--- PREWARM ERROR: {str(e)} ---\n")
+        except:
+            pass
 
 def create_module(prompt, term_count, nat_lang, target_lang):
     """
@@ -387,17 +408,39 @@ def generate_chat_message(messages: list):
     }
 
     try:
+        log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug_generate.log")
+        with open(log_path, "a") as f:
+            f.write(f"\n--- GENERATE REQUEST at {datetime.now()} ---\n")
+            f.write(json.dumps(request, indent=2))
+            f.write("\n")
+
         response = requests.post(chat_model_path, json=request, timeout=60)
+        
+        with open(log_path, "a") as f:
+            f.write(f"--- GENERATE RESPONSE STATUS: {response.status_code} ---\n")
+
         response.raise_for_status()
         response_data = response.json()
-        print(f"[DEBUG generate_chat_message] response_data={response_data}")
+
+        with open(log_path, "a") as f:
+            f.write("--- GENERATE RESPONSE BODY ---\n")
+            f.write(json.dumps(response_data, indent=2))
+            f.write("\n---------------------\n")
+
+        print(f"[DEBUG generate_chat_message] response_data={response_data}", flush=True)
 
         if "choices" in response_data and len(response_data["choices"]) > 0:
             return response_data["choices"][0]["message"]["content"]
         return ""
 
     except Exception as error:
-        print(f"Chat generation error: {error}")
+        print(f"Chat generation error: {error}", flush=True)
+        try:
+            log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug_generate.log")
+            with open(log_path, "a") as f:
+                f.write(f"--- GENERATE ERROR: {str(error)} ---\n")
+        except:
+            pass
         return "Sorry, I'm having trouble connecting."
 
 def clear_session_context(session_id: int):
