@@ -1338,13 +1338,22 @@ def fetchSessionChatHistory(chatbotSID: int):
 
 def fetchModuleSessions(userID: int, moduleID: int):
     """
-    Retrieves all conversation sessions for a specific user and module.
+    Retrieves all conversation sessions for a specific user and module,
+    filtering out inactive sessions that have no user messages.
     """
     query = '''
-        SELECT chatbotSID, creationTimestamp, isActiveSession
-        FROM `chatbot_sessions`
-        WHERE userID = %s AND moduleID = %s
-        ORDER BY chatbotSID DESC;
+        SELECT cs.chatbotSID, cs.creationTimestamp, cs.isActiveSession
+        FROM `chatbot_sessions` cs
+        WHERE cs.userID = %s AND cs.moduleID = %s
+          AND (
+              cs.isActiveSession = 1
+              OR EXISTS (
+                  SELECT 1 
+                  FROM `messages` m 
+                  WHERE m.chatbotSID = cs.chatbotSID AND m.source = 'user'
+              )
+          )
+        ORDER BY cs.chatbotSID DESC;
     '''
     result = db.get(query, (userID, moduleID))
     sessions = []
