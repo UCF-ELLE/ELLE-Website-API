@@ -159,6 +159,8 @@ from resources.conversationElle.conversation import(
     GenerateModule,
     GenerateTitoResponse,
     TitoMessages,
+    TitoSessionList,
+    DeleteTitoSession,
 
     # Testing,
     # AIModuleGeneration,
@@ -415,6 +417,8 @@ api.add_resource(UserAudio, API_ENDPOINT_PREFIX + "twt/session/audio")
 api.add_resource(ModuleTerms, API_ENDPOINT_PREFIX + "twt/module/terms")
 api.add_resource(GetModuleProgress, API_ENDPOINT_PREFIX + "twt/session/getModuleProgress")
 api.add_resource(FetchAllUserAudio, API_ENDPOINT_PREFIX + "twt/session/downloadAllUserAudio")
+api.add_resource(TitoSessionList, API_ENDPOINT_PREFIX + "twt/session/list")
+api.add_resource(DeleteTitoSession, API_ENDPOINT_PREFIX + "twt/session/delete")
 
 api.add_resource(Classes, API_ENDPOINT_PREFIX + "twt/session/classes")
 api.add_resource(GetTitoLoreAssignment, API_ENDPOINT_PREFIX + "twt/session/getTitoLore")
