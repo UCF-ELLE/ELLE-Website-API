@@ -42,18 +42,20 @@ def prewarm_llm_context(module_id, session_id):
     try:
         # Get the full enhanced prompt with module vocab context
         base_prompt = build_enhanced_prompt(module_id)
-        # Format it exactly as it will appear in subsequent messages
-        warming_prompt = f"{base_prompt}\n\nStudent: Hello\n\nTito:"
+        # Format as list of role-based messages for Chat completions
+        messages = [
+            {"role": "system", "content": base_prompt},
+            {"role": "user", "content": "Hello"}
+        ]
         
         request = {
-            "prompt": warming_prompt,
-            "n_predict": 5,
+            "messages": messages,
+            "max_tokens": 5,
             "temperature": 0.7,
-            "cache_prompt": True,  # Cache the full prompt for reuse
             "stream": False
         }
         
-        response = requests.post(model_path, json=request, timeout=30)
+        response = requests.post(chat_model_path, json=request, timeout=30)
         
         if response.status_code == 200:
             print(f"Pre-warmed LLM cache for module {module_id}")
@@ -282,14 +284,16 @@ def handle_message_with_context(message: str, module_id: int, session_id: int):
     """
     Handle a chat message with module context.
     Includes the full system prompt and previous conversation history
-    with each message to provide context memory.
+    as structured role-based messages for the Chat completions endpoint.
     """
     try:
-        # Build the full prompt including system context
+        # Build the system prompt
         base_prompt = build_enhanced_prompt(module_id)
         
-        # Fetch conversation history for this session from database
-        history_str = ""
+        # Initialize messages structure
+        messages = [{"role": "system", "content": base_prompt}]
+        
+        # Fetch and format history
         if session_id:
             try:
                 session_history = fetchSessionChatHistory(session_id)
@@ -299,14 +303,16 @@ def handle_message_with_context(message: str, module_id: int, session_id: int):
                     session_history = session_history[:-1]
                 
                 for msg in session_history:
-                    role = "Student" if msg["source"] == "user" else "Tito"
-                    history_str += f"{role}: {msg['message']}\n\n"
+                    role = "user" if msg["source"] == "user" else "assistant"
+                    messages.append({"role": role, "content": msg["message"]})
             except Exception as history_error:
                 print(f"[WARNING] Failed to load session history: {history_error}")
                 
-        # Build the final history-aware prompt
-        full_prompt = f"{base_prompt}\n\n{history_str}Student: {message}\n\nTito:"
-        response = generate_message_direct(full_prompt)
+        # Append the current message
+        messages.append({"role": "user", "content": message})
+        
+        # Generate response using structured messages
+        response = generate_chat_message(messages)
         return response.strip()
         
     except Exception as error:
@@ -365,6 +371,32 @@ def generate_message_direct(full_prompt: str):
 
     except Exception as error:
         print(f"Generation error: {error}")
+        return "Sorry, I'm having trouble connecting."
+
+def generate_chat_message(messages: list):
+    """
+    Sends a structured list of messages to the llama.cpp /v1/chat/completions endpoint.
+    """
+    request = {
+        "messages": messages,
+        "max_tokens": MAX_NEW_TOKENS,
+        "temperature": TEMPERATURE,
+        "top_k": TOP_K,
+        "top_p": TOP_P,
+        "stream": False
+    }
+
+    try:
+        response = requests.post(chat_model_path, json=request, timeout=60)
+        response.raise_for_status()
+        response_data = response.json()
+
+        if "choices" in response_data and len(response_data["choices"]) > 0:
+            return response_data["choices"][0]["message"]["content"]
+        return ""
+
+    except Exception as error:
+        print(f"Chat generation error: {error}")
         return "Sorry, I'm having trouble connecting."
 
 def clear_session_context(session_id: int):
