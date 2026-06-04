@@ -12,7 +12,7 @@ export default function ModuleButton(props: propsInterface) {
 
     return(
         <div 
-            className="hover:bg-[#AAAAAA] text-black w-[90%] max-w-full p-1.5 m-1 border-2 border-black rounded hover:cursor-pointer text-lg select-none flex justify-between items-center irish-grover transition-all duration-200"
+            className="module-button-container hover:bg-[#AAAAAA] text-black w-[90%] max-w-full p-1.5 m-1 border-2 border-black rounded hover:cursor-pointer text-lg select-none flex justify-between items-center irish-grover transition-all duration-200"
             onClick={props.onClick}
             style={{backgroundColor: `${props.isSelected || isHovered ? "#AAAAAA" : "#EEEEEE"}`}}
             onMouseEnter={() => setIsHovered(true)}
