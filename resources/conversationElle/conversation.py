@@ -263,6 +263,8 @@ class TitoMessages(Resource):
         module_id = int(data.get('moduleID'))
         tito_response = data.get('titoResponse')
         
+        print(f"[DEBUG TitoMessages] session_id={session_id!r}, class_id={class_id!r}, module_id={module_id!r}, tito_response={tito_response!r}")
+        
         if not session_id or not module_id or not tito_response or not class_id:
             return create_response(False, message="Missing required parameters.", status_code=404)
             
