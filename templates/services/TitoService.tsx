@@ -536,6 +536,13 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     titoFormData.append('moduleID', moduleId.toString());
     titoFormData.append('titoResponse', titoResponse);
 
+    console.log('[DEBUG TitoMessages Frontend]', {
+      chatbotSID: chatbotId.toString(),
+      classID: finalClassId?.toString()??"",
+      moduleID: moduleId.toString(),
+      titoResponse: titoResponse
+    });
+
     await axios.post(
       `${ELLE_URL}/twt/session/tito_messages`,
       titoFormData,
