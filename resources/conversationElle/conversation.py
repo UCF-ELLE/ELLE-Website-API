@@ -206,21 +206,23 @@ class UserMessages(Resource):
     def get(self):
         '''
         /elleapi/twt/session/messages
-            Returns chat history of a user for a given moduleID in ascending order (1 -> N)
-            TODO: to be worked on?
+            Returns chat history of a user for a given moduleID and/or chatbotSID in ascending order (1 -> N)
         '''
         user_id = get_jwt_identity()
 
         try:
-            data = request.form
-            module_id = int(request.args.get('moduleID'))
+            module_id = request.args.get('moduleID', type=int)
             class_id = request.args.get('classID')
+            chatbot_sid = request.args.get('chatbotSID', type=int)
             
             if not module_id or not class_id:
-                return create_response(False, message="Missing required paranmeters.", status_code=404)
+                return create_response(False, message="Missing required parameters.", status_code=404)
             
-            target_module_id = REAL_FREE_CHAT_MODULE if module_id == FREE_CHAT_MODULE else module_id
-            res = fetchModuleChatHistory(user_id, target_module_id, class_id)
+            if chatbot_sid:
+                res = fetchSessionChatHistory(chatbot_sid)
+            else:
+                target_module_id = REAL_FREE_CHAT_MODULE if module_id == FREE_CHAT_MODULE else module_id
+                res = fetchModuleChatHistory(user_id, target_module_id, class_id)
             return create_response(True, message="Retrieved chat history.", data=res) 
         except Exception as e:
             return create_response(False, message=f"Failed to retrieve user's messages. Error: {e}", status_code=504)
@@ -280,6 +282,39 @@ class TitoMessages(Resource):
         except Exception as e:
             print(f"[SAVE ERROR] {e}")
             return create_response(False, message="Failed to save Tito message.", status_code=500)
+
+class TitoSessionList(Resource):
+    @jwt_required
+    def get(self):
+        '''
+        /elleapi/twt/session/list
+            Returns all sessions for a user and module
+        '''
+        user_id = get_jwt_identity()
+        module_id = request.args.get('moduleID', type=int)
+        if not module_id:
+            return create_response(False, message="Missing required parameters.", status_code=400)
+        
+        target_module_id = REAL_FREE_CHAT_MODULE if module_id == FREE_CHAT_MODULE else module_id
+        sessions = fetchModuleSessions(user_id, target_module_id)
+        return create_response(True, message="Retrieved sessions.", data=sessions)
+
+class DeleteTitoSession(Resource):
+    @jwt_required
+    def delete(self):
+        '''
+        /elleapi/twt/session/delete
+            Deletes a chat session and cascade-deletes all its messages
+        '''
+        user_id = get_jwt_identity()
+        chatbot_sid = request.args.get('chatbotSID', type=int)
+        if not chatbot_sid:
+            return create_response(False, message="Missing required parameters.", status_code=400)
+        
+        success = deleteChatbotSession(user_id, chatbot_sid)
+        if success:
+            return create_response(True, message="Session deleted successfully.")
+        return create_response(False, message="Failed to delete session.", status_code=500)
 
 class UserAudio(Resource):
     @jwt_required
