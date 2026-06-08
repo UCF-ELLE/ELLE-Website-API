@@ -292,11 +292,11 @@ export default function TalkWithTito() {
                 onSetPlaylist={handlePlaylist}
                 onSetFont={handleFontSize}
                 onSetAIChoice={setAIChoice}
-                onSetTtsMuted={setTtsMuted}
+                // onSetTtsMuted={setTtsMuted}
                 parentPlaylist = {playlist} 
                 parentFont = {userChatFont}
                 titoMusicChoice={AIChoice}
-                ttsMuted={ttsMuted}
+                // ttsMuted={ttsMuted}
               />
             )}
             {!playClicked ? (
@@ -371,7 +371,19 @@ export default function TalkWithTito() {
                     onChange={handleVolume}
                   />
                 </div>
-                {analyticsActive && <AnalyticsMenu timeSpent={timeSpent} termScore={termScore} averageScore={averageScore} chatbotId={chatbotId} isFreeTalk={selectedModule === -1} moduleId={selectedModule === -1 ? undefined : selectedModule} classId={modules?.find(m => m.moduleID === selectedModule)?.classID} />}
+
+                {analyticsActive && (
+                  <AnalyticsMenu 
+                    timeSpent={timeSpent} 
+                    termScore={termScore} 
+                    averageScore={averageScore} 
+                    chatbotId={chatbotId} 
+                    isFreeTalk={selectedModule === -1} 
+                    moduleId={selectedModule === -1 ? undefined : selectedModule} 
+                    classId={modules?.find(m => m.moduleID === selectedModule)?.classID}
+                    onClose={() => setAnalyticsActive(false)}
+                  />
+                )}
                 
                 <div className="flex-1 order-2 md:order-2 min-h-0 relative bg-white flex flex-col overflow-hidden">
                   <Image src={leaf_background} alt="TalkWithTito placeholder" fill style={{ objectFit: 'cover' }} className="z-0 opacity-20 md:hidden" />
@@ -401,6 +413,7 @@ export default function TalkWithTito() {
                         chatFontSize={chatFont} 
                         setTimeSpent={setTimeSpent} 
                         ttsMuted={ttsMuted}
+                        setTtsMuted={setTtsMuted}
                       />
                     </div>
                   )}

@@ -4,6 +4,8 @@ import { useUser } from "@/hooks/useAuth";
 import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage, uploadAudioFile, ELLE_URL } from "@/services/TitoService";
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
+import volumeIcon from "@/public/static/images/ConversAItionELLE/volume.png";
+import muteIcon from "@/public/static/images/ConversAItionELLE/mute.png";
 // import TitoCloudBubble from "@/components/TalkWithTito/TitoCloudBubble";
 
 /* Assets */
@@ -53,6 +55,7 @@ interface propsInterface {
   setTimeSpent: React.Dispatch<React.SetStateAction<string>>;
   chatFontSize: string;
   ttsMuted: boolean;
+  setTtsMuted: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface Term {
@@ -968,6 +971,16 @@ useEffect(() => {
     window.speechSynthesis.speak(u);
   }, [ttsSupported, ttsLang, voices, preprocessForTTS]);
 
+  // Toggles Tito's narration on/off from the button near Tito.
+  // If currently speaking and the user mutes, stop speech immediately.
+  const handleTtsMute = () => {
+    props.setTtsMuted((prev) => !prev);
+
+    if (!props.ttsMuted && typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  };
+
   useEffect(() => {
     const isFreeChat = props.moduleID === -1;
     if (userLoading || !user || !termsLoaded || (!isFreeChat && terms.length === 0)) return;
@@ -1162,25 +1175,37 @@ useEffect(() => {
                 )}
 
               {/* Messages area */}
-              <div className="flex-1 min-h-0 overflow-y-auto px-3 pr-1 pt-3 pb-6 md:px-4 md:pr-2 md:pt-4 md:pb-4">
+              <div className="flex-1 min-h-0 overflow-y-auto pl-3 pr-0 pt-3 pb-6 md:pl-4 md:pr-0 md:pt-4 md:pb-4">
                 <Messages messages={chatMessages} chatFontSize={props.chatFontSize} />
               </div>
 
               {/* Chat box */}
               <div className="w-full h-[96px] md:h-[120px] bg-[#8C7357] flex shrink-0 relative z-20">
                 {/*Tito Image Div */}
-                <div className="w-[72px] md:w-[110px] shrink-0 flex items-center justify-center">
+                <div className="relative w-[72px] md:w-[110px] shrink-0 flex items-center justify-center">
                   <Image 
                     src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : neutralTito} 
                     style={{ width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%" }} 
                     alt={`Tito is ${titoMood}`}
                     className={titoMood === "thinking" ? "tito-thinking" : ""}
                   />
+                  <button
+                    type="button"
+                    onClick={handleTtsMute}
+                    className="absolute bottom-1 -right-1 md:bottom-2 md:-right-0 w-6 h-6 md:w-8 md:h-8 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition"
+                    title={props.ttsMuted ? "Unmute Tito's voice" : "Mute Tito's voice"}
+                  >
+                    <Image
+                      src={props.ttsMuted ? muteIcon : volumeIcon}
+                      alt={props.ttsMuted ? "Muted" : "Unmuted"}
+                      className="w-7 h-7 md:w-7 md:h-7"
+                    />
+                  </button>
                   {/* Lore bubble disabled per sponsor feedback */}
                   {/* <TitoCloudBubble message={message} trigger={trigger} /> */}
                 </div>
 
-                <div className="flex-1 flex items-center gap-2 pr-2 min-w-0">
+                <div className="flex-1 flex items-center gap-2 pr-2 pl-1 min-w-0">
                   <textarea 
                     placeholder={titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
                     className="flex-1 min-w-0 h-[58%] md:h-[70%] bg-white rounded p-2 resize-none overflow-y-auto"
