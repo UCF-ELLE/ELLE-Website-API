@@ -45,6 +45,7 @@ interface SpeechRecognitionEvent extends Event {
 
 interface propsInterface {
   moduleID: number;
+  moduleName?: string; // Name/topic of the module (e.g., 'La Comida')
   moduleLanguage?: string; // Language code of the module (e.g., 'es', 'fr', 'pt')
   chatbotId?: number;
   setChatbotId: React.Dispatch<React.SetStateAction<number | undefined>>;
@@ -1039,13 +1040,12 @@ useEffect(() => {
     setChatMessages([]);
 
     const instructionMessage: ChatMessage = props.moduleID !== -1 ? {
-      // CHANGED: explain the 3-use vocab progress rule in the welcome message
-      value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. View the vocab list on the right for a list of terms which we can chat about. Try to use each word at least 3 times. The list will show your progress for each word as you use it.`,
+      value: `Hi ${user?.username}, let's talk about ${props.moduleName || 'this topic'}! I'm Tito. Try to use each word from the vocabulary list at least 3 times. I'll help you practice.`,
       timestamp: "",
       source: "llm",
       metadata: undefined
     } : {
-      value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. Welcome to free chat, here you can ask questions or talk about whatever you like.`,
+      value: `Hi ${user?.username}, my name is Tito. Welcome to free chat, here you can ask questions or talk about whatever you like.`,
       timestamp: "",
       source: "llm",
       metadata: undefined

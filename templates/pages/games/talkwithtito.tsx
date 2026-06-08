@@ -402,7 +402,8 @@ export default function TalkWithTito() {
                   ) : (
                     <div className="flex-grow flex-shrink min-w-0 w-full h-full relative">
                       <ChatScreen 
-                        moduleID={selectedModule} 
+                        moduleID={selectedModule}
+                        moduleName={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.name} 
                         moduleLanguage={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.language}
                         setUserBackgroundFilepath={setUserBackgroundFilepath} 
                         setUserMusicFilepath={setUserMusicFilepath} 
