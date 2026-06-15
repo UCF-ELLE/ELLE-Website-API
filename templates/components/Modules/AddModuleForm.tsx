@@ -192,7 +192,7 @@ export default function AddModuleForm({
                     <Row>
                         <Col>
                             <FormGroup>
-                                <Label for='titoWelcomeMessage'>Tito's First Message (Optional):</Label>
+                                <Label for='titoWelcomeMessage'>Tito&apos;s First Message (Optional):</Label>
                                 <Input
                                     type='textarea'
                                     placeholder="Enter custom first message from Tito"
