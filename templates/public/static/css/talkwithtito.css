@@ -207,10 +207,20 @@
   color: rgb(122, 233, 122);
 }
 
+.image-credits-box a {
+  color: #fff4dc !important;
+  text-decoration: none;
+}
+
+.image-credits-box a:hover {
+  color: #fcd277ff !important;
+  text-decoration: underline;
+}
+
 /* Font Styling */
 .inter-font h1{
   font-weight: 500;
-  font-size: 2.5vw;
+  font-size: clamp(24px, 2.5vw, 40px);
   margin-bottom: 10px;
   text-shadow:
     -2px -2px 0 rgba(0, 0, 0, 0.300),  
@@ -225,7 +235,7 @@
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-size: 1.5vw;
+  font-size: clamp(14px, 1.3vw, 20px);
   margin-bottom: 10px;
 }
 
@@ -234,7 +244,8 @@
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-size: 0.9vw;
+  font-size: clamp(12px, 0.9vw, 16px);
+  line-height: 1.5;
 }
 
 /* Tito Animation - Thinking */
