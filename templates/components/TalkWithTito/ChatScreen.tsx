@@ -52,6 +52,7 @@ interface propsInterface {
     setTimeSpent: React.Dispatch<React.SetStateAction<string>>;
     chatFontSize: string;
     ttsMuted: boolean;
+    sessions?: any[];
 }
 
 interface Term {
@@ -946,6 +947,21 @@ export default function ChatScreen(props: propsInterface) {
         console.log(`[ChatScreen] Initializing chatbot for module ${props.moduleID}`, { termsLength: terms.length, isFreeChat });
         
         const loadChatbot = async () => {
+            // Guard: If chatbotId is already provided, do NOT call getChatbot (which creates a new session)
+            if (props.chatbotId !== undefined) {
+                console.log(`[ChatScreen] Existing chatbot session ${props.chatbotId} provided, skipping session creation.`);
+                // Find existing session in props.sessions to initialize timeChatted
+                const existingSession = props.sessions?.find(s => s.chatbotSID === props.chatbotId);
+                if (existingSession) {
+                    console.log(`[ChatScreen] Found existing session details:`, existingSession);
+                    // timeChatted is set in seconds. database timeChatted is in minutes, so multiply by 60
+                    setTimeChatted((existingSession.timeChatted || 0) * 60);
+                } else {
+                    setTimeChatted(0);
+                }
+                return;
+            }
+
             console.log(`[ChatScreen] Calling getChatbot for module ${props.moduleID}`);
             const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
             if(newChatbot) {
@@ -977,7 +993,7 @@ export default function ChatScreen(props: propsInterface) {
         }
         loadChatbot();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.moduleID, user?.jwt, termsLoaded])
+    }, [props.moduleID, props.chatbotId, user?.jwt, termsLoaded])
     
     // Used to initialize chat messages - reset when module changes
     useEffect(() => {
