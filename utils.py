@@ -742,11 +742,24 @@ def convertModuleToJSON(module, extra_param_name="seventhParam"):
     moduleObj["userID"] = module[4]
     moduleObj["isPastaModule"] = module[5]
 
-    if len(module) >= 7:
+    # Dynamically determine column layout based on database migration status:
+    # Legacy (6-column module table):
+    #   - len(module) == 6: simple select
+    #   - len(module) == 7 and extra_param_name provided: joined select (extra param is at index 6)
+    # Migrated (7-column module table with titoWelcomeMessage):
+    #   - len(module) == 7 and extra_param_name is default: simple select (titoWelcomeMessage is at index 6)
+    #   - len(module) >= 8: joined select (titoWelcomeMessage at 6, extra param at 7)
+    if len(module) == 7:
+        if extra_param_name != "seventhParam":
+            moduleObj[extra_param_name] = module[6]
+            moduleObj["titoWelcomeMessage"] = None
+        else:
+            moduleObj["titoWelcomeMessage"] = module[6]
+    elif len(module) >= 8:
         moduleObj["titoWelcomeMessage"] = module[6]
-
-    if len(module) >= 8:
         moduleObj[extra_param_name] = module[7]
+    else:
+        moduleObj["titoWelcomeMessage"] = None
 
     return moduleObj
 
