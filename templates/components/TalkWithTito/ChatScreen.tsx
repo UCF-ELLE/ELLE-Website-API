@@ -53,6 +53,7 @@ interface propsInterface {
     chatFontSize: string;
     ttsMuted: boolean;
     sessions?: any[];
+    titoWelcomeMessage?: string;
 }
 
 interface Term {
@@ -1001,8 +1002,10 @@ export default function ChatScreen(props: propsInterface) {
         setChatMessages([]);
         
         //Instruction message
+        const welcomeMessageVal = props.titoWelcomeMessage || `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. View the vocab list on the right for a list of terms which we can chat about. Try to use them each in a sentence atleast once, then they will be crossed off to indicate you've used them correctly.`;
+
         const instructionMessage: ChatMessage = props.moduleID !== -1 ? {
-            value: `Hi ${user?.username}, my name is Tito. I'm an instructional chat bot. View the vocab list on the right for a list of terms which we can chat about. Try to use them each in a sentence atleast once, then they will be crossed off to indicate you've used them correctly.`,
+            value: welcomeMessageVal,
             timestamp: "",
             source: "llm",
             metadata: undefined
@@ -1052,7 +1055,7 @@ export default function ChatScreen(props: propsInterface) {
         }
         loadMessages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.chatbotId, props.moduleID, user, userLoading]);
+    }, [props.chatbotId, props.moduleID, user, userLoading, props.titoWelcomeMessage]);
 
     //Used to update averageScore
     useEffect(() => {

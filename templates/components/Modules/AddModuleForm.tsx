@@ -43,6 +43,13 @@ export default function AddModuleForm({
     const [status, setStatus] = useState<boolean>(false);
     const [success, setSuccess] = useState<boolean>(false);
     const selectInputRef = useRef<SelectInstance<Language>>(null);
+    const [titoWelcomeMessage, setTitoWelcomeMessage] = useState<string>('');
+
+    const suggestions = [
+        "Hi, my name is Tito! Let's practice using the vocabulary words on the right. Try to use each word in a complete sentence!",
+        "Welcome to the chat! I'm here to help you practice. Which topic should we discuss first?",
+        "Hi! I need your help to remember my target language. Can you talk to me using the words on the right?"
+    ];
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -54,7 +61,8 @@ export default function AddModuleForm({
                 name,
                 language: selectedLanguage.value,
                 complexity: 2,
-                isPastaModule
+                isPastaModule,
+                titoWelcomeMessage
             };
         } else {
             data = {
@@ -62,7 +70,8 @@ export default function AddModuleForm({
                 language: selectedLanguage.value,
                 complexity: 2,
                 groupID: currentClass.value === 0 ? classState?.value : currentClass.value,
-                isPastaModule
+                isPastaModule,
+                titoWelcomeMessage
             };
         }
 
@@ -109,6 +118,7 @@ export default function AddModuleForm({
         window.setTimeout(() => {
             setStatus(false);
             setName('');
+            setTitoWelcomeMessage('');
             setLanguage({ label: undefined, value: undefined });
             if (selectInputRef.current) selectInputRef.current.clearValue();
             setClassState(undefined);
@@ -177,6 +187,40 @@ export default function AddModuleForm({
                                     Pasta Module
                                 </Label>
                             </FormGroup>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <FormGroup>
+                                <Label for='titoWelcomeMessage'>Tito's First Message (Optional):</Label>
+                                <Input
+                                    type='textarea'
+                                    placeholder="Enter custom first message from Tito"
+                                    value={titoWelcomeMessage}
+                                    onChange={(e) => setTitoWelcomeMessage(e.target.value)}
+                                    rows={3}
+                                />
+                            </FormGroup>
+                        </Col>
+                    </Row>
+                    <Row className='mb-3'>
+                        <Col>
+                            <Label style={{ fontSize: '0.85rem', color: '#555' }}>Suggestions (click to use):</Label>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                {suggestions.map((suggestion, idx) => (
+                                    <Button
+                                        key={idx}
+                                        outline
+                                        type='button'
+                                        size='sm'
+                                        color='secondary'
+                                        style={{ textAlign: 'left', whiteSpace: 'normal', fontSize: '0.8rem' }}
+                                        onClick={() => setTitoWelcomeMessage(suggestion)}
+                                    >
+                                        {suggestion}
+                                    </Button>
+                                ))}
+                            </div>
                         </Col>
                     </Row>
                     {currentClass.value === 0 && permissionLevel !== 'su' ? (
