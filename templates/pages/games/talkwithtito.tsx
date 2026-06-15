@@ -563,7 +563,8 @@ export default function TalkWithTito() {
                     moduleLanguage={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.language}
                     setUserBackgroundFilepath={setUserBackgroundFilepath} setUserMusicFilepath={setUserMusicFilepath} 
                     setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} 
-                    setChatbotId={setChatbotId} chatFontSize={chatFont} setTimeSpent={setTimeSpent} ttsMuted={ttsMuted}/>
+                    setChatbotId={setChatbotId} chatFontSize={chatFont} setTimeSpent={setTimeSpent} ttsMuted={ttsMuted}
+                    sessions={sessions}/>
                 </div>
               )}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">

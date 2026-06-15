@@ -1342,7 +1342,7 @@ def fetchModuleSessions(userID: int, moduleID: int):
     filtering out inactive sessions that have no user messages.
     """
     query = '''
-        SELECT cs.chatbotSID, cs.creationTimestamp, cs.isActiveSession
+        SELECT cs.chatbotSID, cs.creationTimestamp, cs.isActiveSession, cs.timeChatted
         FROM `chatbot_sessions` cs
         WHERE cs.userID = %s AND cs.moduleID = %s
           AND (
@@ -1362,7 +1362,8 @@ def fetchModuleSessions(userID: int, moduleID: int):
             sessions.append({
                 "chatbotSID": row[0],
                 "creationTimestamp": row[1].isoformat() if row[1] else None,
-                "isActiveSession": bool(row[2])
+                "isActiveSession": bool(row[2]),
+                "timeChatted": float(row[3]) if row[3] is not None else 0.0
             })
     return sessions
 
