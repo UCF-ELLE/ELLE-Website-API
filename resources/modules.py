@@ -413,6 +413,7 @@ class Module(Resource):
         parser.add_argument("language", type=str, required=True)
         parser.add_argument("complexity", type=int, required=False)
         parser.add_argument("isPastaModule", type=str, required=False)
+        parser.add_argument("titoWelcomeMessage", type=str, required=False)
 
         data = parser.parse_args()
 
@@ -434,16 +435,17 @@ class Module(Resource):
                 isPastaModule = True
         else:
             isPastaModule = False
+        tito_welcome_message = data.get("titoWelcomeMessage")
 
         try:
             conn = mysql.connect()
             cursor = conn.cursor()
             # Posting to database
             query = """
-                    INSERT INTO module (name, language, complexity, userID, isPastaModule)
-                    VALUES (%s, %s, %s, %s, %s);
+                    INSERT INTO module (name, language, complexity, userID, isPastaModule, titoWelcomeMessage)
+                    VALUES (%s, %s, %s, %s, %s, %s);
                     """
-            postToDB(query, (name, language, complexity, user_id, isPastaModule))
+            postToDB(query, (name, language, complexity, user_id, isPastaModule, tito_welcome_message))
 
             query = "SELECT MAX(moduleID) from module"
             moduleID = getFromDB(
@@ -491,6 +493,7 @@ class Module(Resource):
         parser.add_argument("language", type=str, required=True)
         parser.add_argument("complexity", type=int, required=True)
         parser.add_argument("groupID", type=int, required=False)
+        parser.add_argument("titoWelcomeMessage", type=str, required=False)
         data = parser.parse_args()
 
         try:
@@ -510,14 +513,17 @@ class Module(Resource):
             name = data["name"]
             language = data["language"]
             complexity = data["complexity"]
+            tito_welcome_message = data.get("titoWelcomeMessage")
 
             # Updating table
-            query = """
-                    UPDATE `module`
-                    SET `name` = %s, `language` = %s, `complexity` = %s
-                    WHERE `moduleID` = %s;
-                    """
-            postToDB(query, (name, language, complexity, module_id))
+            query = "UPDATE `module` SET `name` = %s, `language` = %s, `complexity` = %s"
+            params = [name, language, complexity]
+            if tito_welcome_message is not None:
+                query += ", `titoWelcomeMessage` = %s"
+                params.append(tito_welcome_message)
+            query += " WHERE `moduleID` = %s;"
+            params.append(module_id)
+            postToDB(query, tuple(params))
 
             query = "SELECT * FROM `module` WHERE `moduleID` = %s"
             results = getFromDB(query, data["moduleID"])

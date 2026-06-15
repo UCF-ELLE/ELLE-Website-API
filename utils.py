@@ -721,7 +721,7 @@ def GetTAList(professorID):
     return TA_list
 
 
-def convertModuleToJSON(module, seventh_param_name="seventhParam"):
+def convertModuleToJSON(module, extra_param_name="seventhParam"):
     """
     Converting a module record into a JSON object
 
@@ -729,9 +729,9 @@ def convertModuleToJSON(module, seventh_param_name="seventhParam"):
     module -- the module record from database (list/array)
     """
 
-    if len(module) < 4:
+    if len(module) < 6:
         return errorMessage(
-            "Wrong amount of values in the object. Module record has 4 fields, or 5 with groupID"
+            "Wrong amount of values in the object. Module record has at least 6 fields."
         )
 
     moduleObj = {}
@@ -742,8 +742,11 @@ def convertModuleToJSON(module, seventh_param_name="seventhParam"):
     moduleObj["userID"] = module[4]
     moduleObj["isPastaModule"] = module[5]
 
-    if len(module) > 6:
-        moduleObj[seventh_param_name] = module[6]
+    if len(module) >= 7:
+        moduleObj["titoWelcomeMessage"] = module[6]
+
+    if len(module) >= 8:
+        moduleObj[extra_param_name] = module[7]
 
     return moduleObj
 

@@ -104,6 +104,7 @@ export default function TalkWithTito() {
     language: string;
     isTitoEnabled?: boolean;
     classID?: number; // Track which class this module belongs to
+    titoWelcomeMessage?: string;
   }
 
   interface Song {
@@ -564,7 +565,8 @@ export default function TalkWithTito() {
                     setUserBackgroundFilepath={setUserBackgroundFilepath} setUserMusicFilepath={setUserMusicFilepath} 
                     setTermScore={setTermScore} setAverageScore={setAverageScore} chatbotId={chatbotId} 
                     setChatbotId={setChatbotId} chatFontSize={chatFont} setTimeSpent={setTimeSpent} ttsMuted={ttsMuted}
-                    sessions={sessions}/>
+                    sessions={sessions}
+                    titoWelcomeMessage={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.titoWelcomeMessage}/>
                 </div>
               )}
               <div className="absolute top-0 left-0 h-full border-r-2 border-black w-[30%]">
