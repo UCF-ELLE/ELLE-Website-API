@@ -26,6 +26,10 @@
             {
                 "name": "Version 4 Senior Design Team",
                 "members": ["Zacharia Alaoui", "Fredrick Bouloute", "Robert Morris", "Van Phan", "Andy Van"]
+            },
+            {
+                "name" : "Version 5 + bELLEtro Senior Design Team",
+                "members" : ["Michael Rivera", "Dominic Zhang", "Ethan Jasper", "Ashley Colegrove", "John Michael Massung", "Thai Do"]
             }
         ]
     },
@@ -40,6 +44,10 @@
             {
                 "name": "Original Senior Design Team",
                 "members": ["Zacharia Alaoui", "Fredrick Bouloute", "Robert Morris", "Van Phan", "Andy Van"]
+            },
+            {
+                "name" : "bELLEtro Senior Design Team",
+                "members" : ["Michael Rivera", "Dominic Zhang", "Ethan Jasper", "Ashley Colegrove", "John Michael Massung", "Thai Do"]
             }
         ]
     },
