@@ -202,7 +202,11 @@ class UserMessages(Resource):
             True, message="Message sent.", data=message,
             resumeMessaging=True, messageID=new_msg_id,
             termsUsed=terms_used,
-            usageByTerm=usage_by_term
+            usageByTerm=usage_by_term,
+            metadata={
+                "score": msg_graded.get("suggested_grade") if msg_graded else None,
+                "error_count": msg_graded.get("error_count") if msg_graded else None
+            }
         )
 
  

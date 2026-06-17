@@ -527,6 +527,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     );
     
     const messageID = userMessageResponse.data.messageID || userMessageResponse.data.data?.messageID;
+    const messageMetadata = userMessageResponse.data.metadata || {};
     console.log(`[SendMessage] Step 1 Complete: messageID=${messageID}`);
 
     // Step 2: Generate LLM Response (Local localhost)
@@ -587,7 +588,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
       termsUsed: data.termsUsed || [],
       titoConfused: data.titoConfused || false,
       messageID: messageID, 
-      metadata: data.metadata || {}
+      metadata: messageMetadata || data.metadata || {}
     };
     
   } catch (error) {
