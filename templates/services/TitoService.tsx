@@ -25,6 +25,7 @@ interface Module {
   language: string;
   isTitoEnabled?: boolean; // Indicates if this module is configured as a Tito module
   classID?: number; // The class this module belongs to (for Tito modules)
+  titoWelcomeMessage?: string;
 }
 
 // Fetches all user modules and indicates which ones are Tito-enabled
@@ -88,7 +89,8 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
           name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
           language: moduleData.language || 'es',
           isTitoEnabled: isTitoEnabled,
-          classID: classID // Include classID in module data
+          classID: classID, // Include classID in module data
+          titoWelcomeMessage: moduleData.titoWelcomeMessage
         });
       }
     }
@@ -127,7 +129,8 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
             name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
             language: moduleData.language || 'es',
             isTitoEnabled: isTitoEnabled,
-            classID: classID // Include classID in module data
+            classID: classID, // Include classID in module data
+            titoWelcomeMessage: moduleData.titoWelcomeMessage
           });
         }
       }
