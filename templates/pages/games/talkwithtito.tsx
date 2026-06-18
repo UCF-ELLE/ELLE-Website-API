@@ -351,25 +351,56 @@ export default function TalkWithTito() {
             ) : (
               <div className="flex flex-col md:flex-row w-full h-full relative">
                 <div className="music-settings z-50 scale-75 md:scale-100 origin-top-left">
-                  <button onClick={togglePlayPause}>
-                    {isPlaying ? <Image src={pause_button} alt="pause"/>: <Image src={play_button} alt="play"/>}
-                  </button>
-                  <button onClick={handleNextSong}>
-                    <Image src={next_button} alt="next button"/>
-                  </button>
-                  <label htmlFor="volume" style={{ paddingLeft: "1px" }} className="cursor-pointer" onClick={handleMute}>
-                    {volume == 0.0 ? <Image src={mute_button} alt="mute music"/> : <Image src={volume_button} alt="volume control"/>}
-                    </label>
-                  <input
-                    className="volume-slider"
-                    id="volume"
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={volume}
-                    onChange={handleVolume}
-                  />
+                  <div className="music-controls-title irish-grover">
+                    Music Controls:
+                  </div>
+
+                  <div className="music-controls-row">
+                    <button
+                      type="button"
+                      onClick={togglePlayPause}
+                      className="music-control-button"
+                    >
+                      {isPlaying ? (
+                        <Image src={pause_button} alt="Pause music" />
+                      ) : (
+                        <Image src={play_button} alt="Play music" />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleNextSong}
+                      className="music-control-button"
+                    >
+                      <Image src={next_button} alt="Play next song" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleMute}
+                      className="music-control-button"
+                      aria-label={volume === 0 ? "Unmute music" : "Mute music"}
+                    >
+                      {volume === 0 ? (
+                        <Image src={mute_button} alt="" />
+                      ) : (
+                        <Image src={volume_button} alt="" />
+                      )}
+                    </button>
+
+                    <input
+                      className="volume-slider"
+                      id="volume"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={volume}
+                      onChange={handleVolume}
+                      aria-label="Music volume"
+                    />
+                  </div>
                 </div>
 
                 {analyticsActive && (
@@ -508,7 +539,7 @@ export default function TalkWithTito() {
             </div>
           </div>
         </div>
-        <div className="w-full max-w-5xl mt-10 md:mt-14 px-4 flex flex-col xl:flex-row gap-4 items-center xl:items-stretch justify-center">
+        <div className="w-full max-w-5xl mt-4 px-4 flex justify-center">
           <div className="image-credits-box inter-font w-full max-w-[520px] sm:max-w-[560px] md:max-w-[620px] lg:max-w-[700px] bg-[#9c7b4f] border-2 border-black rounded-xl p-3 md:p-4 text-white text-center overflow-hidden shadow-md">
             <h1 className="inter-font text-2xl md:text-3xl font-bold mb-3">Image Credits</h1>
 
