@@ -189,7 +189,9 @@ class UserMessages(Resource):
         # TODO: a freechat session ADD SUPPORT FOR IT
         # Send to spacy service to parse key terms if NOT in free chat mode
         if module_id != REAL_FREE_CHAT_MODULE:
-            add_message(message, module_id, user_id, new_msg_id, session_id)
+            hint_word = data.get('hintWord')
+            should_update_db = not bool(hint_word)
+            add_message(message, module_id, user_id, new_msg_id, session_id, update_db=should_update_db)
 
         # TODO:
         # Update module words used =>
@@ -242,12 +244,13 @@ class GenerateTitoResponse(Resource):
         message = data.get('message')
         module_id = int(data.get('moduleID'))
         session_id = data.get('chatbotSID')
+        hint_word = data.get('hintWord')
         
         if not message or not module_id or not session_id:
             return create_response(False, message="Missing required parameters.", status_code=404)
             
         try:
-            tito_response = handle_message_with_context(message = message, module_id = module_id, session_id = session_id, user_id = user_id)
+            tito_response = handle_message_with_context(message = message, module_id = module_id, session_id = session_id, user_id = user_id, hint_word = hint_word)
             return create_response(True, message="LLM response generated.", titoResponse=tito_response)
         except Exception as e:
             print(f"[GENERATE ERROR] {e}")

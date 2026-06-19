@@ -278,7 +278,7 @@ def parse_llm_response(llm_response, term_count=5):
 #     return all(field in term for field in required_fields)
 
 
-def handle_message_with_context(message: str, module_id: int, session_id: int, user_id: int = None):
+def handle_message_with_context(message: str, module_id: int, session_id: int, user_id: int = None, hint_word: str = None):
     """
     Handle a chat message with module context.
     Includes the full system prompt with each message since prompt caching
@@ -286,7 +286,7 @@ def handle_message_with_context(message: str, module_id: int, session_id: int, u
     """
     try:
         # Build the full prompt including system context
-        base_prompt = build_enhanced_prompt(module_id, user_id)
+        base_prompt = build_enhanced_prompt(module_id, user_id, hint_word)
         full_prompt = f"{base_prompt}\n\nStudent: {message}\n\nTito:"
         response = generate_message_direct(full_prompt)
         return response.strip()
@@ -295,7 +295,7 @@ def handle_message_with_context(message: str, module_id: int, session_id: int, u
         print(f"Context-aware message error: {error}")
         return "Sorry, Tito had trouble responding!"
 
-def build_enhanced_prompt(module_id: int = None, user_id: int = None):
+def build_enhanced_prompt(module_id: int = None, user_id: int = None, hint_word: str = None):
     """
     Builds the enhanced prompt with module context.
     Includes module name, target language, full vocabulary list,
@@ -343,7 +343,13 @@ def build_enhanced_prompt(module_id: int = None, user_id: int = None):
                         prompt_extension += f"""
             - Words still to practice: {', '.join(remaining_words)}
             - Words already used enough: {', '.join(used_words) if used_words else 'none yet'}
-
+            """
+                    if hint_word:
+                        prompt_extension += f"""
+            - CRITICAL HINT REQUEST: The student wants to practice the word '{hint_word}'. Start your response in the target language ({language}) by greeting/answering them briefly, and immediately ask a simple, friendly question that prompts them to use '{hint_word}' in their reply.
+            """
+                    elif remaining_words:
+                        prompt_extension += f"""
             Guide the conversation toward the words the student still needs to practice.
             """
                 except Exception as e:

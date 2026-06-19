@@ -33,8 +33,8 @@
 
 /* Palm Tree Background */
 
-.talkwithtito-body{
-   /* Full viewport height */
+.talkwithtito-body {
+  /* Full viewport height */
   background-image: url('../images/ConversAItionELLE/trees.png');
   background-color: #D4ECF2;
   background-size: 50%;
@@ -43,7 +43,7 @@
 
 
 /* Game container */
-.game-container{
+.game-container {
   position: relative;
   margin-top: 5em;
   width: 1100px;
@@ -54,13 +54,13 @@
   margin-bottom: 50px;
 }
 
-.game-background{
+.game-background {
   width: 100%;
   height: 100%;
 }
 
 /* Tito Picture */
-.tito-overlay{
+.tito-overlay {
   position: absolute;
   width: 45%;
   top: 45%;
@@ -74,6 +74,7 @@
   from {
     transform: translate(-50%, -50%) rotate(0deg);
   }
+
   to {
     transform: translate(-50%, -50%) rotate(360deg);
   }
@@ -84,10 +85,12 @@
     transform: scale(0.5);
     opacity: 0;
   }
+
   50% {
     transform: scale(1.1);
     opacity: 1;
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -99,10 +102,12 @@
     transform: scale(1);
     opacity: 1;
   }
+
   50% {
     transform: scale(1.1);
     opacity: 1;
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -114,11 +119,11 @@
 }
 
 /* Tito Statements */
-.text-overlay{
+.text-overlay {
   color: white;
   position: absolute;
-  top: 11.5%;             
-  left: 50%; 
+  top: 11.5%;
+  left: 50%;
   transform: translate(-50%, -50%);
 }
 
@@ -130,25 +135,27 @@
 }
 
 /* Music Settings on Chat Screen */
-.music-settings{
+.music-settings {
   position: absolute;
   left: 1%;
   top: 2%;
   z-index: 50;
 }
 
-.volume-slider{
-  display: none; /* Hide by default */
+.volume-slider {
+  display: none;
+  /* Hide by default */
   position: absolute;
   top: 25%;
   left: 100%;
   width: 150px;
   opacity: 0;
-  
+
 }
 
-.volume-slider:hover{
-  display: inline; /* Show when hovering over the label */
+.volume-slider:hover {
+  display: inline;
+  /* Show when hovering over the label */
   opacity: 1;
   animation: Tito-music 0.5s ease-in-out;
 }
@@ -158,6 +165,7 @@
     width: 0;
     opacity: 0;
   }
+
   100% {
     width: 150;
     opacity: 1;
@@ -166,14 +174,14 @@
 
 /* Info Boxes (Probably want to do vw at with media query for mobile) */
 
-.info-container{
+.info-container {
   display: flex;
   justify-content: center;
   gap: 10vw;
   margin-bottom: 50px;
 }
 
-.info-box{
+.info-box {
   width: 25%;
   background-color: #997c54;
   color: white;
@@ -187,7 +195,7 @@
   font-size: 1.5vw;
 }
 
-.info-box2{
+.info-box2 {
   width: 30%;
   box-sizing: border-box;
   background-color: #997c54;
@@ -198,29 +206,29 @@
   box-shadow: 2px 2px 4px #604e34;
 }
 
-.info-box2 a{
+.info-box2 a {
   text-decoration: none;
   color: inherit;
 }
 
-.info-box2 a:hover{
+.info-box2 a:hover {
   color: rgb(122, 233, 122);
 }
 
 /* Font Styling */
-.inter-font h1{
+.inter-font h1 {
   font-weight: 500;
   font-size: 2.5vw;
   margin-bottom: 10px;
   text-shadow:
-    -2px -2px 0 rgba(0, 0, 0, 0.300),  
-     2px -2px 0 rgba(0, 0, 0, 0.300),  
-    -2px  2px 0 rgba(0, 0, 0, 0.300),  
-     2px  2px 0 black;
+    -2px -2px 0 rgba(0, 0, 0, 0.300),
+    2px -2px 0 rgba(0, 0, 0, 0.300),
+    -2px 2px 0 rgba(0, 0, 0, 0.300),
+    2px 2px 0 black;
   text-align: center
 }
 
-.inter-font h3{
+.inter-font h3 {
   font-family: "Inter", serif;
   font-optical-sizing: auto;
   font-weight: 500;
@@ -229,7 +237,7 @@
   margin-bottom: 10px;
 }
 
-.inter-font p{
+.inter-font p {
   font-family: "Inter", serif;
   font-optical-sizing: auto;
   font-weight: 500;
@@ -242,6 +250,44 @@
   animation: Tito-pulse 2.5s ease forwards infinite;
 }
 
-.tito-typing::placeholder{
+.tito-typing::placeholder {
   font-style: italic;
+}
+
+@keyframes firework-burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0.2);
+    opacity: 0;
+  }
+}
+
+.firework-particle {
+  position: absolute;
+  animation: firework-burst ease-out forwards;
+}
+
+@keyframes checkmark-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.4);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.checkmark-pop {
+  display: inline-block;
+  animation: checkmark-pop 0.4s ease-out forwards;
 }

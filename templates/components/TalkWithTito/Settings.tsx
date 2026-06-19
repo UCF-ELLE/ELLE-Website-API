@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from "next/image";
 import settingsBackground from "@/public/static/images/ConversAItionELLE/SettingsBackground.png";
 // import muteIcon from "@/public/static/images/ConversAItionELLE/mute.png";
@@ -6,7 +6,7 @@ import settingsBackground from "@/public/static/images/ConversAItionELLE/Setting
 // import infoIcon from "@/public/static/images/ConversAItionELLE/info.png"
 
 // Song List
-const songList = [ 
+const songList = [
   { name: "Ambient Jungle", path: "/elle/TitoAudios/ambient-jungle.mp3" },
   { name: "Jungle Party", path: "/elle/TitoAudios/jungle-party.mp3" },
   { name: "Happy Rock", path: "/elle/TitoAudios/happy-rock.mp3" },
@@ -14,7 +14,7 @@ const songList = [
   { name: "Pop", path: "/elle/TitoAudios/pop-summer.mp3" },
   { name: "Techno", path: "/elle/TitoAudios/techno.mp3" },
   { name: "Hip Hop", path: "/elle/TitoAudios/hiphop.mp3" },
-  { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3"},
+  { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3" },
   { name: "Smooth Jazz", path: "/elle/TitoAudios/jazz-smooth.mp3" },
   { name: "Lofi", path: "/elle/TitoAudios/lofi-groovy.mp3" }
 ];
@@ -25,11 +25,11 @@ interface Song {
   path: string;
 }
 
-interface propsInterface{
+interface propsInterface {
   onSetPlaylist: (song: Song[]) => void;
   apply: () => void;
-  onSetFont: (chatFont:string) => void;
-  onSetAIChoice: (AIChoice:boolean) => void;
+  onSetFont: (chatFont: string) => void;
+  onSetAIChoice: (AIChoice: boolean) => void;
   // onSetTtsMuted: (ttsMuted:boolean) => void;
   titoMusicChoice: boolean;
   parentPlaylist: Song[];
@@ -48,25 +48,25 @@ function shuffleArray<T>(playlist: T[]): T[] {
 }
 
 export default function Settings(props: propsInterface) {
-  const {apply, onSetPlaylist, onSetFont, onSetAIChoice, parentPlaylist, parentFont, titoMusicChoice} = props;
+  const { apply, onSetPlaylist, onSetFont, onSetAIChoice, parentPlaylist, parentFont, titoMusicChoice } = props;
   // const {apply, onSetPlaylist, onSetFont, onSetAIChoice, onSetTtsMuted, parentPlaylist, parentFont, titoMusicChoice, ttsMuted} = props;
 
   const [playlist, setPlaylist] = useState<Song[]>([])
   const [chatFont, setChatFont] = useState<string>("medium")
-  
+
   const handleApplyClick = () => {
     onSetPlaylist(playlist);
     onSetFont(chatFont);
   }
 
   const togglePlaylist = (song: Song) => {
-      setPlaylist((prev) => {
-        const isAlreadySelected = prev.some((s) => s.path === song.path);
-        // Remove if already selected, Add of not selected
-        return isAlreadySelected
-          ? prev.filter((s) => s.path !== song.path) 
-          : [...prev, song];
-      });
+    setPlaylist((prev) => {
+      const isAlreadySelected = prev.some((s) => s.path === song.path);
+      // Remove if already selected, Add of not selected
+      return isAlreadySelected
+        ? prev.filter((s) => s.path !== song.path)
+        : [...prev, song];
+    });
   }
 
   const handleShuffle = () => {
@@ -85,16 +85,16 @@ export default function Settings(props: propsInterface) {
 
   const handleAIChoice = () => {
     onSetAIChoice(!titoMusicChoice);
-    
+
   }
 
-  const handleTtsMute = () => {
-    onSetTtsMuted(!ttsMuted);
-  }
+  // const handleTtsMute = () => {
+  //   onSetTtsMuted(!ttsMuted);
+  // }
 
-  useEffect (() => {
+  useEffect(() => {
     setPlaylist(parentPlaylist)
-  },[parentPlaylist])
+  }, [parentPlaylist])
 
   useEffect(() => {
     setChatFont(parentFont);
@@ -109,13 +109,13 @@ export default function Settings(props: propsInterface) {
   return (
     <div className="absolute inset-0 bg-[#35353580] z-50 flex items-center justify-center p-3 md:p-6">
       <div className="relative w-[92%] max-w-[760px] max-h-[85%] z-50 flex flex-col overflow-hidden rounded-lg">
-       <Image
+        <Image
           src={settingsBackground}
           className="absolute inset-0 w-full h-full object-cover"
           alt="Settings background"
         />
 
-        <button 
+        <button
           className="absolute top-2 left-4 z-50 text-xl text-white font-semibold hover:scale-110 transition"
           onClick={handleClose}
         >
@@ -131,41 +131,41 @@ export default function Settings(props: propsInterface) {
             <div className="w-full flex flex-col md:flex-row md:justify-center md:items-start gap-3 md:gap-10">
               <div className="select-none text-2xl md:text-3xl irish-grover">
                 Music:
-            </div>
+              </div>
 
-            <div className="w-full md:w-fit">
-              <div className="text-lg md:text-xl mb-2 text-center md:text-left">
-                Song List
+              <div className="w-full md:w-fit">
+                <div className="text-lg md:text-xl mb-2 text-center md:text-left">
+                  Song List
                 </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 max-h-[12em] overflow-y-auto">
-                {/* Songs container */}
-                {songList.map((song, index) => (
-                  <div key={index} className="flex flex-nowrap">
-                    <input 
-                      type="checkbox" 
-                      className="mr-2" 
-                      checked={playlist.some((s) => s.path === song.path)} 
-                      onChange={()=>togglePlaylist(song)}
-                    />
-                    <div>{song.name}</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 max-h-[12em] overflow-y-auto">
+                  {/* Songs container */}
+                  {songList.map((song, index) => (
+                    <div key={index} className="flex flex-nowrap">
+                      <input
+                        type="checkbox"
+                        className="mr-2"
+                        checked={playlist.some((s) => s.path === song.path)}
+                        onChange={() => togglePlaylist(song)}
+                      />
+                      <div>{song.name}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-col sm:flex-row w-full items-center mt-3 justify-center gap-3 text-lg">
+                  <div>
+                    <input type="checkbox" className="mr-1" onChange={() => handleShuffle()} />
+                    Shuffle All
                   </div>
-                  ))}            
-              </div>
 
-              <div className="flex flex-col sm:flex-row w-full items-center mt-3 justify-center gap-3 text-lg">
-                <div>
-                  <input type="checkbox" className="mr-1" onChange={()=>handleShuffle()} />
-                  Shuffle All
-                </div>
-
-                <div>
-                  <input type="checkbox" className="mr-1" checked={titoMusicChoice} onChange={()=>handleAIChoice()}/>
-                  AI Choice
+                  <div>
+                    <input type="checkbox" className="mr-1" checked={titoMusicChoice} onChange={() => handleAIChoice()} />
+                    AI Choice
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
             <div className="w-full flex justify-center">
               <div className="select-none w-full max-w-[520px] flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -173,7 +173,7 @@ export default function Settings(props: propsInterface) {
                   Chat Font Size:
                 </div>
 
-                <select 
+                <select
                   className="bg-[#EEEEEE] text-[#2D3648] p-2 rounded-md w-full sm:w-64"
                   value={chatFont}
                   onChange={handleFont}
@@ -182,7 +182,7 @@ export default function Settings(props: propsInterface) {
                   <option value="medium" className="text-base">Medium</option>
                   <option value="large" className="text-lg">Large</option>
                   <option value="xl" className="text-xl">XL</option>
-              </select>
+                </select>
 
                 <button
                   onClick={handleApplyClick}

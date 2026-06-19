@@ -23,6 +23,7 @@ import thinkingTito from "@/public/static/images/ConversAItionELLE/respondingTit
 /* Components */
 import VocabList from "./VocabList";
 import Messages from "./Messages";
+import Fireworks from "./Fireworks";
 
 interface SpeechRecognition extends EventTarget {
   start(): void;
@@ -68,6 +69,9 @@ interface Term {
   usageCount: number;
 }
 
+// New interface for module progress map
+type ModuleProgressMap = Record<number, number>;
+
 interface ChatMessage {
   value: string;
   timestamp: string;
@@ -80,6 +84,118 @@ interface ChatMessage {
   };
 }
 
+function getWordVariations(word: string, lang: string): string[] {
+  let parts: string[][] = word.split(/\s+/).map(part => {
+    if (!part.includes('/')) {
+      return [part];
+    }
+    const segments = part.split('/');
+    const base = segments[0];
+    const suffixes = segments.slice(1);
+    const options = [base];
+
+    const vowels = /[aeiouáéíóúüñàèìòùâêîôûçäëïöüß]/i;
+    const isVowel = (char: string) => vowels.test(char);
+
+    suffixes.forEach(suffix => {
+      if (suffix.length >= base.length - 1 || base.length <= 2 || ['la', 'una', 'un', 'les', 'des'].includes(suffix.toLowerCase())) {
+        options.push(suffix);
+      } else {
+        const endsWithVowel = isVowel(base[base.length - 1]);
+        if (endsWithVowel && isVowel(suffix[0])) {
+          options.push(base.slice(0, -1) + suffix);
+        } else {
+          options.push(base + suffix);
+        }
+      }
+    });
+    return options;
+  });
+
+  let phrases: string[][] = [[]];
+  parts.forEach(options => {
+    const nextPhrases: string[][] = [];
+    phrases.forEach(p => {
+      options.forEach(opt => {
+        nextPhrases.push([...p, opt]);
+      });
+    });
+    phrases = nextPhrases;
+  });
+
+  const finalVariations = new Set<string>();
+  const l = lang.toLowerCase();
+
+  phrases.forEach(phraseWords => {
+    const phrase = phraseWords.join(' ');
+    finalVariations.add(phrase);
+
+    const inflectedWords = phraseWords.map(w => {
+      const wOpts = new Set<string>([w]);
+      const len = w.length;
+      if (len <= 2) return Array.from(wOpts);
+
+      const lastChar = w[len - 1].toLowerCase();
+
+      if (l === 'es' || l === 'pt') {
+        if (lastChar === 'o') {
+          wOpts.add(w.slice(0, -1) + 'a');
+          wOpts.add(w.slice(0, -1) + 'os');
+          wOpts.add(w.slice(0, -1) + 'as');
+        } else if (lastChar === 'a') {
+          wOpts.add(w.slice(0, -1) + 'o');
+          wOpts.add(w.slice(0, -1) + 'as');
+          wOpts.add(w.slice(0, -1) + 'os');
+        } else if (lastChar === 'e') {
+          wOpts.add(w + 's');
+        } else {
+          wOpts.add(w + 'a');
+          wOpts.add(w + 'es');
+          wOpts.add(w + 'as');
+        }
+      } else if (l === 'fr') {
+        if (lastChar === 'e') {
+          wOpts.add(w + 's');
+        } else {
+          wOpts.add(w + 'e');
+          wOpts.add(w + 's');
+          wOpts.add(w + 'es');
+        }
+      } else {
+        if (w.endsWith('y') && !/[aeiou]/i.test(w[len - 2] || '')) {
+          wOpts.add(w.slice(0, -1) + 'ies');
+        } else {
+          wOpts.add(w + 's');
+          wOpts.add(w + 'es');
+        }
+      }
+      return Array.from(wOpts);
+    });
+
+    let phraseOpts: string[][] = [[]];
+    inflectedWords.forEach(wOpts => {
+      const nextPhraseOpts: string[][] = [];
+      phraseOpts.forEach(p => {
+        wOpts.forEach(o => {
+          nextPhraseOpts.push([...p, o]);
+        });
+      });
+      phraseOpts = nextPhraseOpts;
+    });
+
+    phraseOpts.forEach(p => finalVariations.add(p.join(' ')));
+  });
+
+  const articleRegex = /^(el|la|los|las|un|una|unos|unas|le|les|l'|une|des)\s+/i;
+  finalVariations.forEach(variant => {
+    if (articleRegex.test(variant)) {
+      finalVariations.add(variant.replace(articleRegex, ""));
+    }
+  });
+
+  return Array.from(finalVariations);
+}
+
 export default function ChatScreen(props: propsInterface) {
   const { user, loading: userLoading } = useUser();
 
@@ -89,7 +205,40 @@ export default function ChatScreen(props: propsInterface) {
   const [userMessage, setUserMessage] = useState<string>("");
   const [titoMood, setTitoMood] = useState("neutral");
   const [timeChatted, setTimeChatted] = useState<number | undefined>(undefined);
-  const [progress, setProgress] = useState<number | undefined>(undefined);
+
+  // Replace single progress state with per‑module map
+  const [moduleProgress, setModuleProgress] = useState<ModuleProgressMap>(() => {
+    // Load persisted progress from localStorage if available
+    try {
+      const stored = localStorage.getItem("titoModuleProgress");
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+  // Derived progress for the currently selected module
+  const progress = moduleProgress[props.moduleID] ?? 0;
+
+  const [showFireworks, setShowFireworks] = useState(false);
+  const prevProgress = useRef(progress);
+  useEffect(() => {
+    if (progress === 100 && prevProgress.current < 100) {
+      setShowFireworks(true);
+      setTimeout(() => setShowFireworks(false), 4000);
+    }
+    prevProgress.current = progress;
+  }, [progress]);
+
+  const handleReset = useCallback(() => {
+    setModuleProgress(prev => {
+      const { [props.moduleID]: _, ...rest } = prev;
+      return { ...rest, [props.moduleID]: 0 };
+    });
+    setTerms(prev =>
+      prev.map(t => ({ ...t, usageCount: 0 }))
+    );
+  }, [props.moduleID]);
+
   // const [message, setMessage] = useState("");
   // const [trigger, setTrigger] = useState(0);
   const [masteredSet, setMasteredSet] = useState<Set<number>>(new Set());
@@ -109,47 +258,47 @@ export default function ChatScreen(props: propsInterface) {
     prevProgressRef.current = -Infinity;
   }, [props.moduleID, loreID]);
 
-// Lore progress threshold popups disabled per sponsor feedback.
-/*
-useEffect(() => {
-  if (progress == null || isNaN(progress)) return;
-  if (!loreID) return;
-
-  let chosen: number | null = null;
-
-  for (const t of THRESHOLDS) {
-    const key = `tito_lore_shown_${props.moduleID}_${loreID}_${t}`;
-    const already = typeof window !== "undefined" && localStorage.getItem(key) === "1";
-    if (!already && prevProgressRef.current < t && progress >= t) {
-      if (chosen === null || t > chosen) chosen = t;
+  // Lore progress threshold popups disabled per sponsor feedback.
+  /*
+  useEffect(() => {
+    if (progress == null || isNaN(progress)) return;
+    if (!loreID) return;
+  
+    let chosen: number | null = null;
+  
+    for (const t of THRESHOLDS) {
+      const key = `tito_lore_shown_${props.moduleID}_${loreID}_${t}`;
+      const already = typeof window !== "undefined" && localStorage.getItem(key) === "1";
+      if (!already && prevProgressRef.current < t && progress >= t) {
+        if (chosen === null || t > chosen) chosen = t;
+      }
     }
-  }
-
-  if (chosen !== null) {
-    const key = `tito_lore_shown_${props.moduleID}_${loreID}_${chosen}`;
-    try { localStorage.setItem(key, "1"); } catch { }
-    const text = loreByThreshold[chosen as Threshold];
-    if (text) {
-      setMessage(text);
-      setTrigger(Date.now());
-      console.log(`[Lore] Showing ${chosen}% lore`, { progress, chosen, text });
-    } else {
-      console.log(`[Lore] No lore text for ${chosen}%`);
+  
+    if (chosen !== null) {
+      const key = `tito_lore_shown_${props.moduleID}_${loreID}_${chosen}`;
+      try { localStorage.setItem(key, "1"); } catch { }
+      const text = loreByThreshold[chosen as Threshold];
+      if (text) {
+        setMessage(text);
+        setTrigger(Date.now());
+        console.log(`[Lore] Showing ${chosen}% lore`, { progress, chosen, text });
+      } else {
+        console.log(`[Lore] No lore text for ${chosen}%`);
+      }
     }
-  }
-
-  prevProgressRef.current = progress;
-}, [progress, props.moduleID, loreID, loreByThreshold, THRESHOLDS]);
-*/
+  
+    prevProgressRef.current = progress;
+  }, [progress, props.moduleID, loreID, loreByThreshold, THRESHOLDS]);
+  */
 
   // CHANGED: helper to support a few possible backend response shapes for per-term usage counts
   const applyBackendUsageCounts = useCallback((data: any) => {
     const usageArray =
       Array.isArray(data?.usageByTerm) ? data.usageByTerm :
-      Array.isArray(data?.termUsageCounts) ? data.termUsageCounts :
-      Array.isArray(data?.termProgress) ? data.termProgress :
-      Array.isArray(data?.progress) ? data.progress :
-      [];
+        Array.isArray(data?.termUsageCounts) ? data.termUsageCounts :
+          Array.isArray(data?.termProgress) ? data.termProgress :
+            Array.isArray(data?.progress) ? data.progress :
+              [];
 
     if (!Array.isArray(usageArray) || usageArray.length === 0) return false;
 
@@ -228,37 +377,58 @@ useEffect(() => {
   const fetchProgress = useCallback(async () => {
     if (!user?.jwt) return;
 
-    const res = await fetch(
-      `${ELLE_URL}/twt/session/getModuleProgress?moduleID=${props.moduleID}`,
-      { headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" } }
-    );
-    if (!res.ok) throw new Error(`Progress fetch failed ${res.status}`);
+    // Use the same endpoint that provides per‑term usage counts
+    const url = `${ELLE_URL}/twt/session/getTermProgress?moduleID=${props.moduleID}`;
+    try {
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${user.jwt}`, Accept: "application/json" },
+      });
+      if (!res.ok) {
+        console.error(`[fetchProgress] failed ${res.status}`);
+        return;
+      }
+      const payload = await res.json();
+      const data = payload?.data ?? payload ?? {};
 
-    const body = await res.json();
-    const data = body?.data ?? body;
+      // Build a map of termID -> usageCount (0‑3)
+      const usageMap = new Map<number, number>();
+      const usageArray = Array.isArray(data?.usageByTerm)
+        ? data.usageByTerm
+        : Array.isArray(data?.termUsageCounts)
+          ? data.termUsageCounts
+          : Array.isArray(data?.termProgress)
+            ? data.termProgress
+            : [];
+      usageArray.forEach((item: any) => {
+        const termID = Number(item?.termID ?? item?.termId ?? item?.id);
+        const count = Math.max(0, Math.min(3, Number(item?.timesUsed ?? item?.usageCount ?? item?.count ?? 0)));
+        if (Number.isFinite(termID)) usageMap.set(termID, count);
+      });
 
-    let termsMastered: number | undefined;
-    let totalTerms: number | undefined;
+      // Merge with current terms state (if any)
+      setTerms(prev =>
+        prev.map(t => ({
+          ...t,
+          usageCount: usageMap.has(t.termID) ? usageMap.get(t.termID)! : t.usageCount ?? 0,
+        }))
+      );
 
-    if (Array.isArray(data) && data.length >= 2) {
-      termsMastered = Number(data[0]);
-      totalTerms = Number(data[1]);
-    } else {
-      termsMastered = Number(data?.termsMastered ?? data?.mastered ?? data?.used ?? data?.completed);
-      totalTerms = Number(data?.totalTerms ?? data?.total ?? data?.count);
+      // Compute progress from merged terms
+      const total = terms.length || usageMap.size;
+      const mastered = Array.from(usageMap.values()).filter(c => c >= 3).length;
+      const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+      // Update per‑module progress map, keeping the highest value
+      setModuleProgress(prev => ({
+        ...prev,
+        [props.moduleID]: Math.max(prev[props.moduleID] ?? 0, pct),
+      }));
+      // Update term score if server indicates more mastery
+      props.setTermScore(`${mastered} / ${total}`);
+      console.log("[fetchProgress] updated", { mastered, total, pct });
+    } catch (err) {
+      console.error("[fetchProgress] error", err);
     }
-
-    let pct =
-      Number.isFinite(termsMastered) && Number.isFinite(totalTerms) && totalTerms > 0
-        ? Math.round((100 * Number(termsMastered)) / Number(totalTerms))
-        : 0;
-
-    pct = Math.max(0, Math.min(100, pct));
-
-    setProgress(pct);
-    props.setTermScore(`${Number(termsMastered ?? 0)} / ${Number(totalTerms ?? 0)}`);
-    console.log("[fetchProgress]", { termsMastered, totalTerms, pct });
-  }, [user?.jwt, props.moduleID, props]);
+  }, [user?.jwt, props.moduleID, props, terms]);
 
   useEffect(() => {
     if (!user || !user.jwt) return;
@@ -353,7 +523,7 @@ useEffect(() => {
     // fetchLoreFromDB(); // Lore disabled per sponsor feedback
   }, [props.moduleID, user?.jwt, fetchProgress, fetchTermProgress]);
 
-  async function handleSendMessageClick(forcedMessage?: string | React.MouseEvent) {
+  async function handleSendMessageClick(forcedMessage?: string | React.MouseEvent, hintWord?: string) {
     const isString = typeof forcedMessage === "string";
     const messageToUse = (isString ? forcedMessage : userMessage) as string;
 
@@ -386,7 +556,8 @@ useEffect(() => {
       terms.filter(term => term.usageCount >= 3).map(term => term.questionFront),
 
       undefined,
-      wasVoiceMessage
+      wasVoiceMessage,
+      hintWord
     );
 
     console.log("[ChatScreen] Checking audio upload conditions:", {
@@ -485,9 +656,9 @@ useEffect(() => {
 
       const usageArray =
         Array.isArray(sendMessageResponse?.usageByTerm) ? sendMessageResponse.usageByTerm :
-        Array.isArray(sendMessageResponse?.termUsageCounts) ? sendMessageResponse.termUsageCounts :
-        Array.isArray(sendMessageResponse?.termProgress) ? sendMessageResponse.termProgress :
-        [];
+          Array.isArray(sendMessageResponse?.termUsageCounts) ? sendMessageResponse.termUsageCounts :
+            Array.isArray(sendMessageResponse?.termProgress) ? sendMessageResponse.termProgress :
+              [];
 
       const responseUsageMap = new Map<number, number>();
       usageArray.forEach((item: any) => {
@@ -518,13 +689,31 @@ useEffect(() => {
           };
         }
 
+        const cleanMsg = messageToSend.toLowerCase().replace(/[^\w\sáéíóúüñàèìòùâêîôûçäëïöüß]/g, " ");
+        const lang = props.moduleLanguage || "es";
+        const variations = getWordVariations(front, lang);
+
         const usedByMessage =
+          !hintWord &&
           front.length > 0 &&
-          messageWords.includes(normalize(front));
+          variations.some((variant) => {
+            const cleanVariant = normalize(variant);
+            if (!cleanVariant) return false;
+            const escapedVariant = cleanVariant.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`\\b${escapedVariant}\\b`, 'i');
+            return regex.test(cleanMsg);
+          });
 
         const usedByBackend =
           sendMessageResponse?.termsUsed?.some(
-            (usedWord: string) => normalize(usedWord) === normalize(front)
+            (used: any) => {
+              if (typeof used === "number") {
+                return used === term.termID;
+              }
+              const cleanUsed = normalize(String(used));
+              const termVars = getWordVariations(front, lang).map(normalize);
+              return termVars.includes(cleanUsed);
+            }
           ) ?? false;
 
         const matched = usedByMessage || usedByBackend;
@@ -546,15 +735,15 @@ useEffect(() => {
         const pctLocal =
           totalCount > 0 ? Math.max(0, Math.min(100, Math.round((100 * completedCount) / totalCount))) : 0;
 
-        if (pctLocal !== progress) {
-          console.log("[progress] optimistic local", { completedCount, totalCount, pctLocal });
-          setProgress(pctLocal);
-        }
+        console.log("[progress] optimistic local", { completedCount, totalCount, pctLocal });
+        // Update per‑module progress map with optimistic value (max to avoid regress)
+        setModuleProgress(prev => ({
+          ...prev,
+          [props.moduleID]: Math.max(prev[props.moduleID] ?? 0, pctLocal),
+        }));
       }
 
-      // CHANGED: refetch backend state right after sending so refresh/logout/device state matches
-      await fetchProgress();
-      await fetchTermProgress();
+
 
       if (sendMessageResponse.llmResponse && ttsSupported && !props.ttsMuted) {
         setTimeout(() => {
@@ -581,6 +770,24 @@ useEffect(() => {
 
       setChatMessages((prevChatMessages) => [...prevChatMessages.slice(0, -1), finalUserMessage, errorMessage]);
     }
+  }
+
+  function handleHintClick(word: string) {
+    if (titoMood === "thinking" || listening) return;
+
+    let promptText = "";
+    const lang = props.moduleLanguage ? props.moduleLanguage.toLowerCase() : "en";
+    if (lang === "es") {
+      promptText = `¿Me puedes hacer una pregunta sobre '${word}'?`;
+    } else if (lang === "fr") {
+      promptText = `Peux-tu me poser une question sur '${word}' ?`;
+    } else if (lang === "pt") {
+      promptText = `Você pode me fazer uma pergunta sobre '${word}'?`;
+    } else {
+      promptText = `Can you ask me a question about '${word}'?`;
+    }
+
+    handleSendMessageClick(promptText, word);
   }
 
   const SUPPORTED_LANGS = [
@@ -1083,14 +1290,12 @@ useEffect(() => {
     loadMessages();
   }, [props.chatbotId, props.moduleID, user, userLoading]);
 
+  // Persist module progress to localStorage whenever it changes
   useEffect(() => {
-    const messagesWithScore = chatMessages.filter(message => message.metadata?.score !== undefined);
-    const averageScore =
-      messagesWithScore.length > 0
-        ? messagesWithScore.reduce((sum, msg) => sum + (msg.metadata?.score || 0), 0) / messagesWithScore.length
-        : 0;
-    props.setAverageScore(averageScore);
-  }, [chatMessages, props]);
+    try {
+      localStorage.setItem("titoModuleProgress", JSON.stringify(moduleProgress));
+    } catch { }
+  }, [moduleProgress]);
 
   const [placeholder, setPlaceholder] = useState<string>("Tito is typing...");
   const fullPlaceholder = "Tito is typing...";
@@ -1146,157 +1351,160 @@ useEffect(() => {
 
 
 
-    return(
-      <div className="flex flex-col h-full w-full overflow-hidden relative"> 
+  return (
+    <div className="flex flex-col h-full w-full overflow-hidden relative">
+      {showFireworks && <Fireworks />}
       {/*Outer container div*/}
-            <Image src={background} className="w-full absolute top-0 left-0 z-0" alt="Background" />
-            <Image src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" draggable={false} alt="Decorative palm tree" />
-            {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
+      <Image src={background} className="w-full absolute top-0 left-0 z-0" alt="Background" />
+      <Image src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" draggable={false} alt="Decorative palm tree" />
+      {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
 
-           {/* Main content area */}
-           <div className="flex flex-1 min-h-0 relative z-20">
-            <div className="flex w-full flex-grow">
-            {/* Left + center area */}
-            <div className="flex flex-grow min-w-0 min-h-0 flex-col">
-              {/* Mobile vocab panel */}
-                {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-                  <div className="lg:hidden w-full flex justify-center pt-2 px-2 shrink-0">
-                    <div className="w-full max-w-[260px]">
-                      <VocabList 
-                        wordsFront={terms.map(term => term.questionFront)} 
-                        wordsBack={terms.map(term => term.questionBack)} 
-                        usageCounts={terms.map(term => term.usageCount)} 
-                        progress={progress}
-                        termIDs={terms.map(t => t.termID)}
-                        masteredTermIDs={masteredTermIDs}
-                      />
-                    </div>
-                  </div>
-                )}
+      {/* Main content area */}
+      <div className="flex flex-1 min-h-0 relative z-20">
+        <div className="flex w-full flex-grow">
+          {/* Left + center area */}
+          <div className="flex flex-grow min-w-0 min-h-0 flex-col">
+            {/* Mobile vocab panel */}
+            {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
+              <div className="lg:hidden w-full flex justify-center pt-2 px-2 shrink-0">
+                <div className="w-full max-w-[260px]">
+                  <VocabList
+                    wordsFront={terms.map(term => term.questionFront)}
+                    wordsBack={terms.map(term => term.questionBack)}
+                    usageCounts={terms.map(term => term.usageCount)}
+                    progress={progress}
+                    termIDs={terms.map(t => t.termID)}
+                    masteredTermIDs={masteredTermIDs}
+                    onHintClick={handleHintClick}
+                    onReset={handleReset}
+                  />
+                </div>
+              </div>
+            )}
 
-              {/* Messages area */}
-              <div className="flex-1 min-h-0 overflow-y-auto pl-3 pr-0 pt-3 pb-6 md:pl-4 md:pr-0 md:pt-4 md:pb-4">
-                <Messages messages={chatMessages} chatFontSize={props.chatFontSize} />
+            {/* Messages area */}
+            <div className="flex-1 min-h-0 overflow-y-auto pl-3 pr-0 pt-3 pb-6 md:pl-4 md:pr-0 md:pt-4 md:pb-4">
+              <Messages messages={chatMessages} chatFontSize={props.chatFontSize} />
+            </div>
+
+            {/* Chat box */}
+            <div className="w-full h-[96px] md:h-[120px] bg-[#8C7357] flex shrink-0 relative z-20">
+              {/*Tito Image Div */}
+              <div className="relative w-[72px] md:w-[110px] shrink-0 flex items-center justify-center">
+                <Image
+                  src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : neutralTito}
+                  style={{ width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%" }}
+                  alt={`Tito is ${titoMood}`}
+                  className={titoMood === "thinking" ? "tito-thinking" : ""}
+                />
+                <button
+                  type="button"
+                  onClick={handleTtsMute}
+                  className="absolute bottom-1 -right-1 md:bottom-2 md:-right-0 w-6 h-6 md:w-8 md:h-8 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition"
+                  title={props.ttsMuted ? "Unmute Tito's voice" : "Mute Tito's voice"}
+                >
+                  <Image
+                    src={props.ttsMuted ? muteIcon : volumeIcon}
+                    alt={props.ttsMuted ? "Muted" : "Unmuted"}
+                    className="w-7 h-7 md:w-7 md:h-7"
+                  />
+                </button>
+                {/* Lore bubble disabled per sponsor feedback */}
+                {/* <TitoCloudBubble message={message} trigger={trigger} /> */}
               </div>
 
-              {/* Chat box */}
-              <div className="w-full h-[96px] md:h-[120px] bg-[#8C7357] flex shrink-0 relative z-20">
-                {/*Tito Image Div */}
-                <div className="relative w-[72px] md:w-[110px] shrink-0 flex items-center justify-center">
-                  <Image 
-                    src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : neutralTito} 
-                    style={{ width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%" }} 
-                    alt={`Tito is ${titoMood}`}
-                    className={titoMood === "thinking" ? "tito-thinking" : ""}
-                  />
+              <div className="flex-1 flex items-center gap-2 pr-2 pl-1 min-w-0">
+                <textarea
+                  placeholder={titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
+                  className="flex-1 min-w-0 h-[58%] md:h-[70%] bg-white rounded p-2 resize-none overflow-y-auto"
+                  style={{
+                    flex: "1 1 auto",
+                    pointerEvents: titoMood === "thinking" || listening ? "none" : "auto",
+                    opacity: titoMood === "thinking" || listening ? 0.75 : 1,
+                    fontWeight: titoMood === "thinking" ? "bold" : "normal"
+                  }}
+                  disabled={titoMood === "thinking" || listening}
+                  value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
+                  onChange={(e) => setUserMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessageClick();
+                    }
+                  }}
+                />
+
+                {/*Button Container */}
+                <div className="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
-                    onClick={handleTtsMute}
-                    className="absolute bottom-1 -right-1 md:bottom-2 md:-right-0 w-6 h-6 md:w-8 md:h-8 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition"
-                    title={props.ttsMuted ? "Unmute Tito's voice" : "Mute Tito's voice"}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (!sttSupported) {
+                        alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
+                        return;
+                      }
+                      if (!listening) startListening();
+                      else stopListening();
+                    }}
+                    className={`flex items-center justify-center w-11 h-11 md:w-16 md:h-16 rounded-full shadow-sm transition ${listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"
+                      }`}
                   >
                     <Image
-                      src={props.ttsMuted ? muteIcon : volumeIcon}
-                      alt={props.ttsMuted ? "Muted" : "Unmuted"}
-                      className="w-7 h-7 md:w-7 md:h-7"
+                      src={micIcon}
+                      alt="Tap to speak"
+                      className="w-5 h-5 md:w-6 md:h-6 opacity-80 hover:opacity-100"
                     />
                   </button>
-                  {/* Lore bubble disabled per sponsor feedback */}
-                  {/* <TitoCloudBubble message={message} trigger={trigger} /> */}
-                </div>
 
-                <div className="flex-1 flex items-center gap-2 pr-2 pl-1 min-w-0">
-                  <textarea 
-                    placeholder={titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
-                    className="flex-1 min-w-0 h-[58%] md:h-[70%] bg-white rounded p-2 resize-none overflow-y-auto"
-                    style={{
-                      flex: "1 1 auto",
-                      pointerEvents: titoMood === "thinking" || listening ? "none" : "auto",
-                      opacity: titoMood === "thinking" || listening ? 0.75 : 1,
-                      fontWeight: titoMood === "thinking" ? "bold" : "normal"
-                    }}
-                    disabled={titoMood === "thinking" || listening}
-                    value={`${userMessage}${interimSTT ? (userMessage?.trim() ? " " : "") + interimSTT : ""}`}
-                    onChange={(e) => setUserMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessageClick();
-                      }
-                    }}
-                  />
+                  <button
+                    onClick={() => handleSendMessageClick()}
+                    className="w-11 h-11 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition shadow-sm"
+                  >
+                    <Image
+                      src={sendMessageIcon}
+                      className="w-7 h-7 md:w-10 md:h-10 rounded-full"
+                      alt="Send message"
+                    />
+                  </button>
 
-                  {/*Button Container */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (!sttSupported) {
-                          alert("Speech-to-text isn't supported in Firefox. Try Chrome or Edge.");
-                          return;
-                        }
-                        if (!listening) startListening();
-                        else stopListening();
-                      }}
-                      className={`flex items-center justify-center w-11 h-11 md:w-16 md:h-16 rounded-full shadow-sm transition ${
-                        listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"
-                      }`}
-                    >
-                      <Image
-                        src={micIcon}
-                        alt="Tap to speak"
-                        className="w-5 h-5 md:w-6 md:h-6 opacity-80 hover:opacity-100"
-                      />
-                    </button>
-
-                    <button
-                      onClick={handleSendMessageClick}
-                      className="w-11 h-11 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition shadow-sm"
-                    >
-                      <Image
-                        src={sendMessageIcon}
-                        className="w-7 h-7 md:w-10 md:h-10 rounded-full"
-                        alt="Send message"
-                      />
-                    </button>
-                    
-                    {props.moduleID === -1 && (
+                  {props.moduleID === -1 && (
                     <select
                       value={ttsLang}
                       onChange={(e) => setTtsLang(e.target.value)}
                       className="w-[88px] md:w-32 h-10 md:h-12 rounded-full bg-white/80 hover:bg-white transition text-[11px] md:text-sm font-medium cursor-pointer px-2"
                     >
                       {SUPPORTED_LANGS.map((lang) => (
-                        <option key={lang.code} value={lang.code}> 
-                        🌐 {lang.label}
+                        <option key={lang.code} value={lang.code}>
+                          🌐 {lang.label}
                         </option>
                       ))}
                     </select>
                   )}
-
-                  </div>
                 </div>
               </div>
             </div>
-            </div>
-
-            {/* Right vocab panel for desktops/tablets */}
-            {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-              <div className="hidden lg:block w-[260px] xl:w-80 shrink-0 border-l-4 border-[#6B4F3A]/30">
-                <VocabList 
-                  wordsFront={terms.map(term => term.questionFront)} 
-                  wordsBack={terms.map(term => term.questionBack)} 
-                  usageCounts={terms.map(term => term.usageCount)} 
-                  progress={progress}
-                  termIDs={terms.map(t => t.termID)}
-                  masteredTermIDs={masteredTermIDs}
-                />
-              </div>
-            )}
           </div>
+        </div>
 
-        </div>     
-  )          
+        {/* Right vocab panel for desktops/tablets */}
+        {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
+          <div className="hidden lg:block w-[260px] xl:w-80 shrink-0 border-l-4 border-[#6B4F3A]/30">
+            <VocabList
+              wordsFront={terms.map(term => term.questionFront)}
+              wordsBack={terms.map(term => term.questionBack)}
+              usageCounts={terms.map(term => term.usageCount)}
+              progress={progress}
+              termIDs={terms.map(t => t.termID)}
+              masteredTermIDs={masteredTermIDs}
+              onHintClick={handleHintClick}
+              onReset={handleReset}
+            />
+          </div>
+        )}
+      </div>
+
+    </div>
+  )
 
 }

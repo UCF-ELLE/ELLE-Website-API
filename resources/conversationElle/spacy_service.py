@@ -5,6 +5,7 @@ import queue
 import threading
 from collections import defaultdict
 import re
+import itertools
 
 import ahocorasick
 from .database import *
@@ -193,9 +194,98 @@ def process_message(message: str, module_id: int, user_id: int, message_id: int,
     if SYSTEM_LOGGING_FLAG:
         print(f"[INFO] Updating key terms matches:")
 
-    matches = find_used_key_terms(CURRENT_KEY_TERM_PHRASES_LEMMATIZED, lemmas, message_id, chatbot_sid, user_id, module_id, update_db)
+    matches = find_used_key_terms(CURRENT_KEY_TERM_PHRASES_LEMMATIZED, lemmas, message_id, chatbot_sid, user_id, module_id, update_db, message=message)
 
     return matches
+
+def get_word_variations(word: str, lang: str) -> list[str]:
+    # 1. Slash expansion
+    parts = []
+    for part in word.split():
+        if '/' not in part:
+            parts.append([part])
+            continue
+        segments = part.split('/')
+        base = segments[0]
+        suffixes = segments[1:]
+        options = [base]
+        
+        vowels = set("aeiouáéíóúüñàèìòùâêîôûçäëïöüßAEIOUÁÉÍÓÚÜÑÀÈÌÒÙÂÊÎÔÛÇÄËÏÖÜß")
+        is_vowel = lambda c: c in vowels
+        
+        for suffix in suffixes:
+            if len(suffix) >= len(base) - 1 or len(base) <= 2 or suffix.lower() in {'la', 'una', 'un', 'les', 'des'}:
+                options.append(suffix)
+            else:
+                ends_with_vowel = is_vowel(base[-1]) if base else False
+                if ends_with_vowel and suffix and is_vowel(suffix[0]):
+                    options.append(base[:-1] + suffix)
+                else:
+                    options.append(base + suffix)
+        parts.append(options)
+
+    # Cartesian product for slash expansion
+    phrases = []
+    for combo in itertools.product(*parts):
+        phrases.append(" ".join(combo))
+
+    final_variations = set()
+    l = lang.lower()
+
+    for phrase in phrases:
+        final_variations.add(phrase)
+        
+        phrase_words = phrase.split()
+        inflected_words = []
+        for w in phrase_words:
+            w_opts = {w}
+            length = len(w)
+            if length <= 2:
+                inflected_words.append(list(w_opts))
+                continue
+            
+            last_char = w[-1].lower()
+            
+            if l in ('es', 'pt'):
+                if last_char == 'o':
+                    w_opts.add(w[:-1] + 'a')
+                    w_opts.add(w[:-1] + 'os')
+                    w_opts.add(w[:-1] + 'as')
+                elif last_char == 'a':
+                    w_opts.add(w[:-1] + 'o')
+                    w_opts.add(w[:-1] + 'as')
+                    w_opts.add(w[:-1] + 'os')
+                elif last_char == 'e':
+                    w_opts.add(w + 's')
+                else:
+                    w_opts.add(w + 'a')
+                    w_opts.add(w + 'es')
+                    w_opts.add(w + 'as')
+            elif l == 'fr':
+                if last_char == 'e':
+                    w_opts.add(w + 's')
+                else:
+                    w_opts.add(w + 'e')
+                    w_opts.add(w + 's')
+                    w_opts.add(w + 'es')
+            else:
+                # English or default
+                if w.endswith('y') and length >= 2 and not (w[-2] in vowels):
+                    w_opts.add(w[:-1] + 'ies')
+                else:
+                    w_opts.add(w + 's')
+                    w_opts.add(w + 'es')
+            inflected_words.append(list(w_opts))
+            
+        for combo in itertools.product(*inflected_words):
+            final_variations.add(" ".join(combo))
+            
+    article_regex = re.compile(r"^(el|la|los|las|un|una|unos|unas|le|les|l'|une|des)\s+", re.IGNORECASE)
+    for variant in list(final_variations):
+        if article_regex.match(variant):
+            final_variations.add(article_regex.sub("", variant))
+            
+    return list(final_variations)
 
 def clean_term_phrase(term_phrase: str):
     '''
@@ -204,15 +294,10 @@ def clean_term_phrase(term_phrase: str):
       - Leave spaced slashes ("apples / oranges") untouched
       - Convert isolated "/word" -> ""
     '''
-    # Handle things like "naranjo/a" to ret naranjo
     term_phrase = re.sub(r"(\w+)/\w+\b", r"\1", term_phrase)
-
-    # Handle cases like "/word" -> ""
-    # term_phrase = re.sub(r"(^|\s)/\w+\b", r"\1", term_phrase)
-
     return term_phrase.strip()
 
-def lemmatize_terms(terms: (int, str), nlp: Language):
+def lemmatize_terms(terms: [(int, str)], nlp: Language):
     '''
         terms: list of [id, term]
         returns: list of (id, lemmatized_term)
@@ -221,20 +306,27 @@ def lemmatize_terms(terms: (int, str), nlp: Language):
         print("[CHRONOLOGY] 4: Lemmatizing key terms/phrases at lemmatize_terms()")
 
     lemmatized = []
+    lang = getattr(nlp, "lang", "es")
     for term_id, term_phrase in terms:
-        sanitized = clean_term_phrase(term_phrase)
+        variations = get_word_variations(term_phrase, lang)
+        for var in variations:
+            # 1. Add raw normalized variation
+            clean_var = re.sub(r"[^\w\sáéíóúüñàèìòùâêîôûçäëïöüß]", " ", var.lower())
+            clean_var = " ".join(clean_var.split())
+            if clean_var:
+                lemmatized.append((term_id, clean_var))
+            
+            # 2. Add lemmatized variation
+            doc = nlp(var)
+            lemma = " ".join([token.lemma_.lower() for token in doc])
+            clean_lemma = re.sub(r"[^\w\sáéíóúüñàèìòùâêîôûçäëïöüß]", " ", lemma)
+            clean_lemma = " ".join(clean_lemma.split())
+            if clean_lemma:
+                lemmatized.append((term_id, clean_lemma))
 
-        # May be a single word or a phrase
-        # when a term is a phrase/multi-word term -> "w1 w2 w3..."
-        doc = nlp(sanitized) 
-        
-        lemma = " ".join([token.lemma_.lower() for token in doc])
-        if SYSTEM_LOGGING_FLAG:
-            print(f"lemma (sanitized): ({lemma}), original phrase: ({term_phrase})")
-        lemmatized.append((term_id, lemma))
-    return lemmatized
+    return list(set(lemmatized))
 
-def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], message_id: int, chatbot_sid: int, user_id: int, module_id: int, update_db=True):
+def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], message_id: int, chatbot_sid: int, user_id: int, module_id: int, update_db=True, message=""):
     '''
         Match lemmas against known key terms/phrases, finding the longest, non-overlapping matches
         - key_terms_lemmatized: [(term_id, lemmatized term/phrase)]
@@ -248,16 +340,33 @@ def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], messa
     global CURRENT_MODULE_ID
 
     A = get_automaton_for_module(CURRENT_MODULE_ID, key_terms_lemmatized)
-    text = " ".join(lemmas).strip()
-    if not text:
-        # update_message_key_term_count(0, message_id)
+    
+    texts_to_search = []
+    
+    # Lemmatized text
+    lemmatized_text = " ".join(lemmas).strip()
+    if lemmatized_text:
+        texts_to_search.append(lemmatized_text)
+        
+    # Raw normalized text
+    if message:
+        clean_msg = re.sub(r"[^\w\sáéíóúüñàèìòùâêîôûçäëïöüß]", " ", message.lower())
+        clean_msg = " ".join(clean_msg.split())
+        if clean_msg:
+            texts_to_search.append(clean_msg)
+
+    if not texts_to_search:
         return {}
 
-    # Find all (start,end) indexes for matched term/phrases
+    # Find all (start,end) indexes for matched term/phrases in all texts
     matches = []
-    for end_index, (term_id, term_phrase) in A.iter(text):
-        start_index = end_index - len(term_phrase) + 1
-        matches.append((start_index, end_index, term_id, term_phrase))
+    for text in texts_to_search:
+        for end_index, (term_id, term_phrase) in A.iter(text):
+            start_index = end_index - len(term_phrase) + 1
+            is_start_boundary = (start_index == 0 or not text[start_index - 1].isalnum())
+            is_end_boundary = (end_index == len(text) - 1 or not text[end_index + 1].isalnum())
+            if is_start_boundary and is_end_boundary:
+                matches.append((start_index, end_index, term_id, term_phrase))
 
     # prefer the longest matches first, then earlier start
     matches.sort(key=lambda x: (-(x[1] - x[0] + 1), x[0]))
@@ -266,7 +375,6 @@ def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], messa
     words_found = defaultdict(int)
     total_count = 0
 
-    # Match UNIQUE matches
     if not matches:
         return {}
 
@@ -282,8 +390,6 @@ def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], messa
         for pos in range(start, end + 1):
             occupied.add(pos)
 
-        # TODO: Create a better implementation esp, as a tool
-        # This is for checking single words (aka mispellings)
         if not update_db:
             print(f'matched word {term_phrase}')
             updateMisspellings(user_id, module_id, term_id)
