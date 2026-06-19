@@ -18,6 +18,8 @@ interface PropsInterface {
   progress: number;
   termIDs: number[];
   masteredTermIDs?: number[];
+  onHintClick?: (word: string) => void;
+  onReset?: () => void;
 }
 
 interface WordItemProps {
@@ -27,10 +29,11 @@ interface WordItemProps {
 
   // CHANGED: pass each word's current progress so we can show x/3
   usageCount: number;
+  onHintClick?: (word: string) => void;
 }
 
 /* WordItem Component */
-function WordItem({ wordFront, wordBack, isMastered, usageCount }: WordItemProps) {
+function WordItem({ wordFront, wordBack, isMastered, usageCount, onHintClick }: WordItemProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -41,7 +44,7 @@ function WordItem({ wordFront, wordBack, isMastered, usageCount }: WordItemProps
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="select-none w-full transition-all duration-300 flex items-center justify-between px-2"
+      className="select-none w-full transition-all duration-300 flex items-center justify-between px-2 py-1"
     >
       {/* CHANGED: only cross out the vocab word when it reaches mastery */}
       <span
@@ -54,9 +57,20 @@ function WordItem({ wordFront, wordBack, isMastered, usageCount }: WordItemProps
       </span>
 
       {/* CHANGED: keep the number normal, never crossed out */}
-      <span className="ml-2 font-semibold whitespace-nowrap">
-        {usageCount}/3
-      </span>
+      <div className="flex items-center gap-2">
+        <span className="font-semibold whitespace-nowrap">
+          {usageCount}/3
+        </span>
+        {!isMastered && onHintClick && (
+          <button
+            onClick={() => onHintClick(wordBack)}
+            className="hover:scale-[1.2] transition-transform duration-200 text-xs md:text-sm cursor-pointer"
+            title={`Ask Tito for a hint about ${wordBack}`}
+          >
+            💬
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -68,7 +82,9 @@ export default function VocabList({
   usageCounts,
   progress,
   termIDs,
-  masteredTermIDs
+  masteredTermIDs,
+  onHintClick,
+  onReset
 }: PropsInterface) {
   const [isExpanded, setIsExpanded] = useState(false);
   const progressGradientId = useId();
@@ -81,7 +97,7 @@ export default function VocabList({
   // CHANGED:
   // - pull usageCount for each vocab word
   // - only cross off the vocab word when usageCount >= 3
-  
+
   const sortedWords = wordsFront
     .map((word, index) => {
       const usageCount = usageCounts[index] ?? 0;
@@ -150,10 +166,9 @@ export default function VocabList({
           </span>
         </div>
       </div>
-      </div>
 
-        {/* Circular module progress tracker */}
-        {/* 
+      {/* Circular module progress tracker */}
+      {/* 
         <div className="absolute top-[35%] left-full ml-0 md:ml-1 lg:ml-2 flex flex-col items-center z-30">
           <div className="relative w-[70px] h-[70px]">
             <svg className="transform -rotate-90 w-full h-full">
@@ -211,9 +226,19 @@ export default function VocabList({
               wordBack={wordBack}
               usageCount={usageCount}
               isMastered={isMastered}
+              onHintClick={onHintClick}
             />
           ))}
         </div>
+        {onReset && (
+          <button
+            onClick={onReset}
+            className="mt-2 mb-3 px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition self-center"
+            title="Reset progress for this module"
+          >
+            Reset List
+          </button>
+        )}
       </div>
     </div>
   );
