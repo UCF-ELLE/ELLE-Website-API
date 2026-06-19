@@ -2,6 +2,7 @@
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
 import { useState } from "react";
+import { useId } from "react";
 
 /* Assets */
 import cloud from "@/public/static/images/ConversAItionELLE/vocab cloud.png";
@@ -70,9 +71,10 @@ export default function VocabList({
   masteredTermIDs
 }: PropsInterface) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const progressGradientId = useId();
+
   const mastered = new Set(masteredTermIDs ?? []);
   //console.log("[VocabList] masteredTermIDs =", masteredTermIDs, "termIDs =", termIDs);
-
   // CHANGED: check usageCounts instead of used
   if (!wordsFront || !wordsBack || !usageCounts || !termIDs) return null;
 
@@ -113,7 +115,7 @@ export default function VocabList({
         </button>
       </div>
 
-      <div className="absolute top-[64%] right-[22px] md:right-[24px] lg:right-[26px] -translate-y-1/2 flex items-center justify-center z-40">
+      <div className="absolute top-[70%] right-[22px] md:right-[24px] lg:right-[26px] -translate-y-1/2 flex items-center justify-center z-40">
         <div className="relative w-[32px] h-[32px] md:w-[42px] md:h-[42px]">
           <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 42 42">
             <circle
@@ -128,7 +130,7 @@ export default function VocabList({
               cx="21"
               cy="21"
               r="17"
-              stroke="url(#grad)"
+              stroke={`url(#${progressGradientId})`}
               strokeWidth="4"
               strokeDasharray="107"
               strokeDashoffset={`${107 - (107 * progress) / 100}`}
@@ -137,7 +139,7 @@ export default function VocabList({
               className="transition-all duration-700"
             />
             <defs>
-              <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id={progressGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#fcd277ff" />
                 <stop offset="100%" stopColor="#fcd277ff" />
               </linearGradient>

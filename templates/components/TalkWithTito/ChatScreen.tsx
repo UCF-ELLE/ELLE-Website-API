@@ -1149,10 +1149,17 @@ useEffect(() => {
     return(
       <div className="flex flex-col h-full w-full overflow-hidden relative"> 
       {/*Outer container div*/}
-            <Image src={background} className="w-full absolute top-0 left-0 z-0" alt="Background" />
-            <Image src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" draggable={false} alt="Decorative palm tree" />
-            {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
-
+      <Image
+        src={background}
+        className="absolute inset-0 w-full h-full object-cover z-0"
+        alt="Background"
+      />
+      <Image 
+        src={palmTree} className="absolute right-0 bottom-0 z-10 w-[33.9%] h-auto select-none" 
+        draggable={false} 
+        alt="Decorative palm tree" 
+      />
+      {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
            {/* Main content area */}
            <div className="flex flex-1 min-h-0 relative z-20">
             <div className="flex w-full flex-grow">
