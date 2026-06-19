@@ -166,6 +166,7 @@ export default function VocabList({
           </span>
         </div>
       </div>
+      </div>
 
       {/* Circular module progress tracker */}
       {/* 
@@ -240,7 +241,6 @@ export default function VocabList({
           </button>
         )}
       </div>
-    </div>
   </div>
   );
 }
