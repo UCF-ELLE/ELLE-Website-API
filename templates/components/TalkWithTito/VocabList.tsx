@@ -241,5 +241,6 @@ export default function VocabList({
         )}
       </div>
     </div>
+  </div>
   );
 }
