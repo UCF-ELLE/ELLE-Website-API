@@ -541,6 +541,7 @@ export const sendMessage = async (
     );
 
     const messageID = userMessageResponse.data.messageID || userMessageResponse.data.data?.messageID;
+    const messageMetadata = userMessageResponse.data.metadata || {};
     console.log(`[SendMessage] Step 1 Complete: messageID=${messageID}`);
 
     // Step 2: Generate LLM Response (Local localhost)
@@ -600,8 +601,8 @@ export const sendMessage = async (
       llmResponse: titoResponse || "Great job!",
       termsUsed: data.termsUsed || [],
       titoConfused: data.titoConfused || false,
-      messageID: messageID,
-      metadata: data.metadata || {}
+      messageID: messageID, 
+      metadata: messageMetadata || data.metadata || {}
     };
 
   } catch (error) {

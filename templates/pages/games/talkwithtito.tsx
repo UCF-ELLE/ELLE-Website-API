@@ -351,25 +351,56 @@ export default function TalkWithTito() {
             ) : (
               <div className="flex flex-col md:flex-row w-full h-full relative">
                 <div className="music-settings z-50 scale-75 md:scale-100 origin-top-left">
-                  <button onClick={togglePlayPause}>
-                    {isPlaying ? <Image src={pause_button} alt="pause"/>: <Image src={play_button} alt="play"/>}
-                  </button>
-                  <button onClick={handleNextSong}>
-                    <Image src={next_button} alt="next button"/>
-                  </button>
-                  <label htmlFor="volume" style={{ paddingLeft: "1px" }} className="cursor-pointer" onClick={handleMute}>
-                    {volume == 0.0 ? <Image src={mute_button} alt="mute music"/> : <Image src={volume_button} alt="volume control"/>}
-                    </label>
-                  <input
-                    className="volume-slider"
-                    id="volume"
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={volume}
-                    onChange={handleVolume}
-                  />
+                  <div className="music-controls-title irish-grover">
+                    Music Controls:
+                  </div>
+
+                  <div className="music-controls-row">
+                    <button
+                      type="button"
+                      onClick={togglePlayPause}
+                      className="music-control-button"
+                    >
+                      {isPlaying ? (
+                        <Image src={pause_button} alt="Pause music" />
+                      ) : (
+                        <Image src={play_button} alt="Play music" />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleNextSong}
+                      className="music-control-button"
+                    >
+                      <Image src={next_button} alt="Play next song" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleMute}
+                      className="music-control-button"
+                      aria-label={volume === 0 ? "Unmute music" : "Mute music"}
+                    >
+                      {volume === 0 ? (
+                        <Image src={mute_button} alt="" />
+                      ) : (
+                        <Image src={volume_button} alt="" />
+                      )}
+                    </button>
+
+                    <input
+                      className="volume-slider"
+                      id="volume"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={volume}
+                      onChange={handleVolume}
+                      aria-label="Music volume"
+                    />
+                  </div>
                 </div>
 
                 {analyticsActive && (
@@ -460,53 +491,76 @@ export default function TalkWithTito() {
           </div>
         </div>
   
-        <div className="info-container w-full max-w-6xl mt-8">
-          <div className="info-box inter-font">
-            <h1 className="inter-font">Description</h1>
-            <h3>
+        <div className="w-full max-w-5xl mt-10 md:mt-14 px-4 flex flex-col xl:flex-row gap-4 items-center xl:items-stretch justify-center">
+          <div className="inter-font w-full lg:w-1/2 bg-[#9c7b4f] border-2 border-black rounded-xl p-4 md:p-6 text-white text-center overflow-y-auto">
+            <h1 className="inter-font text-2xl md:text-3xl font-bold mb-3">
+              Description</h1>
+            <h3 className="text-sm md:text-base lg:text-lg mb-3">
               Tito is an AI parrot created to assist learners in developing stronger conversational skills in
               their target language.
             </h3>
-            <p>
+            <p className="text-xs md:text-sm lg:text-base">
               Disclaimer: This chatbot is intended for educational and informational purposes only. While it aims
               to provide accurate and helpful responses, it may not always produce fully accurate or comprehensive
               information.
             </p>
           </div>
-          <div className="info-box inter-font">
-            <h1 className="inter-font mb-4 text-2xl font-bold">Credits</h1>
-            <div className="grid grid-cols-2 gap-8 text-lg">
+
+          <div className="inter-font w-full lg:w-[42%] bg-[#9c7b4f] border-2 border-black rounded-xl p-3 md:p-4 text-white text-center overflow-y-auto">
+            <h1 className="inter-font mb-4 text-2xl md:text-3xl font-bold">
+              Credits</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-sm md:text-base">
               <div>
-                <h2 className="font-semibold mb-2">Part 1</h2>
-                  <h3>John Fletcher Cabreara</h3>
-                  <h3>Layne Mazur</h3>
-                  <h3>Julianne Tomlinson</h3>
-                  <h3>Tina Tran</h3>
-                  <h3>Kylee Weener</h3>
-                  <h3>Logan Witte</h3>
+                <h2 className="font-semibold mb-2 text-lg md:text-xl">Part 1</h2>
+                <h3>John Fletcher Cabreara</h3>
+                <h3>Layne Mazur</h3>
+                <h3>Julianne Tomlinson</h3>
+                <h3>Tina Tran</h3>
+                <h3>Kylee Weener</h3>
+                <h3>Logan Witte</h3>
               </div>
+
               <div>
-                <h2 className="font-semibold mb-2">Part 2</h2>
+                <h2 className="font-semibold mb-2 text-lg md:text-xl">Part 2</h2>
                 <h3>Joshua Jarquin</h3>
                 <h3>Fedor Kudinov</h3>
                 <h3>Rodrigo Peixoto</h3>
                 <h3>Wesley Underwood</h3>
               </div>
+
+              <div>
+                <h2 className="font-semibold mb-2 text-lg md:text-xl">Part 3</h2>
+                <h3>Aneesh Vellanki</h3>
+                <h3>Christian Estrada</h3>
+                <h3>Saymon Rivas</h3>
+                <h3>Sierra Huddle</h3>
+                <h3>Zachary Trenary</h3>
+              </div>
             </div>
           </div>
         </div>
-        <div className="info-container w-full max-w-6xl">
-          <div className="info-box2 inter-font">
-            <h1 className="inter-font">Image Credits</h1>
-            <p>Tito Character Images - Asher Moffitt</p>
-            <p><a href="https://pixabay.com/vectors/leaves-foliage-tree-nature-autumn-6824098/">Leaf Image - Josef Mikulcik (Pixabay)</a></p>
-            <p><a href="https://pixabay.com/vectors/coconut-palm-tree-coconut-tree-tree-7751862/">Palm Trees - Rama Widya (Pixabay)</a></p>
-            <p><a href="https://pixabay.com/vectors/palm-leaves-palm-frond-palm-tree-32531/">Palm Leaves - Clker-Free-Vector-Images (Pixabay)</a></p>
-            <div className="text-center">
-              <button className="text-2xl p-2" onClick={toggleDropdown}>Music Credits (Pixabay) {triangle}</button>
+        <div className="w-full max-w-5xl mt-4 px-4 flex justify-center">
+          <div className="image-credits-box inter-font w-full max-w-[520px] sm:max-w-[560px] md:max-w-[620px] lg:max-w-[700px] bg-[#9c7b4f] border-2 border-black rounded-xl p-3 md:p-4 text-white text-center overflow-hidden shadow-md">
+            <h1 className="inter-font text-2xl md:text-3xl font-bold mb-3">Image Credits</h1>
+
+            <div className="text-sm md:text-base leading-relaxed">
+              <p>Tito Character Images - Asher Moffitt</p>
+              <p><a href="https://pixabay.com/vectors/leaves-foliage-tree-nature-autumn-6824098/">Leaf Image - Josef Mikulcik (Pixabay)</a></p>
+              <p><a href="https://pixabay.com/vectors/coconut-palm-tree-coconut-tree-tree-7751862/">Palm Trees - Rama Widya (Pixabay)</a></p>
+              <p><a href="https://pixabay.com/vectors/palm-leaves-palm-frond-palm-tree-32531/">Palm Leaves - Clker-Free-Vector-Images (Pixabay)</a></p>
             </div>
+
+            <div className="text-center mt-3">
+              <button
+                className="text-lg sm:text-xl md:text-2xl p-2 max-w-full whitespace-normal break-words leading-tight"
+                onClick={toggleDropdown}
+              >
+                Music Credits (Pixabay) {triangle}
+              </button>
+            </div>
+
             {open && (
-              <div>
+              <div className="text-xs sm:text-sm md:text-base leading-relaxed mt-2 break-words">
                 <p>Ambient Jungle - <a href="https://pixabay.com/music/beats-ambient-jungle-quotambient-junglequot-by-storm-223660/">Ambient Jungle by Storm_Library</a></p>
                 <p>Jungle Party - <a href="https://pixabay.com/music/afrobeat-jungle-party-156395/">Jungle Party by NoodlezStudios</a></p>
                 <p>Happy Rock - <a href="https://pixabay.com/music/rock-happy-rock-308526/">Happy Rock by DmitryTaras</a></p>

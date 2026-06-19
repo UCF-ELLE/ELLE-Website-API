@@ -140,36 +140,57 @@
   left: 1%;
   top: 2%;
   z-index: 50;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
+.music-controls-title {
+  color: white;
+  font-size: clamp(12px, 1vw, 15px);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.music-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 36px;
+}
+
+.music-control-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Hidden beside the volume button until the controls are hovered */
 .volume-slider {
-  display: none;
-  /* Hide by default */
-  position: absolute;
-  top: 25%;
-  left: 100%;
-  width: 150px;
+  width: 0;
+  margin: 0;
   opacity: 0;
-
+  visibility: hidden;
+  flex-shrink: 0;
+  transition:
+    width 0.3s ease-in-out,
+    opacity 0.3s ease-in-out;
 }
 
-.volume-slider:hover {
-  display: inline;
-  /* Show when hovering over the label */
+/* Keep the slider aligned with the icons when revealed */
+.music-controls-row:hover .volume-slider,
+.volume-slider:focus {
+  width: 150px;
   opacity: 1;
-  animation: Tito-music 0.5s ease-in-out;
-}
-
-@keyframes Tito-music {
-  0% {
-    width: 0;
-    opacity: 0;
-  }
-
-  100% {
-    width: 150;
-    opacity: 1;
-  }
+  visibility: visible;
 }
 
 /* Info Boxes (Probably want to do vw at with media query for mobile) */
@@ -215,10 +236,20 @@
   color: rgb(122, 233, 122);
 }
 
+.image-credits-box a {
+  color: #fff4dc !important;
+  text-decoration: none;
+}
+
+.image-credits-box a:hover {
+  color: #fcd277ff !important;
+  text-decoration: underline;
+}
+
 /* Font Styling */
 .inter-font h1 {
   font-weight: 500;
-  font-size: 2.5vw;
+  font-size: clamp(24px, 2.5vw, 40px);
   margin-bottom: 10px;
   text-shadow:
     -2px -2px 0 rgba(0, 0, 0, 0.300),
@@ -233,7 +264,7 @@
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-size: 1.5vw;
+  font-size: clamp(14px, 1.3vw, 20px);
   margin-bottom: 10px;
 }
 
@@ -242,7 +273,8 @@
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
-  font-size: 0.9vw;
+  font-size: clamp(12px, 0.9vw, 16px);
+  line-height: 1.5;
 }
 
 /* Tito Animation - Thinking */
