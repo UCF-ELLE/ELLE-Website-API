@@ -214,7 +214,7 @@ export default function VocabList({
 
       {/* Expanding/Collapsing List */}
       <div
-        className={`w-[210px] md:w-[220px] lg:w-[240px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-4 mt-[-10px] flex flex-col items-center transition-all duration-300 ease-in-out overflow-hidden
+        className={`w-[210px] md:w-[220px] lg:w-[240px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-4 mt-2 flex flex-col items-center transition-all duration-300 ease-in-out overflow-hidden
         ${isExpanded ? "max-h-[20em] opacity-100" : "max-h-0 opacity-0"}`}
       >
         <div className="overflow-auto w-full">
