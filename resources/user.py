@@ -795,6 +795,83 @@ class User_Preferences(Resource):
                 cursor.close()
                 conn.close()
 
+class UserStats(Resource):
+    @jwt_required
+    def get(self):
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            # Query the new columns from the user table
+            query = """SELECT virtuelle_total_xp, virtuelle_level, 
+                              belletro_total_xp, belletro_level 
+                       FROM user WHERE userID = %s"""
+            result = getFromDB(query, (user_id,), conn, cursor)
+            
+            if result and result[0]:
+                row = result[0]
+                stats = {
+                    "virtuelle": { "xp": row[0], "level": row[1] },
+                    "belletro": { "xp": row[2], "level": row[3] }
+                }
+                raise ReturnSuccess(stats, 200)
+            else:
+                raise CustomException("User stats not found", 404)
+
+        except CustomException as error:
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            return success.msg, success.returnCode
+        except Exception as error:
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+    @jwt_required
+    def post(self):
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        # Extract parameters from the request body
+        game_type = getParameter("gameType", str, True) # 'virtuelle' or 'belletro'
+        level = getParameter("level", int, True)
+        new_xp = getParameter("newTotalXP", int, True)
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            # Determine which columns to update based on gameType
+            if game_type == "virtuelle":
+                query = "UPDATE user SET virtuelle_level = %s, virtuelle_total_xp = %s WHERE userID = %s"
+            elif game_type == "belletro":
+                query = "UPDATE user SET belletro_level = %s, belletro_total_xp = %s WHERE userID = %s"
+            else:
+                raise CustomException("Invalid game type provided", 400)
+
+            postToDB(query, (level, new_xp, user_id), conn, cursor)
+            raise ReturnSuccess(f"Successfully updated {game_type} stats", 200)
+
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
 
 # class Refresh(Resource):
 #     @jwt_refresh_token_required

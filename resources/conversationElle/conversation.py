@@ -148,6 +148,9 @@ class UserMessages(Resource):
             user_classes = getTitoClasses(userID=user_id, permissionLevel='any', get_classes_type='active')
             if not user_classes:
                 return create_response(False, message="Access denied. You must be enrolled in a TWT-enabled class to use free chat.", status_code=403)
+            # Ensure class_id is a valid active class ID for database foreign keys
+            if not class_id or class_id == '0':
+                class_id = user_classes[0]
         
         # For non-free chat, class_id is required
         if module_id != REAL_FREE_CHAT_MODULE and not class_id:
@@ -158,13 +161,13 @@ class UserMessages(Resource):
             # return create_response(False, message="Sentence too short. try again", status_code=403)
 
         # Attempts to add message to DB, 0/None = error, success returns msg_id
-        # Free chat doesn't store messages in DB
-        new_msg_id = ''
+        # Both free chat and regular chat messages are saved in DB to support context memory
+        new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id, chatbotSID=session_id, message=message, isVM=is_vm, class_id=class_id)
+        if not new_msg_id:
+            return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
+
         if not is_free_chat:
-            new_msg_id = createNewUserMessage(userID=user_id, moduleID=module_id, chatbotSID=session_id, message=message, isVM=is_vm, class_id=class_id)
             updateTotalTimeChatted(session_id)
-            if not new_msg_id:
-                return create_response(False, message="Failed to send message. User has an invalid session.", status_code=400, resumeMessaging=True)
 
 
         # Rate messages grammar
@@ -216,21 +219,23 @@ class UserMessages(Resource):
     def get(self):
         '''
         /elleapi/twt/session/messages
-            Returns chat history of a user for a given moduleID in ascending order (1 -> N)
-            TODO: to be worked on?
+            Returns chat history of a user for a given moduleID and/or chatbotSID in ascending order (1 -> N)
         '''
         user_id = get_jwt_identity()
 
         try:
-            data = request.form
-            module_id = int(request.args.get('moduleID'))
+            module_id = request.args.get('moduleID', type=int)
             class_id = request.args.get('classID')
+            chatbot_sid = request.args.get('chatbotSID', type=int)
             
             if not module_id or not class_id:
-                return create_response(False, message="Missing required paranmeters.", status_code=404)
-            res = []
-            if module_id != FREE_CHAT_MODULE:
-                res = fetchModuleChatHistory(user_id, module_id, class_id)
+                return create_response(False, message="Missing required parameters.", status_code=404)
+            
+            if chatbot_sid:
+                res = fetchSessionChatHistory(chatbot_sid)
+            else:
+                target_module_id = REAL_FREE_CHAT_MODULE if module_id == FREE_CHAT_MODULE else module_id
+                res = fetchModuleChatHistory(user_id, target_module_id, class_id)
             return create_response(True, message="Retrieved chat history.", data=res) 
         except Exception as e:
             return create_response(False, message=f"Failed to retrieve user's messages. Error: {e}", status_code=504)
@@ -275,15 +280,56 @@ class TitoMessages(Resource):
         module_id = int(data.get('moduleID'))
         tito_response = data.get('titoResponse')
         
+        print(f"[DEBUG TitoMessages] session_id={session_id!r}, class_id={class_id!r}, module_id={module_id!r}, tito_response={tito_response!r}")
+        
         if not session_id or not module_id or not tito_response or not class_id:
             return create_response(False, message="Missing required parameters.", status_code=404)
             
         try:
+            # For free chat, map to a valid class_id to satisfy foreign key constraints
+            if module_id == FREE_CHAT_MODULE or module_id == REAL_FREE_CHAT_MODULE:
+                user_classes = getTitoClasses(userID=user_id, permissionLevel='any', get_classes_type='active')
+                if user_classes and (not class_id or class_id == '0'):
+                    class_id = user_classes[0]
+
             newTitoMessage(user_id, session_id, class_id, tito_response, module_id)
             return create_response(True, message="Tito message saved.")
         except Exception as e:
             print(f"[SAVE ERROR] {e}")
             return create_response(False, message="Failed to save Tito message.", status_code=500)
+
+class TitoSessionList(Resource):
+    @jwt_required
+    def get(self):
+        '''
+        /elleapi/twt/session/list
+            Returns all sessions for a user and module
+        '''
+        user_id = get_jwt_identity()
+        module_id = request.args.get('moduleID', type=int)
+        if not module_id:
+            return create_response(False, message="Missing required parameters.", status_code=400)
+        
+        target_module_id = REAL_FREE_CHAT_MODULE if module_id == FREE_CHAT_MODULE else module_id
+        sessions = fetchModuleSessions(user_id, target_module_id)
+        return create_response(True, message="Retrieved sessions.", data=sessions)
+
+class DeleteTitoSession(Resource):
+    @jwt_required
+    def delete(self):
+        '''
+        /elleapi/twt/session/delete
+            Deletes a chat session and cascade-deletes all its messages
+        '''
+        user_id = get_jwt_identity()
+        chatbot_sid = request.args.get('chatbotSID', type=int)
+        if not chatbot_sid:
+            return create_response(False, message="Missing required parameters.", status_code=400)
+        
+        success = deleteChatbotSession(user_id, chatbot_sid)
+        if success:
+            return create_response(True, message="Session deleted successfully.")
+        return create_response(False, message="Failed to delete session.", status_code=500)
 
 class UserAudio(Resource):
     @jwt_required

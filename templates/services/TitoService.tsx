@@ -25,6 +25,7 @@ interface Module {
   language: string;
   isTitoEnabled?: boolean; // Indicates if this module is configured as a Tito module
   classID?: number; // The class this module belongs to (for Tito modules)
+  titoWelcomeMessage?: string;
 }
 
 // Fetches all user modules and indicates which ones are Tito-enabled
@@ -88,7 +89,8 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
           name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
           language: moduleData.language || 'es',
           isTitoEnabled: isTitoEnabled,
-          classID: classID // Include classID in module data
+          classID: classID, // Include classID in module data
+          titoWelcomeMessage: moduleData.titoWelcomeMessage
         });
       }
     }
@@ -127,7 +129,8 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
             name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
             language: moduleData.language || 'es',
             isTitoEnabled: isTitoEnabled,
-            classID: classID // Include classID in module data
+            classID: classID, // Include classID in module data
+            titoWelcomeMessage: moduleData.titoWelcomeMessage
           });
         }
       }
@@ -147,6 +150,34 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
       handleError(fallbackError);
       return null;
     }
+  }
+};
+
+// Fetches all sessions for a user and module
+export const fetchSessions = async (access_token: string, moduleID: number): Promise<any[] | null> => {
+  try {
+    const response = await axios.get(`${ELLE_URL}/twt/session/list`, {
+      params: { moduleID },
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    return response.data.data || [];
+  } catch (error) {
+    handleError(error);
+    return null;
+  }
+};
+
+// Deletes a session and cascade-deletes all its messages
+export const deleteSession = async (access_token: string, chatbotSID: number): Promise<boolean> => {
+  try {
+    const response = await axios.delete(`${ELLE_URL}/twt/session/delete`, {
+      params: { chatbotSID },
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    return response.data.success || false;
+  } catch (error) {
+    handleError(error);
+    return false;
   }
 };
 
@@ -392,7 +423,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
     const response = await axios.get(
       `${ELLE_URL}/twt/session/messages`,
       {
-        params: { moduleID: moduleId, classID: finalClassId },
+        params: { moduleID: moduleId, classID: finalClassId, chatbotSID: chatbotId },
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
@@ -409,7 +440,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
       for (const msg of messages) {
         const transformedMessage: ChatMessage = {
           value: msg.message || msg.value || '',
-          timestamp: msg.timestamp || new Date().toISOString(),
+          timestamp: msg.creationTimestamp || msg.timestamp || new Date().toISOString(),
           source: (msg.source === 'user' || msg.source === 'llm') ? msg.source : 'user',
           metadata: typeof msg.metadata === 'string' ? JSON.parse(msg.metadata) : (msg.metadata || {})
         };
@@ -443,6 +474,7 @@ interface SendMessageResponse {
   usageByTerm?: TermUsageProgress[];
   termUsageCounts?: TermUsageProgress[];
   termProgress?: TermUsageProgress[];
+  progress?: TermUsageProgress[];
   metadata?: {
     score?: number;
     error?: string;
@@ -568,6 +600,13 @@ export const sendMessage = async (
     titoFormData.append('classID', finalClassId?.toString() ?? "");
     titoFormData.append('moduleID', moduleId.toString());
     titoFormData.append('titoResponse', titoResponse);
+
+    console.log('[DEBUG TitoMessages Frontend]', {
+      chatbotSID: chatbotId.toString(),
+      classID: finalClassId?.toString()??"",
+      moduleID: moduleId.toString(),
+      titoResponse: titoResponse
+    });
 
     await axios.post(
       `${ELLE_URL}/twt/session/tito_messages`,
