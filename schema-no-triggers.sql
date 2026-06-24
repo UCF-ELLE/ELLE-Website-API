@@ -487,6 +487,7 @@ CREATE TABLE `module` (
   `complexity` tinyint DEFAULT NULL,
   `userID` int NOT NULL,
   `isPastaModule` tinyint(1) DEFAULT '0',
+  `titoWelcomeMessage` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   PRIMARY KEY (`moduleID`),
   KEY `module_userID` (`userID`),
   CONSTRAINT `module_userID` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`)

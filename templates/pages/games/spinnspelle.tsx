@@ -213,6 +213,10 @@ export default function SpinNSpELLE() {
                 <Button onClick={handleOnClickFullscreen} style={{ visibility: isLoaded ? 'visible' : 'hidden' }}>
                     Fullscreen
                 </Button>
+                <br />
+                <video controls style={{ width: "400px", borderRadius: "8px" }}>
+                    <source src="/elle/static/videos/Spin_N_SpELLE_tutorial.mp4" type ="video/mp4" />
+                </video>
             </div>
             <br />
             <br />

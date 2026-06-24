@@ -1,12 +1,11 @@
 /* Imports */
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useUser } from "@/hooks/useAuth";
-import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage, uploadAudioFile, ELLE_URL } from "@/services/TitoService";
+import { fetchModuleTerms, getChatbot, getMessages, incrementTime, sendMessage, uploadAudioFile, fetchSessions, deleteSession, ELLE_URL } from "@/services/TitoService";
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
 import volumeIcon from "@/public/static/images/ConversAItionELLE/volume.png";
 import muteIcon from "@/public/static/images/ConversAItionELLE/mute.png";
-// import TitoCloudBubble from "@/components/TalkWithTito/TitoCloudBubble";
 
 /* Assets */
 import background from "@/public/static/images/ConversAItionELLE/Graident Background.png";
@@ -58,6 +57,8 @@ interface propsInterface {
   chatFontSize: string;
   ttsMuted: boolean;
   setTtsMuted: React.Dispatch<React.SetStateAction<boolean>>;
+  sessions?: any[];
+  titoWelcomeMessage?: string;
 }
 
 interface Term {
@@ -65,11 +66,11 @@ interface Term {
   questionFront: string;
   questionBack: string;
 
-  // CHANGED: track per-word progress instead of a boolean used flag
+  // Track per-word progress instead of a boolean used flag
   usageCount: number;
+  used?: boolean;
 }
 
-// New interface for module progress map
 type ModuleProgressMap = Record<number, number>;
 
 interface ChatMessage {
@@ -208,7 +209,6 @@ export default function ChatScreen(props: propsInterface) {
 
   // Replace single progress state with per‑module map
   const [moduleProgress, setModuleProgress] = useState<ModuleProgressMap>(() => {
-    // Load persisted progress from localStorage if available
     try {
       const stored = localStorage.getItem("titoModuleProgress");
       return stored ? JSON.parse(stored) : {};
@@ -239,21 +239,24 @@ export default function ChatScreen(props: propsInterface) {
     );
   }, [props.moduleID]);
 
-  // const [message, setMessage] = useState("");
-  // const [trigger, setTrigger] = useState(0);
   const [masteredSet, setMasteredSet] = useState<Set<number>>(new Set());
   const [masteredTermIDs, setMasteredTermIDs] = useState<number[]>([]);
   const [classID, setClassID] = useState<string | null>(null);
+
+  // --- TTS state + helpers ---
   const [ttsSupported, setTtsSupported] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
+  // Lore milestone logic with one time trigger (DB-driven)
   const THRESHOLDS = useMemo(() => [25, 50, 75, 100] as const, []);
   const prevProgressRef = useRef<number>(-Infinity);
 
+  // Lore loaded from DB
   type Threshold = 25 | 50 | 75 | 100;
   const [loreByThreshold, setLoreByThreshold] = useState<Partial<Record<Threshold, string>>>({});
   const [loreID, setLoreID] = useState<number | null>(null);
 
+  // Reset progression memory when module or lore set changes
   useEffect(() => {
     prevProgressRef.current = -Infinity;
   }, [props.moduleID, loreID]);
@@ -263,9 +266,9 @@ export default function ChatScreen(props: propsInterface) {
   useEffect(() => {
     if (progress == null || isNaN(progress)) return;
     if (!loreID) return;
-  
+
     let chosen: number | null = null;
-  
+
     for (const t of THRESHOLDS) {
       const key = `tito_lore_shown_${props.moduleID}_${loreID}_${t}`;
       const already = typeof window !== "undefined" && localStorage.getItem(key) === "1";
@@ -273,10 +276,10 @@ export default function ChatScreen(props: propsInterface) {
         if (chosen === null || t > chosen) chosen = t;
       }
     }
-  
+
     if (chosen !== null) {
       const key = `tito_lore_shown_${props.moduleID}_${loreID}_${chosen}`;
-      try { localStorage.setItem(key, "1"); } catch { }
+      try { localStorage.setItem(key, "1"); } catch {}
       const text = loreByThreshold[chosen as Threshold];
       if (text) {
         setMessage(text);
@@ -286,12 +289,11 @@ export default function ChatScreen(props: propsInterface) {
         console.log(`[Lore] No lore text for ${chosen}%`);
       }
     }
-  
+
     prevProgressRef.current = progress;
   }, [progress, props.moduleID, loreID, loreByThreshold, THRESHOLDS]);
   */
 
-  // CHANGED: helper to support a few possible backend response shapes for per-term usage counts
   const applyBackendUsageCounts = useCallback((data: any) => {
     const usageArray =
       Array.isArray(data?.usageByTerm) ? data.usageByTerm :
@@ -333,7 +335,6 @@ export default function ChatScreen(props: propsInterface) {
     return true;
   }, []);
 
-  // CHANGED: this now fetches mastered IDs AND backend usage counts if the backend returns them
   const fetchTermProgress = useCallback(async () => {
     if (!user?.jwt || props.moduleID === -1) return;
 
@@ -377,7 +378,6 @@ export default function ChatScreen(props: propsInterface) {
   const fetchProgress = useCallback(async () => {
     if (!user?.jwt) return;
 
-    // Use the same endpoint that provides per‑term usage counts
     const url = `${ELLE_URL}/twt/session/getTermProgress?moduleID=${props.moduleID}`;
     try {
       const res = await fetch(url, {
@@ -390,7 +390,6 @@ export default function ChatScreen(props: propsInterface) {
       const payload = await res.json();
       const data = payload?.data ?? payload ?? {};
 
-      // Build a map of termID -> usageCount (0‑3)
       const usageMap = new Map<number, number>();
       const usageArray = Array.isArray(data?.usageByTerm)
         ? data.usageByTerm
@@ -405,7 +404,6 @@ export default function ChatScreen(props: propsInterface) {
         if (Number.isFinite(termID)) usageMap.set(termID, count);
       });
 
-      // Merge with current terms state (if any)
       setTerms(prev =>
         prev.map(t => ({
           ...t,
@@ -413,16 +411,13 @@ export default function ChatScreen(props: propsInterface) {
         }))
       );
 
-      // Compute progress from merged terms
       const total = terms.length || usageMap.size;
       const mastered = Array.from(usageMap.values()).filter(c => c >= 3).length;
       const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
-      // Update per‑module progress map, keeping the highest value
       setModuleProgress(prev => ({
         ...prev,
         [props.moduleID]: Math.max(prev[props.moduleID] ?? 0, pct),
       }));
-      // Update term score if server indicates more mastery
       props.setTermScore(`${mastered} / ${total}`);
       console.log("[fetchProgress] updated", { mastered, total, pct });
     } catch (err) {
@@ -430,6 +425,7 @@ export default function ChatScreen(props: propsInterface) {
     }
   }, [user?.jwt, props.moduleID, props, terms]);
 
+  // Cloud bubble and progress + lore fetch
   useEffect(() => {
     if (!user || !user.jwt) return;
 
@@ -493,24 +489,9 @@ export default function ChatScreen(props: propsInterface) {
           }
         });
 
-        const have = Object.keys(map).map(Number);
-        const missing = seqToThreshold.filter(t => !have.includes(t));
-        if (missing.length) {
-          console.warn("[Lore] Missing thresholds", { missing, have, map });
-        } else {
-          console.log("[Lore] All thresholds mapped OK", { have, map });
-        }
-
         setLoreByThreshold(map);
         const idNum = Number(payload?.loreID);
         setLoreID(Number.isFinite(idNum) ? idNum : null);
-
-        console.log("[Lore] Loaded", {
-          loreID: Number.isFinite(idNum) ? idNum : null,
-          thresholds: Object.keys(map),
-          map,
-          raw: payload,
-        });
       } catch (e) {
         console.error("Lore fetch error:", e);
         setLoreByThreshold({});
@@ -522,6 +503,94 @@ export default function ChatScreen(props: propsInterface) {
     fetchTermProgress();
     // fetchLoreFromDB(); // Lore disabled per sponsor feedback
   }, [props.moduleID, user?.jwt, fetchProgress, fetchTermProgress]);
+
+  // Sync terms used status with chatMessages history when both are loaded
+  useEffect(() => {
+    if (!termsLoaded || terms.length === 0 || chatMessages.length <= 1) return;
+
+    let termsUpdated = false;
+    const newTerms = terms.map(term => {
+      const isUsed = chatMessages.some(msg =>
+        msg.source === 'user' &&
+        msg.value.toLowerCase().includes(term.questionFront.toLowerCase())
+      );
+      if (term.used !== isUsed) {
+        termsUpdated = true;
+      }
+      return { ...term, used: isUsed };
+    });
+
+    if (termsUpdated) {
+      setTerms(newTerms);
+    }
+  }, [chatMessages, termsLoaded]);
+
+  // Used to initialize chatbot
+  useEffect(() => {
+    const isFreeChat = props.moduleID === -1;
+    if (userLoading || !user || !termsLoaded || (!isFreeChat && terms.length === 0)) return;
+
+    console.log(`[ChatScreen] Initializing chatbot for module ${props.moduleID}`, { termsLength: terms.length, isFreeChat });
+
+    const loadChatbot = async () => {
+      // Guard: If chatbotId is already provided, do NOT call getChatbot (which creates a new session)
+      if (props.chatbotId !== undefined) {
+        console.log(`[ChatScreen] Existing chatbot session ${props.chatbotId} provided, skipping session creation.`);
+        const existingSession = props.sessions?.find(s => s.chatbotSID === props.chatbotId);
+        if (existingSession) {
+          console.log(`[ChatScreen] Found existing session details:`, existingSession);
+          setTimeChatted((existingSession.timeChatted || 0) * 60);
+        } else {
+          setTimeChatted(0);
+        }
+
+        await fetchTermProgress();
+        return;
+      }
+
+      console.log(`[ChatScreen] Calling getChatbot for module ${props.moduleID}`);
+      const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
+      if (newChatbot) {
+        console.log(`[ChatScreen] Successfully got chatbot session ${newChatbot.chatbotId} for module ${props.moduleID}`);
+        props.setChatbotId(newChatbot.chatbotId);
+        setTimeChatted(newChatbot.totalTimeChatted * 3600);
+
+        if (newChatbot.userBackground) {
+          console.log("Received LLM Background: " + newChatbot.userBackground);
+          props.setUserBackgroundFilepath(newChatbot.userBackground);
+        }
+
+        if (newChatbot.userMusicChoice) {
+          console.log("Received Music Background: " + newChatbot.userMusicChoice);
+          props.setUserMusicFilepath(newChatbot.userMusicChoice);
+        }
+
+        const usageApplied = applyBackendUsageCounts(newChatbot);
+
+        if (!usageApplied) {
+          const newTerms: Term[] = terms.map(term => {
+            const backendCount =
+              newChatbot.termsUsed?.filter((w: string) => w === term.questionFront).length ?? 0;
+
+            return {
+              termID: term.termID,
+              questionFront: term.questionFront,
+              questionBack: term.questionBack,
+              usageCount: Math.min(Math.max(backendCount, 0), 3),
+            };
+          });
+
+          setTerms(newTerms);
+        }
+
+        await fetchTermProgress();
+      } else {
+        console.error(`[ChatScreen] Failed to get chatbot for module ${props.moduleID}`);
+        props.setChatbotId(undefined);
+      }
+    };
+    loadChatbot();
+  }, [props.moduleID, props.chatbotId, user?.jwt, termsLoaded]);
 
   async function handleSendMessageClick(forcedMessage?: string | React.MouseEvent, hintWord?: string) {
     const isString = typeof forcedMessage === "string";
@@ -552,7 +621,7 @@ export default function ChatScreen(props: propsInterface) {
       messageToSend,
       terms.map(term => term.questionFront),
 
-      // CHANGED: only send words that are fully completed under the 3-use rule
+      // ONLY send words that are fully completed under the 3-use rule
       terms.filter(term => term.usageCount >= 3).map(term => term.questionFront),
 
       undefined,
@@ -645,20 +714,15 @@ export default function ChatScreen(props: propsInterface) {
       console.log("[ChatScreen] Updating chat messages with user response and LLM message");
       setChatMessages((prevChatMessages) => [...prevChatMessages.slice(0, -1), userResponse, llmMessage]);
 
-      // CHANGED: keep a fast optimistic update for UI responsiveness
       const normalize = (s: string) =>
         s.toLowerCase().replace(/[^\w\sáéíóúüñàèìòùâêîôûçäëïöüß]/g, "").trim();
-
-      const messageWords = messageToSend
-        .trim()
-        .split(/\s+/)
-        .map(normalize);
 
       const usageArray =
         Array.isArray(sendMessageResponse?.usageByTerm) ? sendMessageResponse.usageByTerm :
           Array.isArray(sendMessageResponse?.termUsageCounts) ? sendMessageResponse.termUsageCounts :
             Array.isArray(sendMessageResponse?.termProgress) ? sendMessageResponse.termProgress :
-              [];
+              Array.isArray(sendMessageResponse?.progress) ? sendMessageResponse.progress :
+                [];
 
       const responseUsageMap = new Map<number, number>();
       usageArray.forEach((item: any) => {
@@ -679,7 +743,6 @@ export default function ChatScreen(props: propsInterface) {
         const front = term.questionFront ?? "";
         const back = term.questionBack ?? "";
 
-        // CHANGED: if backend already returned exact usage counts, trust that first
         if (responseUsageMap.has(term.termID)) {
           return {
             termID: term.termID,
@@ -728,7 +791,6 @@ export default function ChatScreen(props: propsInterface) {
 
       setTerms(newTerms);
 
-      // CHANGED: progress only increases when a vocab word reaches 3/3
       {
         const completedCount = newTerms.filter(t => t.usageCount >= 3).length;
         const totalCount = newTerms.length || 0;
@@ -736,14 +798,11 @@ export default function ChatScreen(props: propsInterface) {
           totalCount > 0 ? Math.max(0, Math.min(100, Math.round((100 * completedCount) / totalCount))) : 0;
 
         console.log("[progress] optimistic local", { completedCount, totalCount, pctLocal });
-        // Update per‑module progress map with optimistic value (max to avoid regress)
         setModuleProgress(prev => ({
           ...prev,
           [props.moduleID]: Math.max(prev[props.moduleID] ?? 0, pctLocal),
         }));
       }
-
-
 
       if (sendMessageResponse.llmResponse && ttsSupported && !props.ttsMuted) {
         setTimeout(() => {
@@ -1095,7 +1154,6 @@ export default function ChatScreen(props: propsInterface) {
     );
   }, [timeChatted, props]);
 
-  // CHANGED: dedupe duplicate vocab words and start each unique word at 0/3
   useEffect(() => {
     setTermsLoaded(false);
 
@@ -1179,8 +1237,6 @@ export default function ChatScreen(props: propsInterface) {
     window.speechSynthesis.speak(u);
   }, [ttsSupported, ttsLang, voices, preprocessForTTS]);
 
-  // Toggles Tito's narration on/off from the button near Tito.
-  // If currently speaking and the user mutes, stop speech immediately.
   const handleTtsMute = () => {
     props.setTtsMuted((prev) => !prev);
 
@@ -1190,64 +1246,12 @@ export default function ChatScreen(props: propsInterface) {
   };
 
   useEffect(() => {
-    const isFreeChat = props.moduleID === -1;
-    if (userLoading || !user || !termsLoaded || (!isFreeChat && terms.length === 0)) return;
-
-    console.log(`[ChatScreen] Initializing chatbot for module ${props.moduleID}`, { termsLength: terms.length, isFreeChat });
-
-    const loadChatbot = async () => {
-      console.log(`[ChatScreen] Calling getChatbot for module ${props.moduleID}`);
-      const newChatbot = await getChatbot(user.jwt, user.userID, props.moduleID, terms);
-      if (newChatbot) {
-        console.log(`[ChatScreen] Successfully got chatbot session ${newChatbot.chatbotId} for module ${props.moduleID}`);
-        props.setChatbotId(newChatbot.chatbotId);
-        setTimeChatted(newChatbot.totalTimeChatted * 3600);
-
-        if (newChatbot.userBackground) {
-          console.log("Received LLM Background: " + newChatbot.userBackground);
-          props.setUserBackgroundFilepath(newChatbot.userBackground);
-        }
-
-        if (newChatbot.userMusicChoice) {
-          console.log("Received Music Background: " + newChatbot.userMusicChoice);
-          props.setUserMusicFilepath(newChatbot.userMusicChoice);
-        }
-
-        // CHANGED: removed localStorage restore because backend should now be source of truth
-        // Fallback still supports old backend that only returns termsUsed
-        const usageApplied = applyBackendUsageCounts(newChatbot);
-
-        if (!usageApplied) {
-          const newTerms: Term[] = terms.map(term => {
-            const backendCount =
-              newChatbot.termsUsed?.filter((w: string) => w === term.questionFront).length ?? 0;
-
-            return {
-              termID: term.termID,
-              questionFront: term.questionFront,
-              questionBack: term.questionBack,
-              usageCount: Math.min(Math.max(backendCount, 0), 3),
-            };
-          });
-
-          setTerms(newTerms);
-        }
-
-        // CHANGED: fetch dedicated term progress endpoint so exact backend counts overwrite fallback data
-        await fetchTermProgress();
-      } else {
-        console.error(`[ChatScreen] Failed to get chatbot for module ${props.moduleID}`);
-        props.setChatbotId(undefined);
-      }
-    };
-    loadChatbot();
-  }, [props.moduleID, user?.jwt, termsLoaded]); // CHANGED: kept dependencies simple to avoid render loops
-
-  useEffect(() => {
     setChatMessages([]);
 
+    const welcomeMessageVal = props.titoWelcomeMessage || `Hi ${user?.username}, let's talk about ${props.moduleName || 'this topic'}! I'm Tito. Try to use each word from the vocabulary list at least 3 times. I'll help you practice.`;
+
     const instructionMessage: ChatMessage = props.moduleID !== -1 ? {
-      value: `Hi ${user?.username}, let's talk about ${props.moduleName || 'this topic'}! I'm Tito. Try to use each word from the vocabulary list at least 3 times. I'll help you practice.`,
+      value: welcomeMessageVal,
       timestamp: "",
       source: "llm",
       metadata: undefined
@@ -1288,7 +1292,7 @@ export default function ChatScreen(props: propsInterface) {
       }
     };
     loadMessages();
-  }, [props.chatbotId, props.moduleID, user, userLoading]);
+  }, [props.chatbotId, props.moduleID, user, userLoading, props.titoWelcomeMessage, props.moduleName]);
 
   // Persist module progress to localStorage whenever it changes
   useEffect(() => {
@@ -1334,27 +1338,20 @@ export default function ChatScreen(props: propsInterface) {
     }
   }, [titoMood, fullPlaceholder]);
 
-  // Lore startup messages disabled per sponsor feedback
-  /*
+  //Used to update averageScore
   useEffect(() => {
-    setMessage("I… I think I’ve lost my memories.");
-    setTrigger(Date.now());
-
-    const timer = setTimeout(() => {
-      setMessage("Can you talk with me in different languages to help me remember them?");
-      setTrigger(Date.now());
-    }, 8000);
-
-    return () => clearTimeout(timer);
-  }, []);
-  */
-
-
+    const messagesWithScore = chatMessages.filter(message => message.metadata?.score !== undefined);
+    const averageScore = 
+        messagesWithScore.length > 0 ? 
+        messagesWithScore.reduce((sum, msg) => sum + (msg.metadata?.score || 0), 0) / messagesWithScore.length 
+        : 0;
+    props.setAverageScore(averageScore);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatMessages]);
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden relative">
       {showFireworks && <Fireworks />}
-      {/*Outer container div*/}
       <Image
         src={background}
         className="absolute inset-0 w-full h-full object-cover z-0"
@@ -1365,36 +1362,29 @@ export default function ChatScreen(props: propsInterface) {
         draggable={false} 
         alt="Decorative palm tree" 
       />
-      {/*<button className="absolute right-0 top-0 z-[1000] w-[5%] h-[5%] bg-red-500 opacity-50 hover:opacity-100" onClick={handleTestClick}/>*/}
-           {/* Main content area */}
-           <div className="flex flex-1 min-h-0 relative z-20">
-            <div className="flex w-full flex-grow">
-            {/* Left + center area */}
-            <div className="flex flex-grow min-w-0 min-h-0 flex-col">
-              {/* Mobile vocab panel */}
-                {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-                  <div className="lg:hidden w-full flex justify-center pt-2 px-2 shrink-0">
-                    <div className="w-full max-w-[260px]">
-                      <VocabList 
-                        wordsFront={terms.map(term => term.questionFront)} 
-                        wordsBack={terms.map(term => term.questionBack)} 
-                        usageCounts={terms.map(term => term.usageCount)} 
-                        progress={progress}
-                        termIDs={terms.map(t => t.termID)}
-                        masteredTermIDs={masteredTermIDs}
-                      />
-                    </div>
-                  </div>
-                )}      
+      <div className="flex flex-1 min-h-0 relative z-20">
+        <div className="flex w-full flex-grow">
+          <div className="flex flex-grow min-w-0 min-h-0 flex-col">
+            {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
+              <div className="lg:hidden w-full flex justify-center pt-2 px-2 shrink-0">
+                <div className="w-full max-w-[260px]">
+                  <VocabList 
+                    wordsFront={terms.map(term => term.questionFront)} 
+                    wordsBack={terms.map(term => term.questionBack)} 
+                    usageCounts={terms.map(term => term.usageCount)} 
+                    progress={progress}
+                    termIDs={terms.map(t => t.termID)}
+                    masteredTermIDs={masteredTermIDs}
+                  />
+                </div>
+              </div>
+            )}      
 
-            {/* Messages area */}
             <div className="flex-1 min-h-0 overflow-y-auto pl-3 pr-0 pt-3 pb-6 md:pl-4 md:pr-0 md:pt-4 md:pb-4">
               <Messages messages={chatMessages} chatFontSize={props.chatFontSize} />
             </div>
 
-            {/* Chat box */}
             <div className="w-full h-[96px] md:h-[120px] bg-[#8C7357] flex shrink-0 relative z-20">
-              {/*Tito Image Div */}
               <div className="relative w-[72px] md:w-[110px] shrink-0 flex items-center justify-center">
                 <Image
                   src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : neutralTito}
@@ -1414,8 +1404,6 @@ export default function ChatScreen(props: propsInterface) {
                     className="w-7 h-7 md:w-7 md:h-7"
                   />
                 </button>
-                {/* Lore bubble disabled per sponsor feedback */}
-                {/* <TitoCloudBubble message={message} trigger={trigger} /> */}
               </div>
 
               <div className="flex-1 flex items-center gap-2 pr-2 pl-1 min-w-0">
@@ -1439,7 +1427,6 @@ export default function ChatScreen(props: propsInterface) {
                   }}
                 />
 
-                {/*Button Container */}
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
@@ -1490,26 +1477,23 @@ export default function ChatScreen(props: propsInterface) {
               </div>
             </div>
           </div>
+
+          {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
+            <div className="hidden lg:block w-[260px] xl:w-80 shrink-0 border-l-4 border-[#6B4F3A]/30">
+              <VocabList
+                wordsFront={terms.map(term => term.questionFront)}
+                wordsBack={terms.map(term => term.questionBack)}
+                usageCounts={terms.map(term => term.usageCount)}
+                progress={progress}
+                termIDs={terms.map(t => t.termID)}
+                masteredTermIDs={masteredTermIDs}
+                onHintClick={handleHintClick}
+                onReset={handleReset}
+              />
+            </div>
+          )}
         </div>
-
-        {/* Right vocab panel for desktops/tablets */}
-        {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-          <div className="hidden lg:block w-[260px] xl:w-80 shrink-0 border-l-4 border-[#6B4F3A]/30">
-            <VocabList
-              wordsFront={terms.map(term => term.questionFront)}
-              wordsBack={terms.map(term => term.questionBack)}
-              usageCounts={terms.map(term => term.usageCount)}
-              progress={progress}
-              termIDs={terms.map(t => t.termID)}
-              masteredTermIDs={masteredTermIDs}
-              onHintClick={handleHintClick}
-              onReset={handleReset}
-            />
-          </div>
-        )}
       </div>
-
     </div>
-  )
-
+  );
 }

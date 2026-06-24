@@ -286,6 +286,20 @@
   font-style: italic;
 }
 
+/* Milder bounce for welcoming Tito character */
+@keyframes milderBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-milderBounce {
+  animation: milderBounce 2s ease-in-out infinite;
+}
+
 @keyframes firework-burst {
   0% {
     transform: translate(0, 0) scale(1);
