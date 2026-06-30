@@ -1,17 +1,36 @@
-"use client"
+"use client";
 
-//React imports
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useUser } from "@/hooks/useAuth";
+// React and Next.js imports
+import { 
+  useState, 
+  useEffect, 
+  useRef, 
+  useCallback 
+} from "react";
+import Image from "next/image";
 import ReactHowler from 'react-howler';
-import UserBackground from "@/components/TalkWithTito/UserBackground";
 
-// Their CSS files
+// Authentication and services
+import { useUser } from "@/hooks/useAuth";
+import { 
+  fetchModules, 
+  fetchSessions, 
+  deleteSession, 
+  getChatbot, 
+  fetchModuleTerms 
+} from "@/services/TitoService";
+
+// Child components
+import ChatScreen from "@/components/TalkWithTito/ChatScreen";
+import AnalyticsMenu from "@/components/TalkWithTito/AnalyticsMenu";
+import UserBackground from "@/components/TalkWithTito/UserBackground";
+import ModuleButton from "@/components/TalkWithTito/ModuleButton";
+import Settings from "@/components/TalkWithTito/Settings";
+
+// Styles
 import "@/public/static/css/style.css";
 import "@/lib/ionicons/css/ionicons.min.css";
 import "@/lib/font-awesome/css/font-awesome.min.css";
-
-// Our CSS files
 import "@/public/static/css/talkwithtito.css";
 
 // Image imports
@@ -27,16 +46,19 @@ import next_button from "@/public/static/images/ConversAItionELLE/next.png";
 import volume_button from "@/public/static/images/ConversAItionELLE/volume.png";
 import mute_button from "@/public/static/images/ConversAItionELLE/mute.png";
 
-// Component imports
-import ModuleButton from "@/components/TalkWithTito/ModuleButton";
-import Settings from "@/components/TalkWithTito/Settings";
+interface Module {
+  moduleID: number;
+  name: string;
+  language: string;
+  isTitoEnabled?: boolean;
+  classID?: number; // Track which class this module belongs to
+  titoWelcomeMessage?: string;
+}
 
-//Import frontend API calls
-import { fetchModules, fetchSessions, deleteSession, getChatbot, fetchModuleTerms } from "@/services/TitoService";
-
-import Image from "next/image";
-import ChatScreen from "@/components/TalkWithTito/ChatScreen";
-import AnalyticsMenu from "@/components/TalkWithTito/AnalyticsMenu";
+interface Song {
+  name: string;
+  path: string;
+}
 
 // Music List
 const songList = [ 
@@ -53,7 +75,6 @@ const songList = [
 ];
 
 export default function TalkWithTito() {
-
   const titoStatements: string[] = ['Tito is creating a new dish...', 'Tito is freshening up...', 'Tito is taking a nap...'];
   const titoStatementsRef = useRef<string[]>(titoStatements);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -80,6 +101,7 @@ export default function TalkWithTito() {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Close the conversation dropdown when clicking outside it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -98,53 +120,44 @@ export default function TalkWithTito() {
     };
   }, [dropdownOpen]);
 
-  interface Module {
-    moduleID: number;
-    name: string;
-    language: string;
-    isTitoEnabled?: boolean;
-    classID?: number; // Track which class this module belongs to
-    titoWelcomeMessage?: string;
-  }
+  
+  const [modules, setModules] = useState<Module[] | null>(null);
 
-  interface Song {
-    name: string;
-    path: string;
-  }
-
-  const [modules, setModules] = useState<Module[] | null>(
-    // [{moduleID: 1, name: "Test module", language: "Spanish"}]
-  );
-
-  // Handles tito transitions
+  // Animate Tito between the loading and ready states
   const handleTransition = () => {
-    // Tito fade in and out
     setIsFading(true);
 
-    //Tito pop in
     setTimeout(() => {
-      // if (user?.userID === 1 || user?.userID === 445){
-        setIsLoading(!isLoading);
-      // }
-      setIsFading(false); // Restore opacity
+      setIsLoading((previousLoadingState) => !previousLoadingState);
+      setIsFading(false);
     }, 700);
 
   };
 
+  /* Load modules that have Tito enabled */
   useEffect(() => {
-    if (!userLoading && user) {
-      const loadModules = async () => {
-        const allModules = await fetchModules(user?.jwt);
-        // Filter to only show Tito-enabled modules
-        const titoModules = allModules?.filter(m => m.isTitoEnabled) || [];
-        console.log('[TalkWithTito] Loaded modules:', { total: allModules?.length, titoEnabled: titoModules.length });
-        setModules(titoModules);
-      };
-      loadModules();
-      // if (user?.userID === 1 || user?.userID === 445){
-        setIsLoading(false);
-      // }
+    if (userLoading || !user) {
+      return;
     }
+
+    const loadModules = async () => {
+      const allModules = await fetchModules(user.jwt);
+
+      const titoModules =
+        allModules?.filter(
+          (module) => module.isTitoEnabled
+        ) ?? [];
+
+      console.log("[TalkWithTito] Loaded modules:", {
+        total: allModules?.length,
+        titoEnabled: titoModules.length,
+      });
+
+      setModules(titoModules);
+      setIsLoading(false);
+    };
+
+    void loadModules();
   }, [user, userLoading]);
 
   // Handles play button click
@@ -153,8 +166,7 @@ export default function TalkWithTito() {
   };
 
   const openSettings = () => {
-    setSettingsOpen(!settingsOpen);
-    return;
+    setSettingsOpen((previousState) => !previousState);
   };
 
   const handleExitClick = () => {
@@ -162,15 +174,18 @@ export default function TalkWithTito() {
   };
 
   const handleModuleClick = (moduleId: number) => {
-    if(selectedModule === moduleId) {
-      setDropdownOpen(!dropdownOpen);
+    if (selectedModule === moduleId) {
+      setDropdownOpen((previousState) => !previousState);
+      return;
     }
-    else {
-      console.log(`[TalkWithTito] Switching to module ${moduleId}, resetting chatbot session`);
-      setSelectedModule(moduleId);
-      setChatbotId(undefined); // Reset chatbot session when switching modules
-      setDropdownOpen(true);
-    }
+  
+    console.log(
+      `[TalkWithTito] Switching to module ${moduleId}, resetting chatbot session`
+    );
+  
+    setSelectedModule(moduleId);
+    setChatbotId(undefined);
+    setDropdownOpen(true);
   };
 
   const loadSessionsList = useCallback(async (moduleId: number) => {
@@ -197,82 +212,156 @@ export default function TalkWithTito() {
     }
   }, [selectedModule, loadSessionsList]);
 
-  const handleStartNewConversation = async (moduleId: number) => {
-    if (!user || userLoading || isCreatingSession) return;
+
+  // Start a new conversation for the selected module 
+  const handleStartNewConversation = async (
+    moduleId: number
+  ) => {
+    if (!user || userLoading || isCreatingSession) {
+      return;
+    }
+
     setIsCreatingSession(true);
+
     try {
-      console.log(`[TalkWithTito] Creating new conversation for module ${moduleId}`);
+      console.log(
+        `[TalkWithTito] Creating new conversation for module ${moduleId}`
+      );
+
       let termsList: any[] = [];
+
       if (moduleId !== -1) {
-        const fetchedTerms = await fetchModuleTerms(user.jwt, moduleId);
+        const fetchedTerms = await fetchModuleTerms(
+          user.jwt,
+          moduleId
+        );
+
         if (fetchedTerms) {
-          termsList = fetchedTerms.map(term => ({
+          termsList = fetchedTerms.map((term) => ({
             termID: term.termID,
             questionFront: term.questionFront,
             questionBack: term.questionBack,
-            used: false
+            used: false,
           }));
         }
       }
       
-      const newChatbot = await getChatbot(user.jwt, user.userID, moduleId, termsList);
-      if (newChatbot) {
-        console.log(`[TalkWithTito] New chatbot created: ${newChatbot.chatbotId}`);
-        setChatbotId(newChatbot.chatbotId);
-        loadSessionsList(moduleId);
-        setDropdownOpen(false); // Close dropdown on new session success
-      } else {
-        alert("Failed to start a new conversation. Please try again.");
+      const newChatbot = await getChatbot(
+        user.jwt,
+        user.userID,
+        moduleId,
+        termsList
+      );
+  
+      if (!newChatbot) {
+        alert(
+          "Failed to start a new conversation. Please try again."
+        );
+        return;
       }
-    } catch (err) {
-      console.error("[TalkWithTito] Error starting new conversation:", err);
-      alert("An error occurred while creating a new conversation.");
+  
+      console.log(
+        `[TalkWithTito] New chatbot created: ${newChatbot.chatbotId}`
+      );
+  
+      setChatbotId(newChatbot.chatbotId);
+      void loadSessionsList(moduleId);
+      setDropdownOpen(false);
+    } catch (error) {
+      console.error(
+        "[TalkWithTito] Error starting new conversation:",
+        error
+      );
+  
+      alert(
+        "An error occurred while creating a new conversation."
+      );
     } finally {
       setIsCreatingSession(false);
     }
   };
 
-  const handleDeleteSession = async (e: React.MouseEvent, chatbotSID: number) => {
-    e.stopPropagation();
-    if (!user) return;
-    const confirmDelete = window.confirm("Are you sure you want to delete this conversation? This will permanently delete all messages in this chat.");
-    if (!confirmDelete) return;
-    
+
+  // Delete a saved conversation and refresh the session list
+  const handleDeleteSession = async (
+    event: React.MouseEvent,
+    chatbotSID: number
+  ) => {
+    event.stopPropagation();
+
+    if (!user) {
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this conversation? " +
+        "This will permanently delete all messages in this chat."
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
     try {
-      console.log(`[TalkWithTito] Deleting session ${chatbotSID}`);
-      const success = await deleteSession(user.jwt, chatbotSID);
-      if (success) {
-        console.log(`[TalkWithTito] Session ${chatbotSID} deleted successfully`);
-        if (chatbotId === chatbotSID) {
-          setChatbotId(undefined);
-        }
-        loadSessionsList(selectedModule);
-      } else {
+      console.log(
+        `[TalkWithTito] Deleting session ${chatbotSID}`
+      );
+
+      const success = await deleteSession(
+        user.jwt,
+        chatbotSID
+      );
+
+      if (!success) {
         alert("Failed to delete the conversation.");
+        return;
       }
-    } catch (err) {
-      console.error("[TalkWithTito] Error deleting session:", err);
-      alert("An error occurred while deleting the conversation.");
+
+      console.log(
+        `[TalkWithTito] Session ${chatbotSID} deleted successfully`
+      );
+
+      if (chatbotId === chatbotSID) {
+        setChatbotId(undefined);
+      }
+
+      void loadSessionsList(selectedModule);
+    } catch (error) {
+      console.error(
+        "[TalkWithTito] Error deleting session:",
+        error
+      );
+
+      alert(
+        "An error occurred while deleting the conversation."
+      );
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "Unknown Date";
+
+ // Format a conversation timestamp for display
+  const formatDate = (dateString: string) => {
+    if (!dateString) {
+      return "Unknown Date";
+    }
+
     try {
-      const date = new Date(dateStr);
+      const date = new Date(dateString);
+
       return date.toLocaleDateString(undefined, {
-        month: 'numeric',
-        day: 'numeric',
-        year: '2-digit',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
+        month: "numeric",
+        day: "numeric",
+        year: "2-digit",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
       });
-    } catch (e) {
-      return dateStr;
+    } catch {
+      return dateString;
     }
   };
 
+  // Render saved conversations for the selected module 
   const renderSessionsDropdown = (moduleId: number) => {
     return (
       <div 
@@ -328,33 +417,41 @@ export default function TalkWithTito() {
     );
   };
 
-  // Cycle through Tito Statements
-  const [statement, setStatement] = useState<string>(titoStatementsRef.current[0]);
-  const [index, setIndex] = useState<number>(1);
+  // Rotate Tito's loading messages every four seconds
+  const [statement, setStatement] = useState(
+    titoStatementsRef.current[0]
+  );
+  const [statementIndex, setStatementIndex] = useState(1);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setStatement(titoStatementsRef.current[index]);
-      setIndex((prev) => (prev + 1) % titoStatementsRef.current.length);
+      setStatement(
+        titoStatementsRef.current[statementIndex]
+      );
+
+      setStatementIndex(
+        (previousIndex) =>
+          (previousIndex + 1) %
+          titoStatementsRef.current.length
+      );
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [index]);
+  }, [statementIndex]);
 
-
-
-  // Music 
-
+  /* Music playback state */
   const [playlist, setPlaylist] = useState<Song[]>([]);
-  const [volume, setVolume] = useState(0.4); // Set volume to be changeable by user later
-  const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
+  const [volume, setVolume] = useState(0.4);
+  const [currentSongIndex, setCurrentSongIndex] =
+    useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+
   const howlerRef = useRef<ReactHowler>(null);
 
-  // Ensure currentSongIndex does not break React
-  const currentSong = playlist[currentSongIndex] || null;
+  const currentSong =
+    playlist[currentSongIndex] ?? null;
 
-  // Function to set playlist, start song, and close
+  // Apply either Tito's music choice or the user's selected playlist
   const handlePlaylist = (songs: Song[]) => {
     if(AIChoice){
       handleAIMusic()
@@ -367,88 +464,72 @@ export default function TalkWithTito() {
       setIsPlaying(true)
     }
   };
-
-  useEffect(() => {
-    if (playlist.length > 0 && currentSongIndex >= 0 && isPlaying) {
-      setIsPlaying(true); // Ensure playback starts once the song and playlist are updated
-    }
-  }, [playlist, currentSongIndex, isPlaying]);
   
-  // Stops music, sets new song, and restarts music after a second
+  // Advance to the next song in the active playlist 
   const handleNextSong = () => {
-    setIsPlaying(false)
-    setCurrentSongIndex((prev) => {
-      const nextIndex = (prev + 1) % playlist.length;
-      return nextIndex;
+    setIsPlaying(false);
+
+    setCurrentSongIndex((previousIndex) => {
+      return (previousIndex + 1) % playlist.length;
     });
+
     setTimeout(() => {
-      setIsPlaying(true); 
-    }, 100); 
+      setIsPlaying(true);
+    }, 100);
   };
 
-  // Toggle music playing
+  /* Pause or resume the current song */
   const togglePlayPause = () => {
-    setIsPlaying((prev) => !prev);
+    setIsPlaying((previousState) => !previousState);
   };
 
-  const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVolume(parseFloat(e.target.value));
-  }
+  const handleVolume = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setVolume(Number.parseFloat(event.target.value));
+  };
 
   const handleMute = () => {
-    setVolume(0.0)
-  }
+    setVolume(0);
+  };
 
-  // Font Size
-  const [chatFont, setChatFont] = useState<string>("");
+  // Chat message font-size settings
+  const [chatFont, setChatFont] = useState("");
 
-    const handleFontSize = (chatFont:string) => {
-      setChatFont(() => {
-        setUserChatFont(chatFont)
-        let newFont = "14px"; // Default value
-    
-        if (chatFont === "small") {
-          newFont = "14px";
-        } else if (chatFont === "medium") {
-          newFont = "18px";
-        } else if (chatFont === "large") {
-          newFont = "20px";
-        } else {
-          newFont = "24px";
-        }
-        return newFont;
-      });
+  const handleFontSize = (fontChoice: string) => {
+    setUserChatFont(fontChoice);
+
+    let newFontSize = "24px";
+
+    if (fontChoice === "small") {
+      newFontSize = "14px";
+    } else if (fontChoice === "medium") {
+      newFontSize = "18px";
+    } else if (fontChoice === "large") {
+      newFontSize = "20px";
     }
 
-    // Handle music chosen by Tito
+    setChatFont(newFontSize);
+  };
+
+    /* Apply the music file selected by Tito */
     const handleAIMusic = () => {
-      console.log("AI called")
-      const titoChoice = "/elle/TitoAudios/" + userMusicFilepath
-      console.log(titoChoice)
-      const songChoice = songList.filter((song) => titoChoice.includes(song.path));
-      const songIndex = songList.findIndex((song) => song.path === titoChoice);
-      console.log(songIndex)
-      console.log(songChoice);
+      const titoChoice =
+        `/elle/TitoAudios/${userMusicFilepath}`;
+
+      const songChoice = songList.filter((song) =>
+        titoChoice.includes(song.path)
+      );
+
       setPlaylist(songChoice);
-    }
+    };
 
-    // useEffect(()=>{
-    //   console.log(AIChoice)
-    //   console.log(userMusicFilepath)
-    // },[userMusicFilepath])
-
-    // Music Credit dropdown
-    const [triangle, setTriangle] = useState("▼")
+    /* Show or hide the music credits */
     const toggleDropdown = () => {
-      setOpen(!open);
-      if (!open){
-        setTriangle("▲")
-      }
-      else{
-        setTriangle("▼")
-      }
-      
-    }
+      setOpen((previousState) => !previousState);
+    };
+
+    const creditsArrow = open ? "▲" : "▼";
   
     return (
       <div className="talkwithtito-body flex flex-col items-center w-full min-h-screen">
@@ -471,11 +552,9 @@ export default function TalkWithTito() {
                 onSetPlaylist={handlePlaylist}
                 onSetFont={handleFontSize}
                 onSetAIChoice={setAIChoice}
-                // onSetTtsMuted={setTtsMuted}
                 parentPlaylist = {playlist} 
                 parentFont = {userChatFont}
                 titoMusicChoice={AIChoice}
-                // ttsMuted={ttsMuted}
               />
             )}
             {!playClicked ? (
@@ -741,7 +820,7 @@ export default function TalkWithTito() {
                 className="text-lg sm:text-xl md:text-2xl p-2 max-w-full whitespace-normal break-words leading-tight"
                 onClick={toggleDropdown}
               >
-                Music Credits (Pixabay) {triangle}
+                Music Credits (Pixabay) {creditsArrow}
               </button>
             </div>
 

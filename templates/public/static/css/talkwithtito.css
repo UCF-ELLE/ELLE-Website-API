@@ -1,4 +1,4 @@
-/* Tailwinds imports */
+/* Tailwind imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -31,8 +31,7 @@
 }
 
 
-/* Palm Tree Background */
-
+/* Talking with Tito page background */
 .talkwithtito-body {
   /* Full viewport height */
   background-image: url('../images/ConversAItionELLE/trees.png');
@@ -48,7 +47,6 @@
   margin-top: 5em;
   width: 1100px;
   height: 650px;
-  margin-bottom: 5em;
   display: flex;
   justify-content: center;
   margin-bottom: 50px;
@@ -193,8 +191,7 @@
   visibility: visible;
 }
 
-/* Info Boxes (Probably want to do vw at with media query for mobile) */
-
+/* Description, credits, and image-credit boxes */
 .info-container {
   display: flex;
   justify-content: center;
@@ -256,7 +253,7 @@
     2px -2px 0 rgba(0, 0, 0, 0.300),
     -2px 2px 0 rgba(0, 0, 0, 0.300),
     2px 2px 0 black;
-  text-align: center
+  text-align: center;
 }
 
 .inter-font h3 {
