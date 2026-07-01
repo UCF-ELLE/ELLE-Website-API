@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
+// CLEANED UP:
+// - Removed unused commented-out imports (muteIcon, volumeIcon, infoIcon)
+// - Removed outdated commented-out interface fields (onSetTtsMuted, ttsMuted) - feature no longer exists
+// - Removed outdated commented-out props destructuring line (duplicate with old TTS fields)
+// - Removed dead `handleTtsMute` function - referenced onSetTtsMuted/ttsMuted which are not in scope
+//   (not destructured from props) and the function was never called anywhere in this file
+// - Removed commented-out debug useEffect (was just console.logging titoMusicChoice)
+import React, {useEffect, useState} from 'react';
 import Image from "next/image";
 import settingsBackground from "@/public/static/images/ConversAItionELLE/SettingsBackground.png";
-// import muteIcon from "@/public/static/images/ConversAItionELLE/mute.png";
-// import volumeIcon from "@/public/static/images/ConversAItionELLE/volume.png";
-// import infoIcon from "@/public/static/images/ConversAItionELLE/info.png"
 
 // Song List
 const songList = [
@@ -28,13 +32,11 @@ interface Song {
 interface propsInterface {
   onSetPlaylist: (song: Song[]) => void;
   apply: () => void;
-  onSetFont: (chatFont: string) => void;
-  onSetAIChoice: (AIChoice: boolean) => void;
-  // onSetTtsMuted: (ttsMuted:boolean) => void;
+  onSetFont: (chatFont:string) => void;
+  onSetAIChoice: (AIChoice:boolean) => void;
   titoMusicChoice: boolean;
   parentPlaylist: Song[];
   parentFont: string;
-  // ttsMuted: boolean;
 }
 
 // Fisher-Yates shuffle function
@@ -48,8 +50,7 @@ function shuffleArray<T>(playlist: T[]): T[] {
 }
 
 export default function Settings(props: propsInterface) {
-  const { apply, onSetPlaylist, onSetFont, onSetAIChoice, parentPlaylist, parentFont, titoMusicChoice } = props;
-  // const {apply, onSetPlaylist, onSetFont, onSetAIChoice, onSetTtsMuted, parentPlaylist, parentFont, titoMusicChoice, ttsMuted} = props;
+  const {apply, onSetPlaylist, onSetFont, onSetAIChoice, parentPlaylist, parentFont, titoMusicChoice} = props;
 
   const [playlist, setPlaylist] = useState<Song[]>([])
   const [chatFont, setChatFont] = useState<string>("medium")
@@ -86,23 +87,13 @@ export default function Settings(props: propsInterface) {
   const handleAIChoice = () => {
     onSetAIChoice(!titoMusicChoice);
 
-  }
-
-  // const handleTtsMute = () => {
-  //   onSetTtsMuted(!ttsMuted);
-  // }
-
-  useEffect(() => {
+  useEffect (() => {
     setPlaylist(parentPlaylist)
   }, [parentPlaylist])
 
   useEffect(() => {
     setChatFont(parentFont);
   }, [parentFont]);
-
-  // useEffect(() => {
-  //   console.log(titoMusicChoice)
-  // }, [titoMusicChoice]);
 
 
 

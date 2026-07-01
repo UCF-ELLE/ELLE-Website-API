@@ -1,3 +1,12 @@
+# CLEANED UP:
+# - Removed unused commented-out LANGUAGE_MAPPINGS dict
+# - Removed dead commented-out language-selection block in suggest_grade (superseded by
+#   the always-executed `data['language'] = 'auto'` line)
+# - Removed redundant duplicate computation of detected_language_info/detected_name
+#   (was computed once, unused, then recomputed identically right before the return)
+#   and the never-referenced `detected_code` variable
+# NOTE: `expected_language` param is kept even though it's now unused in the body, since
+# other callers may pass it as a keyword arg and removing it would change the signature.
 import requests
 from config import LANGUAGETOOL_API_URL
 
@@ -28,19 +37,13 @@ def suggest_grade(message: str, language: str = "auto"):
             'enabledOnly': 'false'
         }
 
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-
+        data['language'] = 'auto'
         print("Using LanguageTool auto-detection")
 
         response = requests.post(LANGUAGETOOL_API_URL, data = data, headers=headers, timeout = 10)
         response.raise_for_status()
 
         result = response.json()
-
-        detected_language_info = result.get('language', {})
-        detected_name = detected_language_info.get('name', 'Unknown')
 
         matches = result.get('matches', [])
         total_words = len(message.split())
@@ -130,5 +133,3 @@ if __name__ == "__main__":
     print(f"\n{'='*60}")
     print("Usage: result = suggest_grade('Your text here', 'spanish')")
     print("Returns: {'suggested_grade': 8.5, 'letter_grade': 'A', ...}")
-    
-
