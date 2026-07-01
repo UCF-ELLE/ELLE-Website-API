@@ -44,6 +44,8 @@ user_audio_files/*
 LanguageTool-6.4/
 llama.cpp/
 temp_exports/
+.next/
+LanguageTool-6.9-SNAPSHOT/
 
 # Game related files
 *.data
