@@ -93,6 +93,7 @@ export type DBModule = {
     complexity?: number;
     userID: number;
     isPastaModule?: boolean;
+    titoWelcomeMessage?: string;
 };
 
 export type DBTag = {

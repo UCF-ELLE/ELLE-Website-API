@@ -1,17 +1,36 @@
-"use client"
+"use client";
 
-//React imports
-import { useState, useEffect, useRef } from "react";
-import { useUser } from "@/hooks/useAuth";
+// React and Next.js imports
+import { 
+  useState, 
+  useEffect, 
+  useRef, 
+  useCallback 
+} from "react";
+import Image from "next/image";
 import ReactHowler from 'react-howler';
-import UserBackground from "@/components/TalkWithTito/UserBackground";
 
-// Their CSS files
+// Authentication and services
+import { useUser } from "@/hooks/useAuth";
+import { 
+  fetchModules, 
+  fetchSessions, 
+  deleteSession, 
+  getChatbot, 
+  fetchModuleTerms 
+} from "@/services/TitoService";
+
+// Child components
+import ChatScreen from "@/components/TalkWithTito/ChatScreen";
+import AnalyticsMenu from "@/components/TalkWithTito/AnalyticsMenu";
+import UserBackground from "@/components/TalkWithTito/UserBackground";
+import ModuleButton from "@/components/TalkWithTito/ModuleButton";
+import Settings from "@/components/TalkWithTito/Settings";
+
+// Styles
 import "@/public/static/css/style.css";
 import "@/lib/ionicons/css/ionicons.min.css";
 import "@/lib/font-awesome/css/font-awesome.min.css";
-
-// Our CSS files
 import "@/public/static/css/talkwithtito.css";
 
 // Image imports
@@ -27,16 +46,19 @@ import next_button from "@/public/static/images/ConversAItionELLE/next.png";
 import volume_button from "@/public/static/images/ConversAItionELLE/volume.png";
 import mute_button from "@/public/static/images/ConversAItionELLE/mute.png";
 
-// Component imports
-import ModuleButton from "@/components/TalkWithTito/ModuleButton";
-import Settings from "@/components/TalkWithTito/Settings";
+interface Module {
+  moduleID: number;
+  name: string;
+  language: string;
+  isTitoEnabled?: boolean;
+  classID?: number; // Track which class this module belongs to
+  titoWelcomeMessage?: string;
+}
 
-//Import frontend API calls
-import { fetchModules } from "@/services/TitoService";
-
-import Image from "next/image";
-import ChatScreen from "@/components/TalkWithTito/ChatScreen";
-import AnalyticsMenu from "@/components/TalkWithTito/AnalyticsMenu";
+interface Song {
+  name: string;
+  path: string;
+}
 
 // Music List
 const songList = [ 
@@ -53,7 +75,6 @@ const songList = [
 ];
 
 export default function TalkWithTito() {
-
   const titoStatements: string[] = ['Tito is creating a new dish...', 'Tito is freshening up...', 'Tito is taking a nap...'];
   const titoStatementsRef = useRef<string[]>(titoStatements);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -74,52 +95,69 @@ export default function TalkWithTito() {
   const [chatbotId, setChatbotId] = useState<number>();
   const [open, setOpen] = useState(false);
 
-  interface Module {
-    moduleID: number;
-    name: string;
-    language: string;
-    isTitoEnabled?: boolean;
-    classID?: number; // Track which class this module belongs to
-  }
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState<boolean>(false);
+  const [isCreatingSession, setIsCreatingSession] = useState<boolean>(false);
+  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  interface Song {
-    name: string;
-    path: string;
-  }
+  // Close the conversation dropdown when clicking outside it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        const target = event.target as HTMLElement;
+        if (target.closest('.module-button-container')) {
+          return;
+        }
+        setDropdownOpen(false);
+      }
+    };
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownOpen]);
 
-  const [modules, setModules] = useState<Module[] | null>(
-    // [{moduleID: 1, name: "Test module", language: "Spanish"}]
-  );
+  
+  const [modules, setModules] = useState<Module[] | null>(null);
 
-  // Handles tito transitions
+  // Animate Tito between the loading and ready states
   const handleTransition = () => {
-    // Tito fade in and out
     setIsFading(true);
 
-    //Tito pop in
     setTimeout(() => {
-      // if (user?.userID === 1 || user?.userID === 445){
-        setIsLoading(!isLoading);
-      // }
-      setIsFading(false); // Restore opacity
+      setIsLoading((previousLoadingState) => !previousLoadingState);
+      setIsFading(false);
     }, 700);
 
   };
 
+  /* Load modules that have Tito enabled */
   useEffect(() => {
-    if (!userLoading && user) {
-      const loadModules = async () => {
-        const allModules = await fetchModules(user?.jwt);
-        // Filter to only show Tito-enabled modules
-        const titoModules = allModules?.filter(m => m.isTitoEnabled) || [];
-        console.log('[TalkWithTito] Loaded modules:', { total: allModules?.length, titoEnabled: titoModules.length });
-        setModules(titoModules);
-      };
-      loadModules();
-      // if (user?.userID === 1 || user?.userID === 445){
-        setIsLoading(false);
-      // }
+    if (userLoading || !user) {
+      return;
     }
+
+    const loadModules = async () => {
+      const allModules = await fetchModules(user.jwt);
+
+      const titoModules =
+        allModules?.filter(
+          (module) => module.isTitoEnabled
+        ) ?? [];
+
+      console.log("[TalkWithTito] Loaded modules:", {
+        total: allModules?.length,
+        titoEnabled: titoModules.length,
+      });
+
+      setModules(titoModules);
+      setIsLoading(false);
+    };
+
+    void loadModules();
   }, [user, userLoading]);
 
   // Handles play button click
@@ -128,8 +166,7 @@ export default function TalkWithTito() {
   };
 
   const openSettings = () => {
-    setSettingsOpen(!settingsOpen);
-    return;
+    setSettingsOpen((previousState) => !previousState);
   };
 
   const handleExitClick = () => {
@@ -137,45 +174,284 @@ export default function TalkWithTito() {
   };
 
   const handleModuleClick = (moduleId: number) => {
-    if(selectedModule === moduleId) {
-      setSelectedModule(-1);
-      setAnalyticsActive(false);
-      setChatbotId(undefined); // Reset chatbot session when deselecting module
+    if (selectedModule === moduleId) {
+      setDropdownOpen((previousState) => !previousState);
+      return;
     }
-    else {
-      console.log(`[TalkWithTito] Switching to module ${moduleId}, resetting chatbot session`);
-      setSelectedModule(moduleId);
-      setChatbotId(undefined); // Reset chatbot session when switching modules
+  
+    console.log(
+      `[TalkWithTito] Switching to module ${moduleId}, resetting chatbot session`
+    );
+  
+    setSelectedModule(moduleId);
+    setChatbotId(undefined);
+    setDropdownOpen(true);
+  };
+
+  const loadSessionsList = useCallback(async (moduleId: number) => {
+    if (!user || userLoading) return;
+    setSessionsLoading(true);
+    try {
+      console.log(`[TalkWithTito] Fetching sessions list for module ${moduleId}`);
+      const sessionList = await fetchSessions(user.jwt, moduleId);
+      if (sessionList) {
+        setSessions(sessionList);
+      }
+    } catch (err) {
+      console.error("[TalkWithTito] Error fetching sessions:", err);
+    } finally {
+      setSessionsLoading(false);
+    }
+  }, [user, userLoading]);
+
+  useEffect(() => {
+    if (selectedModule !== undefined && selectedModule !== null) {
+      setSessions([]);
+      setChatbotId(undefined);
+      loadSessionsList(selectedModule);
+    }
+  }, [selectedModule, loadSessionsList]);
+
+
+  // Start a new conversation for the selected module 
+  const handleStartNewConversation = async (
+    moduleId: number
+  ) => {
+    if (!user || userLoading || isCreatingSession) {
+      return;
+    }
+
+    setIsCreatingSession(true);
+
+    try {
+      console.log(
+        `[TalkWithTito] Creating new conversation for module ${moduleId}`
+      );
+
+      let termsList: any[] = [];
+
+      if (moduleId !== -1) {
+        const fetchedTerms = await fetchModuleTerms(
+          user.jwt,
+          moduleId
+        );
+
+        if (fetchedTerms) {
+          termsList = fetchedTerms.map((term) => ({
+            termID: term.termID,
+            questionFront: term.questionFront,
+            questionBack: term.questionBack,
+            used: false,
+          }));
+        }
+      }
+      
+      const newChatbot = await getChatbot(
+        user.jwt,
+        user.userID,
+        moduleId,
+        termsList
+      );
+  
+      if (!newChatbot) {
+        alert(
+          "Failed to start a new conversation. Please try again."
+        );
+        return;
+      }
+  
+      console.log(
+        `[TalkWithTito] New chatbot created: ${newChatbot.chatbotId}`
+      );
+  
+      setChatbotId(newChatbot.chatbotId);
+      void loadSessionsList(moduleId);
+      setDropdownOpen(false);
+    } catch (error) {
+      console.error(
+        "[TalkWithTito] Error starting new conversation:",
+        error
+      );
+  
+      alert(
+        "An error occurred while creating a new conversation."
+      );
+    } finally {
+      setIsCreatingSession(false);
     }
   };
 
-  // Cycle through Tito Statements
-  const [statement, setStatement] = useState<string>(titoStatementsRef.current[0]);
-  const [index, setIndex] = useState<number>(1);
+
+  // Delete a saved conversation and refresh the session list
+  const handleDeleteSession = async (
+    event: React.MouseEvent,
+    chatbotSID: number
+  ) => {
+    event.stopPropagation();
+
+    if (!user) {
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this conversation? " +
+        "This will permanently delete all messages in this chat."
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      console.log(
+        `[TalkWithTito] Deleting session ${chatbotSID}`
+      );
+
+      const success = await deleteSession(
+        user.jwt,
+        chatbotSID
+      );
+
+      if (!success) {
+        alert("Failed to delete the conversation.");
+        return;
+      }
+
+      console.log(
+        `[TalkWithTito] Session ${chatbotSID} deleted successfully`
+      );
+
+      if (chatbotId === chatbotSID) {
+        setChatbotId(undefined);
+      }
+
+      void loadSessionsList(selectedModule);
+    } catch (error) {
+      console.error(
+        "[TalkWithTito] Error deleting session:",
+        error
+      );
+
+      alert(
+        "An error occurred while deleting the conversation."
+      );
+    }
+  };
+
+
+ // Format a conversation timestamp for display
+  const formatDate = (dateString: string) => {
+    if (!dateString) {
+      return "Unknown Date";
+    }
+
+    try {
+      const date = new Date(dateString);
+
+      return date.toLocaleDateString(undefined, {
+        month: "numeric",
+        day: "numeric",
+        year: "2-digit",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Render saved conversations for the selected module 
+  const renderSessionsDropdown = (moduleId: number) => {
+    return (
+      <div 
+        ref={dropdownRef}
+        className="absolute top-[102%] left-[5%] w-[90%] bg-stone-900/95 backdrop-blur-md border border-white/20 shadow-2xl rounded-xl p-3 z-50 flex flex-col items-center transition-all duration-200 ease-out animate-fadeIn"
+      >
+        <button
+          onClick={() => handleStartNewConversation(moduleId)}
+          disabled={isCreatingSession}
+          className="w-full bg-[#997c54] hover:bg-[#816031] disabled:bg-stone-800 disabled:text-white/40 border border-white/10 text-white rounded-lg py-1.5 mb-2 text-xs font-semibold text-center hover:cursor-pointer transition-all flex items-center justify-center gap-1.5 irish-grover shadow-md"
+        >
+          {isCreatingSession ? "Creating..." : "➕ New Chat"}
+        </button>
+
+        <div className="w-full flex flex-col items-center max-h-[160px] overflow-y-auto scrollbar-thin gap-1">
+          {sessionsLoading ? (
+            <div className="text-[10px] text-white/50 py-2 flex items-center gap-1.5">
+              <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              <span>Loading chats...</span>
+            </div>
+          ) : sessions.length === 0 ? (
+            <div className="text-[10px] text-white/40 italic py-2">No previous chats.</div>
+          ) : (
+            sessions.map((session) => (
+              <div
+                key={session.chatbotSID}
+                onClick={() => {
+                  setChatbotId(session.chatbotSID);
+                  setDropdownOpen(false);
+                }}
+                className={`flex justify-between items-center w-full p-2 pl-3 rounded-lg text-[11px] transition-all cursor-pointer border
+                            ${chatbotId === session.chatbotSID 
+                              ? "bg-white/20 border-white/30 font-bold" 
+                              : "bg-white/5 border-transparent hover:bg-white/15"}`}
+              >
+                <div className="flex flex-col text-left">
+                  <span className="text-white font-semibold">Chat #{session.chatbotSID}</span>
+                  <span className="text-white/50 text-[8px] mt-0.5">{formatDate(session.creationTimestamp)}</span>
+                </div>
+                
+                <button
+                  onClick={(e) => handleDeleteSession(e, session.chatbotSID)}
+                  className="p-1 rounded text-white/40 hover:text-red-400 hover:bg-white/10 transition-colors"
+                  title="Delete chat"
+                >
+                  <span className="text-[10px]">🗑️</span>
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Rotate Tito's loading messages every four seconds
+  const [statement, setStatement] = useState(
+    titoStatementsRef.current[0]
+  );
+  const [statementIndex, setStatementIndex] = useState(1);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setStatement(titoStatementsRef.current[index]);
-      setIndex((prev) => (prev + 1) % titoStatementsRef.current.length);
+      setStatement(
+        titoStatementsRef.current[statementIndex]
+      );
+
+      setStatementIndex(
+        (previousIndex) =>
+          (previousIndex + 1) %
+          titoStatementsRef.current.length
+      );
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [index]);
+  }, [statementIndex]);
 
-
-
-  // Music 
-
+  /* Music playback state */
   const [playlist, setPlaylist] = useState<Song[]>([]);
-  const [volume, setVolume] = useState(0.4); // Set volume to be changeable by user later
-  const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
+  const [volume, setVolume] = useState(0.4);
+  const [currentSongIndex, setCurrentSongIndex] =
+    useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+
   const howlerRef = useRef<ReactHowler>(null);
 
-  // Ensure currentSongIndex does not break React
-  const currentSong = playlist[currentSongIndex] || null;
+  const currentSong =
+    playlist[currentSongIndex] ?? null;
 
-  // Function to set playlist, start song, and close
+  // Apply either Tito's music choice or the user's selected playlist
   const handlePlaylist = (songs: Song[]) => {
     if(AIChoice){
       handleAIMusic()
@@ -188,88 +464,72 @@ export default function TalkWithTito() {
       setIsPlaying(true)
     }
   };
-
-  useEffect(() => {
-    if (playlist.length > 0 && currentSongIndex >= 0 && isPlaying) {
-      setIsPlaying(true); // Ensure playback starts once the song and playlist are updated
-    }
-  }, [playlist, currentSongIndex, isPlaying]);
   
-  // Stops music, sets new song, and restarts music after a second
+  // Advance to the next song in the active playlist 
   const handleNextSong = () => {
-    setIsPlaying(false)
-    setCurrentSongIndex((prev) => {
-      const nextIndex = (prev + 1) % playlist.length;
-      return nextIndex;
+    setIsPlaying(false);
+
+    setCurrentSongIndex((previousIndex) => {
+      return (previousIndex + 1) % playlist.length;
     });
+
     setTimeout(() => {
-      setIsPlaying(true); 
-    }, 100); 
+      setIsPlaying(true);
+    }, 100);
   };
 
-  // Toggle music playing
+  /* Pause or resume the current song */
   const togglePlayPause = () => {
-    setIsPlaying((prev) => !prev);
+    setIsPlaying((previousState) => !previousState);
   };
 
-  const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVolume(parseFloat(e.target.value));
-  }
+  const handleVolume = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setVolume(Number.parseFloat(event.target.value));
+  };
 
   const handleMute = () => {
-    setVolume(0.0)
-  }
+    setVolume(0);
+  };
 
-  // Font Size
-  const [chatFont, setChatFont] = useState<string>("");
+  // Chat message font-size settings
+  const [chatFont, setChatFont] = useState("");
 
-    const handleFontSize = (chatFont:string) => {
-      setChatFont(() => {
-        setUserChatFont(chatFont)
-        let newFont = "14px"; // Default value
-    
-        if (chatFont === "small") {
-          newFont = "14px";
-        } else if (chatFont === "medium") {
-          newFont = "18px";
-        } else if (chatFont === "large") {
-          newFont = "20px";
-        } else {
-          newFont = "24px";
-        }
-        return newFont;
-      });
+  const handleFontSize = (fontChoice: string) => {
+    setUserChatFont(fontChoice);
+
+    let newFontSize = "24px";
+
+    if (fontChoice === "small") {
+      newFontSize = "14px";
+    } else if (fontChoice === "medium") {
+      newFontSize = "18px";
+    } else if (fontChoice === "large") {
+      newFontSize = "20px";
     }
 
-    // Handle music chosen by Tito
+    setChatFont(newFontSize);
+  };
+
+    /* Apply the music file selected by Tito */
     const handleAIMusic = () => {
-      console.log("AI called")
-      const titoChoice = "/elle/TitoAudios/" + userMusicFilepath
-      console.log(titoChoice)
-      const songChoice = songList.filter((song) => titoChoice.includes(song.path));
-      const songIndex = songList.findIndex((song) => song.path === titoChoice);
-      console.log(songIndex)
-      console.log(songChoice);
+      const titoChoice =
+        `/elle/TitoAudios/${userMusicFilepath}`;
+
+      const songChoice = songList.filter((song) =>
+        titoChoice.includes(song.path)
+      );
+
       setPlaylist(songChoice);
-    }
+    };
 
-    // useEffect(()=>{
-    //   console.log(AIChoice)
-    //   console.log(userMusicFilepath)
-    // },[userMusicFilepath])
-
-    // Music Credit dropdown
-    const [triangle, setTriangle] = useState("▼")
+    /* Show or hide the music credits */
     const toggleDropdown = () => {
-      setOpen(!open);
-      if (!open){
-        setTriangle("▲")
-      }
-      else{
-        setTriangle("▼")
-      }
-      
-    }
+      setOpen((previousState) => !previousState);
+    };
+
+    const creditsArrow = open ? "▲" : "▼";
   
     return (
       <div className="talkwithtito-body flex flex-col items-center w-full min-h-screen">
@@ -292,11 +552,9 @@ export default function TalkWithTito() {
                 onSetPlaylist={handlePlaylist}
                 onSetFont={handleFontSize}
                 onSetAIChoice={setAIChoice}
-                // onSetTtsMuted={setTtsMuted}
                 parentPlaylist = {playlist} 
                 parentFont = {userChatFont}
                 titoMusicChoice={AIChoice}
-                // ttsMuted={ttsMuted}
               />
             )}
             {!playClicked ? (
@@ -351,25 +609,56 @@ export default function TalkWithTito() {
             ) : (
               <div className="flex flex-col md:flex-row w-full h-full relative">
                 <div className="music-settings z-50 scale-75 md:scale-100 origin-top-left">
-                  <button onClick={togglePlayPause}>
-                    {isPlaying ? <Image src={pause_button} alt="pause"/>: <Image src={play_button} alt="play"/>}
-                  </button>
-                  <button onClick={handleNextSong}>
-                    <Image src={next_button} alt="next button"/>
-                  </button>
-                  <label htmlFor="volume" style={{ paddingLeft: "1px" }} className="cursor-pointer" onClick={handleMute}>
-                    {volume == 0.0 ? <Image src={mute_button} alt="mute music"/> : <Image src={volume_button} alt="volume control"/>}
-                    </label>
-                  <input
-                    className="volume-slider"
-                    id="volume"
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={volume}
-                    onChange={handleVolume}
-                  />
+                  <div className="music-controls-title irish-grover">
+                    Music Controls:
+                  </div>
+
+                  <div className="music-controls-row">
+                    <button
+                      type="button"
+                      onClick={togglePlayPause}
+                      className="music-control-button"
+                    >
+                      {isPlaying ? (
+                        <Image src={pause_button} alt="Pause music" />
+                      ) : (
+                        <Image src={play_button} alt="Play music" />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleNextSong}
+                      className="music-control-button"
+                    >
+                      <Image src={next_button} alt="Play next song" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleMute}
+                      className="music-control-button"
+                      aria-label={volume === 0 ? "Unmute music" : "Mute music"}
+                    >
+                      {volume === 0 ? (
+                        <Image src={mute_button} alt="" />
+                      ) : (
+                        <Image src={volume_button} alt="" />
+                      )}
+                    </button>
+
+                    <input
+                      className="volume-slider"
+                      id="volume"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={volume}
+                      onChange={handleVolume}
+                      aria-label="Music volume"
+                    />
+                  </div>
                 </div>
 
                 {analyticsActive && (
@@ -415,6 +704,8 @@ export default function TalkWithTito() {
                         setTimeSpent={setTimeSpent} 
                         ttsMuted={ttsMuted}
                         setTtsMuted={setTtsMuted}
+                        sessions={sessions}
+                        titoWelcomeMessage={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.titoWelcomeMessage}
                       />
                     </div>
                   )}
@@ -426,16 +717,21 @@ export default function TalkWithTito() {
                     <div className="flex-1 overflow-hidden flex flex-col">
                       <UserBackground username={user?.username} backgroundFilepath={userBackgroundFilepath} />
                       <div className="w-full flex-1 flex flex-col items-center overflow-y-auto">
-                        <ModuleButton key={-1} moduleName={"Free Chat"} onClick={() => handleModuleClick(-1)} isSelected={selectedModule === -1} />
+                        <div className="w-full relative flex flex-col items-center">
+                          <ModuleButton key={-1} moduleName={"Free Chat"} onClick={() => handleModuleClick(-1)} isSelected={selectedModule === -1} />
+                          {selectedModule === -1 && dropdownOpen && renderSessionsDropdown(-1)}
+                        </div>
                         <div className="w-full py-2 flex justify-center irish-grover text-sm md:text-xl">Assigned modules:</div>
                         <div className="w-full flex flex-col items-center">
                           {modules?.map((module: Module, index) => (
-                            <ModuleButton
-                              key={index}
-                              moduleName={module.name || "Null"}
-                              onClick={() => handleModuleClick(module.moduleID || -1)}
-                              isSelected={module.moduleID === selectedModule}
-                            />
+                            <div key={index} className="w-full relative flex flex-col items-center">
+                              <ModuleButton
+                                moduleName={module.name || "Null"}
+                                onClick={() => handleModuleClick(module.moduleID || -1)}
+                                isSelected={module.moduleID === selectedModule}
+                              />
+                              {selectedModule === module.moduleID && dropdownOpen && renderSessionsDropdown(module.moduleID)}
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -460,53 +756,76 @@ export default function TalkWithTito() {
           </div>
         </div>
   
-        <div className="info-container w-full max-w-6xl mt-8">
-          <div className="info-box inter-font">
-            <h1 className="inter-font">Description</h1>
-            <h3>
+        <div className="w-full max-w-5xl mt-10 md:mt-14 px-4 flex flex-col xl:flex-row gap-4 items-center xl:items-stretch justify-center">
+          <div className="inter-font w-full lg:w-1/2 bg-[#9c7b4f] border-2 border-black rounded-xl p-4 md:p-6 text-white text-center overflow-y-auto">
+            <h1 className="inter-font text-2xl md:text-3xl font-bold mb-3">
+              Description</h1>
+            <h3 className="text-sm md:text-base lg:text-lg mb-3">
               Tito is an AI parrot created to assist learners in developing stronger conversational skills in
               their target language.
             </h3>
-            <p>
+            <p className="text-xs md:text-sm lg:text-base">
               Disclaimer: This chatbot is intended for educational and informational purposes only. While it aims
               to provide accurate and helpful responses, it may not always produce fully accurate or comprehensive
               information.
             </p>
           </div>
-          <div className="info-box inter-font">
-            <h1 className="inter-font mb-4 text-2xl font-bold">Credits</h1>
-            <div className="grid grid-cols-2 gap-8 text-lg">
+
+          <div className="inter-font w-full lg:w-[42%] bg-[#9c7b4f] border-2 border-black rounded-xl p-3 md:p-4 text-white text-center overflow-y-auto">
+            <h1 className="inter-font mb-4 text-2xl md:text-3xl font-bold">
+              Credits</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-sm md:text-base">
               <div>
-                <h2 className="font-semibold mb-2">Part 1</h2>
-                  <h3>John Fletcher Cabreara</h3>
-                  <h3>Layne Mazur</h3>
-                  <h3>Julianne Tomlinson</h3>
-                  <h3>Tina Tran</h3>
-                  <h3>Kylee Weener</h3>
-                  <h3>Logan Witte</h3>
+                <h2 className="font-semibold mb-2 text-lg md:text-xl">Part 1</h2>
+                <h3>John Fletcher Cabreara</h3>
+                <h3>Layne Mazur</h3>
+                <h3>Julianne Tomlinson</h3>
+                <h3>Tina Tran</h3>
+                <h3>Kylee Weener</h3>
+                <h3>Logan Witte</h3>
               </div>
+
               <div>
-                <h2 className="font-semibold mb-2">Part 2</h2>
+                <h2 className="font-semibold mb-2 text-lg md:text-xl">Part 2</h2>
                 <h3>Joshua Jarquin</h3>
                 <h3>Fedor Kudinov</h3>
                 <h3>Rodrigo Peixoto</h3>
                 <h3>Wesley Underwood</h3>
               </div>
+
+              <div>
+                <h2 className="font-semibold mb-2 text-lg md:text-xl">Part 3</h2>
+                <h3>Aneesh Vellanki</h3>
+                <h3>Christian Estrada</h3>
+                <h3>Saymon Rivas</h3>
+                <h3>Sierra Huddle</h3>
+                <h3>Zachary Trenary</h3>
+              </div>
             </div>
           </div>
         </div>
-        <div className="info-container w-full max-w-6xl">
-          <div className="info-box2 inter-font">
-            <h1 className="inter-font">Image Credits</h1>
-            <p>Tito Character Images - Asher Moffitt</p>
-            <p><a href="https://pixabay.com/vectors/leaves-foliage-tree-nature-autumn-6824098/">Leaf Image - Josef Mikulcik (Pixabay)</a></p>
-            <p><a href="https://pixabay.com/vectors/coconut-palm-tree-coconut-tree-tree-7751862/">Palm Trees - Rama Widya (Pixabay)</a></p>
-            <p><a href="https://pixabay.com/vectors/palm-leaves-palm-frond-palm-tree-32531/">Palm Leaves - Clker-Free-Vector-Images (Pixabay)</a></p>
-            <div className="text-center">
-              <button className="text-2xl p-2" onClick={toggleDropdown}>Music Credits (Pixabay) {triangle}</button>
+        <div className="w-full max-w-5xl mt-4 px-4 flex justify-center">
+          <div className="image-credits-box inter-font w-full max-w-[520px] sm:max-w-[560px] md:max-w-[620px] lg:max-w-[700px] bg-[#9c7b4f] border-2 border-black rounded-xl p-3 md:p-4 text-white text-center overflow-hidden shadow-md">
+            <h1 className="inter-font text-2xl md:text-3xl font-bold mb-3">Image Credits</h1>
+
+            <div className="text-sm md:text-base leading-relaxed">
+              <p>Tito Character Images - Asher Moffitt</p>
+              <p><a href="https://pixabay.com/vectors/leaves-foliage-tree-nature-autumn-6824098/">Leaf Image - Josef Mikulcik (Pixabay)</a></p>
+              <p><a href="https://pixabay.com/vectors/coconut-palm-tree-coconut-tree-tree-7751862/">Palm Trees - Rama Widya (Pixabay)</a></p>
+              <p><a href="https://pixabay.com/vectors/palm-leaves-palm-frond-palm-tree-32531/">Palm Leaves - Clker-Free-Vector-Images (Pixabay)</a></p>
             </div>
+
+            <div className="text-center mt-3">
+              <button
+                className="text-lg sm:text-xl md:text-2xl p-2 max-w-full whitespace-normal break-words leading-tight"
+                onClick={toggleDropdown}
+              >
+                Music Credits (Pixabay) {creditsArrow}
+              </button>
+            </div>
+
             {open && (
-              <div>
+              <div className="text-xs sm:text-sm md:text-base leading-relaxed mt-2 break-words">
                 <p>Ambient Jungle - <a href="https://pixabay.com/music/beats-ambient-jungle-quotambient-junglequot-by-storm-223660/">Ambient Jungle by Storm_Library</a></p>
                 <p>Jungle Party - <a href="https://pixabay.com/music/afrobeat-jungle-party-156395/">Jungle Party by NoodlezStudios</a></p>
                 <p>Happy Rock - <a href="https://pixabay.com/music/rock-happy-rock-308526/">Happy Rock by DmitryTaras</a></p>

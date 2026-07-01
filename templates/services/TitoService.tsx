@@ -21,6 +21,7 @@ interface Module {
   language: string;
   isTitoEnabled?: boolean; // Indicates if this module is configured as a Tito module
   classID?: number; // The class this module belongs to (for Tito modules)
+  titoWelcomeMessage?: string;
 }
 
 // Fetches all user modules and indicates which ones are Tito-enabled
@@ -28,20 +29,20 @@ interface Module {
 export const fetchModules = async (access_token: string): Promise<Module[] | null> => {
   let titoModuleIDs = new Set<number>();
   let moduleToClassMap = new Map<number, number>(); // Map moduleID to classID
-  
+
   // STEP 1: Try to get Tito-enabled module IDs (for marking purposes)
   try {
-  console.log('[fetchModules] Fetching Tito-enabled module IDs...');
+    console.log('[fetchModules] Fetching Tito-enabled module IDs...');
     const titoResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
       headers: {
         Authorization: `Bearer ${access_token}`,
       },
     });
-    
+
     const titoData = titoResponse.data.data || [];
     console.log('[fetchModules] Raw Tito modules response:', titoResponse.data);
     console.log('[fetchModules] Processed Tito data:', titoData);
-    
+
     // Extract all unique module IDs that are Tito-enabled and store classID mapping
     for (const [classID, modulesList] of titoData) {
       console.log(`[fetchModules] Class ${classID} has modules:`, modulesList);
@@ -51,13 +52,13 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
         moduleToClassMap.set(moduleID, classID); // Store the mapping
       }
     }
-    
+
     console.log('[fetchModules] ✅ Tito-enabled module IDs:', Array.from(titoModuleIDs));
     console.log('[fetchModules] ✅ Module to Class mapping:', Object.fromEntries(moduleToClassMap));
   } catch (titoError) {
     console.warn('[fetchModules] Could not fetch Tito module IDs (will show all modules without Tito status):', titoError);
   }
-  
+
   // STEP 2: Get all user modules from the original endpoint
   try {
     console.log('[fetchModules] Fetching all user modules...');
@@ -66,38 +67,39 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
         Authorization: `Bearer ${access_token}`,
       },
     });
-    
+
     const data = response.data.data || response.data || [];
     console.log('[fetchModules] All user modules response:', data);
-    
+
     // Map the response to the expected Module format with Tito status
     const allModules: Module[] = [];
-    
+
     if (Array.isArray(data)) {
       for (const moduleData of data) {
         const moduleID = moduleData.moduleID || moduleData.module_id;
         const isTitoEnabled = titoModuleIDs.has(moduleID);
         const classID = moduleToClassMap.get(moduleID); // Get the classID for this module
-        
+
         allModules.push({
           moduleID: moduleID,
           name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
           language: moduleData.language || 'es',
           isTitoEnabled: isTitoEnabled,
-          classID: classID // Include classID in module data
+          classID: classID, // Include classID in module data
+          titoWelcomeMessage: moduleData.titoWelcomeMessage
         });
       }
     }
-    
+
     const titoEnabledCount = allModules.filter(m => m.isTitoEnabled).length;
     console.log(`[fetchModules] Found ${allModules.length} total modules, ${titoEnabledCount} are Tito-enabled`);
     console.log('[fetchModules] All modules with Tito status:', allModules);
-    
+
     return allModules;
-    
+
   } catch (error) {
     console.warn('[fetchModules] Failed to fetch from retrieveusermodules, trying modules endpoint:', error);
-    
+
     // Fallback: Try the general modules endpoint
     try {
       const modulesResponse = await axios.get(`${ELLE_URL}/modules`, {
@@ -105,35 +107,36 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
           Authorization: `Bearer ${access_token}`,
         },
       });
-      
+
       const modulesData = modulesResponse.data || [];
       console.log('[fetchModules] General modules response:', modulesData);
-      
+
       // Map the response to the expected Module format with Tito status
       const allModules: Module[] = [];
-      
+
       if (Array.isArray(modulesData)) {
         for (const moduleData of modulesData) {
           const moduleID = moduleData.moduleID || moduleData.module_id;
           const isTitoEnabled = titoModuleIDs.has(moduleID);
           const classID = moduleToClassMap.get(moduleID); // Get the classID for this module
-          
+
           allModules.push({
             moduleID: moduleID,
             name: moduleData.name || moduleData.moduleName || moduleData.module_name || `Module ${moduleID}`,
             language: moduleData.language || 'es',
             isTitoEnabled: isTitoEnabled,
-            classID: classID // Include classID in module data
+            classID: classID, // Include classID in module data
+            titoWelcomeMessage: moduleData.titoWelcomeMessage
           });
         }
       }
-      
+
       const titoEnabledCount = allModules.filter(m => m.isTitoEnabled).length;
       console.log(`[fetchModules] Found ${allModules.length} total modules from general endpoint, ${titoEnabledCount} are Tito-enabled`);
       console.log('[fetchModules] All modules with Tito status:', allModules);
-      
+
       return allModules;
-      
+
     } catch (fallbackError) {
       console.error('[fetchModules] Error fetching modules from both endpoints:', fallbackError);
       if (axios.isAxiosError(fallbackError)) {
@@ -143,6 +146,34 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
       handleError(fallbackError);
       return null;
     }
+  }
+};
+
+// Fetches all sessions for a user and module
+export const fetchSessions = async (access_token: string, moduleID: number): Promise<any[] | null> => {
+  try {
+    const response = await axios.get(`${ELLE_URL}/twt/session/list`, {
+      params: { moduleID },
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    return response.data.data || [];
+  } catch (error) {
+    handleError(error);
+    return null;
+  }
+};
+
+// Deletes a session and cascade-deletes all its messages
+export const deleteSession = async (access_token: string, chatbotSID: number): Promise<boolean> => {
+  try {
+    const response = await axios.delete(`${ELLE_URL}/twt/session/delete`, {
+      params: { chatbotSID },
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    return response.data.success || false;
+  } catch (error) {
+    handleError(error);
+    return false;
   }
 };
 
@@ -208,19 +239,19 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
   try {
     console.log(`[getChatbot] Creating session for userId: ${userId}, moduleId: ${moduleId}`);
     console.log({ userId, moduleId, terms });
-    
+
     // Free chat (moduleId -1) doesn't require a class
     const isFreeChat = moduleId === -1;
     let classID: string | null = null;
-    
+
     if (!isFreeChat) {
       // First get available classes to find the right classID for this module
       const accessResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
         headers: { Authorization: `Bearer ${access_token}` }
       });
-      
+
       const accessData = accessResponse.data.data || [];
-      
+
       // Find the class that contains this module
       for (const [cID, modulesList] of accessData) {
         for (const [mID] of modulesList) {
@@ -231,29 +262,29 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
         }
         if (classID !== null) break; // Found the class, exit outer loop
       }
-      
+
       // If no classID found, this module isn't assigned to any class for this user
       if (classID === null) {
         console.error(`[getChatbot] Module ${moduleId} is not assigned to any class for this user`);
         return null;
       }
-      
+
       console.log(`[getChatbot] Using classID: ${classID} for moduleID: ${moduleId}`);
     } else {
       console.log(`[getChatbot] Free chat mode - no class required`);
       classID = '0'; // Dummy value for free chat
     }
-    
+
     // Create form data to match backend expectations
     const formData = new FormData();
     formData.append('moduleID', moduleId.toString());
     formData.append('classID', classID);
-    
+
     const response = await axios.post(
       `${ELLE_URL}/twt/session/create`,
       formData,
       {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${access_token}`,
           'Content-Type': 'multipart/form-data'
         }
@@ -261,25 +292,25 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
     );
     console.log(`[getChatbot] Session creation response for module ${moduleId}:`);
     console.log(response.data);
-    
+
     // Check if the response indicates success
     if (response.data.success === false) {
       const errorMessage = response.data.message || 'Unknown error';
       console.error(`[getChatbot] Session creation failed for module ${moduleId}:`, errorMessage);
-      
+
       // Provide specific error messages for common issues
       if (errorMessage.includes('not configured as a Tito module')) {
         console.error(`[getChatbot] Module ${moduleId} is not configured as a Tito module. Please contact your instructor to enable Tito for this module.`);
       }
-      
+
       return null;
     }
-    
+
     // The session creation endpoint returns { success: true, data: chatbotSID }
     // We need to create a proper response object
     const chatbotSID = response.data.data;
     console.log(`[getChatbot] Extracted chatbotSID: ${chatbotSID} (type: ${typeof chatbotSID})`);
-    
+
     if (typeof chatbotSID === 'number' && chatbotSID > 0) {
       console.log(`[getChatbot] Successfully created session ${chatbotSID} for module ${moduleId}`);
       return {
@@ -328,13 +359,13 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
       console.error('getMessages: moduleId is required but not provided');
       return [];
     }
-    
+
     console.log(`[getMessages] Fetching messages for userId: ${userId}, moduleId: ${moduleId}, classId: ${classId}`);
-    
+
     // Free chat doesn't require classID
     const isFreeChat = moduleId === -1;
     let finalClassId = classId;
-    
+
     if (!isFreeChat && !finalClassId) {
       // Dynamically determine classID if not provided
       const accessResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
@@ -350,7 +381,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
         }
         if (finalClassId) break;
       }
-      
+
       // If no classID found, cannot fetch messages
       if (!finalClassId) {
         console.error(`[getMessages] Could not determine classID for module ${moduleId}`);
@@ -360,38 +391,38 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
       // For free chat, use dummy classID
       finalClassId = 0;
     }
-    
+
     const response = await axios.get(
       `${ELLE_URL}/twt/session/messages`,
       {
-        params: { moduleID: moduleId , classID: finalClassId },
+        params: { moduleID: moduleId, classID: finalClassId, chatbotSID: chatbotId },
         headers: { Authorization: `Bearer ${access_token}` }
       }
     );
-    
+
     console.log("[getMessages] Raw backend response:");
     console.log(response.data);
-    
+
     const messages = response.data.data || response.data || [];
-    
+
     // Transform backend message format to frontend expected format
     const transformedMessages: ChatMessage[] = [];
-    
+
     if (Array.isArray(messages)) {
       for (const msg of messages) {
         const transformedMessage: ChatMessage = {
           value: msg.message || msg.value || '',
-          timestamp: msg.timestamp || new Date().toISOString(),
+          timestamp: msg.creationTimestamp || msg.timestamp || new Date().toISOString(),
           source: (msg.source === 'user' || msg.source === 'llm') ? msg.source : 'user',
           metadata: typeof msg.metadata === 'string' ? JSON.parse(msg.metadata) : (msg.metadata || {})
         };
         transformedMessages.push(transformedMessage);
       }
     }
-    
+
     console.log("[getMessages] Transformed messages:");
     console.log(transformedMessages);
-    
+
     return transformedMessages;
   } catch (error) {
     console.error('[getMessages] Error fetching messages:', error);
@@ -415,6 +446,7 @@ interface SendMessageResponse {
   usageByTerm?: TermUsageProgress[];
   termUsageCounts?: TermUsageProgress[];
   termProgress?: TermUsageProgress[];
+  progress?: TermUsageProgress[];
   metadata?: {
     score?: number;
     error?: string;
@@ -424,7 +456,18 @@ interface SendMessageResponse {
 }
 
 // sendMessage (POST)
-export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, userValue: string, terms: string[], termsUsed: string[], classId?: number, isVoiceMessage?: boolean): Promise<SendMessageResponse | null> => {
+export const sendMessage = async (
+  access_token: string,
+  userId: number,
+  chatbotId: number,
+  moduleId: number,
+  userValue: string,
+  terms: string[],
+  termsUsed: string[],
+  classId?: number,
+  isVoiceMessage?: boolean,
+  hintWord?: string
+): Promise<SendMessageResponse | null> => {
   console.log("sendMessage sending:");
   console.log({ userId, chatbotId, moduleId, userValue, terms, termsUsed });
 
@@ -433,7 +476,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     // Free chat doesn't require classID
     const isFreeChat = moduleId === -1;
     let finalClassId = classId;
-    
+
     if (!isFreeChat && !finalClassId) {
       // Dynamically determine classID if not provided
       const accessResponse = await axios.get(`${ELLE_URL}/twt/session/access`, {
@@ -449,7 +492,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
         }
         if (finalClassId) break;
       }
-      
+
       // If no classID found, cannot send message
       if (!finalClassId) {
         console.error(`[sendMessage] Could not determine classID for module ${moduleId}`);
@@ -465,31 +508,35 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
       // For free chat, use dummy classID
       finalClassId = 0;
     }
-    
+
     // Create form data to match backend expectations
     const formData = new FormData();
     formData.append('message', userValue);
     formData.append('chatbotSID', chatbotId.toString());
     formData.append('moduleID', moduleId.toString());
-    formData.append('classID', finalClassId?.toString()??"");
+    formData.append('classID', finalClassId?.toString() ?? "");
     formData.append('isVoiceMessage', isVoiceMessage ? '1' : '0'); // 0 = false (text message), 1 = true (voice message)
-    
+    if (hintWord) {
+      formData.append('hintWord', hintWord);
+    }
+
     console.log(`[SendMessage] Sending with original session ID: ${chatbotId}, classID: ${finalClassId}`);
-    
+
     // Step 1: Save User Message to Production DB (CHDR)
     console.log(`[SendMessage] Step 1: Saving user message to DB...`);
     const userMessageResponse = await axios.post(
       `${ELLE_URL}/twt/session/messages`,
       formData,
       {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${access_token}`,
           'Content-Type': 'multipart/form-data'
         }
       }
     );
-    
+
     const messageID = userMessageResponse.data.messageID || userMessageResponse.data.data?.messageID;
+    const messageMetadata = userMessageResponse.data.metadata || {};
     console.log(`[SendMessage] Step 1 Complete: messageID=${messageID}`);
 
     // Step 2: Generate LLM Response (Local localhost)
@@ -498,14 +545,14 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
       `${ELLE_URL}/twt/session/generate`, // change to LOCAL_URL for local testing
       formData,
       {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${access_token}`,
           'Content-Type': 'multipart/form-data'
         },
         timeout: 65000 // 65 seconds timeout (backend has 60s + buffer)
       }
     );
-    
+
     const titoResponse = generateResponse.data.titoResponse;
     console.log(`[SendMessage] Step 2 Complete: titoResponse received`);
 
@@ -513,15 +560,22 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     console.log(`[SendMessage] Step 3: Saving Tito's response to DB...`);
     const titoFormData = new FormData();
     titoFormData.append('chatbotSID', chatbotId.toString());
-    titoFormData.append('classID', finalClassId?.toString()??"");
+    titoFormData.append('classID', finalClassId?.toString() ?? "");
     titoFormData.append('moduleID', moduleId.toString());
     titoFormData.append('titoResponse', titoResponse);
+
+    console.log('[DEBUG TitoMessages Frontend]', {
+      chatbotSID: chatbotId.toString(),
+      classID: finalClassId?.toString()??"",
+      moduleID: moduleId.toString(),
+      titoResponse: titoResponse
+    });
 
     await axios.post(
       `${ELLE_URL}/twt/session/tito_messages`,
       titoFormData,
       {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${access_token}`,
           'Content-Type': 'multipart/form-data'
         }
@@ -530,35 +584,35 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     console.log(`[SendMessage] Step 3 Complete: All data synched`);
 
     const data = generateResponse.data; // Use metadata if returned from generate
-    
-    if(data && data.metadata && typeof data.metadata === "string") {
+
+    if (data && data.metadata && typeof data.metadata === "string") {
       try {
         data.metadata = JSON.parse(data.metadata);
       } catch (e) {
         console.log("Failed to parse metadata for message: " + data.metadata);
       }
     }
-    
+
     console.log("sendMessage final processing:");
     console.log({ titoResponse, data });
-    
+
     // Success! Map the response to match expected format
     return {
       llmResponse: titoResponse || "Great job!",
       termsUsed: data.termsUsed || [],
       titoConfused: data.titoConfused || false,
       messageID: messageID, 
-      metadata: data.metadata || {}
+      metadata: messageMetadata || data.metadata || {}
     };
-    
+
   } catch (error) {
     console.error("sendMessage failed:");
-    
+
     if (axios.isAxiosError(error)) {
       console.error("Status:", error.response?.status);
       console.error("Data:", error.response?.data);
       console.error("Error code:", error.code);
-      
+
       // Handle timeout specifically
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
         console.error("Request timed out after 30 seconds");
@@ -570,7 +624,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
           metadata: {}
         };
       }
-      
+
       // Handle session validation errors
       if (error.response?.status === 400 && error.response?.data?.message?.includes('invalid session')) {
         console.log('[SendMessage] Detected invalid session error, returning session error message');
@@ -585,7 +639,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
         return errorResponse;
       }
     }
-    
+
     // Generic error message for other issues
     return {
       llmResponse: "I'm having trouble processing your message right now. The issue might be temporary - please try again in a moment.",
@@ -619,55 +673,55 @@ export const exportChat = async (access_token: string, userId: number, chatbotId
 export const exportAudio = async (access_token: string, moduleId: number, chatbotId: number, classId: number = 1): Promise<":)" | ":("> => {
   try {
     console.log("[TitoService] Exporting conversation audio for:", { moduleId, chatbotId, classId });
-    
+
     // Call the audio export endpoint
     const response = await axios.get(
       `${ELLE_URL}/twt/session/downloadAllUserAudio`,
       {
-        params: { 
-          moduleID: moduleId, 
+        params: {
+          moduleID: moduleId,
           chatbotSID: chatbotId,
-          classID: classId 
+          classID: classId
         },
         headers: { Authorization: `Bearer ${access_token}` },
         responseType: 'blob' // Important for file downloads
       }
     );
-    
+
     // Create a blob URL and trigger download
     const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    
+
     // Determine file extension based on content type
     const contentType = response.headers['content-type'];
     const isZip = contentType && contentType.includes('zip');
     const fileExtension = isZip ? 'zip' : 'mp3';
     const fileName = `conversation_${moduleId}_${chatbotId}_audio.${fileExtension}`;
-    
+
     link.setAttribute('download', fileName);
     document.body.appendChild(link);
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-    
+
     console.log(`[TitoService] Audio export successful: ${fileName}`);
     return ":)"; // Success!
-    
+
   } catch (error) {
     console.error("[TitoService] Error exporting audio:", error);
-    
+
     if (axios.isAxiosError(error)) {
       console.error("Status:", error.response?.status);
       console.error("Response Data:", error.response?.data);
-      
+
       // Handle specific error cases
       if (error.response?.status === 404) {
         console.log("[TitoService] No audio files found for this conversation");
       }
     }
-    
+
     return ":("; // Failed
   }
 };
@@ -677,12 +731,12 @@ export const exportAudio = async (access_token: string, moduleId: number, chatbo
 export const exportModuleAudio = async (access_token: string, moduleId: number, classId: number = 1): Promise<":)" | ":("> => {
   try {
     console.log("[TitoService] Exporting module audio for:", { moduleId, classId });
-    
+
     // Call the new simple audio export endpoint (no JWT required)
     const response = await axios.get(
       `${ELLE_URL}/twt/session/downloadAllUserAudio`,
       {
-        params: { 
+        params: {
           moduleID: moduleId,
           classID: classId,
           _t: Date.now() // Cache-busting timestamp
@@ -691,35 +745,35 @@ export const exportModuleAudio = async (access_token: string, moduleId: number, 
         responseType: 'blob' // Important for file downloads
       }
     );
-    
+
     // Create a blob URL and trigger download
     const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    
+
     // Determine file extension based on content type
     const contentType = response.headers['content-type'];
     const isZip = contentType && contentType.includes('zip');
     const fileExtension = isZip ? 'zip' : 'mp3';
     const fileName = `module_${moduleId}_all_audio.${fileExtension}`;
-    
+
     link.setAttribute('download', fileName);
     document.body.appendChild(link);
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-    
+
     console.log(`[TitoService] Module audio export successful: ${fileName}`);
     return ":)"; // Success!
-    
+
   } catch (error) {
     console.error("[TitoService] Error exporting module audio:", error);
-    
+
     if (axios.isAxiosError(error)) {
       console.error("Status:", error.response?.status);
       console.error("Response Data:", error.response?.data);
-      
+
       // Handle specific error cases
       if (error.response?.status === 404) {
         console.log("[TitoService] No audio files found for this module - this is normal if no voice messages were sent");
@@ -727,7 +781,7 @@ export const exportModuleAudio = async (access_token: string, moduleId: number, 
         console.error("[TitoService] Access denied - user may not have permission to access this module");
       }
     }
-    
+
     // Return failure indicator but don't rethrow
     return ":("; // Failed
   }
@@ -736,16 +790,16 @@ export const exportModuleAudio = async (access_token: string, moduleId: number, 
 // uploadAudioFile (POST)
 // Uploads an audio file for a specific message after it's been sent
 export const uploadAudioFile = async (
-  access_token: string, 
-  messageID: number, 
-  chatbotSID: number, 
-  classID: number, 
-  moduleID: number, 
+  access_token: string,
+  messageID: number,
+  chatbotSID: number,
+  classID: number,
+  moduleID: number,
   audioBlob: Blob
 ): Promise<boolean> => {
   try {
     console.log('[TitoService] Uploading audio for message:', { messageID, chatbotSID, classID, moduleID });
-    
+
     // Create form data for the audio upload
     const formData = new FormData();
     formData.append('messageID', messageID.toString());
@@ -753,7 +807,7 @@ export const uploadAudioFile = async (
     formData.append('classID', classID.toString());
     formData.append('moduleID', moduleID.toString());
     formData.append('audio', audioBlob, `${1}_${messageID}.webm`);
-    
+
     const response = await axios.post(
       `${ELLE_URL}/twt/session/audio`,
       formData,
@@ -764,16 +818,16 @@ export const uploadAudioFile = async (
         }
       }
     );
-    
+
     console.log('[TitoService] Audio upload successful:', response.data);
     return true;
-    
+
   } catch (error) {
     console.error('[TitoService] Error uploading audio file:', error);
     if (axios.isAxiosError(error)) {
       console.error('Status:', error.response?.status);
       console.error('Response Data:', error.response?.data);
-      
+
       // Provide specific error messages based on status code
       if (error.response?.status === 403) {
         console.error('[TitoService] Audio upload forbidden - possible invalid message/session');

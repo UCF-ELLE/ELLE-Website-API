@@ -213,6 +213,10 @@ export default function HELLEsKitchen() {
                 <Button onClick={handleOnClickFullscreen} style={{ visibility: isLoaded ? 'visible' : 'hidden' }}>
                     Fullscreen
                 </Button>
+                <br />
+                <video controls style={{ width: "400px", borderRadius: "8px" }}>
+                    <source src="/elle/static/videos/HELLES_KITCHEN_Tutorial.mp4" type ="video/mp4" />
+                </video>
             </div>
             <br />
             <br />

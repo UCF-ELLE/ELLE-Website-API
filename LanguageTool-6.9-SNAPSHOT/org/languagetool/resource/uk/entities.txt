@@ -1,0 +1,124 @@
+А-76 noninfl
+А-80 noninfl
+А-92 noninfl
+А-95\+? noninfl
+А-98 noninfl
+А-4 noninfl|noun:f:nv       # формат|ракета
+А-?300 noun:m:nv
+А-?310 noun:m:nv
+А-?320 noun:m:nv
+А-?321 noun:m:nv
+А-?330 noun:m:nvАГС
+А-?380 noun:m:nv
+АК-47 noun:m:nv             # фіктивна назва
+АК-74 noun:m:nv
+АГС-17 noun:m:nv
+АГС--[0-9]+ noun:m:nv
+Богдан-2.* noun:m:nv
+Бук-[МM].* noun:m:nv
+В-52 noun:m:nv
+Грім-2 noun:m:nv
+Ка-[0-9]+ noun:m:nv             # вертоліт
+ІСРС-2 noninfl
+Лелека-[0-9].* noun:m:nv
+М[іІ]-[56] noun:f:nv:np:prop                 # служба
+М[іІ][Гг]-[А-Я0-9]+ noun:m:nv
+М[іІ]-[0-4-7-9][А-Яа-я0-9-]* noun:m:nv           # вертоліт
+Ф-1 noun:f:nv:np:prop           # Формула-1
+С-17 noun:m:nv              # літак
+С-200 noun:m:nv
+С-200В noun:m:nv
+С-300 noun:m:nv             # комплекс
+С-400 noun:m:nv             # комплекс
+С-75 noun:f:nv
+ТОС(-1.*)? noun:f:nv
+ТУ-[0-9].* noun:m:nv
+ФАБ-[0-9].* noun:f:nv
+Шальке-04 noun:m:nv:np:prop
+Точка-У noun:f:nv
+Шахід-[0-9]+ noun:m:nv
+Шахед-[0-9]+ noun:m:nv
+БРДМ-[0-9]+ noun:f:nv
+Панцир-С1 noun:m:nv
+Тор-М2 noun:m:nv
+
+Євро-[0-9]+ noun:n:nv:np:prop
+ЄВРО-[0-9]+ noun:n:nv:np:prop
+
+[тТ]оп-[0-9]+ noninfl:alt
+
+Дніпро-[0-9]+ noun:m:nv:np:prop
+Київ-[0-9]+ noun:m:nv:np:prop
+Мінськ-[0-9]+ noun:m:nv:np:prop
+Марс-[0-9]+ noun:m:nv:np:prop
+Орлан-[0-9]+ noun:m:nv:np:prop
+
+Квартал-95 noun:m:nv:np:prop
+
+ТЕЦ-[0-9]+ noun:f:nv:np
+АТП-[0-9]+ noun:f:nv:np
+ОКБ-[0-9-]+ noun:n:nv:np:prop
+СДПЧ-[0-9-]+ noun:f:nv:np
+
+СО-?2 noninfl:bad
+
+ТОП-[0-9]+ noninfl:bad
+
+Р-5 noun:m:nv               # комплекс
+РД-[А-Я0-9-]+ noun:f:nv
+Р-[А-Я0-9-]+ noun:f:nv
+
+Я[кК]-[А-Я0-9-]+ noun:m:nv
+С[уУ]-[А-Я0-9-]+[а-я]? noun:m:nv
+Ан-124-100 noun:m:nv
+Ан-132[DД] noun:m:nv
+А[нН]-[А-Я0-9-]+ noun:m:nv
+Т[уУ]-[А-Я0-9-]+ noun:m:nv
+І[лЛ]-[А-Я0-9-]+ noun:m:nv
+І[жЖ]-[А-Я0-9-]+ noun:m:nv
+ВАЗ-[А-Я0-9-]+ noun:m:nv|noun:f:nv
+ГАЗ-[А-Я0-9-]+ noun:m:nv
+ЗАЗ-[А-Я0-9-]+ noun:m:nv
+ЛАЗ-[А-Я0-9-]+ noun:m:nv
+КрАЗ-[А-Я0-9-]+ noun:m:nv
+УАЗ-[А-Я0-9-]+ noun:m:nv
+Боїнг-[А-Я0-9-]+ noun:m:nv
+ЗІЛ-[А-Я0-9-]+ noun:m:nv
+БТР-[А-ЯІЇЄҐ0-9-]+ noun:m:nv
+БМП-[0-9]+ noun:f:nv
+БМ-[0-9]+ noun:f:nv
+РГД-[0-9]+ noun:f:nv
+Т-[0-9][А-Я0-9-]+ noun:m:nv
+УТ-[1-4] noun:m:nv:np:prop
+ВВЕР-[0-9]+ noun:m:nv
+ВОГ-[0-9]+ noun:m:nv
+РПГ-[0-9]+ noun:f:nv
+ХАІ-[0-9]+ noun:m:nv                # вертоліт
+ПОМ-2 noun:f:nv                     # міна
+ПП-2 noun:m:nv
+Тор-М1 noun:m:nv
+Циклон-4(-[0-9][А-Я0-9-]+)? noun:m:nv
+
+омега-[369] noninfl                  # але відмнінюється, як іменник
+
+
+МН17 noun:m:nv:np:prop:bad           # має бути латиницею
+МН-17 noun:m:nv:np:prop:bad           # має бути латиницею
+
+СДПУ\(о\) noun:f:nv:abbr:prop
+СДПУ\(О\) noun:f:nv:abbr:prop
+РКП\(б\) noun:f:nv:abbr:prop
+КП\(б\) noun:f:nv:abbr:prop
+КП\(б\)У noun:f:nv:abbr:prop
+ВКП\(б\) noun:f:nv:abbr:prop
+УКП\(б\) noun:f:nv:abbr:prop
+ОУН\(б\) noun:f:nv:abbr:prop
+ОУН\(Б\) noun:f:nv:abbr:prop
+ОУН\(м\) noun:f:nv:abbr:prop
+ОУН\(М\) noun:f:nv:abbr:prop
+ОУН\(р\) noun:f:nv:abbr:prop
+РСДРП\(б\) noun:f:nv:abbr:prop
+П\(С\)БО noun:n:nv:np:abbr:prop
+Л/ДНР noun:p:nv:abbr:prop:geo
+
+Гоголь-fest Гоголь-fest noun:m:nv:prop

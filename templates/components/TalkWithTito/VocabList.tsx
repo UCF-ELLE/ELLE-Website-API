@@ -10,6 +10,7 @@
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
 import { useState } from "react";
+import { useId } from "react";
 
 /* Assets */
 import cloud from "@/public/static/images/ConversAItionELLE/vocab cloud.png";
@@ -25,6 +26,8 @@ interface PropsInterface {
   progress: number;
   termIDs: number[];
   masteredTermIDs?: number[];
+  onHintClick?: (word: string) => void;
+  onReset?: () => void;
 }
 
 interface WordItemProps {
@@ -34,10 +37,11 @@ interface WordItemProps {
 
   // Current progress for this word, shown as x/3
   usageCount: number;
+  onHintClick?: (word: string) => void;
 }
 
 /* WordItem Component */
-function WordItem({ wordFront, wordBack, isMastered, usageCount }: WordItemProps) {
+function WordItem({ wordFront, wordBack, isMastered, usageCount, onHintClick }: WordItemProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -47,7 +51,7 @@ function WordItem({ wordFront, wordBack, isMastered, usageCount }: WordItemProps
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="select-none w-full transition-all duration-300 flex items-center justify-between px-2"
+      className="select-none w-full transition-all duration-300 flex items-center justify-between px-2 py-1"
     >
       {/* Only cross out the vocab word when it reaches mastery */}
       <span
@@ -113,7 +117,7 @@ export default function VocabList({
         </button>
       </div>
 
-      <div className="absolute top-[64%] right-[22px] md:right-[24px] lg:right-[26px] -translate-y-1/2 flex items-center justify-center z-40">
+      <div className="absolute top-[70%] right-[22px] md:right-[24px] lg:right-[26px] -translate-y-1/2 flex items-center justify-center z-40">
         <div className="relative w-[32px] h-[32px] md:w-[42px] md:h-[42px]">
           <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 42 42">
             <circle
@@ -128,7 +132,7 @@ export default function VocabList({
               cx="21"
               cy="21"
               r="17"
-              stroke="url(#grad)"
+              stroke={`url(#${progressGradientId})`}
               strokeWidth="4"
               strokeDasharray="107"
               strokeDashoffset={`${107 - (107 * progress) / 100}`}
@@ -137,7 +141,7 @@ export default function VocabList({
               className="transition-all duration-700"
             />
             <defs>
-              <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id={progressGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#fcd277ff" />
                 <stop offset="100%" stopColor="#fcd277ff" />
               </linearGradient>
@@ -152,7 +156,7 @@ export default function VocabList({
 
       {/* Expanding/Collapsing List */}
       <div
-        className={`w-[210px] md:w-[220px] lg:w-[240px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-4 mt-[-10px] flex flex-col items-center transition-all duration-300 ease-in-out overflow-hidden
+        className={`w-[210px] md:w-[220px] lg:w-[240px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-4 mt-2 flex flex-col items-center transition-all duration-300 ease-in-out overflow-hidden
         ${isExpanded ? "max-h-[20em] opacity-100" : "max-h-0 opacity-0"}`}
       >
         <div className="overflow-auto w-full">
@@ -163,10 +167,20 @@ export default function VocabList({
               wordBack={wordBack}
               usageCount={usageCount}
               isMastered={isMastered}
+              onHintClick={onHintClick}
             />
           ))}
         </div>
+        {onReset && (
+          <button
+            onClick={onReset}
+            className="mt-2 mb-3 px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition self-center"
+            title="Reset progress for this module"
+          >
+            Reset List
+          </button>
+        )}
       </div>
-    </div>
+  </div>
   );
 }

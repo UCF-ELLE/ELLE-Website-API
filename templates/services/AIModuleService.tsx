@@ -35,6 +35,7 @@ export interface ModuleCreationData {
     language: string;
     complexity?: number;
     groupID?: number;
+    titoWelcomeMessage?: string;
 }
 
 export interface TermCreationData {

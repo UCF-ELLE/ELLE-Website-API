@@ -1,5 +1,12 @@
 {
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
   "dependencies": {
+    "next": "^16.1.6",
+    "pm2": "^6.0.14",
     "react-speech-recognition": "^4.0.1"
   }
 }

@@ -25,7 +25,7 @@ def get_letter_grade(score):
     else:
         return "F"
 
-def suggest_grade(message: str, expected_language: str = None):
+def suggest_grade(message: str, language: str = "auto"):
     """
     Use LanguageTool API for language dectection and grammar checking.
     """
@@ -33,13 +33,14 @@ def suggest_grade(message: str, expected_language: str = None):
     try:
         data = {
             'text': message,
+            'language': language,
             'enabledOnly': 'false'
         }
 
         data['language'] = 'auto'
         print("Using LanguageTool auto-detection")
 
-        response = requests.post(LANGUAGETOOL_API_URL, data = data, timeout = 10)
+        response = requests.post(LANGUAGETOOL_API_URL, data = data, headers=headers, timeout = 10)
         response.raise_for_status()
 
         result = response.json()
