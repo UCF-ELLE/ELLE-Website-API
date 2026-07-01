@@ -1,12 +1,4 @@
 /* Imports */
-// CLEANED UP:
-// - Removed large commented-out "Circular module progress tracker" JSX block (unused, dead code,
-//   also reused a duplicate `id="grad"` gradient that would've conflicted with the live progress circle)
-// - Removed commented-out debug console.log for masteredTermIDs/termIDs
-// - Removed stale "// CHANGED:" changelog-style comments; kept the underlying explanations
-//   where they document current behavior, without the outdated "CHANGED" framing
-// - Removed unused `mastered` Set (built from masteredTermIDs but never referenced anywhere;
-//   mastery is actually determined via usageCount >= 3 in sortedWords)
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
 import { useState } from "react";
@@ -20,7 +12,7 @@ interface PropsInterface {
   wordsFront: string[] | undefined;
   wordsBack: string[] | undefined;
 
-  // Per-word usage counts (not a simple boolean "used" flag)
+  // CHANGED: use per-word usage counts instead of boolean used values
   usageCounts: number[] | undefined;
 
   progress: number;
@@ -35,7 +27,7 @@ interface WordItemProps {
   wordBack: string;
   isMastered: boolean;
 
-  // Current progress for this word, shown as x/3
+  // CHANGED: pass each word's current progress so we can show x/3
   usageCount: number;
   onHintClick?: (word: string) => void;
 }
@@ -47,13 +39,14 @@ function WordItem({ wordFront, wordBack, isMastered, usageCount, onHintClick }: 
   return (
     <div
       style={{
+        // CHANGED: removed line-through from the whole row
         fontWeight: isHovered ? "bold" : "normal",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="select-none w-full transition-all duration-300 flex items-center justify-between px-2 py-1"
     >
-      {/* Only cross out the vocab word when it reaches mastery */}
+      {/* CHANGED: only cross out the vocab word when it reaches mastery */}
       <span
         className="break-all text-center flex-1"
         style={{
@@ -63,10 +56,21 @@ function WordItem({ wordFront, wordBack, isMastered, usageCount, onHintClick }: 
         {isHovered ? wordFront : wordBack}
       </span>
 
-      {/* The usage count stays normal weight, never crossed out */}
-      <span className="ml-2 font-semibold whitespace-nowrap">
-        {usageCount}/3
-      </span>
+      {/* CHANGED: keep the number normal, never crossed out */}
+      <div className="flex items-center gap-2">
+        <span className="font-semibold whitespace-nowrap">
+          {usageCount}/3
+        </span>
+        {!isMastered && onHintClick && (
+          <button
+            onClick={() => onHintClick(wordBack)}
+            className="hover:scale-[1.2] transition-transform duration-200 text-xs md:text-sm cursor-pointer"
+            title={`Ask Tito for a hint about ${wordBack}`}
+          >
+            💬
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -77,13 +81,23 @@ export default function VocabList({
   wordsBack,
   usageCounts,
   progress,
-  termIDs
+  termIDs,
+  masteredTermIDs,
+  onHintClick,
+  onReset
 }: PropsInterface) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const progressGradientId = useId();
 
+  const mastered = new Set(masteredTermIDs ?? []);
+  //console.log("[VocabList] masteredTermIDs =", masteredTermIDs, "termIDs =", termIDs);
+  // CHANGED: check usageCounts instead of used
   if (!wordsFront || !wordsBack || !usageCounts || !termIDs) return null;
 
-  // Pull usageCount for each vocab word; a word is only crossed off once usageCount >= 3
+  // CHANGED:
+  // - pull usageCount for each vocab word
+  // - only cross off the vocab word when usageCount >= 3
+
   const sortedWords = wordsFront
     .map((word, index) => {
       const usageCount = usageCounts[index] ?? 0;
@@ -154,12 +168,58 @@ export default function VocabList({
       </div>
       </div>
 
+      {/* Circular module progress tracker */}
+      {/* 
+        <div className="absolute top-[35%] left-full ml-0 md:ml-1 lg:ml-2 flex flex-col items-center z-30">
+          <div className="relative w-[70px] h-[70px]">
+            <svg className="transform -rotate-90 w-full h-full">
+              <circle
+                cx="35"
+                cy="35"
+                r="30"
+                stroke="rgba(255,255,255,0.25)"
+                strokeWidth="6"
+                fill="none"
+              />
+              <circle
+                cx="35"
+                cy="35"
+                r="30"
+                stroke="url(#grad)"
+                strokeWidth="6"
+                strokeDasharray="188"
+                strokeDashoffset={`${188 - (188 * progress) / 100}`}
+                strokeLinecap="round"
+                fill="none"
+                className="transition-all duration-700"
+              />
+              <defs>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#fcd277ff" />
+                  <stop offset="100%" stopColor="#fcd277ff" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-sm text-white font-bold drop-shadow-md">
+              {progress}%
+            </span>
+          </div>
+          <p
+            className="mt-1 font-semibold text-white drop-shadow-md"
+            style={{ fontSize: "14px" }}
+          >
+            Module Progress
+          </p>
+        </div>
+      */}
+
       {/* Expanding/Collapsing List */}
       <div
         className={`w-[210px] md:w-[220px] lg:w-[240px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-4 mt-2 flex flex-col items-center transition-all duration-300 ease-in-out overflow-hidden
         ${isExpanded ? "max-h-[20em] opacity-100" : "max-h-0 opacity-0"}`}
       >
         <div className="overflow-auto w-full">
+          {/* CHANGED: pass usageCount into each WordItem */}
           {sortedWords.map(({ wordFront, wordBack, usageCount, isMastered, index }) => (
             <WordItem
               key={index}

@@ -1,18 +1,8 @@
-# CLEANED UP:
-# - Removed unused imports: `csv`, `io`, `traceback`, `datetime` (from datetime import datetime)
-# - Removed dead commented-out import `# from .config import free_prompt`
-# - Removed unused `updateLiveDB` import from .tito_methods (only merge_user_audio is used here;
-#   updateLiveDB is still exported from tito_methods for use elsewhere)
-# - Removed commented-out dead code: old sentence-length check (UserMessages.post),
-#   debug print and old file-validation line (UserAudio.post), abandoned permission
-#   check (GetTitoLoreAssignment), addNewGroupUserToTitoGroup call (UpdateTitoClass),
-#   old lore-ID fallback block (CreateTitoLore)
-# - Removed unused `idx` counter variable in PFGetStudentMessages loop
-# NOTE: `pos_map` is defined but not referenced anywhere in this file - left in place since
-# it may be used elsewhere via a wildcard import of this module. Flagging for your review.
+import csv, io
 from flask import Response, request, jsonify, send_file
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt_claims
+# from .config import free_prompt
 from config import MAX_AUDIO_SIZE_BYTES, MAX_AUDIO_LENGTH_SEC, FREE_CHAT_MODULE
 from utils import create_response, is_ta
 from .database import * 
@@ -22,7 +12,9 @@ import os
 from pydub import AudioSegment
 from .llm_functions import *
 from .utils import *
-from .tito_methods import merge_user_audio
+from .tito_methods import updateLiveDB, merge_user_audio
+from datetime import datetime
+import traceback
 
 USER_VOICE_FOLDER = "user_audio_files/"
 
@@ -163,6 +155,10 @@ class UserMessages(Resource):
         # For non-free chat, class_id is required
         if module_id != REAL_FREE_CHAT_MODULE and not class_id:
             return create_response(False, message="Missing required parameters (class_id required for module chat).", status_code=404)
+
+        # Maybe on a per-language basis, Japanese has no spaces between words
+        # if len(message.split()) < 2:
+            # return create_response(False, message="Sentence too short. try again", status_code=403)
 
         # Attempts to add message to DB, 0/None = error, success returns msg_id
         # Both free chat and regular chat messages are saved in DB to support context memory
@@ -351,6 +347,8 @@ class UserAudio(Resource):
         chatbot_sid = data.get('chatbotSID')
         class_id = data.get('classID')
         module_id = data.get("moduleID")
+        
+        # print(f"[AUDIO UPLOAD] Received request: user={user_id}, msg={message_id}, class={class_id}, module={module_id}, session={chatbot_sid}")
 
         if not message_id or not chatbot_sid or not class_id or not module_id:
             return create_response(False, message="Failed to upload. Missing required parameters.", status_code=400)
@@ -389,6 +387,7 @@ class UserAudio(Resource):
 
         # Points of failure to accept files
         # TODO: Decide on which implementation to fail to accept file (both?)
+        # if not audio_file or not audio_file.filename.endswith(".webm") or audio_file.mimetype != "audio/webm":
         if not audio_file.filename.endswith(".webm"):
             return create_response(False, message="Failed to upload. Improper file provided.", status_code=415)
 
@@ -603,6 +602,9 @@ class GetTitoLoreAssignment(Resource):
 
         if not class_id or not module_id:
             return create_response(False, message="insufficient params provided.", status_code=403)
+        # Was i high when i wrote this?
+        # if isUserThisAccessLevel(user_id, class_id, 'st'):
+        #     return create_response(False, message="insufficient perms.", status_code=403)
 
         res = getClassModuleTitoLore(class_id, module_id)
         if not res:
@@ -727,6 +729,7 @@ class UpdateTitoClass(Resource):
             return create_response(False, message="invalid perms", status_code=403)
         if not isTitoClassOwner(user_id, class_id):
             if createTitoClass(user_id, class_id):
+                # addNewGroupUserToTitoGroup(user_id, class_id)
                 return create_response(True, message="Successfully made class into a tito-enabled class")
             else:
                 return create_response(False, message="Failed to make class a Tito class. Valve please fix...", status_code=500)
@@ -824,6 +827,11 @@ class CreateTitoLore(Resource):
         lore_id = insertTitoLore(user_id, lore_list)
         if not lore_id:
             return create_response(False, message='failed to fully create lore', status_code=500)
+        
+        # Get the newly created lore ID
+        # lore_id = getLastCreatedLoreID(user_id)
+        # if not lore_id:
+            # return create_response(False, message='lore created but failed to retrieve ID', status_code=500)
             
         return create_response(True, message="successfully created tito lore", loreID=lore_id)
 
@@ -934,8 +942,10 @@ class PFGetStudentMessages(Resource):
 
         # Have to convert sql datetime back to str format
         newres = []
+        idx = 0
         for tup in res:
             newres.append(tup[:6] + (tup[6].strftime('%Y-%m-%d %H:%M:%S'),) + tup[7:])
+            idx += 1
 
         return create_response(True, message='returned messages', data=newres)
 
