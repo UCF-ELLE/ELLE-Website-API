@@ -1,17 +1,13 @@
+// CLEANED UP:
+// - Removed fully commented-out `checkMockAvailable` function (dead code)
+// - Removed 5 repeated commented-out "try mock" blocks (fetchModuleTerms, getChatbot,
+//   getMessages, sendMessage, incrementTime) - leftovers from a removed mock-data system
+// - Removed unused `sequenceID` var from tuple destructuring in 4 loops
+//   (fetchModules, getChatbot, getMessages, sendMessage) - only moduleID was ever used
+// - Removed stale "// CHANGED:" comment prefixes; kept the underlying descriptions
+// NOTE: `LOCAL_URL` is exported but unused in this file - left in place since it may be
+// imported elsewhere in the project. Flagging for your review.
 import axios from 'axios';
-
-// Function to check if mock helpers are available
-// const checkMockAvailable = async () => {
-//   try {
-//     const mockModule = await import('./TitoMockHelper');
-//     console.log('[TitoService] Mock module loaded successfully');
-//     console.log('[TitoService] Available mock functions:', Object.keys(mockModule));
-//     return mockModule;
-//   } catch (error) {
-//     console.log('[TitoService] Mock module not available:', error);
-//     return null;
-//   }
-// };
 
 // CHDR: session management, permission checks, analytics (validates against real CHDR DB)
 export const ELLE_URL = 'https://chdr.cs.ucf.edu/elleapi';
@@ -49,7 +45,7 @@ export const fetchModules = async (access_token: string): Promise<Module[] | nul
     // Extract all unique module IDs that are Tito-enabled and store classID mapping
     for (const [classID, modulesList] of titoData) {
       console.log(`[fetchModules] Class ${classID} has modules:`, modulesList);
-      for (const [moduleID, sequenceID] of modulesList) {
+      for (const [moduleID] of modulesList) {
         console.log(`[fetchModules] Adding Tito module: ${moduleID} from class ${classID}`);
         titoModuleIDs.add(moduleID);
         moduleToClassMap.set(moduleID, classID); // Store the mapping
@@ -168,14 +164,6 @@ interface Term {
 // Takes in user's access_token and moduleID
 // Returns all terms' termID, questionFront (non-English term), questionBack (English term)
 export const fetchModuleTerms = async (access_token: string, moduleID: number): Promise<Term[] | null> => {
-  // First try to use mock if available
-  // const mockModule = await checkMockAvailable();
-  // if (mockModule && mockModule.mockFetchModuleTerms) {
-  //   console.log('[TitoService] Using mock fetchModuleTerms');
-  //   return await mockModule.mockFetchModuleTerms(access_token, moduleID);
-  // }
-
-  // Use real API
   try {
     const response = await axios.post<APITerm[]>(`${ELLE_URL}/modulequestions`, { moduleID }, {
       headers: {
@@ -194,7 +182,7 @@ export const fetchModuleTerms = async (access_token: string, moduleID: number): 
   }
 };
 
-// CHANGED: supports backend-owned per-term usage counts
+// Supports backend-owned per-term usage counts
 interface TermUsageProgress {
   termID: number;
   timesUsed?: number;
@@ -209,7 +197,7 @@ interface GetChatBotResponse {
   userMusicChoice?: string;
   totalTimeChatted: number;
 
-  // CHANGED: optional backend term progress fields
+  // Optional backend term progress fields
   usageByTerm?: TermUsageProgress[];
   termUsageCounts?: TermUsageProgress[];
   termProgress?: TermUsageProgress[];
@@ -217,14 +205,6 @@ interface GetChatBotResponse {
 
 // getChatBot (POST)
 export const getChatbot = async (access_token: string, userId: number, moduleId: number, terms: Term[]): Promise<GetChatBotResponse | null> => {
-  // First try to use mock if available
-  // const mockModule = await checkMockAvailable();
-  // if (mockModule && mockModule.mockGetChatbot) {
-  //   console.log('[TitoService] Using mock getChatbot');
-  //   return await mockModule.mockGetChatbot(access_token, userId, moduleId, terms);
-  // }
-
-  // Use real API
   try {
     console.log(`[getChatbot] Creating session for userId: ${userId}, moduleId: ${moduleId}`);
     console.log({ userId, moduleId, terms });
@@ -243,7 +223,7 @@ export const getChatbot = async (access_token: string, userId: number, moduleId:
       
       // Find the class that contains this module
       for (const [cID, modulesList] of accessData) {
-        for (const [mID, sequenceID] of modulesList) {
+        for (const [mID] of modulesList) {
           if (mID === moduleId) {
             classID = cID.toString();
             break;
@@ -341,14 +321,6 @@ type GetMessagesResponse = ChatMessage[];
 
 // getMessages (GET)
 export const getMessages = async (access_token: string, userId: number, chatbotId: number, moduleId?: number, classId?: number): Promise<GetMessagesResponse | null> => {
-  // First try to use mock if available
-  // const mockModule = await checkMockAvailable();
-  // if (mockModule && mockModule.mockGetMessages) {
-  //   console.log('[TitoService] Using mock getMessages');
-  //   return await mockModule.mockGetMessages(access_token, userId, chatbotId);
-  // }
-
-  // Use real API
   try {
     // If moduleId is not provided, we need to extract it from chatbot session data
     // For now, we'll need moduleId to be passed from the calling code
@@ -370,7 +342,7 @@ export const getMessages = async (access_token: string, userId: number, chatbotI
       });
       const accessData = accessResponse.data.data || [];
       for (const [cID, modulesList] of accessData) {
-        for (const [mID, sequenceID] of modulesList) {
+        for (const [mID] of modulesList) {
           if (mID === moduleId) {
             finalClassId = cID;
             break;
@@ -439,7 +411,7 @@ interface SendMessageResponse {
   titoConfused?: boolean;
   messageID?: number;
 
-  // CHANGED: optional backend term progress fields for immediate UI sync
+  // Optional backend term progress fields for immediate UI sync
   usageByTerm?: TermUsageProgress[];
   termUsageCounts?: TermUsageProgress[];
   termProgress?: TermUsageProgress[];
@@ -455,15 +427,6 @@ interface SendMessageResponse {
 export const sendMessage = async (access_token: string, userId: number, chatbotId: number, moduleId: number, userValue: string, terms: string[], termsUsed: string[], classId?: number, isVoiceMessage?: boolean): Promise<SendMessageResponse | null> => {
   console.log("sendMessage sending:");
   console.log({ userId, chatbotId, moduleId, userValue, terms, termsUsed });
-  
-  // First try to use mock if available
-  // const mockModule = await checkMockAvailable();
-  // if (mockModule && mockModule.mockSendMessage) {
-  //   console.log('[TitoService] Using mock sendMessage');
-  //   const mockResponse = await mockModule.mockSendMessage(access_token, userId, chatbotId, moduleId, userValue, terms, termsUsed);
-  //   console.log('[TitoService] Mock response:', mockResponse);
-  //   return mockResponse;
-  // }
 
   // Use real API - single attempt with original session
   try {
@@ -478,7 +441,7 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
       });
       const accessData = accessResponse.data.data || [];
       for (const [cID, modulesList] of accessData) {
-        for (const [mID, sequenceID] of modulesList) {
+        for (const [mID] of modulesList) {
           if (mID === moduleId) {
             finalClassId = cID;
             break;
@@ -566,8 +529,6 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
     );
     console.log(`[SendMessage] Step 3 Complete: All data synched`);
 
-    
-
     const data = generateResponse.data; // Use metadata if returned from generate
     
     if(data && data.metadata && typeof data.metadata === "string") {
@@ -638,16 +599,8 @@ export const sendMessage = async (access_token: string, userId: number, chatbotI
 
 // Increment the time spent interacting with the chatbot
 export const incrementTime = async (access_token: string, userId: number, chatbotId: number, prevTimeChatted: number, newTimeChatted: number): Promise<number | null> => {
-  // First try to use mock if available
-  // const mockModule = await checkMockAvailable();
-  // if (mockModule && mockModule.mockIncrementTime) {
-  //   console.log('[TitoService] Using mock incrementTime');
-  //   return await mockModule.mockIncrementTime(access_token, userId, chatbotId, prevTimeChatted, newTimeChatted);
-  // }
-
   // Use real API - For now, just return success since this endpoint doesn't exist yet
   // TODO: Implement time tracking endpoint in backend if needed
-  //console.log("[TitoService] Skipping incrementTime - endpoint not implemented in Tito backend");
   return 200; // Return success code
 }
 

@@ -1,11 +1,18 @@
+# CLEANED UP:
+# - Removed unused imports: `json`, `PERMISSION_GROUPS` (from config), `get_jwt_claims` (from flask_jwt_extended)
+# - Removed commented-out dead code block in createTitoClass (old alternate user-enrollment approach)
+# - Removed commented-out debug print statements in addNewGroupUserToTitoGroup (4 occurrences)
+# - Removed redundant `from .database import db` inside getLastCreatedLoreID - this file IS
+#   database.py, and `db` is already defined at module scope above, so the import was a no-op
+# NOTE (not changed, flagging only): `isThisATitoClass` references `user_id` in its query params,
+# but `user_id` is never defined in that function (only `class_id` is a parameter). This looks
+# like a pre-existing bug that would raise NameError if called - left untouched since fixing it
+# would change behavior, but wanted to flag it for you.
 from db import mysql
 from db_utils import *
 from utils import *
 from exceptions_util import *
 from datetime import datetime
-import json
-from config import PERMISSION_GROUPS
-from flask_jwt_extended import get_jwt_claims
 from .tito_methods import flatten_list
 
 
@@ -554,20 +561,14 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
     if not module_ids:
         return
 
-    # print(f'modules to work on{module_ids}')
-
     # 3. Create module progress entries for each module
     module_progress_data = [(m, user_id) for m in module_ids]
     db.post(
             "INSERT IGNORE INTO tito_module_progress (moduleID, userID) VALUES (%s, %s);", module_progress_data
         )
 
-    # print(f'module_progress_data: {module_progress_data}')
-
     # 4. For each module, get its termIDs and add term progress
     for module_id in module_ids:
-        # print(f'cur module: {module_id}')
-
         term_ids = flatten_list(db.get(
             '''
                 SELECT DISTINCT t.termID
@@ -582,7 +583,6 @@ def addNewGroupUserToTitoGroup(user_id, class_id):
             ''', (module_id, module_id)
         ))
         # Assign terms to user
-        # print(f'cur terms: {term_ids}')
         if term_ids:
             term_progress_data = [(user_id, module_id, term_id) for term_id in term_ids]
             db.post(
@@ -685,19 +685,6 @@ def createTitoClass(user_id: int, class_id: int):
 
     for module in res:
         addNewTitoModule(module, class_id)
-
-    # query = '''
-    #     SELECT userID
-    #     FROM group_user
-    #     WHERE groupID = %s;
-    # '''
-
-    # res = db.get(query, (class_id))
-    # for user in res:
-    #     if user == user_id:
-    #         continue
-
-    #     addNewGroupUserToTitoGroup(user, class_id)
 
     return True
 
@@ -1320,7 +1307,6 @@ def getLastCreatedLoreID(user_id: int):
         ORDER BY loreID DESC 
         LIMIT 1;
     '''
-    from .database import db
     res = db.get(query, (user_id,), fetchOne=True)
     if not res or not res[0]:
         return None

@@ -1,12 +1,14 @@
+# CLEANED UP:
+# - Removed unused commented-out LANGUAGE_MAPPINGS dict
+# - Removed dead commented-out language-selection block in suggest_grade (superseded by
+#   the always-executed `data['language'] = 'auto'` line)
+# - Removed redundant duplicate computation of detected_language_info/detected_name
+#   (was computed once, unused, then recomputed identically right before the return)
+#   and the never-referenced `detected_code` variable
+# NOTE: `expected_language` param is kept even though it's now unused in the body, since
+# other callers may pass it as a keyword arg and removing it would change the signature.
 import requests
 from config import LANGUAGETOOL_API_URL
-
-# LANGUAGE_MAPPINGS = {
-#     'english': 'en-US',
-#     'spanish': 'es',
-#     'french': 'fr',
-#     'portuguese': 'pt',
-# }
 
 def get_letter_grade(score):
     """Convert numeric score to letter grade"""
@@ -34,11 +36,6 @@ def suggest_grade(message: str, expected_language: str = None):
             'enabledOnly': 'false'
         }
 
-        # if expected_language and expected_language.lower() in LANGUAGE_MAPPINGS:
-        #     language_code = LANGUAGE_MAPPINGS[expected_language.lower()]
-        #     data['language'] = language_code
-        #     print(f"Using specified language: {expected_language}")
-        # else:
         data['language'] = 'auto'
         print("Using LanguageTool auto-detection")
 
@@ -46,10 +43,6 @@ def suggest_grade(message: str, expected_language: str = None):
         response.raise_for_status()
 
         result = response.json()
-
-        detected_language_info = result.get('language', {})
-        detected_name = detected_language_info.get('name', 'Unknown')
-        detected_code = detected_language_info.get('code', 'en-US')
 
         matches = result.get('matches', [])
         total_words = len(message.split())
@@ -139,5 +132,3 @@ if __name__ == "__main__":
     print(f"\n{'='*60}")
     print("Usage: result = suggest_grade('Your text here', 'spanish')")
     print("Returns: {'suggested_grade': 8.5, 'letter_grade': 'A', ...}")
-    
-
