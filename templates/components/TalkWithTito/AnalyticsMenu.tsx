@@ -9,6 +9,7 @@ interface propsInterface {
     isFreeTalk: boolean;
     moduleId?: number;
     classId?: number;
+    onClose: () => void;
 }
 
 
@@ -42,38 +43,59 @@ export default function AnalyticsMenu(props: propsInterface) {
         }
     }
 
-    return(
-        <div className="h-fit w-[17em] absolute top-0 left-[-18em] bg-white border-2 border-black p-2 rounded flex flex-col items-center">
-            <div className="text-xl inter-font">
-                Chat Analytics
-            </div>
-            <div className="w-full">
-                <div className="inline-block font-bold">Time Spent:</div> {props.timeSpent}
-            </div>
-            {!props.isFreeTalk && 
-            <div className="w-full">
-                <div className="inline-block font-bold">Terms Used:</div> {props.termScore}
-            </div>}
-            {!props.isFreeTalk && 
-            <div className="w-full">
-                <div className="inline-block font-bold">Average Score:</div> {props.averageScore.toFixed(2)}
-            </div>}
-            <div className="w-full">
+    return (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="relative w-[85%] max-w-[420px] bg-white border-2 border-black p-5 rounded-lg shadow-lg flex flex-col items-center">
+
+                <button
+                    onClick={props.onClose}
+                    className="absolute top-2 left-3 text-xl font-bold hover:scale-110 transition"
+                >
+                    x
+                </button>   
+
+                <div className="text-2xl inter-font font-bold mb-4">
+                    Chat Analytics
+                </div>
+
+                <div className="w-full mb-2">
+                    <div className="inline-block font-bold">Time Spent:</div> {props.timeSpent}
+                </div>
+
+            {!props.isFreeTalk && (
+                <div className="w-full mb-2">
+                    <div className="inline-block font-bold">Terms Used:</div> {props.termScore}
+                </div>
+            )}
+            
+            {!props.isFreeTalk && (
+                <div className="w-full mb-2">
+                    <div className="inline-block font-bold">Average Score:</div> {props.averageScore.toFixed(2)}
+                </div>
+            )}
+            
+            <div className="w-full mb-2">
                 <div className="inline-block font-bold mr-1">Export Chat:</div>
-                {(user && props.chatbotId) ?
-                <button className="border border-black rounded px-1 bg-gray-300 hover:bg-gray-400" onClick={handleExportClick}>Download CSV</button>
-                :
-                <>Loading...</>
-                }
+                {(user && props.chatbotId) ? (
+                    <button className="border border-black rounded px-2 py-1 bg-gray-300 hover:bg-gray-400" onClick={handleExportClick}>
+                        Download CSV
+                    </button>
+                ) : (
+                    <>Loading...</> 
+                )}
             </div>
-            <div className="w-full">
+
+            <div className="w-full mb-2">
                 <div className="inline-block font-bold mr-1">Export Audio:</div>
-                {(user && props.moduleId) ?
-                <button className="border border-black rounded px-1 bg-blue-300 hover:bg-blue-400" onClick={handleExportAudioClick}>Download MP3</button>
-                :
-                <>Loading...</>
-                }
+                {(user && props.moduleId) ? (
+                    <button className="border border-black rounded px-1 bg-blue-300 hover:bg-blue-400" onClick={handleExportAudioClick}>
+                        Download MP3
+                    </button>
+                ) : (
+                    <>Loading...</>   
+                )} 
             </div>
         </div>
-    )
+    </div>
+    );
 }

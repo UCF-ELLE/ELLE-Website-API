@@ -1,13 +1,6 @@
 import requests
 from config import LANGUAGETOOL_API_URL
 
-# LANGUAGE_MAPPINGS = {
-#     'english': 'en-US',
-#     'spanish': 'es',
-#     'french': 'fr',
-#     'portuguese': 'pt',
-# }
-
 def get_letter_grade(score):
     """Convert numeric score to letter grade"""
     if score >= 9.5:
@@ -23,7 +16,7 @@ def get_letter_grade(score):
     else:
         return "F"
 
-def suggest_grade(message: str, expected_language: str = None):
+def suggest_grade(message: str, language: str = "auto"):
     """
     Use LanguageTool API for language dectection and grammar checking.
     """
@@ -31,25 +24,23 @@ def suggest_grade(message: str, expected_language: str = None):
     try:
         data = {
             'text': message,
+            'language': language,
             'enabledOnly': 'false'
         }
 
-        # if expected_language and expected_language.lower() in LANGUAGE_MAPPINGS:
-        #     language_code = LANGUAGE_MAPPINGS[expected_language.lower()]
-        #     data['language'] = language_code
-        #     print(f"Using specified language: {expected_language}")
-        # else:
-        data['language'] = 'auto'
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+
         print("Using LanguageTool auto-detection")
 
-        response = requests.post(LANGUAGETOOL_API_URL, data = data, timeout = 10)
+        response = requests.post(LANGUAGETOOL_API_URL, data = data, headers=headers, timeout = 10)
         response.raise_for_status()
 
         result = response.json()
 
         detected_language_info = result.get('language', {})
         detected_name = detected_language_info.get('name', 'Unknown')
-        detected_code = detected_language_info.get('code', 'en-US')
 
         matches = result.get('matches', [])
         total_words = len(message.split())

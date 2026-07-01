@@ -22,7 +22,8 @@
   - Our project auto-hijacks existing APIs so newer projects that don't disable TWT WILL have issues if some of the stuff is not set up properly or `TWT_ENABLED` flag is made to be `False` in `config.py`
 
 ## Known flaws:
-  -  
+  - Tito sometimes crashes after a day or two of inactivity, and the first response takes a very long time to generate.
+  - *Potential solution*: Set up a script that resets the system periodically, or clear/manage cache regularly.
 
 ## Potential flaws:
   - Term miscount when adding/deleting terms 

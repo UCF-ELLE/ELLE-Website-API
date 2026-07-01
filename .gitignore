@@ -9,7 +9,7 @@ templates/package-lock.json
 templates/package.json
 node_modules/
 package-lock.json
-
+*.pyc
 
 # Upload-related folders
 deletes/*
@@ -39,10 +39,13 @@ user_audio_files/*
 
 .venv/
 
+
 # Large dependency directories
 LanguageTool-6.4/
 llama.cpp/
 temp_exports/
+.next/
+LanguageTool-6.9-SNAPSHOT/
 
 # Game related files
 *.data
