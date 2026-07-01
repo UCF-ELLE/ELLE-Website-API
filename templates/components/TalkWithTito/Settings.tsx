@@ -86,6 +86,7 @@ export default function Settings(props: propsInterface) {
 
   const handleAIChoice = () => {
     onSetAIChoice(!titoMusicChoice);
+  };
 
   useEffect (() => {
     setPlaylist(parentPlaylist)
