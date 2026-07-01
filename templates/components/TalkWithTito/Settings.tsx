@@ -87,7 +87,7 @@ export default function Settings(props: propsInterface) {
     onSetAIChoice(!titoMusicChoice);
   };
 
-  }
+  
 
   // const handleTtsMute = () => {
   //   onSetTtsMuted(!ttsMuted);
