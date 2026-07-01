@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from .config import *
 from .config import chat_model_path, model_path
 from config import FREE_CHAT_MODULE, REAL_FREE_CHAT_MODULE
-from .database import getModuleTerms, getModuleLanguage, fetchSessionChatHistory
+from .database import getModuleTerms, getModuleName, getModuleLanguageCode, getTermProgress, getModuleLanguage, fetchSessionChatHistory
 # from .convo_grader import *
 import ast
 import re
@@ -281,7 +281,7 @@ def parse_llm_response(llm_response, term_count=5):
 #     return all(field in term for field in required_fields)
 
 
-def handle_message_with_context(message: str, module_id: int, session_id: int): 
+def handle_message_with_context(message: str, module_id: int, session_id: int, user_id: int = None, hint_word: str = None):
     """
     Handle a chat message with module context.
     Includes the full system prompt and previous conversation history
@@ -289,7 +289,7 @@ def handle_message_with_context(message: str, module_id: int, session_id: int):
     """
     try:
         # Build the system prompt
-        base_prompt = build_enhanced_prompt(module_id)
+        base_prompt = build_enhanced_prompt(module_id, user_id, hint_word)
         
         # Initialize messages structure
         messages = [{"role": "system", "content": base_prompt}]
@@ -320,9 +320,11 @@ def handle_message_with_context(message: str, module_id: int, session_id: int):
         print(f"Context-aware message error: {error}")
         return "Sorry, Tito had trouble responding!"
 
-def build_enhanced_prompt(module_id: int = None):
+def build_enhanced_prompt(module_id: int = None, user_id: int = None, hint_word: str = None):
     """
     Builds the enhanced prompt with module context.
+    Includes module name, target language, full vocabulary list,
+    and which words the student still needs to practice.
     """
     if module_id == FREE_CHAT_MODULE or module_id == REAL_FREE_CHAT_MODULE or module_id is None:
         return free_prompt
@@ -331,15 +333,54 @@ def build_enhanced_prompt(module_id: int = None):
 
     try:
         terms = getModuleTerms(module_id)
-        language = getModuleLanguage(module_id)
+        language = getModuleLanguageCode(module_id)
+        module_name = getModuleName(module_id)
 
         if terms and language:
-            vocab_list = [term[1] for term in terms[:8]]
-            vocab_context = ", ".join(vocab_list)
-            enhanced_prompt = f"""{enhanced_prompt}
+            all_vocab = [term[1] for term in terms]
+            vocab_context = ", ".join(all_vocab)
 
-            Context: Student learning {language[0]}. Key vocab: {vocab_context}
+            prompt_extension = f"""
+
+            Module Context:
+            - Module topic: {module_name or 'General'}
+            - Language: {language}
+            - Vocabulary list: {vocab_context}
             """
+
+            if user_id is not None:
+                try:
+                    progress = getTermProgress(user_id, module_id)
+                    progress_map = {row[0]: {"used": row[2]} for row in (progress or [])}
+
+                    remaining_words = []
+                    used_words = []
+                    for term_id, word in terms:
+                        if term_id in progress_map:
+                            if progress_map[term_id]["used"] < 3:
+                                remaining_words.append(word)
+                            else:
+                                used_words.append(word)
+                        else:
+                            remaining_words.append(word)
+
+                    if remaining_words:
+                        prompt_extension += f"""
+            - Words still to practice: {', '.join(remaining_words)}
+            - Words already used enough: {', '.join(used_words) if used_words else 'none yet'}
+            """
+                    if hint_word:
+                        prompt_extension += f"""
+            - CRITICAL HINT REQUEST: The student wants to practice the word '{hint_word}'. Start your response in the target language ({language}) by greeting/answering them briefly, and immediately ask a simple, friendly question that prompts them to use '{hint_word}' in their reply.
+            """
+                    elif remaining_words:
+                        prompt_extension += f"""
+            Guide the conversation toward the words the student still needs to practice.
+            """
+                except Exception as e:
+                    print(f"Could not load user progress: {e}")
+
+            enhanced_prompt = f"""{enhanced_prompt}{prompt_extension}"""
     except Exception as error:
         print(f"Could not load module context: {error}")
 

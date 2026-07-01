@@ -285,42 +285,30 @@ def doesUserMessageExist(message_id: int):
     return res[0]
 
 
-# TODO: implement trigger logic here
 def updateWordsUsed(term_count_dict: dict, user_id: int, module_id: int):
     if not term_count_dict:
         return
-    
+
     term_ids = list(term_count_dict.keys())
-
     count = len(term_ids)
-    # for tID in term_ids:
-        # count += term_count_dict[tID]
 
-    # query = '''
-    #     UPDATE `tito_module_progress` 
-    #     SET `totalTermsUsed` = `totalTermsUsed` + %s 
-    #     WHERE `moduleID` = %s AND `userID` = %s;
-    # '''
-    # db.post(query, (count, module_id, user_id))
-
-
-    # Build CASE statement
-    case_statements = " ".join(
-        f"WHEN {tid} THEN {count}" for tid, count in term_count_dict.items()
-    )
+    # We insert (moduleID, termID, userID, timesUsed, hasMastered)
+    placeholders = ", ".join(["(%s, %s, %s, %s, %s)"] * count)
+    values = []
+    for tid in term_ids:
+        times_used = term_count_dict[tid]
+        has_mastered = 1 if times_used >= 3 else 0
+        values.extend([module_id, tid, user_id, times_used, has_mastered])
 
     query = f'''
-        UPDATE `tito_term_progress`
-        SET `timesUsed` = `timesUsed` + CASE `termID`
-            {case_statements}
-            ELSE 0
-        END
-        WHERE `userID` = %s AND `moduleID` = %s
-          AND `termID` IN ({",".join(["%s"] * count)});
+        INSERT INTO `tito_term_progress` (`moduleID`, `termID`, `userID`, `timesUsed`, `hasMastered`)
+        VALUES {placeholders}
+        ON DUPLICATE KEY UPDATE 
+            `hasMastered` = IF(`timesUsed` + VALUES(`timesUsed`) >= 3, 1, 0),
+            `timesUsed` = `timesUsed` + VALUES(`timesUsed`);
     '''
 
-    params = [user_id, module_id] + term_ids
-    db.post(query, params)
+    db.post(query, values)
 
 def updateMessageKeytermCount(count: int, messageID: int, chatbotSID: int):
     query = '''
@@ -331,18 +319,21 @@ def updateMessageKeytermCount(count: int, messageID: int, chatbotSID: int):
 
     db.post(query, (count, messageID))
 
-# TODO: Improve this? return # words mastered and totalwords in that module
 def getUserModuleProgress(user_id: int, module_id:int):
     query = '''
-        SELECT tmp.termsMastered, tm.totalTerms 
-        FROM tito_module_progress tmp
-        JOIN tito_module tm ON tmp.moduleID = tm.moduleID 
-        WHERE tmp.moduleID = %s AND tmp.userID = %s;
+        SELECT
+            (SELECT COUNT(*)
+             FROM tito_term_progress ttp
+             WHERE ttp.userID = %s AND ttp.moduleID = %s AND ttp.timesUsed >= 3
+            ) AS wordsMastered,
+            tm.totalTerms
+        FROM tito_module tm
+        WHERE tm.moduleID = %s;
     '''
 
-    res = db.get(query, (module_id, user_id), fetchOne=True)
+    res = db.get(query, (user_id, module_id, module_id), fetchOne=True)
     if not res:
-        raise Exception(f"Failed to access tito_module_progress with {user_id} and {module_id} (invalid pair-request)")
+        raise Exception(f"Failed to access tito_module with moduleID {module_id}")
     
     return res
 
@@ -1226,6 +1217,16 @@ def getTermProgress(user_id: int, module_id: int):
         WHERE userID = %s AND moduleID = %s;
     '''
     return db.get(query, (user_id, module_id))
+
+def getUsageByTerm(user_id: int, module_id: int):
+    query = '''
+        SELECT termID, timesUsed
+        FROM tito_term_progress
+        WHERE userID = %s AND moduleID = %s
+        ORDER BY termID;
+    '''
+    rows = db.get(query, (user_id, module_id))
+    return [{"termID": int(term_id), "timesUsed": int(times_used)} for term_id, times_used in rows]
     
 def getModuleLanguage(module_id: int):
     query = '''
@@ -1251,6 +1252,18 @@ def isModuleInClass(class_id: int, module_id:int):
     res = db.get(query, (class_id, module_id), fetchOne=True)
     if not res:
         return False
+    return res[0]
+    
+def getModuleName(module_id: int):
+    '''
+    Returns the name of the module from the module table.
+    '''
+    query = '''
+        SELECT name FROM `module` WHERE moduleID = %s;
+    '''
+    res = db.get(query, (module_id,), fetchOne=True)
+    if not res or not res[0]:
+        return None
     return res[0]
 
 def getModuleLanguageCode(module_id: int):
@@ -1313,7 +1326,6 @@ def getLastCreatedLoreID(user_id: int):
     if not res or not res[0]:
         return None
     return res[0]
-
 def fetchSessionChatHistory(chatbotSID: int):
     """
     Retrieves all messages for a specific chatbot session ordered by message ID.

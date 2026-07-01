@@ -1,12 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from "next/image";
 import settingsBackground from "@/public/static/images/ConversAItionELLE/SettingsBackground.png";
-import muteIcon from "@/public/static/images/ConversAItionELLE/mute.png";
-import volumeIcon from "@/public/static/images/ConversAItionELLE/volume.png";
+// import muteIcon from "@/public/static/images/ConversAItionELLE/mute.png";
+// import volumeIcon from "@/public/static/images/ConversAItionELLE/volume.png";
 // import infoIcon from "@/public/static/images/ConversAItionELLE/info.png"
 
 // Song List
-const songList = [ 
+const songList = [
   { name: "Ambient Jungle", path: "/elle/TitoAudios/ambient-jungle.mp3" },
   { name: "Jungle Party", path: "/elle/TitoAudios/jungle-party.mp3" },
   { name: "Happy Rock", path: "/elle/TitoAudios/happy-rock.mp3" },
@@ -14,7 +14,7 @@ const songList = [
   { name: "Pop", path: "/elle/TitoAudios/pop-summer.mp3" },
   { name: "Techno", path: "/elle/TitoAudios/techno.mp3" },
   { name: "Hip Hop", path: "/elle/TitoAudios/hiphop.mp3" },
-  { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3"},
+  { name: "R&B", path: "/elle/TitoAudios/rnb-beats.mp3" },
   { name: "Smooth Jazz", path: "/elle/TitoAudios/jazz-smooth.mp3" },
   { name: "Lofi", path: "/elle/TitoAudios/lofi-groovy.mp3" }
 ];
@@ -25,16 +25,16 @@ interface Song {
   path: string;
 }
 
-interface propsInterface{
+interface propsInterface {
   onSetPlaylist: (song: Song[]) => void;
   apply: () => void;
-  onSetFont: (chatFont:string) => void;
-  onSetAIChoice: (AIChoice:boolean) => void;
-  onSetTtsMuted: (ttsMuted:boolean) => void;
+  onSetFont: (chatFont: string) => void;
+  onSetAIChoice: (AIChoice: boolean) => void;
+  // onSetTtsMuted: (ttsMuted:boolean) => void;
   titoMusicChoice: boolean;
   parentPlaylist: Song[];
   parentFont: string;
-  ttsMuted: boolean;
+  // ttsMuted: boolean;
 }
 
 // Fisher-Yates shuffle function
@@ -48,24 +48,25 @@ function shuffleArray<T>(playlist: T[]): T[] {
 }
 
 export default function Settings(props: propsInterface) {
-  const {apply, onSetPlaylist, onSetFont, onSetAIChoice, onSetTtsMuted, parentPlaylist, parentFont, titoMusicChoice, ttsMuted} = props;
+  const { apply, onSetPlaylist, onSetFont, onSetAIChoice, parentPlaylist, parentFont, titoMusicChoice } = props;
+  // const {apply, onSetPlaylist, onSetFont, onSetAIChoice, onSetTtsMuted, parentPlaylist, parentFont, titoMusicChoice, ttsMuted} = props;
 
   const [playlist, setPlaylist] = useState<Song[]>([])
   const [chatFont, setChatFont] = useState<string>("medium")
-  
+
   const handleApplyClick = () => {
     onSetPlaylist(playlist);
     onSetFont(chatFont);
   }
 
   const togglePlaylist = (song: Song) => {
-      setPlaylist((prev) => {
-        const isAlreadySelected = prev.some((s) => s.path === song.path);
-        // Remove if already selected, Add of not selected
-        return isAlreadySelected
-          ? prev.filter((s) => s.path !== song.path) 
-          : [...prev, song];
-      });
+    setPlaylist((prev) => {
+      const isAlreadySelected = prev.some((s) => s.path === song.path);
+      // Remove if already selected, Add of not selected
+      return isAlreadySelected
+        ? prev.filter((s) => s.path !== song.path)
+        : [...prev, song];
+    });
   }
 
   const handleShuffle = () => {
@@ -84,16 +85,17 @@ export default function Settings(props: propsInterface) {
 
   const handleAIChoice = () => {
     onSetAIChoice(!titoMusicChoice);
-    
-  }
+  };
 
-  const handleTtsMute = () => {
-    onSetTtsMuted(!ttsMuted);
-  }
+  
 
-  useEffect (() => {
+  // const handleTtsMute = () => {
+  //   onSetTtsMuted(!ttsMuted);
+  // }
+
+  useEffect(() => {
     setPlaylist(parentPlaylist)
-  },[parentPlaylist])
+  }, [parentPlaylist])
 
   useEffect(() => {
     setChatFont(parentFont);
@@ -106,85 +108,93 @@ export default function Settings(props: propsInterface) {
 
 
   return (
-    <div className="absolute top-0 left-0 w-full h-full bg-[#35353580] z-50">
-      <div className="absolute top-[50%] left-[50%] w-[65%] h-[75%] -translate-x-1/2 -translate-y-1/2 z-50 flex flex-col">
+    <div className="absolute inset-0 bg-[#35353580] z-50 flex items-center justify-center p-3 md:p-6">
+      <div className="relative w-[92%] max-w-[760px] max-h-[85%] z-50 flex flex-col overflow-hidden rounded-lg">
         <Image
           src={settingsBackground}
-          className="absolute top-0 left-0 w-full h-full"
+          className="absolute inset-0 w-full h-full object-cover"
           alt="Settings background"
         />
-        <button className="absolute top-2 left-4 z-50 text-xl text-white font-semibold" onClick={handleClose}>x</button>
-        <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-full h-full flex flex-col items-center text-white text-[1vw] pb-4 inter-font">
-          <div className="select-none bg-[#997c54] text-1xl md:text-3xl p-2 px-4 my-4 rounded shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover">
+
+        <button
+          className="absolute top-2 left-4 z-50 text-xl text-white font-semibold hover:scale-110 transition"
+          onClick={handleClose}
+        >
+          x
+        </button>
+
+        <div className="relative z-10 w-full h-full max-h-[85vh] overflow-y-auto flex flex-col items-center text-white px-4 py-3 md:px-8 md:py-4 inter-font">
+          <div className="select-none bg-[#997c54] text-xl md:text-3xl p-2 px-4 mb-3 rounded shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover">
             Settings
           </div>
-          <div className="w-full flex flex-wrap justify-center">
-            <div className="select-none text-[2vw] ml-8 w-fit irish-grover">
-              Music:
-            </div>
-            <div className="p-1 ml-16 md:ml-32 w-fit">
-              <div className="text-lg">Song List</div>
-              <div className="grid grid-cols-2 gap-x-4 md:gap-x-10 gap-y-1 max-h-[10em]">{/* Songs container */}
-                {songList.map((song, index) => (
-                  <div key={index} className="flex flex-nowrap">
-                  <input 
-                    type="checkbox" 
-                    className="mr-1" 
-                    checked={playlist.some((s) => s.path === song.path)} 
-                    onChange={()=>togglePlaylist(song)}
-                    />
-                  <div className="w-[5em] whitespace-nowrap">{song.name}</div>
+
+          <div className="w-full flex flex-col items-center gap-4">
+            <div className="w-full flex flex-col md:flex-row md:justify-center md:items-start gap-3 md:gap-10">
+              <div className="select-none text-2xl md:text-3xl irish-grover">
+                Music:
+              </div>
+
+              <div className="w-full md:w-fit">
+                <div className="text-lg md:text-xl mb-2 text-center md:text-left">
+                  Song List
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 max-h-[12em] overflow-y-auto">
+                  {/* Songs container */}
+                  {songList.map((song, index) => (
+                    <div key={index} className="flex flex-nowrap">
+                      <input
+                        type="checkbox"
+                        className="mr-2"
+                        checked={playlist.some((s) => s.path === song.path)}
+                        onChange={() => togglePlaylist(song)}
+                      />
+                      <div>{song.name}</div>
+                    </div>
                   ))}
-                          
-              </div>
-              <div className="flex flex-nowrap w-full items-center mt-2 justify-between text-lg ">
-                <div className="mx-4">
-                  <input type="checkbox" className="mr-1" onChange={()=>handleShuffle()} />
-                  Shuffle All
                 </div>
-                <div className="mx-4">
-                  <input type="checkbox" className="mr-1" checked={titoMusicChoice} onChange={()=>handleAIChoice()}/>
-                  AI Choice
+
+                <div className="flex flex-col sm:flex-row w-full items-center mt-3 justify-center gap-3 text-lg">
+                  <div>
+                    <input type="checkbox" className="mr-1" onChange={() => handleShuffle()} />
+                    Shuffle All
+                  </div>
+
+                  <div>
+                    <input type="checkbox" className="mr-1" checked={titoMusicChoice} onChange={() => handleAIChoice()} />
+                    AI Choice
+                  </div>
                 </div>
               </div>
             </div>
-          
-            <div className="w-full flex mt-4">
-              <div className="select-none p-2 ml-8 w-fit flex flex-nowrap">
-                <div className="text-xl md:text-3xl font-semibold mr-4 irish-grover">Chat Font Size:</div>
-                <select className="bg-[#EEEEEE] text-[#2D3648] p-2 rounded-md w-64" value={chatFont} onChange={handleFont}>
+
+            <div className="w-full flex justify-center">
+              <div className="select-none w-full max-w-[520px] flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <div className="text-xl md:text-3xl font-semibold irish-grover">
+                  Chat Font Size:
+                </div>
+
+                <select
+                  className="bg-[#EEEEEE] text-[#2D3648] p-2 rounded-md w-full sm:w-64"
+                  value={chatFont}
+                  onChange={handleFont}
+                >
                   <option value="small" className="text-sm">Small</option>
                   <option value="medium" className="text-base">Medium</option>
                   <option value="large" className="text-lg">Large</option>
                   <option value="xl" className="text-xl">XL</option>
-              </select>
-              </div>
-            </div>
-            <div className="w-full flex mt-4">
-              <div className="select-none p-2 ml-8 w-fit flex flex-nowrap items-center">
-                <div className="text-xl md:text-3xl font-semibold mr-4 irish-grover">Tito Voice (TTS):</div>
-                <button 
-                  onClick={handleTtsMute}
-                  className="bg-[#EEEEEE] hover:bg-[#DDDDDD] p-3 rounded-md transition flex items-center gap-2"
-                  title={ttsMuted ? "Unmute Tito's voice" : "Mute Tito's voice"}
+                </select>
+
+                <button
+                  onClick={handleApplyClick}
+                  className="font-semibold select-none bg-[#997c54] text-xl md:text-3xl p-2 px-4 rounded shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover"
                 >
-                  <span className="text-2xl">🤖</span>
-                  <Image 
-                    src={ttsMuted ? muteIcon : volumeIcon} 
-                    alt={ttsMuted ? "Muted" : "Unmuted"} 
-                    className="w-6 h-6"
-                  />
-                  <span className="text-sm font-medium text-[#2D3648]">
-                    {ttsMuted ? "Muted" : "Enabled"}
-                  </span>
+                  Apply
                 </button>
               </div>
             </div>
           </div>
-          <button onClick={handleApplyClick} className="font-semibold select-none bg-[#997c54] text-1xl md:text-3xl p-2 px-4 mt-6 rounded shadow-[0px_4px_4px_rgba(0,0,0,0.3)] irish-grover">
-            Apply
-          </button>
+
         </div>
       </div>
     </div>
