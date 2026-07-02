@@ -59,7 +59,31 @@ def createChatbotSession(userID: int, moduleID: int):
     '''
 
     res = db.post(query, (userID, moduleID))
-    return res["lastrowid"] # the chatbotSID
+    chatbot_sid = res["lastrowid"] # the chatbotSID
+
+    # Pre-populate tito_term_progress for this session with all terms of the module
+    term_ids = db.get(
+        '''
+            SELECT DISTINCT t.termID
+            FROM (
+                SELECT DISTINCT questionID, moduleID
+                FROM module_question
+                WHERE moduleID = %s
+            ) mq
+            JOIN answer a ON mq.questionID = a.questionID
+            JOIN term t ON a.termID = t.termID
+            WHERE mq.moduleID = %s;
+        ''', (moduleID, moduleID)
+    )
+
+    if term_ids:
+        term_progress_data = [(userID, moduleID, chatbot_sid, term_id[0]) for term_id in term_ids]
+        db.post(
+            "INSERT IGNORE INTO tito_term_progress (userID, moduleID, chatbotSID, termID) VALUES (%s, %s, %s, %s);",
+            term_progress_data
+        )
+
+    return chatbot_sid
 
 # Self-explanatory (F = inactive/invalid sesh, T = active sesh)
 # TODO: Check logic, test with existing but expired, current and existing nonE, and future nonExist
@@ -285,23 +309,23 @@ def doesUserMessageExist(message_id: int):
     return res[0]
 
 
-def updateWordsUsed(term_count_dict: dict, user_id: int, module_id: int):
+def updateWordsUsed(term_count_dict: dict, user_id: int, module_id: int, chatbot_sid: int):
     if not term_count_dict:
         return
 
     term_ids = list(term_count_dict.keys())
     count = len(term_ids)
 
-    # We insert (moduleID, termID, userID, timesUsed, hasMastered)
-    placeholders = ", ".join(["(%s, %s, %s, %s, %s)"] * count)
+    # We insert (moduleID, termID, userID, chatbotSID, timesUsed, hasMastered)
+    placeholders = ", ".join(["(%s, %s, %s, %s, %s, %s)"] * count)
     values = []
     for tid in term_ids:
         times_used = term_count_dict[tid]
         has_mastered = 1 if times_used >= 3 else 0
-        values.extend([module_id, tid, user_id, times_used, has_mastered])
+        values.extend([module_id, tid, user_id, chatbot_sid, times_used, has_mastered])
 
     query = f'''
-        INSERT INTO `tito_term_progress` (`moduleID`, `termID`, `userID`, `timesUsed`, `hasMastered`)
+        INSERT INTO `tito_term_progress` (`moduleID`, `termID`, `userID`, `chatbotSID`, `timesUsed`, `hasMastered`)
         VALUES {placeholders}
         ON DUPLICATE KEY UPDATE 
             `hasMastered` = IF(`timesUsed` + VALUES(`timesUsed`) >= 3, 1, 0),
@@ -322,7 +346,7 @@ def updateMessageKeytermCount(count: int, messageID: int, chatbotSID: int):
 def getUserModuleProgress(user_id: int, module_id:int):
     query = '''
         SELECT
-            (SELECT COUNT(*)
+            (SELECT COUNT(DISTINCT ttp.termID)
              FROM tito_term_progress ttp
              WHERE ttp.userID = %s AND ttp.moduleID = %s AND ttp.timesUsed >= 3
             ) AS wordsMastered,
@@ -373,15 +397,15 @@ def updateModuleTermCount(module_id: int):
     db.post(query, (term_ct, module_id))
 
 # Adds +1 to misspell count for this term for the user
-def updateMisspellings(user_id: int, module_id: int, term_id: int):
+def updateMisspellings(user_id: int, module_id: int, term_id: int, chatbot_sid: int):
     query = '''
         UPDATE `tito_term_progress`
         SET `timesMisspelled` = `timesMisspelled` + 1,
             `timesUsed` = `timesUsed` + 1 
-        WHERE userID = %s AND moduleID = %s AND termID = %s;
+        WHERE userID = %s AND moduleID = %s AND termID = %s AND chatbotSID = %s;
     '''
 
-    db.post(query, (user_id, module_id, term_id))
+    db.post(query, (user_id, module_id, term_id, chatbot_sid))
     
 
 # ================================================
@@ -1210,22 +1234,57 @@ def getModuleTerms(module_id: int):
         return []
     return res
 
-def getTermProgress(user_id: int, module_id: int):
-    query = '''
-        SELECT termID, hasMastered, timesUsed, timesMisspelled
-        FROM tito_term_progress
-        WHERE userID = %s AND moduleID = %s;
-    '''
-    return db.get(query, (user_id, module_id))
+def getTermProgress(user_id: int, module_id: int, chatbot_sid: int = None):
+    if chatbot_sid:
+        query = '''
+            SELECT termID, hasMastered, timesUsed, timesMisspelled
+            FROM tito_term_progress
+            WHERE userID = %s AND moduleID = %s AND chatbotSID = %s;
+        '''
+        return db.get(query, (user_id, module_id, chatbot_sid))
+    else:
+        # Fallback to the active/most recent session
+        session_row = db.get(
+            "SELECT chatbotSID FROM chatbot_sessions WHERE userID = %s AND moduleID = %s ORDER BY chatbotSID DESC LIMIT 1;",
+            (user_id, module_id), fetchOne=True
+        )
+        if session_row:
+            chatbot_sid = session_row[0]
+            query = '''
+                SELECT termID, hasMastered, timesUsed, timesMisspelled
+                FROM tito_term_progress
+                WHERE userID = %s AND moduleID = %s AND chatbotSID = %s;
+            '''
+            return db.get(query, (user_id, module_id, chatbot_sid))
+        else:
+            return []
 
-def getUsageByTerm(user_id: int, module_id: int):
-    query = '''
-        SELECT termID, timesUsed
-        FROM tito_term_progress
-        WHERE userID = %s AND moduleID = %s
-        ORDER BY termID;
-    '''
-    rows = db.get(query, (user_id, module_id))
+def getUsageByTerm(user_id: int, module_id: int, chatbot_sid: int = None):
+    if chatbot_sid:
+        query = '''
+            SELECT termID, timesUsed
+            FROM tito_term_progress
+            WHERE userID = %s AND moduleID = %s AND chatbotSID = %s
+            ORDER BY termID;
+        '''
+        rows = db.get(query, (user_id, module_id, chatbot_sid))
+    else:
+        session_row = db.get(
+            "SELECT chatbotSID FROM chatbot_sessions WHERE userID = %s AND moduleID = %s ORDER BY chatbotSID DESC LIMIT 1;",
+            (user_id, module_id), fetchOne=True
+        )
+        if session_row:
+            chatbot_sid = session_row[0]
+            query = '''
+                SELECT termID, timesUsed
+                FROM tito_term_progress
+                WHERE userID = %s AND moduleID = %s AND chatbotSID = %s
+                ORDER BY termID;
+            '''
+            rows = db.get(query, (user_id, module_id, chatbot_sid))
+        else:
+            rows = []
+            
     return [{"termID": int(term_id), "timesUsed": int(times_used)} for term_id, times_used in rows]
     
 def getModuleLanguage(module_id: int):

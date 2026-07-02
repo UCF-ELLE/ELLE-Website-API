@@ -806,15 +806,18 @@ CREATE TABLE `tito_term_progress` (
   `moduleID` int NOT NULL,
   `termID` int NOT NULL,
   `userID` int NOT NULL,
+  `chatbotSID` int NOT NULL DEFAULT '0',
   `timesMisspelled` int NOT NULL DEFAULT '0',
   `timesUsed` int NOT NULL DEFAULT '0',
   `hasMastered` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`userID`,`moduleID`,`termID`),
+  PRIMARY KEY (`userID`,`moduleID`,`chatbotSID`,`termID`),
   KEY `termID` (`termID`),
   KEY `moduleID` (`moduleID`),
+  KEY `chatbotSID` (`chatbotSID`),
   CONSTRAINT `tito_term_progress_ibfk_1` FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   CONSTRAINT `tito_term_progress_ibfk_2` FOREIGN KEY (`termID`) REFERENCES `term` (`termID`) ON DELETE CASCADE,
-  CONSTRAINT `tito_term_progress_ibfk_3` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
+  CONSTRAINT `tito_term_progress_ibfk_3` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
+  CONSTRAINT `tito_term_progress_ibfk_4` FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
