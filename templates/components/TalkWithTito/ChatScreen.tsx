@@ -269,25 +269,12 @@ export default function ChatScreen(props: ChatScreenProps) {
    * Stores vocabulary progress by module so changing modules does not
    * overwrite the progress from another conversation.
    */
-  const [moduleProgress, setModuleProgress] =
-    useState<ModuleProgressMap>(() => {
-      if (typeof window === "undefined") {
-        return {};
-      }
-
-      try {
-        const storedProgress =
-          window.localStorage.getItem("titoModuleProgress");
-
-        return storedProgress
-          ? JSON.parse(storedProgress)
-          : {};
-      } catch {
-        return {};
-      }
-    });
-
-  const progress = moduleProgress[props.moduleID] ?? 0;
+  const progress = useMemo(() => {
+    const total = terms.length;
+    if (total === 0) return 0;
+    const completed = terms.filter((term) => (term.usageCount ?? 0) >= 3).length;
+    return Math.round((completed / total) * 100);
+  }, [terms]);
 
   /* Completion celebration */
   const [showFireworks, setShowFireworks] = useState(false);
@@ -318,18 +305,13 @@ export default function ChatScreen(props: ChatScreenProps) {
   }, [progress]);
 
   const handleReset = useCallback(() => {
-    setModuleProgress((previousProgress) => ({
-      ...previousProgress,
-      [props.moduleID]: 0,
-    }));
-
     setTerms((previousTerms) =>
       previousTerms.map((term) => ({
         ...term,
         usageCount: 0,
       }))
     );
-  }, [props.moduleID]);
+  }, []);
 
   /* Vocabulary mastery state */
   const [masteredSet, setMasteredSet] =
@@ -467,14 +449,6 @@ const fetchTermProgress = useCallback(async () => {
             (masteredTerms / totalTerms) * 100
           )
         : 0;
-
-    setModuleProgress((previousProgress) => ({
-      ...previousProgress,
-      [props.moduleID]: Math.max(
-        previousProgress[props.moduleID] ?? 0,
-        progressPercentage
-      ),
-    }));
 
     props.setTermScore(
       `${masteredTerms} / ${totalTerms}`
@@ -905,20 +879,6 @@ async function handleSendMessageClick(
       });
 
       setTerms(newTerms);
-
-      /* Optimistically update module progress using the latest term counts */
-      {
-        const completedCount = newTerms.filter(t => t.usageCount >= 3).length;
-        const totalCount = newTerms.length || 0;
-        const pctLocal =
-          totalCount > 0 ? Math.max(0, Math.min(100, Math.round((100 * completedCount) / totalCount))) : 0;
-
-        console.log("[progress] optimistic local", { completedCount, totalCount, pctLocal });
-        setModuleProgress(prev => ({
-          ...prev,
-          [props.moduleID]: Math.max(prev[props.moduleID] ?? 0, pctLocal),
-        }));
-      }
 
       /* Read Tito's response aloud when narration is enabled */
       if (
@@ -1454,15 +1414,7 @@ async function handleSendMessageClick(
     loadMessages();
   }, [props.chatbotId, props.moduleID, user, userLoading, props.titoWelcomeMessage, props.moduleName]);
 
-  // Persist module progress to localStorage whenever it changes
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        "titoModuleProgress", 
-        JSON.stringify(moduleProgress)
-      );
-    } catch { }
-  }, [moduleProgress]);
+
 
   const [placeholder, setPlaceholder] = 
   useState<string>("Tito is typing...");
