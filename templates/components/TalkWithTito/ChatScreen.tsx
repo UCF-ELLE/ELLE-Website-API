@@ -388,17 +388,12 @@ const applyBackendUsageCounts = useCallback((data: any) => {
     usageMap.set(termID, normalizedUsageCount);
   });
 
-  if (usageMap.size > 0) {
-    setTerms((previousTerms) =>
-      previousTerms.map((term) => ({
-        ...term,
-        usageCount:
-          usageMap.get(term.termID) ??
-          term.usageCount ??
-          0,
-      }))
-    );
-  }
+  setTerms((previousTerms) =>
+    previousTerms.map((term) => ({
+      ...term,
+      usageCount: usageMap.get(term.termID) ?? 0,
+    }))
+  );
 
   return usageMap;
 }, []);
