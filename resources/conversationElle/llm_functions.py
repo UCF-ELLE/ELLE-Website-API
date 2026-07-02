@@ -42,7 +42,7 @@ def prewarm_llm_context(module_id, session_id):
     """
     try:
         # Get the full enhanced prompt with module vocab context
-        base_prompt = build_enhanced_prompt(module_id)
+        base_prompt = build_enhanced_prompt(module_id, chatbot_sid=session_id)
         # Format as list of role-based messages for Chat completions
         messages = [
             {"role": "system", "content": base_prompt},
@@ -289,7 +289,7 @@ def handle_message_with_context(message: str, module_id: int, session_id: int, u
     """
     try:
         # Build the system prompt
-        base_prompt = build_enhanced_prompt(module_id, user_id, hint_word)
+        base_prompt = build_enhanced_prompt(module_id, user_id, hint_word, session_id)
         
         # Initialize messages structure
         messages = [{"role": "system", "content": base_prompt}]
@@ -320,7 +320,7 @@ def handle_message_with_context(message: str, module_id: int, session_id: int, u
         print(f"Context-aware message error: {error}")
         return "Sorry, Tito had trouble responding!"
 
-def build_enhanced_prompt(module_id: int = None, user_id: int = None, hint_word: str = None):
+def build_enhanced_prompt(module_id: int = None, user_id: int = None, hint_word: str = None, chatbot_sid: int = None):
     """
     Builds the enhanced prompt with module context.
     Includes module name, target language, full vocabulary list,
@@ -341,7 +341,7 @@ def build_enhanced_prompt(module_id: int = None, user_id: int = None, hint_word:
             vocab_context = ", ".join(all_vocab)
 
             prompt_extension = f"""
-
+            
             Module Context:
             - Module topic: {module_name or 'General'}
             - Language: {language}
@@ -350,7 +350,7 @@ def build_enhanced_prompt(module_id: int = None, user_id: int = None, hint_word:
 
             if user_id is not None:
                 try:
-                    progress = getTermProgress(user_id, module_id)
+                    progress = getTermProgress(user_id, module_id, chatbot_sid)
                     progress_map = {row[0]: {"used": row[2]} for row in (progress or [])}
 
                     remaining_words = []

@@ -200,7 +200,7 @@ class UserMessages(Resource):
         # Update module words used =>
         # Async grammar evaluation
 
-        usage_by_term = getUsageByTerm(user_id, module_id) if module_id != REAL_FREE_CHAT_MODULE else []
+        usage_by_term = getUsageByTerm(user_id, module_id, session_id) if module_id != REAL_FREE_CHAT_MODULE else []
         terms_used = [entry["termID"] for entry in usage_by_term if entry["timesUsed"] > 0]
 
         return create_response(
@@ -530,11 +530,12 @@ class GetTermProgress(Resource):
         """
         user_id = get_jwt_identity()
         module_id = request.args.get('moduleID', type=int)
+        chatbot_sid = request.args.get('chatbotSID', type=int)
 
         if not module_id:
             return create_response(False, message="moduleID required", status_code=400)
 
-        rows = getTermProgress(user_id, module_id)  # <- from database.py
+        rows = getTermProgress(user_id, module_id, chatbot_sid)  # <- from database.py
         if not rows:
             return create_response(True, data={"masteredIDs": [], "usedIDs": [], "progressByTerm": {}})
 

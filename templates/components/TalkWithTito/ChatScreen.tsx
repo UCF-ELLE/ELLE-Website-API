@@ -413,7 +413,8 @@ const fetchTermProgress = useCallback(async () => {
 
   const url =
     `${ELLE_URL}/twt/session/getTermProgress` +
-    `?moduleID=${props.moduleID}`;
+    `?moduleID=${props.moduleID}` +
+    (props.chatbotId !== undefined ? `&chatbotSID=${props.chatbotId}` : "");
 
   try {
     const response = await fetch(url, {
@@ -495,6 +496,7 @@ const fetchTermProgress = useCallback(async () => {
 }, [
   user?.jwt,
   props.moduleID,
+  props.chatbotId,
   props.setTermScore,
   terms.length,
   applyBackendUsageCounts,

@@ -1043,15 +1043,18 @@ CREATE TABLE `tito_term_progress` (
   `moduleID` int NOT NULL,
   `termID` int NOT NULL,
   `userID` int NOT NULL,
+  `chatbotSID` int NOT NULL DEFAULT '0',
   `timesMisspelled` int NOT NULL DEFAULT '0',
   `timesUsed` int NOT NULL DEFAULT '0',
   `hasMastered` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`userID`,`moduleID`,`termID`),
+  PRIMARY KEY (`userID`,`moduleID`,`chatbotSID`,`termID`),
   KEY `termID` (`termID`),
   KEY `moduleID` (`moduleID`),
+  KEY `chatbotSID` (`chatbotSID`),
   CONSTRAINT `tito_term_progress_ibfk_1` FOREIGN KEY (`moduleID`) REFERENCES `module` (`moduleID`) ON DELETE CASCADE,
   CONSTRAINT `tito_term_progress_ibfk_2` FOREIGN KEY (`termID`) REFERENCES `term` (`termID`) ON DELETE CASCADE,
-  CONSTRAINT `tito_term_progress_ibfk_3` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE
+  CONSTRAINT `tito_term_progress_ibfk_3` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE CASCADE,
+  CONSTRAINT `tito_term_progress_ibfk_4` FOREIGN KEY (`chatbotSID`) REFERENCES `chatbot_sessions` (`chatbotSID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -1086,9 +1089,11 @@ DELIMITER ;;
 /*!50003 CREATE*/ /*!50017 DEFINER=`elle`@`%`*/ /*!50003 TRIGGER `afterUpdateTermProgress_change_termsMastered` AFTER UPDATE ON `tito_term_progress` FOR EACH ROW BEGIN
     
     IF NEW.hasMastered = 1 AND OLD.hasMastered = 0 THEN
-        UPDATE `tito_module_progress`
-        SET `termsMastered` = `termsMastered` + 1
-        WHERE `moduleID` = NEW.moduleID AND `userID` = NEW.userID;
+        IF (SELECT COUNT(*) FROM `tito_term_progress` WHERE userID = NEW.userID AND moduleID = NEW.moduleID AND termID = NEW.termID AND hasMastered = 1 AND chatbotSID != NEW.chatbotSID) = 0 THEN
+            UPDATE `tito_module_progress`
+            SET `termsMastered` = `termsMastered` + 1
+            WHERE `moduleID` = NEW.moduleID AND `userID` = NEW.userID;
+        END IF;
     END IF;
 END */;;
 DELIMITER ;

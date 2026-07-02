@@ -392,7 +392,7 @@ def find_used_key_terms(key_terms_lemmatized: [(int, str)], lemmas: [str], messa
 
         if not update_db:
             print(f'matched word {term_phrase}')
-            updateMisspellings(user_id, module_id, term_id)
+            updateMisspellings(user_id, module_id, term_id, chatbot_sid)
             return {}
 
         words_found[term_id] += 1
@@ -446,7 +446,7 @@ def spacy_service():
                     print(f"[INFO] printing matches: {matches}")
                 if DEBUG_TRACING_FLAG:
                     print("[CHRONOLOGY] END OF MESSAGE PROCESSING: Updating used key terms/phrases @ update_words_used()")
-                updateWordsUsed(matches, user_id, module_id)
+                updateWordsUsed(matches, user_id, module_id, chatbot_sid)
         except Exception as err:
             print("[ERROR] Failure occurred while trying to process message in spacy_service.py:", err)
             import traceback; traceback.print_exc()
