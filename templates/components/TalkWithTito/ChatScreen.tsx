@@ -1543,7 +1543,7 @@ async function handleSendMessageClick(
         <div className="flex w-full flex-grow">
           <div className="flex flex-grow min-w-0 min-h-0 flex-col">
             {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-              <div className="lg:hidden w-full flex justify-center pt-2 px-2 shrink-0">
+              <div className="lg:hidden w-full flex justify-center px-2 shrink-0 -mb-10">
                 <div className="w-full max-w-[260px]">
                   <VocabList 
                     wordsFront={terms.map(term => term.questionFront)} 

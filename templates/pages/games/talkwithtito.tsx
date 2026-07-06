@@ -361,56 +361,86 @@ export default function TalkWithTito() {
     }
   };
 
-  // Render saved conversations for the selected module 
+  // Render saved conversations for the selected module
   const renderSessionsDropdown = (moduleId: number) => {
     return (
-      <div 
+      <div
         ref={dropdownRef}
-        className="absolute top-[102%] left-[5%] w-[90%] bg-stone-900/95 backdrop-blur-md border border-white/20 shadow-2xl rounded-xl p-3 z-50 flex flex-col items-center transition-all duration-200 ease-out animate-fadeIn"
+        className="sessions-dropdown animate-fadeIn"
       >
+        <div className="sessions-dropdown-title irish-grover">
+          Tito&apos;s Chats
+        </div>
+
         <button
+          type="button"
           onClick={() => handleStartNewConversation(moduleId)}
           disabled={isCreatingSession}
-          className="w-full bg-[#997c54] hover:bg-[#816031] disabled:bg-stone-800 disabled:text-white/40 border border-white/10 text-white rounded-lg py-1.5 mb-2 text-xs font-semibold text-center hover:cursor-pointer transition-all flex items-center justify-center gap-1.5 irish-grover shadow-md"
+          className="new-conversation-button irish-grover"
         >
-          {isCreatingSession ? "Creating..." : "➕ New Chat"}
+          {isCreatingSession
+            ? "Creating..."
+            : "＋ New Chat"}
         </button>
 
-        <div className="w-full flex flex-col items-center max-h-[160px] overflow-y-auto scrollbar-thin gap-1">
+        <div className="sessions-list scrollbar-thin">
           {sessionsLoading ? (
-            <div className="text-[10px] text-white/50 py-2 flex items-center gap-1.5">
-              <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            <div className="sessions-status">
+              <span
+                className="sessions-loading-spinner"
+                aria-hidden="true"
+              />
               <span>Loading chats...</span>
             </div>
           ) : sessions.length === 0 ? (
-            <div className="text-[10px] text-white/40 italic py-2">No previous chats.</div>
+            <div className="sessions-empty-message">
+              No previous chats yet.
+            </div>
           ) : (
-            sessions.map((session) => (
-              <div
-                key={session.chatbotSID}
-                onClick={() => {
-                  setChatbotId(session.chatbotSID);
-                  setDropdownOpen(false);
-                }}
-                className={`flex justify-between items-center w-full p-2 pl-3 rounded-lg text-[11px] transition-all cursor-pointer border
-                            ${chatbotId === session.chatbotSID 
-                              ? "bg-white/20 border-white/30 font-bold" 
-                              : "bg-white/5 border-transparent hover:bg-white/15"}`}
-              >
-                <div className="flex flex-col text-left">
-                  <span className="text-white font-semibold">Chat #{session.chatbotSID}</span>
-                  <span className="text-white/50 text-[8px] mt-0.5">{formatDate(session.creationTimestamp)}</span>
-                </div>
-                
-                <button
-                  onClick={(e) => handleDeleteSession(e, session.chatbotSID)}
-                  className="p-1 rounded text-white/40 hover:text-red-400 hover:bg-white/10 transition-colors"
-                  title="Delete chat"
+            sessions.map((session) => {
+              const isActive =
+                chatbotId === session.chatbotSID;
+
+              return (
+                <div
+                  key={session.chatbotSID}
+                  onClick={() => {
+                    setChatbotId(session.chatbotSID);
+                    setDropdownOpen(false);
+                  }}
+                  className={`session-card ${
+                    isActive ? "session-card-active" : ""
+                  }`}
                 >
-                  <span className="text-[10px]">🗑️</span>
-                </button>
-              </div>
-            ))
+                  <div className="session-card-content">
+                    <span className="session-card-title">
+                      Chat #{session.chatbotSID}
+                    </span>
+
+                    <span className="session-card-date">
+                      {formatDate(
+                        session.creationTimestamp
+                      )}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(event) =>
+                      handleDeleteSession(
+                        event,
+                        session.chatbotSID
+                      )
+                    }
+                    className="session-delete-button"
+                    title="Delete conversation"
+                    aria-label={`Delete conversation ${session.chatbotSID}`}
+                  >
+                    <span aria-hidden="true">🗑️</span>
+                  </button>
+                </div>
+              );
+            })
           )}
         </div>
       </div>

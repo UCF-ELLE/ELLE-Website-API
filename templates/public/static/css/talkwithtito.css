@@ -191,6 +191,245 @@
   visibility: visible;
 }
 
+/* Saved Tito conversations dropdown */
+.sessions-dropdown {
+  position: absolute;
+  top: 102%;
+  left: 5%;
+  z-index: 50;
+
+  width: 90%;
+  padding: 12px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(105, 78, 50, 0.98),
+      rgba(62, 43, 29, 0.98)
+    );
+
+  border: 2px solid #c9a56a;
+  border-radius: 14px;
+
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+
+  backdrop-filter: blur(6px);
+}
+
+.sessions-dropdown-title {
+  width: 100%;
+  margin-bottom: 8px;
+
+  color: #fff4dc;
+  font-size: 15px;
+  text-align: center;
+  text-shadow: 1px 2px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* Saved Tito chats dropdown */
+.sessions-dropdown {
+  position: absolute;
+  top: 102%;
+  left: 5%;
+  z-index: 50;
+
+  width: 90%;
+  padding: 12px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  background: #5f4934;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.28);
+}
+
+.sessions-dropdown-title {
+  width: 100%;
+  margin-bottom: 8px;
+
+  color: #fff4dc;
+  font-size: 15px;
+  text-align: center;
+}
+
+/* Create a new Tito chat */
+.new-conversation-button {
+  width: 100%;
+  margin-bottom: 9px;
+  padding: 7px 10px;
+
+  background: #b88d5a;
+  color: #fff4dc;
+
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 7px;
+
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.new-conversation-button:hover:not(:disabled) {
+  background: #c49a67;
+  border-color: white;
+}
+
+.new-conversation-button:disabled {
+  color: rgba(63, 45, 32, 0.45);
+  background: #9d8a72;
+  border-color: #b7a48b;
+  cursor: not-allowed;
+}
+
+/* Scrollable chat list */
+.sessions-list {
+  width: 100%;
+  max-height: 170px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.sessions-status,
+.sessions-empty-message {
+  padding: 10px 4px;
+
+  color: rgba(255, 244, 220, 0.7);
+  font-family: "Inter", sans-serif;
+  font-size: 10px;
+  text-align: center;
+}
+
+.sessions-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.sessions-empty-message {
+  font-style: italic;
+}
+
+.sessions-loading-spinner {
+  width: 14px;
+  height: 14px;
+
+  display: inline-block;
+
+  border: 2px solid rgba(255, 244, 220, 0.3);
+  border-top-color: #fff4dc;
+  border-radius: 50%;
+
+  animation: sessions-spin 0.8s linear infinite;
+}
+
+@keyframes sessions-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Individual saved chat */
+.session-card {
+  width: 100%;
+  padding: 9px 9px 9px 11px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  color: #fff4dc;
+  background: #6f5740;
+
+  border: 1px solid #8f7151;
+  border-radius: 7px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.session-card:hover {
+  background: #7b6147;
+  border-color: #b18b61;
+}
+
+.session-card-active {
+  background: #99734d;
+  border-color: #d7b47f;
+}
+
+.session-card-content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.session-card-title {
+  color: #fff4dc;
+  font-family: "Inter", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.session-card-date {
+  margin-top: 2px;
+
+  color: rgba(255, 244, 220, 0.6);
+  font-family: "Inter", sans-serif;
+  font-size: 8px;
+}
+
+/* Delete saved chat */
+.session-delete-button {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #e3c2b5;
+  background: #755047;
+
+  border: none;
+  border-radius: 6px;
+
+  font-size: 10px;
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+.session-delete-button:hover {
+  background: #944b43;
+}
+
 /* Description, credits, and image-credit boxes */
 .info-container {
   display: flex;
