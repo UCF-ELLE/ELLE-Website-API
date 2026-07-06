@@ -266,28 +266,24 @@ export default function ChatScreen(props: ChatScreenProps) {
   const [timeChatted, setTimeChatted] = useState<number>();
 
   /*
-   * Stores vocabulary progress by module so changing modules does not
-   * overwrite the progress from another conversation.
+   * Calculates vocabulary progress dynamically from the current terms state.
    */
-  const [moduleProgress, setModuleProgress] =
-    useState<ModuleProgressMap>(() => {
-      if (typeof window === "undefined") {
-        return {};
-      }
+  const progress = useMemo(() => {
+    const total = terms.length;
+    if (total === 0) return 0;
+    const completed = terms.filter((term) => (term.usageCount ?? 0) >= 3).length;
+    return Math.round((completed / total) * 100);
+  }, [terms]);
 
-      try {
-        const storedProgress =
-          window.localStorage.getItem("titoModuleProgress");
-
-        return storedProgress
-          ? JSON.parse(storedProgress)
-          : {};
-      } catch {
-        return {};
-      }
-    });
-
-  const progress = moduleProgress[props.moduleID] ?? 0;
+  /* Dynamically sync overall term score to parent component */
+  useEffect(() => {
+    if (terms.length > 0) {
+      const completedCount = terms.filter((term) => (term.usageCount ?? 0) >= 3).length;
+      props.setTermScore(`${completedCount} / ${terms.length}`);
+    } else {
+      props.setTermScore("0 / 0");
+    }
+  }, [terms, props.setTermScore]);
 
   /* Completion celebration */
   const [showFireworks, setShowFireworks] = useState(false);
@@ -318,18 +314,13 @@ export default function ChatScreen(props: ChatScreenProps) {
   }, [progress]);
 
   const handleReset = useCallback(() => {
-    setModuleProgress((previousProgress) => ({
-      ...previousProgress,
-      [props.moduleID]: 0,
-    }));
-
     setTerms((previousTerms) =>
       previousTerms.map((term) => ({
         ...term,
         usageCount: 0,
       }))
     );
-  }, [props.moduleID]);
+  }, []);
 
   /* Vocabulary mastery state */
   const [masteredSet, setMasteredSet] =
@@ -348,45 +339,51 @@ const [voices, setVoices] =
  * them to the currently loaded terms.
  */
 const applyBackendUsageCounts = useCallback((data: any) => {
-  const usageArray =
-    data?.usageByTerm ??
-    data?.termUsageCounts ??
-    data?.termProgress ??
-    data?.progress ??
-    [];
-
   const usageMap = new Map<number, number>();
 
-  if (!Array.isArray(usageArray)) {
-    return usageMap;
-  }
+  if (data?.progressByTerm && typeof data.progressByTerm === "object" && !Array.isArray(data.progressByTerm)) {
+    Object.entries(data.progressByTerm).forEach(([termIDStr, termProgressObj]: [string, any]) => {
+      const termID = Number(termIDStr);
+      const usageCount = Number(
+        termProgressObj?.timesUsed ??
+          termProgressObj?.times_used ??
+          termProgressObj?.usageCount ??
+          0
+      );
+      if (Number.isFinite(termID)) {
+        usageMap.set(termID, Math.max(0, Math.min(3, usageCount)));
+      }
+    });
+  } else {
+    const usageArray =
+      data?.usageByTerm ??
+      data?.termUsageCounts ??
+      data?.termProgress ??
+      data?.progress ??
+      [];
 
-  usageArray.forEach((item: any) => {
-    const termID = Number(
-      item?.termID ??
-        item?.termId ??
-        item?.id
-    );
+    if (Array.isArray(usageArray)) {
+      usageArray.forEach((item: any) => {
+        const termID = Number(
+          item?.termID ??
+            item?.termId ??
+            item?.id
+        );
 
-    const usageCount = Number(
-      item?.timesUsed ??
-        item?.usageCount ??
-        item?.count ??
-        item?.times_used ??
-        0
-    );
+        const usageCount = Number(
+          item?.timesUsed ??
+            item?.usageCount ??
+            item?.count ??
+            item?.times_used ??
+            0
+        );
 
-    if (!Number.isFinite(termID)) {
-      return;
+        if (Number.isFinite(termID)) {
+          usageMap.set(termID, Math.max(0, Math.min(3, usageCount)));
+        }
+      });
     }
-
-    const normalizedUsageCount = Math.max(
-      0,
-      Math.min(3, usageCount)
-    );
-
-    usageMap.set(termID, normalizedUsageCount);
-  });
+  }
 
   setTerms((previousTerms) =>
     previousTerms.map((term) => ({
@@ -460,25 +457,6 @@ const fetchTermProgress = useCallback(async () => {
     const masteredTerms = Array.from(
       usageMap.values()
     ).filter((usageCount) => usageCount >= 3).length;
-
-    const progressPercentage =
-      totalTerms > 0
-        ? Math.round(
-            (masteredTerms / totalTerms) * 100
-          )
-        : 0;
-
-    setModuleProgress((previousProgress) => ({
-      ...previousProgress,
-      [props.moduleID]: Math.max(
-        previousProgress[props.moduleID] ?? 0,
-        progressPercentage
-      ),
-    }));
-
-    props.setTermScore(
-      `${masteredTerms} / ${totalTerms}`
-    );
   } catch (error) {
     console.error(
       "[TermProgress] Unexpected request error",
@@ -492,7 +470,6 @@ const fetchTermProgress = useCallback(async () => {
   user?.jwt,
   props.moduleID,
   props.chatbotId,
-  props.setTermScore,
   terms.length,
   applyBackendUsageCounts,
 ]);
@@ -906,19 +883,6 @@ async function handleSendMessageClick(
 
       setTerms(newTerms);
 
-      /* Optimistically update module progress using the latest term counts */
-      {
-        const completedCount = newTerms.filter(t => t.usageCount >= 3).length;
-        const totalCount = newTerms.length || 0;
-        const pctLocal =
-          totalCount > 0 ? Math.max(0, Math.min(100, Math.round((100 * completedCount) / totalCount))) : 0;
-
-        console.log("[progress] optimistic local", { completedCount, totalCount, pctLocal });
-        setModuleProgress(prev => ({
-          ...prev,
-          [props.moduleID]: Math.max(prev[props.moduleID] ?? 0, pctLocal),
-        }));
-      }
 
       /* Read Tito's response aloud when narration is enabled */
       if (
@@ -1453,16 +1417,6 @@ async function handleSendMessageClick(
     };
     loadMessages();
   }, [props.chatbotId, props.moduleID, user, userLoading, props.titoWelcomeMessage, props.moduleName]);
-
-  // Persist module progress to localStorage whenever it changes
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        "titoModuleProgress", 
-        JSON.stringify(moduleProgress)
-      );
-    } catch { }
-  }, [moduleProgress]);
 
   const [placeholder, setPlaceholder] = 
   useState<string>("Tito is typing...");
