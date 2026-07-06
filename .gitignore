@@ -46,6 +46,7 @@ llama.cpp/
 temp_exports/
 .next/
 LanguageTool-6.9-SNAPSHOT/
+templates/.next/trace
 
 # Game related files
 *.data
