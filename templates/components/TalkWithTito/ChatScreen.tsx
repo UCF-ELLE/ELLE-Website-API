@@ -1503,13 +1503,15 @@ async function handleSendMessageClick(
                     progress={progress}
                     termIDs={terms.map(t => t.termID)}
                     masteredTermIDs={masteredTermIDs}
+                    onHintClick={handleHintClick}
+                    onReset={handleReset}
                   />
                 </div>
               </div>
             )}      
 
             <div className="flex-1 min-h-0 overflow-y-auto pl-3 pr-0 pt-3 pb-6 md:pl-4 md:pr-0 md:pt-4 md:pb-4">
-              <Messages messages={chatMessages} chatFontSize={props.chatFontSize} />
+              <Messages messages={chatMessages} chatFontSize={props.chatFontSize} isThinking={titoMood === "thinking"} />
             </div>
 
             <div className="w-full h-[96px] md:h-[120px] bg-[#8C7357] flex shrink-0 relative z-20">

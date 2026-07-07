@@ -95,30 +95,13 @@ export default function TalkWithTito() {
   const [chatbotId, setChatbotId] = useState<number>();
   const [open, setOpen] = useState(false);
 
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessionsMap, setSessionsMap] = useState<Record<number, any[]>>({});
   const [sessionsLoading, setSessionsLoading] = useState<boolean>(false);
   const [isCreatingSession, setIsCreatingSession] = useState<boolean>(false);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close the conversation dropdown when clicking outside it
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        const target = event.target as HTMLElement;
-        if (target.closest('.module-button-container')) {
-          return;
-        }
-        setDropdownOpen(false);
-      }
-    };
-    if (dropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownOpen]);
+  // Clicking outside the dropdown no longer closes it per requirements
 
   
   const [modules, setModules] = useState<Module[] | null>(null);
@@ -195,7 +178,10 @@ export default function TalkWithTito() {
       console.log(`[TalkWithTito] Fetching sessions list for module ${moduleId}`);
       const sessionList = await fetchSessions(user.jwt, moduleId);
       if (sessionList) {
-        setSessions(sessionList);
+        setSessionsMap(prev => ({
+          ...prev,
+          [moduleId]: sessionList
+        }));
       }
     } catch (err) {
       console.error("[TalkWithTito] Error fetching sessions:", err);
@@ -206,7 +192,6 @@ export default function TalkWithTito() {
 
   useEffect(() => {
     if (selectedModule !== undefined && selectedModule !== null) {
-      setSessions([]);
       setChatbotId(undefined);
       loadSessionsList(selectedModule);
     }
@@ -362,11 +347,12 @@ export default function TalkWithTito() {
   };
 
   // Render saved conversations for the selected module
-  const renderSessionsDropdown = (moduleId: number) => {
+  const renderSessionsDropdown = (moduleId: number, isOpen: boolean) => {
+    const sessions = sessionsMap[moduleId] ?? [];
     return (
       <div
         ref={dropdownRef}
-        className="sessions-dropdown animate-fadeIn"
+        className={`sessions-dropdown ${isOpen ? "sessions-dropdown-open" : "sessions-dropdown-closed"}`}
       >
         <div className="sessions-dropdown-title irish-grover">
           Tito&apos;s Chats
@@ -384,7 +370,7 @@ export default function TalkWithTito() {
         </button>
 
         <div className="sessions-list scrollbar-thin">
-          {sessionsLoading ? (
+          {sessionsLoading && sessions.length === 0 ? (
             <div className="sessions-status">
               <span
                 className="sessions-loading-spinner"
@@ -406,7 +392,6 @@ export default function TalkWithTito() {
                   key={session.chatbotSID}
                   onClick={() => {
                     setChatbotId(session.chatbotSID);
-                    setDropdownOpen(false);
                   }}
                   className={`session-card ${
                     isActive ? "session-card-active" : ""
@@ -597,7 +582,7 @@ export default function TalkWithTito() {
                   className="z-0"
                 />
                 {isLoading ? (
-                  <div className="relative w-[60%] h-[60%] md:w-[40%] md:h-[40%]">
+                  <div className="relative w-[60%] h-[60%] md:w-[40%] md:h-[40%] tito-avatar-wrapper tito-idle-bounce">
                     <Image
                       src={tito_speak}
                       alt="TalkWithTito placeholder"
@@ -607,7 +592,7 @@ export default function TalkWithTito() {
                     />
                   </div>
                 ) : (
-                  <div className="relative w-[50%] h-[50%] md:w-[35%] md:h-[35%]">
+                  <div className="relative w-[50%] h-[50%] md:w-[35%] md:h-[35%] tito-avatar-wrapper tito-idle-bounce">
                     <Image
                       src={happyTito}
                       alt="Tito is ready"
@@ -618,18 +603,15 @@ export default function TalkWithTito() {
                   </div>
                 )}
                 <div
-                  className={`absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-xl 
-                  md:text-4xl font-semibold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 irish-grover rounded-sm 
-                  shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
+                  className={`absolute top-[11.5%] left-[50%] w-fit -translate-x-1/2 -translate-y-1.5 text-white text-3xl 
+                  md:text-6xl font-semibold whitespace-nowrap select-none tito-intro-header irish-grover transition-opacity duration-700
                   ${isFading ? "opacity-0" : "opacity-100"}`}
                 >
-                  {isLoading ? statement : "Talk with Tito"}
+                  {isLoading ? statement : "Talking with Tito !"}
                 </div>
                 <div
                   className={`absolute top-[80%] left-[50%] w-fit -translate-x-1/2 -translate-y-1/2 text-white text-xl md:text-4xl 
-                  font-bold whitespace-nowrap select-none bg-[#997c54] py-2 px-6 rounded-sm irish-grover 
-                  shadow-[0px_4px_4px_rgba(0,0,0,0.3)] transition-opacity duration-700
-                  ${!isLoading ? "hover:bg-[#816031] hover:cursor-pointer" : ""}
+                  font-bold whitespace-nowrap select-none tito-play-button py-2 px-8 irish-grover transition-opacity duration-700
                   ${isFading ? "opacity-0" : "opacity-100"}`}
                   onClick={handlePlayClick}
                 >
@@ -734,7 +716,7 @@ export default function TalkWithTito() {
                         setTimeSpent={setTimeSpent} 
                         ttsMuted={ttsMuted}
                         setTtsMuted={setTtsMuted}
-                        sessions={sessions}
+                        sessions={sessionsMap[selectedModule] ?? []}
                         titoWelcomeMessage={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.titoWelcomeMessage}
                       />
                     </div>
@@ -749,7 +731,7 @@ export default function TalkWithTito() {
                       <div className="w-full flex-1 flex flex-col items-center overflow-y-auto">
                         <div className="w-full relative flex flex-col items-center">
                           <ModuleButton key={-1} moduleName={"Free Chat"} onClick={() => handleModuleClick(-1)} isSelected={selectedModule === -1} />
-                          {selectedModule === -1 && dropdownOpen && renderSessionsDropdown(-1)}
+                          {renderSessionsDropdown(-1, selectedModule === -1 && dropdownOpen)}
                         </div>
                         <div className="w-full py-2 flex justify-center irish-grover text-sm md:text-xl">Assigned modules:</div>
                         <div className="w-full flex flex-col items-center">
@@ -760,7 +742,7 @@ export default function TalkWithTito() {
                                 onClick={() => handleModuleClick(module.moduleID || -1)}
                                 isSelected={module.moduleID === selectedModule}
                               />
-                              {selectedModule === module.moduleID && dropdownOpen && renderSessionsDropdown(module.moduleID)}
+                              {renderSessionsDropdown(module.moduleID, module.moduleID === selectedModule && dropdownOpen)}
                             </div>
                           ))}
                         </div>

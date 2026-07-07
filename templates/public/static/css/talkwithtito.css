@@ -193,33 +193,53 @@
 
 /* Saved Tito conversations dropdown */
 .sessions-dropdown {
-  position: absolute;
-  top: 102%;
-  left: 5%;
-  z-index: 50;
-
+  position: relative;
   width: 90%;
-  padding: 12px;
+  z-index: 10;
 
   display: flex;
   flex-direction: column;
   align-items: center;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(105, 78, 50, 0.98),
-      rgba(62, 43, 29, 0.98)
-    );
-
-  border: 2px solid #c9a56a;
+  background: rgba(92, 72, 60, 0.85);
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.25);
   border-radius: 14px;
 
   box-shadow:
-    0 8px 18px rgba(0, 0, 0, 0.38),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    inset 0 2px 5px rgba(0, 0, 0, 0.25),
+    0 4px 10px rgba(0, 0, 0, 0.15);
 
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+
+  /* Accordion transitions */
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.25s ease-in-out, 
+              padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              margin 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-width 0.35s ease;
+  overflow: hidden;
+}
+
+.sessions-dropdown-open {
+  max-height: 340px;
+  opacity: 1;
+  padding: 12px;
+  margin: 6px auto 12px auto;
+  border-width: 2px;
+  visibility: visible;
+}
+
+.sessions-dropdown-closed {
+  max-height: 0px;
+  opacity: 0;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  border-width: 0px;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .sessions-dropdown-title {
@@ -227,38 +247,9 @@
   margin-bottom: 8px;
 
   color: #fff4dc;
-  font-size: 15px;
+  font-size: 17px;
   text-align: center;
   text-shadow: 1px 2px 2px rgba(0, 0, 0, 0.45);
-}
-
-/* Saved Tito chats dropdown */
-.sessions-dropdown {
-  position: absolute;
-  top: 102%;
-  left: 5%;
-  z-index: 50;
-
-  width: 90%;
-  padding: 12px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  background: #5f4934;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.28);
-}
-
-.sessions-dropdown-title {
-  width: 100%;
-  margin-bottom: 8px;
-
-  color: #fff4dc;
-  font-size: 15px;
-  text-align: center;
 }
 
 /* Create a new Tito chat */
@@ -273,7 +264,7 @@
   border: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 7px;
 
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   text-align: center;
 
@@ -285,8 +276,8 @@
 }
 
 .new-conversation-button:hover:not(:disabled) {
-  background: #c49a67;
-  border-color: white;
+  background: #9e7446;
+  border-color: rgba(255, 255, 255, 0.95);
 }
 
 .new-conversation-button:disabled {
@@ -299,7 +290,7 @@
 /* Scrollable chat list */
 .sessions-list {
   width: 100%;
-  max-height: 170px;
+  max-height: 205px;
 
   display: flex;
   flex-direction: column;
@@ -372,8 +363,8 @@
 }
 
 .session-card:hover {
-  background: #7b6147;
-  border-color: #b18b61;
+  background: #59422f;
+  border-color: #826546;
 }
 
 .session-card-active {
@@ -392,7 +383,7 @@
 .session-card-title {
   color: #fff4dc;
   font-family: "Inter", sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -401,7 +392,7 @@
 
   color: rgba(255, 244, 220, 0.6);
   font-family: "Inter", sans-serif;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 /* Delete saved chat */
@@ -572,4 +563,232 @@
 .checkmark-pop {
   display: inline-block;
   animation: checkmark-pop 0.4s ease-out forwards;
+}
+
+/* Custom Translucent Scrollbar for Sessions List and generally scrollbar-thin classes */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  transition: background 0.2s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Whimsical Floating Animation for Tito */
+@keyframes tito-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.tito-avatar-wrapper {
+  perspective: 1000px;
+}
+
+.tito-idle-bounce {
+  animation: tito-float 3s ease-in-out infinite;
+}
+
+/* Frosted Candy Glass Header for Intro */
+.tito-intro-header {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px) saturate(160%);
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px 0 rgba(120, 95, 60, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-shadow: 1px 2px 2px rgba(0, 0, 0, 0.35);
+  padding: 12px 24px;
+  color: #fff4dc !important;
+}
+
+/* Glowing Whimsical Play Button */
+@keyframes play-pulse {
+  0% {
+    box-shadow: 
+      0 6px 16px rgba(0, 0, 0, 0.3),
+      0 0 0 0 rgba(245, 158, 11, 0.5),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.3);
+  }
+  70% {
+    box-shadow: 
+      0 6px 16px rgba(0, 0, 0, 0.3),
+      0 0 0 14px rgba(245, 158, 11, 0),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.3);
+  }
+  100% {
+    box-shadow: 
+      0 6px 16px rgba(0, 0, 0, 0.3),
+      0 0 0 0 rgba(245, 158, 11, 0),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+.tito-play-button {
+  background: linear-gradient(135deg, #e69c5e, #b8732a);
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50px;
+  color: #fff4dc !important;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease, background 0.2s ease;
+  animation: play-pulse 2s infinite;
+}
+
+.tito-play-button:hover {
+  background: linear-gradient(135deg, #f0b075, #c47c32);
+  transform: translate(-50%, -50%) scale(1.08) !important;
+}
+
+.tito-play-button:active {
+  transform: translate(-50%, -50%) scale(0.95) !important;
+  transition-duration: 0.05s;
+}
+
+/* Dialogue Chat Bubbles Styles */
+.message-bubble {
+  max-width: 100%;
+  padding: 10px 14px;
+  font-family: "Inter", sans-serif;
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.06),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.message-bubble-user {
+  background: rgba(252, 255, 180, 0.85); /* Slightly translucent pastel yellow */
+  border-radius: 16px 16px 4px 16px;
+  color: #554400;
+  border-color: rgba(252, 255, 180, 0.4);
+}
+
+.message-bubble-llm {
+  background: rgba(255, 201, 206, 0.85); /* Slightly translucent pastel pink */
+  border-radius: 16px 16px 16px 4px;
+  color: #610007;
+  border-color: rgba(255, 201, 206, 0.4);
+}
+
+.message-metadata-card {
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-top: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  font-family: "Inter", sans-serif;
+  color: #1e293b;
+  width: 100%;
+  backdrop-filter: blur(6px);
+}
+
+/* Typing Indicator Dot Animation */
+@keyframes typing-bounce {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+
+/* Vocab List container styling with cloud-glassmorphic style */
+.vocab-list-container {
+  width: 240px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 4px solid rgba(255, 255, 255, 0.45);
+  border-radius: 0 0 20px 20px;
+  padding: 16px 8px 12px 8px;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-in-out, padding 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-width 0.4s ease;
+}
+
+@media (min-width: 768px) {
+  .vocab-list-container {
+    width: 260px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .vocab-list-container {
+    width: 250px;
+  }
+}
+
+.vocab-list-open {
+  max-height: 280px; /* enough to scroll and look compact */
+  opacity: 1;
+  margin-top: -6px;
+  border-width: 4px;
+}
+
+.vocab-list-closed {
+  max-height: 0px;
+  opacity: 0;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  border-width: 0px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Vocabulary Progress Circle Ring Glow */
+.vocab-progress-ring {
+  filter: drop-shadow(0 0 4px rgba(252, 210, 119, 0.65));
+}
+
+/* Enforce Vocab List to be fully open and hide expand/collapse button on desktop (lg viewport) */
+@media (min-width: 1024px) {
+  .vocab-list-container {
+    max-height: 75vh !important;
+    opacity: 1 !important;
+    margin-top: -6px !important;
+    border-width: 4px !important;
+    padding-top: 16px !important;
+    padding-bottom: 12px !important;
+    overflow: hidden !important;
+    pointer-events: auto !important;
+  }
+  
+  .vocab-expand-button {
+    display: none !important;
+  }
 }
