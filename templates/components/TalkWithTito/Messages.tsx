@@ -18,16 +18,16 @@ interface MessageProps { message: ChatMessage; chatFontSize: string; }
 
 function Message({ message,chatFontSize }: MessageProps) {
 
-    function scoreToRGB(score: number): string {
+    function scoreToRGBA(score: number): string {
         if (score <= 3) {
-            // Red (score 0-3)
-            return "rgb(214, 75, 75)"
+            // Soft red glass
+            return "rgba(239, 68, 68, 0.25)"
         } else if (score <= 6) {
-            // Yellow (score 4-6)
-            return "rgb(214, 191, 75)"
+            // Soft yellow glass
+            return "rgba(245, 158, 11, 0.25)"
         } else {
-            // Green (score 7-10)
-            return "rgb(103, 214, 75)"
+            // Soft green glass
+            return "rgba(16, 185, 129, 0.25)"
         }
     }
 
@@ -59,27 +59,27 @@ function Message({ message,chatFontSize }: MessageProps) {
             <div
                 className="m-2 flex flex-col"
                 style={{
-                    alignItems: fromUser ? "flex-end" : "flex-start"
+                    alignItems: fromUser ? "flex-end" : "flex-start",
+                    maxWidth: "80%"
                 }}
             >
 
                 {/*Message text div*/}
                 <div
-                    className="p-2 rounded-lg inter-font w-fit"
+                    className={`message-bubble ${fromUser ? "message-bubble-user" : "message-bubble-llm"}`}
                     style={{
-                        backgroundColor: fromUser ? "#FCFFB4" : "#FFC9CE",
                         fontSize: `${chatFontSize}`
                     }}>
                     {value}
                 </div>
 
                 {/*Message time div / Expand metadata*/}
-                <div className="text-sm w-full flex"
+                <div className="text-sm w-full flex mt-1 px-1"
                     style={{
                         justifyContent: fromUser ? "end" : "start"
                     }}>
                     {(hasMetadata && fromUser) && <button onClick={() => setMetadataExpanded(!metadataExpanded)}>
-                        <Image src={arrow} alt="Expand metadata" className="h-[50%] w-auto" 
+                        <Image src={arrow} alt="Expand metadata" className="h-[50%] w-auto mr-1" 
                             style={{transform: !metadataExpanded ? "rotate(180deg)" : "none",}}
                         />
                     </button>}
@@ -89,8 +89,8 @@ function Message({ message,chatFontSize }: MessageProps) {
                 {/*Metadata div*/}
                 {(hasMetadata && metadataExpanded && fromUser && metadata !== undefined) && 
                 <div 
-                    className="text-sm w-full flex flex-col items-start bg-blue-100 border border-black px-2 py-1 rounded"
-                    style={{backgroundColor: metadata.score !== undefined ? scoreToRGB(metadata.score) : "transparent"}}
+                    className="message-metadata-card text-sm w-full flex flex-col items-start"
+                    style={{backgroundColor: metadata.score !== undefined ? scoreToRGBA(metadata.score) : "transparent"}}
                     >
                     
                     {metadata.correction !== undefined && 
@@ -127,9 +127,10 @@ function Message({ message,chatFontSize }: MessageProps) {
 interface PropsInterface {
     messages: ChatMessage[];
     chatFontSize: string;
+    isThinking?: boolean;
 }
 
-export default function Messages({ messages, chatFontSize}: PropsInterface) {
+export default function Messages({ messages, chatFontSize, isThinking }: PropsInterface) {
 
     const messagesContainer = useRef<HTMLDivElement>(null);
 
@@ -140,7 +141,7 @@ export default function Messages({ messages, chatFontSize}: PropsInterface) {
             top: container.scrollHeight,
             behavior: 'smooth'
         });
-    }, [messages.length]);
+    }, [messages.length, isThinking]);
     
     
     return (
@@ -149,6 +150,17 @@ export default function Messages({ messages, chatFontSize}: PropsInterface) {
                 {messages.map((message, index) => (
                     <Message key={index} message={message} chatFontSize={chatFontSize}/>
                 ))}
+                {isThinking && (
+                    <div className="w-full flex justify-start">
+                        <div className="m-2 flex flex-col items-start">
+                            <div className="p-3 message-bubble message-bubble-llm flex items-center gap-1.5 w-fit">
+                                <span className="typing-dot bg-[#78350f]"></span>
+                                <span className="typing-dot bg-[#78350f]" style={{ animationDelay: '0.2s' }}></span>
+                                <span className="typing-dot bg-[#78350f]" style={{ animationDelay: '0.4s' }}></span>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
