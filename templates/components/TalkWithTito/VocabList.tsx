@@ -113,9 +113,9 @@ export default function VocabList({
     .sort((a, b) => Number(a.isMastered) - Number(b.isMastered));
 
   return (
-    <div className="inter-font w-full h-full flex flex-col items-center relative">
+    <div className="inter-font w-full h-auto lg:h-full flex flex-col items-center relative">
       {/* Cloud + Progress Circle Wrapper */}
-      <div className="relative z-20 mt-2 w-[160px] md:w-[220px] lg:w-[240px] h-[85px] md:h-[115px] lg:h-[125px] flex items-center justify-center overflow-visible">
+      <div className="relative z-20 mt-0 w-[150px] md:w-[220px] lg:w-[240px] h-[78px] md:h-[115px] lg:h-[125px] flex items-center justify-center overflow-visible">
       <Image src={cloud} className="absolute top-0 left-0 w-full h-full" alt="Vocabulary List" />
       <div className="absolute top-[55%] left-[44%] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap select-none flex flex-col items-center z-20">
         <div className="irish-grover text-sm md:text-xl lg:text-2xl">Vocabulary List</div>
@@ -215,10 +215,10 @@ export default function VocabList({
 
       {/* Expanding/Collapsing List */}
       <div
-        className={`w-[210px] md:w-[220px] lg:w-[240px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-4 mt-2 flex flex-col items-center transition-all duration-300 ease-in-out overflow-hidden
+        className={`w-[210px] md:w-[220px] lg:w-[240px] bg-[#A6DAFF] border-[#8ACEFF] border-[5px] rounded-bl-xl rounded-br-xl px-2 pt-4 mt-0 flex flex-col items-center transition-all duration-300 ease-in-out overflow-hidden
         ${isExpanded ? "max-h-[20em] opacity-100" : "max-h-0 opacity-0"}`}
       >
-        <div className="overflow-auto w-full">
+        <div className="overflow-auto w-full pr-3">
           {/* CHANGED: pass usageCount into each WordItem */}
           {sortedWords.map(({ wordFront, wordBack, usageCount, isMastered, index }) => (
             <WordItem
