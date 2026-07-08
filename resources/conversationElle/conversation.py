@@ -210,7 +210,10 @@ class UserMessages(Resource):
             usageByTerm=usage_by_term,
             metadata={
                 "score": msg_graded.get("suggested_grade") if msg_graded else None,
-                "error_count": msg_graded.get("error_count") if msg_graded else None
+                "error_count": msg_graded.get("error_count") if msg_graded else None,
+                "error": msg_graded.get("error_words") if msg_graded else None,
+                "correction": msg_graded.get("corrected_text") if msg_graded else None,
+                "explanation": msg_graded.get("explanation_text") if msg_graded else None
             }
         )
 
