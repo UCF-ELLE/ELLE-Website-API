@@ -889,6 +889,22 @@ export const uploadAudioFile = async (
   }
 };
 
+// Resets term progress for a user, module, and chatbot session
+export const resetTermProgress = async (access_token: string, moduleID: number, chatbotSID: number): Promise<boolean> => {
+  try {
+    const response = await axios.post(`${ELLE_URL}/twt/session/getTermProgress`, {
+      moduleID,
+      chatbotSID
+    }, {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    return response.data.success || false;
+  } catch (error) {
+    handleError(error);
+    return false;
+  }
+};
+
 // Utility function for handling errors
 const handleError = (error: unknown): void => {
   if (axios.isAxiosError(error)) {

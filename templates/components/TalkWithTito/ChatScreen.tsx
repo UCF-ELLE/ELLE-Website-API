@@ -18,6 +18,7 @@ import {
   uploadAudioFile, 
   fetchSessions, 
   deleteSession, 
+  resetTermProgress,
   ELLE_URL 
 } from "@/services/TitoService";
 
@@ -313,14 +314,21 @@ export default function ChatScreen(props: ChatScreenProps) {
     };
   }, [progress]);
 
-  const handleReset = useCallback(() => {
+  const handleReset = useCallback(async () => {
+    // 1. Reset local React state immediately for snappy UI
     setTerms((previousTerms) =>
       previousTerms.map((term) => ({
         ...term,
         usageCount: 0,
       }))
     );
-  }, []);
+
+    // 2. Call backend to reset the term progress in the database
+    if (user?.jwt && props.moduleID !== -1 && props.chatbotId !== undefined) {
+      console.log(`[ChatScreen] Resetting term progress in database for module ${props.moduleID}, session ${props.chatbotId}`);
+      await resetTermProgress(user.jwt, props.moduleID, props.chatbotId);
+    }
+  }, [user?.jwt, props.moduleID, props.chatbotId]);
 
   /* Vocabulary mastery state */
   const [masteredSet, setMasteredSet] =
