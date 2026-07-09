@@ -571,6 +571,27 @@ class GetTermProgress(Resource):
             "usageByTerm": usage_by_term
         })
 
+    @jwt_required
+    def post(self):
+        """
+        /elleapi/twt/session/getTermProgress
+        Body/Params: moduleID, chatbotSID
+        Resets term progress for the given module & chatbot session to 0.
+        """
+        user_id = get_jwt_identity()
+        data = request.get_json(silent=True) or request.form
+        module_id = data.get('moduleID') or request.args.get('moduleID')
+        chatbot_sid = data.get('chatbotSID') or request.args.get('chatbotSID')
+        
+        try:
+            module_id = int(module_id)
+            chatbot_sid = int(chatbot_sid)
+        except (TypeError, ValueError):
+            return create_response(False, message="Invalid moduleID or chatbotSID provided", status_code=400)
+            
+        resetTermProgress(user_id, module_id, chatbot_sid)
+        return create_response(True, message="Term progress reset successfully")
+
 
 class GetModuleProgress(Resource):
     @jwt_required

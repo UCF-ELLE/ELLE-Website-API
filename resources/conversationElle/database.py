@@ -1259,6 +1259,29 @@ def getTermProgress(user_id: int, module_id: int, chatbot_sid: int = None):
         else:
             return []
 
+def resetTermProgress(user_id: int, module_id: int, chatbot_sid: int):
+    # 1. Reset timesUsed, hasMastered, timesMisspelled in tito_term_progress for this specific session
+    db.post('''
+        UPDATE tito_term_progress
+        SET timesUsed = 0, hasMastered = 0, timesMisspelled = 0
+        WHERE userID = %s AND moduleID = %s AND chatbotSID = %s;
+    ''', (user_id, module_id, chatbot_sid))
+
+    # 2. Recalculate and update the termsMastered in tito_module_progress
+    mastered_count_row = db.get('''
+        SELECT COUNT(DISTINCT termID)
+        FROM tito_term_progress
+        WHERE userID = %s AND moduleID = %s AND hasMastered = 1;
+    ''', (user_id, module_id), fetchOne=True)
+    
+    mastered_count = mastered_count_row[0] if mastered_count_row else 0
+    
+    db.post('''
+        INSERT INTO tito_module_progress (userID, moduleID, termsMastered)
+        VALUES (%s, %s, %s)
+        ON DUPLICATE KEY UPDATE termsMastered = %s;
+    ''', (user_id, module_id, mastered_count, mastered_count))
+
 def getUsageByTerm(user_id: int, module_id: int, chatbot_sid: int = None):
     if chatbot_sid:
         query = '''
