@@ -193,8 +193,8 @@ class UserMessages(Resource):
         # Send to spacy service to parse key terms if NOT in free chat mode
         if module_id != REAL_FREE_CHAT_MODULE:
             hint_word = data.get('hintWord')
-            should_update_db = not bool(hint_word)
-            add_message(message, module_id, user_id, new_msg_id, session_id, update_db=should_update_db)
+            if not hint_word:
+                add_message(message, module_id, user_id, new_msg_id, session_id, update_db=True)
 
         # TODO:
         # Update module words used =>
