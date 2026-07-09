@@ -315,6 +315,11 @@ export default function ChatScreen(props: ChatScreenProps) {
   }, [progress]);
 
   const handleReset = useCallback(async () => {
+    const confirmReset = window.confirm(
+      "Are you sure you want to reset the vocabulary list for this chat? This will permanently clear your vocabulary progress for this session."
+    );
+    if (!confirmReset) return;
+
     // 1. Reset local React state immediately for snappy UI
     setTerms((previousTerms) =>
       previousTerms.map((term) => ({
