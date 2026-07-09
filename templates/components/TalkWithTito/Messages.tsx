@@ -46,7 +46,7 @@ function Message({ message,chatFontSize }: MessageProps) {
 
     const dateObj = timestamp ? new Date(timestamp) : null;
     const formattedTime: string = dateObj && !isNaN(dateObj.getTime()) 
-        ? dateObj.toLocaleString([], { hour: '2-digit', minute: '2-digit' }) 
+        ? dateObj.toLocaleString([], { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) 
         : "";
 
     return (
