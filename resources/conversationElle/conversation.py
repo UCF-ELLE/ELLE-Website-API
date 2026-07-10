@@ -173,7 +173,8 @@ class UserMessages(Resource):
         # Rate messages grammar
         msg_graded = ''
         if module_id != REAL_FREE_CHAT_MODULE:
-            msg_graded = grade_message (message=message)
+            lang_code = getModuleLanguageCode(module_id) or "auto"
+            msg_graded = grade_message(message=message, language=lang_code)
         
         if msg_graded and module_id != REAL_FREE_CHAT_MODULE:
             msg_score = msg_graded.get("suggested_grade")
