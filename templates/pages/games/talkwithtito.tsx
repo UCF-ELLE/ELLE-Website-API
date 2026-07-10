@@ -93,6 +93,7 @@ export default function TalkWithTito() {
   const [termScore, setTermScore] = useState<string>("Loading...");
   const [averageScore, setAverageScore] = useState<number>(0.00);
   const [chatbotId, setChatbotId] = useState<number>();
+  const [mobileModulesOpen, setMobileModulesOpen] = useState(false);
   const [open, setOpen] = useState(false);
 
   const [sessionsMap, setSessionsMap] = useState<Record<number, any[]>>({});
@@ -196,6 +197,14 @@ export default function TalkWithTito() {
       loadSessionsList(selectedModule);
     }
   }, [selectedModule, loadSessionsList]);
+
+  useEffect(() => {
+    if (chatbotId !== undefined) {
+      setMobileModulesOpen(false);
+    } else {
+      setMobileModulesOpen(true);
+    }
+  }, [chatbotId]);
 
 
   // Start a new conversation for the selected module 
@@ -688,6 +697,21 @@ export default function TalkWithTito() {
                 
                 <div className="flex-1 order-2 md:order-2 min-h-0 relative bg-white flex flex-col overflow-hidden">
                   <Image src={leaf_background} alt="TalkWithTito placeholder" fill style={{ objectFit: 'cover' }} className="z-0 opacity-20 md:hidden" />
+                  
+                  {/* Mobile Brown Header to house absolute music settings */}
+                  <div className="w-full h-[72px] md:hidden bg-[#8C7357] shrink-0 border-b border-black/20 relative z-30" />
+                  
+                  {/* Mobile Full-width Toggle Button */}
+                  {chatbotId !== undefined && (
+                    <button 
+                      onClick={() => setMobileModulesOpen(!mobileModulesOpen)}
+                      className="w-full md:hidden bg-[#8C7357] text-white py-3 px-4 flex justify-between items-center font-bold text-sm irish-grover shadow-md relative z-30 select-none border-b border-white/20 active:bg-[#765d43] shrink-0"
+                    >
+                      <span>Module: {selectedModule === -1 ? "Free Chat" : (modules?.find(m => m.moduleID === selectedModule)?.name || "Select Module")}</span>
+                      <span>{mobileModulesOpen ? "▲ Close Menu" : "▼ Select Module / Chats"}</span>
+                    </button>
+                  )}
+
                   {!selectedModule ? (
                     <div className="flex flex-col items-center justify-center h-full text-center p-4">
                       <div className="text-white text-sm md:text-3xl font-semibold bg-[#997c54] py-2 px-6 rounded shadow">
@@ -723,7 +747,14 @@ export default function TalkWithTito() {
                   )}
                 </div>
   
-                <div className="w-full md:w-[30%] order-1 md:order-1 h-[260px] md:h-full shrink-0 border-b-2 md:border-b-0 md:border-r-2 border-black relative">
+                {/* Modules Sidebar: Fixed on desktop, Dynamic overlay on mobile */}
+                <div className={
+                  chatbotId === undefined
+                    ? "absolute inset-0 z-40 w-full h-full flex flex-col bg-[#8C7357] md:relative md:inset-auto md:w-[30%] md:h-full md:shrink-0 md:border-r-2 md:border-b-0 border-black md:z-auto md:flex md:flex-col"
+                    : mobileModulesOpen
+                      ? "absolute inset-x-0 bottom-0 top-[116px] z-40 w-full flex flex-col bg-[#8C7357] md:relative md:inset-auto md:w-[30%] md:h-full md:shrink-0 md:border-r-2 md:border-b-0 border-black md:z-auto md:flex md:flex-col"
+                      : "hidden md:relative md:inset-auto md:w-[30%] md:h-full md:shrink-0 md:border-r-2 md:border-b-0 border-black md:z-auto md:flex md:flex-col"
+                }>
                   <Image src={chatBackground} alt="Chat Background" fill style={{ objectFit: 'cover' }} className="z-0" />
                   <div className="text-white w-full h-full relative z-10 flex flex-col justify-between">
                     <div className="flex-1 overflow-hidden flex flex-col">
