@@ -770,10 +770,6 @@
   pointer-events: none;
 }
 
-/* Vocabulary Progress Circle Ring Glow */
-.vocab-progress-ring {
-  filter: drop-shadow(0 0 4px rgba(252, 210, 119, 0.65));
-}
 
 /* Enforce Vocab List to be fully open and hide expand/collapse button on desktop (lg viewport) */
 @media (min-width: 1024px) {
