@@ -2,7 +2,6 @@
 import Image from "next/image";
 import "@/public/static/css/talkwithtito.css";
 import { useState } from "react";
-import { useId } from "react";
 
 /* Assets */
 import cloud from "@/public/static/images/ConversAItionELLE/vocab cloud.png";
@@ -107,7 +106,6 @@ export default function VocabList({
   onReset
 }: PropsInterface) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const progressGradientId = useId();
 
   const mastered = new Set(masteredTermIDs ?? []);
   //console.log("[VocabList] masteredTermIDs =", masteredTermIDs, "termIDs =", termIDs);
@@ -137,10 +135,31 @@ export default function VocabList({
       {/* Cloud + Progress Circle Wrapper */}
       <div className="relative z-20 mt-0 w-[240px] md:w-[260px] lg:w-[290px] h-[115px] md:h-[125px] lg:h-[135px] flex items-center justify-center overflow-visible">
       <Image src={cloud} className="absolute top-0 left-0 w-full h-full" alt="Vocabulary List" />
-      <div className="absolute top-[55%] left-[44%] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap select-none flex flex-col items-center z-20">
-        <div className="irish-grover text-sm md:text-xl lg:text-2xl">Vocabulary List</div>
+      <div className="absolute top-[52%] left-[48%] -translate-x-1/2 -translate-y-1/2 select-none flex flex-col items-center z-20 w-[80%]">
+        <div className="irish-grover text-sm md:text-xl lg:text-2xl text-center">Vocabulary List</div>
+        
+        {/* Rainbow Progress Bar */}
+        <div className="mt-1 md:mt-2 flex items-center gap-2 w-full justify-center">
+          <div className="w-[150px] md:w-[180px] h-[12px] md:h-[16px] bg-black/15 rounded-full overflow-hidden border border-white/40 shadow-inner relative shrink-0">
+            <div 
+              className="h-full rounded-full transition-all duration-700 ease-out overflow-hidden"
+              style={{ width: `${progress}%` }}
+            >
+              <div className="w-[150px] md:w-[180px] h-full bg-[linear-gradient(90deg,#ff5e62_0%,#ff9966_8%,#ffdb00_15%,#38ef7d_45%,#00f2fe_75%,#9c27b0_100%)] relative">
+                {/* Diagonal Candy Stripe Texture */}
+                <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.15)_0px,rgba(255,255,255,0.15)_8px,transparent_8px,transparent_16px)]" />
+                {/* Shiny Glossy Highlight */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.25)_0%,rgba(255,255,255,0)_50%,rgba(0,0,0,0.15)_100%)]" />
+              </div>
+            </div>
+          </div>
+          <span className="text-[10px] md:text-xs text-slate-800 font-bold shrink-0">
+            {progress}%
+          </span>
+        </div>
+
         <button
-          className="vocab-expand-button p-1 md:p-2 rounded-full hover:scale-[1.20] transition-transform duration-300"
+          className="vocab-expand-button p-1 md:p-2 rounded-full hover:scale-[1.20] transition-transform duration-300 mt-0.5 md:mt-1"
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <Image
@@ -149,42 +168,6 @@ export default function VocabList({
             style={{ transform: `${isExpanded ? "rotate(0deg)" : "rotate(180deg)"}` }}
           />
         </button>
-      </div>
-
-      <div className="absolute top-[70%] right-[22px] md:right-[24px] lg:right-[26px] -translate-y-1/2 flex items-center justify-center z-40">
-        <div className="relative w-[32px] h-[32px] md:w-[42px] md:h-[42px]">
-          <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 42 42">
-            <circle
-              cx="21"
-              cy="21"
-              r="17"
-              stroke="rgba(255,255,255,0.35)"
-              strokeWidth="4"
-              fill="none"
-            />
-            <circle
-              cx="21"
-              cy="21"
-              r="17"
-              stroke={`url(#${progressGradientId})`}
-              strokeWidth="4"
-              strokeDasharray="107"
-              strokeDashoffset={`${107 - (107 * progress) / 100}`}
-              strokeLinecap="round"
-              fill="none"
-              className="vocab-progress-ring transition-all duration-700"
-            />
-            <defs>
-            <linearGradient id={progressGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#fcd277ff" />
-                <stop offset="100%" stopColor="#fcd277ff" />
-              </linearGradient>
-            </defs>
-          </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-[10px] md:text-xs text-black font-bold">
-            {progress}%
-          </span>
-        </div>
       </div>
       </div>
 
