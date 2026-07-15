@@ -698,8 +698,41 @@ export default function TalkWithTito() {
                 <div className="flex-1 order-2 md:order-2 min-h-0 relative bg-white flex flex-col overflow-hidden">
                   <Image src={leaf_background} alt="TalkWithTito placeholder" fill style={{ objectFit: 'cover' }} className="z-0 opacity-20 md:hidden" />
                   
-                  {/* Mobile Brown Header to house absolute music settings */}
-                  <div className="w-full h-[72px] md:hidden bg-[#8C7357] shrink-0 border-b border-black/20 relative z-30" />
+                  {/* Mobile Brown Header to house absolute music settings + stats, settings & exit buttons */}
+                  <div className="w-full h-[72px] md:hidden bg-[#8C7357] shrink-0 border-b border-black/20 relative z-30 flex items-center justify-end px-4 gap-3">
+                    {/* Exit Button */}
+                    <button 
+                      onClick={handleExitClick}
+                      className="text-white text-xs font-semibold bg-red-600/20 hover:bg-red-600/30 active:bg-red-600/40 border border-red-500/35 px-2.5 py-1 rounded-full irish-grover flex items-center gap-1 shadow-sm transition shrink-0"
+                    >
+                      <Image src={logoutIcon} alt="Exit" width={14} height={14} />
+                      <span>Exit</span>
+                    </button>
+
+                    {/* Stats Button */}
+                    {selectedModule && (
+                      <button 
+                        onClick={() => setAnalyticsActive(!analyticsActive)}
+                        className="text-white text-xs font-semibold bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/30 px-2.5 py-1 rounded-full irish-grover flex items-center gap-1 shadow-sm transition shrink-0"
+                      >
+                        Stats 📊
+                      </button>
+                    )}
+                    
+                    {/* Settings Icon Button */}
+                    <button 
+                      onClick={openSettings}
+                      className="hover:scale-105 active:scale-95 transition shrink-0 ml-1"
+                    >
+                      <Image
+                        src={settingsIcon}
+                        alt="Settings"
+                        width={28}
+                        height={28}
+                        className="hover:cursor-pointer"
+                      />
+                    </button>
+                  </div>
                   
                   {/* Mobile Full-width Toggle Button */}
                   {chatbotId !== undefined && (
