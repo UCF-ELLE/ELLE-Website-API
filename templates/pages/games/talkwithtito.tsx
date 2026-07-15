@@ -26,6 +26,7 @@ import AnalyticsMenu from "@/components/TalkWithTito/AnalyticsMenu";
 import UserBackground from "@/components/TalkWithTito/UserBackground";
 import ModuleButton from "@/components/TalkWithTito/ModuleButton";
 import Settings from "@/components/TalkWithTito/Settings";
+import CustomScrollbar from "@/components/TalkWithTito/CustomScrollbar";
 
 // Styles
 import "@/public/static/css/style.css";
@@ -378,7 +379,7 @@ export default function TalkWithTito() {
             : "＋ New Chat"}
         </button>
 
-        <div className="sessions-list scrollbar-thin">
+        <CustomScrollbar className="sessions-list">
           {sessionsLoading && sessions.length === 0 ? (
             <div className="sessions-status">
               <span
@@ -436,7 +437,7 @@ export default function TalkWithTito() {
               );
             })
           )}
-        </div>
+        </CustomScrollbar>
       </div>
     );
   };
@@ -792,7 +793,7 @@ export default function TalkWithTito() {
                   <div className="text-white w-full h-full relative z-10 flex flex-col justify-between">
                     <div className="flex-1 overflow-hidden flex flex-col">
                       <UserBackground username={user?.username} backgroundFilepath={userBackgroundFilepath} />
-                      <div className="w-full flex-1 flex flex-col items-center overflow-y-auto">
+                      <CustomScrollbar className="w-full flex-1 flex flex-col items-center">
                         <div className="w-full relative flex flex-col items-center">
                           <ModuleButton key={-1} moduleName={"Free Chat"} onClick={() => handleModuleClick(-1)} isSelected={selectedModule === -1} />
                           {renderSessionsDropdown(-1, selectedModule === -1 && dropdownOpen)}
@@ -810,7 +811,7 @@ export default function TalkWithTito() {
                             </div>
                           ))}
                         </div>
-                      </div>
+                      </CustomScrollbar>
                     </div>
                     <div className="w-full h-12 md:h-[7.5%] flex justify-between items-center irish-grover text-xs md:text-xl border-t-2 border-white bg-black/20">
                       <button className="ml-2 flex items-center py-3" onClick={handleExitClick}>

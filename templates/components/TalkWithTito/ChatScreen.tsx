@@ -1609,7 +1609,7 @@ async function handleSendMessageClick(
           </div>
 
           {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-            <div className="hidden lg:block w-[260px] xl:w-80 shrink-0 border-l-4 border-[#6B4F3A]/30">
+            <div className="hidden lg:block w-[260px] xl:w-80 shrink-0 border-l-4 border-[#6B4F3A]/30 ml-1">
               <VocabList
                 wordsFront={terms.map(term => term.questionFront)}
                 wordsBack={terms.map(term => term.questionBack)}
