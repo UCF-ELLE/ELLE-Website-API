@@ -14,11 +14,11 @@
 
 2. Open your terminal and SSH into the ELLE server
 
-   \`\`\`
+   ```
 
    ssh [elle@chdr.cs.ucf.edu](mailto:elle@chdr.cs.ucf.edu)
 
-   \`\`\`
+   ```
 
    password: cooler
 
@@ -90,23 +90,23 @@ There are several ways to go about this, but this is the methodology that I foll
 
 # How to Rebuild the ELLE Website After Pushing Code to the UCF-ELLE/ELLE-Website-API GitHub
 
-(these steps are written assuming you: 
+these steps are written assuming you: 
 
 1. already have your code on the GitHub   
 2. are ssh’d into the ELLE server
 
-)
+
 
 **(If you are off campus, you must use the Cisco Secure Connect VPN to be on the UCF VPN, this is explained in the *How to Access the ELLE Server*)**
 
 1. Go to the frontend’s directory  
-   \`\`\`  
+   ```  
    cd ELLE-2024-Website-API/templates  
-   \`\`\`  
+   ```  
      
 2. git pull and rebuild website
 
-		\`\`\`  
+   ```  
 git pull
 
 npm install
@@ -118,11 +118,13 @@ pm2 restart LanguageTools
 pm2 restart Llama-Server
 
 pm2 restart api-using-venv
+	```
 
 (you technically don't have to restart this one, but it should be fine if you do)
 
+```
 pm2 restart elle\_website  
-\`\`\`
+```
 
 [image1]: <data:image/png;base64,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>
 
