@@ -1,6 +1,9 @@
 # Setup a Development Server on Digital Ocean
 
-1. Start up a new Digital Ocean Droplet (use a Marketplace Droplet with MySQL bundled in, otherwise you'll have to install the MySQL client and server, steps not provided). You'll need at least 2 GB of RAM to build the React site on the server. The steps below were tested using Ubuntu 22.04.
+**For future Talking With Tito groups (and possibly other ELLE groups), we would encounter a peculiar error on the developer server regarding the database. Seemingly, this setup doc is sufficient in running a local version of the frontend that your team can change and update accordingly. But, testing changes regarding the backend and database were difficult, as they could not be thoroughly tested on the developer server, and they could only be tested on the live/production server. A possible workaround is cloning the database and having an exact structure copy (minus the data) on your server and using that instead.
+To mention an example, we could "read" the modules, but we could NOT create, update, or delete modules on the developer server. But, if you made changes to modules on the live server, it would update on both ends and we would still be able to "read" from the new/updated module. To be specific, we would get errors 401 and 403 when attempting to do so, showing/stating that the requests to the backend were valid, but were being refused to be completed due to not having the required privileges.**
+
+1. Start up a new Digital Ocean Droplet (use a Marketplace Droplet with MySQL bundled in, otherwise you'll have to install the MySQL client and server, steps not provided). You'll need at least 4 GB of RAM to build the React site on the server. The steps below were tested using Ubuntu 22.04.
 2. After that, go to your Digital Ocean dashboard and on the left sidebar click **Networking**. Click on the **Firewall** tab and create a firewall. Your firewall should have ports open, at the very minimum, for 22, 80, 443, 5050 (range 5000-5050), and 3000.
 3. As the root user, run:
 
@@ -70,6 +73,12 @@ apt-get install python3.11
 
 ```
 pip3 install -r requirements.txt
+```
+
+If you have issues at this step and need to enter a virtual environment, do so by using this command
+
+```
+source .venv/bin/activate
 ```
 
 Ensure that the API runs by running `python3 __init__.py`. If you see a Flask development server log pop up, exit it.
