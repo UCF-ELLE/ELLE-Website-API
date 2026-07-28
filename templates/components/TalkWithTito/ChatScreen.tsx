@@ -1503,12 +1503,33 @@ async function handleSendMessageClick(
         draggable={false} 
         alt="Decorative palm tree" 
       />
+
+      {/* Floating Language Selector for Free Chat */}
+      {props.moduleID === -1 && (
+        <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5 bg-white/95 backdrop-blur-md border border-[#8C7357]/30 px-3 py-1.5 rounded-full shadow-md hover:bg-white transition">
+          <span className="text-[11px] md:text-xs font-semibold text-[#6B4F3A] flex items-center gap-1">
+            🌐 Language:
+          </span>
+          <select
+            value={ttsLang}
+            onChange={(e) => setTtsLang(e.target.value)}
+            className="bg-transparent text-[11px] md:text-xs font-bold text-[#4A3525] focus:outline-none cursor-pointer pr-1"
+          >
+            {SUPPORTED_LANGS.map((lang) => (
+              <option key={lang.code} value={lang.code}>
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="flex flex-1 min-h-0 relative z-20">
         <div className="flex w-full flex-grow">
           <div className="flex flex-grow min-w-0 min-h-0 flex-col">
             {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-              <div className="lg:hidden w-full flex justify-center px-2 shrink-0 -mb-10">
-                <div className="w-full max-w-[260px]">
+              <div className="lg:hidden w-full flex justify-center px-2 shrink-0 relative z-30">
+                <div className="w-full max-w-[260px] flex justify-center relative">
                   <VocabList 
                     wordsFront={terms.map(term => term.questionFront)} 
                     wordsBack={terms.map(term => term.questionBack)} 
@@ -1602,27 +1623,13 @@ async function handleSendMessageClick(
                       alt="Send message"
                     />
                   </button>
-
-                  {props.moduleID === -1 && (
-                    <select
-                      value={ttsLang}
-                      onChange={(e) => setTtsLang(e.target.value)}
-                      className="w-[88px] md:w-32 h-10 md:h-12 rounded-full bg-white/80 hover:bg-white transition text-[11px] md:text-sm font-medium cursor-pointer px-2"
-                    >
-                      {SUPPORTED_LANGS.map((lang) => (
-                        <option key={lang.code} value={lang.code}>
-                          🌐 {lang.label}
-                        </option>
-                      ))}
-                    </select>
-                  )}
                 </div>
               </div>
             </div>
           </div>
 
           {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-            <div className="hidden lg:block w-[260px] xl:w-80 shrink-0 border-l-4 border-[#6B4F3A]/30">
+            <div className="hidden lg:block w-[260px] xl:w-80 shrink-0 border-l-4 border-[#6B4F3A]/30 ml-1">
               <VocabList
                 wordsFront={terms.map(term => term.questionFront)}
                 wordsBack={terms.map(term => term.questionBack)}

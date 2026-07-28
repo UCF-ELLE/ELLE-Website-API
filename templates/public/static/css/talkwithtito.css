@@ -565,27 +565,28 @@
   animation: checkmark-pop 0.4s ease-out forwards;
 }
 
+
 /* Custom Translucent Scrollbar for Sessions List and generally scrollbar-thin classes */
 .scrollbar-thin::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.226);
   border-radius: 10px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.425);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 0px solid rgba(101, 78, 54, 0.2);
   backdrop-filter: blur(4px);
-  transition: background 0.2s ease;
+  transition: 0.2s ease;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.603);
 }
 
 /* Whimsical Floating Animation for Tito */
@@ -741,6 +742,18 @@
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-in-out, padding 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-width 0.4s ease;
 }
 
+/* Mobile Vocab List: Absolute floating overlay over chat text */
+@media (max-width: 1023px) {
+  .vocab-list-container {
+    position: absolute;
+    top: 105px;
+    z-index: 40;
+    box-shadow: 
+      0 12px 32px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
 @media (min-width: 768px) {
   .vocab-list-container {
     width: 260px;
@@ -774,6 +787,7 @@
 /* Enforce Vocab List to be fully open and hide expand/collapse button on desktop (lg viewport) */
 @media (min-width: 1024px) {
   .vocab-list-container {
+    position: static !important;
     max-height: 75vh !important;
     opacity: 1 !important;
     margin-top: -6px !important;

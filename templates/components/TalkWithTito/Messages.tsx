@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import arrow from "@/public/static/images/ConversAItionELLE/Arrow.png"
 import Image from "next/image";
+import CustomScrollbar from "./CustomScrollbar";
 
 interface ChatMessage {
     value: string;
@@ -145,7 +146,7 @@ export default function Messages({ messages, chatFontSize, isThinking }: PropsIn
     
     
     return (
-        <div className="w-full h-full overflow-y-auto" ref={messagesContainer}>
+        <CustomScrollbar className="w-full h-full" ref={messagesContainer}>
             <div className="w-full flex flex-col pb-4">
                 {messages.map((message, index) => (
                     <Message key={index} message={message} chatFontSize={chatFontSize}/>
@@ -162,6 +163,6 @@ export default function Messages({ messages, chatFontSize, isThinking }: PropsIn
                     </div>
                 )}
             </div>
-        </div>
+        </CustomScrollbar>
     );
 }
