@@ -260,7 +260,6 @@ export default function TalkWithTito() {
       );
   
       setChatbotId(newChatbot.chatbotId);
-      setMobileModulesOpen(false);
       void loadSessionsList(moduleId);
       setDropdownOpen(false);
     } catch (error) {
@@ -403,7 +402,6 @@ export default function TalkWithTito() {
                   key={session.chatbotSID}
                   onClick={() => {
                     setChatbotId(session.chatbotSID);
-                    setMobileModulesOpen(false);
                   }}
                   className={`session-card ${
                     isActive ? "session-card-active" : ""
@@ -761,7 +759,7 @@ export default function TalkWithTito() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex-grow flex-shrink min-w-0 w-full h-full relative">
+                    <div className="flex-1 min-h-0 w-full relative flex flex-col">
                       <ChatScreen 
                         moduleID={selectedModule}
                         moduleName={selectedModule === -1 ? undefined : modules?.find(m => m.moduleID === selectedModule)?.name} 

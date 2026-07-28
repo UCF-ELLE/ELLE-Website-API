@@ -1528,8 +1528,8 @@ async function handleSendMessageClick(
         <div className="flex w-full flex-grow">
           <div className="flex flex-grow min-w-0 min-h-0 flex-col">
             {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-              <div className="lg:hidden w-full flex justify-center px-2 shrink-0 -mb-10">
-                <div className="w-full max-w-[260px]">
+              <div className="lg:hidden absolute top-0 left-1/2 -translate-x-1/2 z-30 flex justify-center px-2 pointer-events-none">
+                <div className="w-full max-w-[260px] pointer-events-auto">
                   <VocabList 
                     wordsFront={terms.map(term => term.questionFront)} 
                     wordsBack={terms.map(term => term.questionBack)} 
@@ -1544,12 +1544,12 @@ async function handleSendMessageClick(
               </div>
             )}      
 
-            <div className="flex-1 min-h-0 overflow-y-auto pl-3 pr-0 pt-3 pb-6 md:pl-4 md:pr-0 md:pt-4 md:pb-4">
+            <div className={`flex-1 min-h-0 overflow-y-auto pl-3 pr-0 pb-6 md:pl-4 md:pr-0 md:pb-4 ${props.moduleID !== -1 ? "pt-24 lg:pt-3" : "pt-3"}`}>
               <Messages messages={chatMessages} chatFontSize={props.chatFontSize} isThinking={titoMood === "thinking"} />
             </div>
 
-            <div className="w-full h-[84px] sm:h-[96px] md:h-[120px] bg-[#8C7357] flex shrink-0 relative z-20">
-              <div className="relative w-[56px] sm:w-[72px] md:w-[110px] shrink-0 flex items-center justify-center">
+            <div className="w-full h-[96px] md:h-[120px] bg-[#8C7357] flex shrink-0 relative z-20">
+              <div className="relative w-[72px] md:w-[110px] shrink-0 flex items-center justify-center">
                 <Image
                   src={titoMood === "confused" ? confusedTito : titoMood === "happy" ? happyTito : titoMood === "thinking" ? thinkingTito : neutralTito}
                   style={{ width: titoMood === "confused" || titoMood === "happy" ? "85%" : "90%" }}
@@ -1559,21 +1559,21 @@ async function handleSendMessageClick(
                 <button
                   type="button"
                   onClick={handleTtsMute}
-                  className="absolute bottom-0.5 -right-1 sm:bottom-1 md:bottom-2 md:-right-0 w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition"
+                  className="absolute bottom-1 -right-1 md:bottom-2 md:-right-0 w-6 h-6 md:w-8 md:h-8 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition"
                   title={props.ttsMuted ? "Unmute Tito's voice" : "Mute Tito's voice"}
                 >
                   <Image
                     src={props.ttsMuted ? muteIcon : volumeIcon}
                     alt={props.ttsMuted ? "Muted" : "Unmuted"}
-                    className="w-5 h-5 sm:w-7 sm:h-7 md:w-7 md:h-7"
+                    className="w-7 h-7 md:w-7 md:h-7"
                   />
                 </button>
               </div>
 
-              <div className="flex-1 flex items-center gap-1.5 sm:gap-2 pr-2 pl-0.5 sm:pl-1 min-w-0">
+              <div className="flex-1 flex items-center gap-2 pr-2 pl-1 min-w-0">
                 <textarea
                   placeholder={titoMood === "thinking" ? "Tito is thinking..." : listening ? "Listening..." : "Type here..."}
-                  className="flex-1 min-w-0 h-[65%] sm:h-[60%] md:h-[70%] bg-white rounded p-1.5 sm:p-2 text-xs sm:text-sm md:text-base resize-none overflow-y-auto"
+                  className="flex-1 min-w-0 h-[58%] md:h-[70%] bg-white rounded p-2 resize-none overflow-y-auto"
                   style={{
                     flex: "1 1 auto",
                     pointerEvents: titoMood === "thinking" || listening ? "none" : "auto",
@@ -1591,7 +1591,7 @@ async function handleSendMessageClick(
                   }}
                 />
 
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -1603,23 +1603,23 @@ async function handleSendMessageClick(
                       if (!listening) startListening();
                       else stopListening();
                     }}
-                    className={`flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 md:w-16 md:h-16 rounded-full shadow-sm transition ${listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"
+                    className={`flex items-center justify-center w-11 h-11 md:w-16 md:h-16 rounded-full shadow-sm transition ${listening ? "bg-red-500 text-white animate-pulse" : "bg-white/90 hover:bg-white"
                       }`}
                   >
                     <Image
                       src={micIcon}
                       alt="Tap to speak"
-                      className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 opacity-80 hover:opacity-100"
+                      className="w-5 h-5 md:w-6 md:h-6 opacity-80 hover:opacity-100"
                     />
                   </button>
 
                   <button
                     onClick={() => handleSendMessageClick()}
-                    className="w-9 h-9 sm:w-11 sm:h-11 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition shadow-sm"
+                    className="w-11 h-11 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition shadow-sm"
                   >
                     <Image
                       src={sendMessageIcon}
-                      className="w-5 h-5 sm:w-7 sm:h-7 md:w-10 md:h-10 rounded-full"
+                      className="w-7 h-7 md:w-10 md:h-10 rounded-full"
                       alt="Send message"
                     />
                   </button>
