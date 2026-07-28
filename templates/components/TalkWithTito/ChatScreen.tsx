@@ -1528,8 +1528,8 @@ async function handleSendMessageClick(
         <div className="flex w-full flex-grow">
           <div className="flex flex-grow min-w-0 min-h-0 flex-col">
             {props.moduleID !== -1 && progress !== undefined && terms.length > 0 && (
-              <div className="lg:hidden absolute top-0 left-1/2 -translate-x-1/2 z-30 flex justify-center px-2 pointer-events-none">
-                <div className="w-full max-w-[260px] pointer-events-auto">
+              <div className="lg:hidden w-full flex justify-center px-2 shrink-0 relative z-30">
+                <div className="w-full max-w-[260px] flex justify-center relative">
                   <VocabList 
                     wordsFront={terms.map(term => term.questionFront)} 
                     wordsBack={terms.map(term => term.questionBack)} 
@@ -1544,7 +1544,7 @@ async function handleSendMessageClick(
               </div>
             )}      
 
-            <div className={`flex-1 min-h-0 overflow-y-auto pl-3 pr-0 pb-6 md:pl-4 md:pr-0 md:pb-4 ${props.moduleID !== -1 ? "pt-24 lg:pt-3" : "pt-3"}`}>
+            <div className="flex-1 min-h-0 overflow-y-auto pl-3 pr-0 pt-3 pb-6 md:pl-4 md:pr-0 md:pt-4 md:pb-4">
               <Messages messages={chatMessages} chatFontSize={props.chatFontSize} isThinking={titoMood === "thinking"} />
             </div>
 
