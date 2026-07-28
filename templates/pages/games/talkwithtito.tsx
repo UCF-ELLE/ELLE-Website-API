@@ -260,6 +260,7 @@ export default function TalkWithTito() {
       );
   
       setChatbotId(newChatbot.chatbotId);
+      setMobileModulesOpen(false);
       void loadSessionsList(moduleId);
       setDropdownOpen(false);
     } catch (error) {
@@ -402,6 +403,7 @@ export default function TalkWithTito() {
                   key={session.chatbotSID}
                   onClick={() => {
                     setChatbotId(session.chatbotSID);
+                    setMobileModulesOpen(false);
                   }}
                   className={`session-card ${
                     isActive ? "session-card-active" : ""
