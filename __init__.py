@@ -129,6 +129,8 @@ from resources.xp import UpdateXP, RetrieveXP
 
 
 
+from resources.mouthgame_wallet import MouthGameWallet, MouthGameWalletAnswer, MouthGameWalletPurchase
+
 import config
 
 # ===============================================
@@ -444,10 +446,9 @@ api.add_resource(RetrieveXP, API_ENDPOINT_PREFIX + "retrieveXP")
 
 # Audio to WAV Conversion -> WebGL AudibELLE 
 api.add_resource(WAVAudioConversion, API_ENDPOINT_PREFIX + "convert_to_wav/<path:path>")
+api.add_resource(MouthGameWallet, API_ENDPOINT_PREFIX + "mouthgame/wallet")
+api.add_resource(MouthGameWalletAnswer, API_ENDPOINT_PREFIX + "mouthgame/wallet/answer")
+api.add_resource(MouthGameWalletPurchase, API_ENDPOINT_PREFIX + "mouthgame/wallet/purchase")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
-
-
-
-
