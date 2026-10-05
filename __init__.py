@@ -126,6 +126,7 @@ from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALVal
 from resources.animelle import AnimELLESaveData
 from resources.adaptivelearning import GetSingleALValue, UpdateALValue, GetALValues
 from resources.xp import UpdateXP, RetrieveXP
+from resources.mouthgame import MouthGameLessonProgress
 
 
 
@@ -444,6 +445,13 @@ api.add_resource(RetrieveXP, API_ENDPOINT_PREFIX + "retrieveXP")
 
 # Audio to WAV Conversion -> WebGL AudibELLE 
 api.add_resource(WAVAudioConversion, API_ENDPOINT_PREFIX + "convert_to_wav/<path:path>")
+
+# ===============================================
+# Mouth Game endpoints
+# ===============================================
+api.add_resource(
+    MouthGameLessonProgress, API_ENDPOINT_PREFIX + "mouthgame/progress"
+)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
