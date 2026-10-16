@@ -17,6 +17,7 @@ class MouthGameLessonProgress(Resource):
     lessonID values are defined client-side in LessonData.cs:
       1-17    consonant lessons
       18-26   vowel lessons
+      98      tutorial completion marker
       99      endless mode (bestScore only)
       101/103 vowel/consonant quiz results
     """
@@ -122,6 +123,101 @@ class MouthGameLessonProgress(Resource):
                 {
                     "Message": "Successfully saved lesson progress",
                     "lessonID": data["lessonID"],
+                },
+                200,
+            )
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+
+class MouthGameAchievements(Resource):
+    """
+    Per-user unlocked achievements for the Mouth Game.
+
+    Table: `mouthgame_achievements` (one row per userID x achievementID).
+    achievementID values are defined client-side in AchievementManager.cs
+    (0-15, index-matched to the achievement catalog order).
+    """
+
+    # returns all unlocked achievements for the current user
+    @jwt_required
+    def get(self):
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = """
+                SELECT `achievementID`, `unlockedAt`
+                FROM `mouthgame_achievements`
+                WHERE `userID` = %s
+                """
+            result = getFromDB(query, user_id, conn, cursor)
+
+            rows = []
+            for row in result:
+                rows.append(
+                    {
+                        "achievementID": row[0],
+                        "unlockedAt": str(row[1]),
+                    }
+                )
+
+            raise ReturnSuccess(rows, 200)
+        except CustomException as error:
+            conn.rollback()
+            return error.msg, error.returnCode
+        except ReturnSuccess as success:
+            conn.commit()
+            return success.msg, success.returnCode
+        except Exception as error:
+            conn.rollback()
+            return errorMessage(str(error)), 500
+        finally:
+            if conn.open:
+                cursor.close()
+                conn.close()
+
+    # records an unlocked achievement for the current user (idempotent)
+    # params: achievementID (req)
+    @jwt_required
+    def post(self):
+        data = {}
+        data["achievementID"] = getParameter("achievementID", int, True, "")
+
+        permission, user_id = validate_permissions()
+        if not permission or not user_id:
+            return errorMessage("Invalid user"), 401
+
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+
+            query = """
+                INSERT IGNORE INTO `mouthgame_achievements`
+                    (`userID`, `achievementID`)
+                VALUES (%s, %s)
+                """
+            postToDB(query, (user_id, data["achievementID"]), conn, cursor)
+
+            raise ReturnSuccess(
+                {
+                    "Message": "Successfully saved achievement",
+                    "achievementID": data["achievementID"],
                 },
                 200,
             )

@@ -668,6 +668,23 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
+-- Table structure for table `mouthgame_achievements`
+--
+
+DROP TABLE IF EXISTS `mouthgame_achievements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mouthgame_achievements` (
+  `achievementID` int NOT NULL,
+  `userID` int NOT NULL,
+  `unlockedAt` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`userID`,`achievementID`),
+  KEY `userID` (`userID`),
+  CONSTRAINT `mga_fk_user` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `mouthgame_lesson_progress`
 --
 
