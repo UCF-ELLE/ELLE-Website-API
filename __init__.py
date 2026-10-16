@@ -1,4 +1,4 @@
-# Some of the imports are not used; they were copied and pasted from the existing Flask app's __init__.py
+﻿# Some of the imports are not used; they were copied and pasted from the existing Flask app's __init__.py
 from flask import (
     Flask,
     render_template,
@@ -129,7 +129,7 @@ from resources.xp import UpdateXP, RetrieveXP
 
 
 
-from resources.mouthgame_wallet import MouthGameWallet, MouthGameWalletAnswer, MouthGameWalletPurchase
+from resources.game_wallet import GameWallet, GameWalletReward, GameWalletPurchase
 
 import config
 
@@ -446,9 +446,11 @@ api.add_resource(RetrieveXP, API_ENDPOINT_PREFIX + "retrieveXP")
 
 # Audio to WAV Conversion -> WebGL AudibELLE 
 api.add_resource(WAVAudioConversion, API_ENDPOINT_PREFIX + "convert_to_wav/<path:path>")
-api.add_resource(MouthGameWallet, API_ENDPOINT_PREFIX + "mouthgame/wallet")
-api.add_resource(MouthGameWalletAnswer, API_ENDPOINT_PREFIX + "mouthgame/wallet/answer")
-api.add_resource(MouthGameWalletPurchase, API_ENDPOINT_PREFIX + "mouthgame/wallet/purchase")
+api.add_resource(GameWallet, API_ENDPOINT_PREFIX + "wallet")
+api.add_resource(GameWalletReward, API_ENDPOINT_PREFIX + "wallet/reward")
+api.add_resource(GameWalletPurchase, API_ENDPOINT_PREFIX + "wallet/purchase")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5050", debug=True)
+
+
