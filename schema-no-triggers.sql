@@ -512,6 +512,46 @@ CREATE TABLE `module_question` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `mouthgame_achievements`
+--
+
+DROP TABLE IF EXISTS `mouthgame_achievements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mouthgame_achievements` (
+  `achievementID` int NOT NULL,
+  `userID` int NOT NULL,
+  `unlockedAt` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`userID`,`achievementID`),
+  KEY `userID` (`userID`),
+  CONSTRAINT `mga_fk_user` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `mouthgame_lesson_progress`
+--
+
+DROP TABLE IF EXISTS `mouthgame_lesson_progress`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mouthgame_lesson_progress` (
+  `progressID` int NOT NULL AUTO_INCREMENT,
+  `userID` int NOT NULL,
+  `lessonID` int NOT NULL,
+  `completed` tinyint(1) NOT NULL DEFAULT '0',
+  `score` int NOT NULL DEFAULT '0',
+  `totalAttempts` int NOT NULL DEFAULT '0',
+  `bestScore` int NOT NULL DEFAULT '0',
+  `lastUpdated` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`progressID`),
+  UNIQUE KEY `uc_user_lesson` (`userID`,`lessonID`),
+  KEY `userID` (`userID`),
+  CONSTRAINT `mglp_fk_user` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `multiple_choice_answers`
 --
 
